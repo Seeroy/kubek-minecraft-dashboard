@@ -1,5 +1,5 @@
 # kubek-minecraft-dashboard
-Kubek - New Minecraft server control dashboard, written on Node.js using Bootstrap.
+Kubek - New Minecraft server control dashboard, written on Node.js
 
 Features:
 - Using Paper API
