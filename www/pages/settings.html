@@ -1,0 +1,109 @@
+<div class="window" style="width: 100%;">
+  <div class="blck">Settings</div>
+  <div class="blck" style="height: 512px; overflow: auto; padding: 24px;">
+    <div class="setflex-c">
+      <div class="setflex-b">
+        Server start script
+      </div>
+      <div class="setflex-b">
+        <input type="text" class="form-control serStScript">
+      </div>
+    </div>
+    <br><br>
+    <button type="button" class="btn btn-outline-danger btn-delete">Delete Server</button>
+  </div>
+</div>
+
+<script>
+  var intDC;
+  var oldDC;
+  $(document).ready(function () {
+    $(".btn-delete").click(function () {
+      Swal.fire({
+        title: 'Are you sure?',
+        html: 'Do you want to <span style="color: #c4183c; font-weight: 600;">delete ' + currentServer + '?</span><br>This cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          clearInterval(di);
+          clearInterval(di2);
+          Swal.fire({
+            title: "<span style='font-weight: 600; font-size: 16pt;'>Removing " + currentServer + "...</span><br><span style='font-weight: 400; font-size: 15pt;'>Do not reload page!</span>",
+            html: '<div style="display: flex; justify-content: center;"><div style="width: 48px; height: 48px; border-radius: 50%; background: #0067f4;" class="animate__animated animate__fadeIn animate__infinite"></div></div>',
+            showCancelButton: false,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+          })
+          $.get("/server/delete?server=" + currentServer, function () {
+            setInterval(function () {
+              $.get("/servers/deletes/progress", function (data) {
+                if (typeof (oldDC) === "undefined" || oldDC != data) {
+                  if (typeof (oldDC) !== "undefined") {
+                    keys1 = Object.keys(data);
+                    keys2 = Object.keys(oldDC);
+                    diff = arr_diff(keys1, keys2);
+                    diff.forEach(function (diffi) {
+                      if (data[diffi] === undefined && oldDC[diffi] !== undefined) {
+                        window.location = "/";
+                      }
+                    });
+                  }
+                  oldDC = data;
+                }
+              });
+            }, 250);
+          });
+        }
+      })
+    });
+    $.get("/server/startScript?server=" + currentServer, function (data) {
+      $(".serStScript").val(data);
+    });
+    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      updateQuery();
+    } else {
+      $(".g-srvcore .srvcore").html("Unknown");
+      $(".g-srvplayers .srvplayerscount").html("Unknown");
+    }
+
+    di2 = setInterval(function () {
+      updateServersStatus();
+    }, 500);
+
+    di = setInterval(function () {
+      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+        updateQuery();
+      } else {
+        $(".g-srvcore .srvcore").html("Unknown");
+        $(".g-srvplayers .srvplayerscount").html("Unknown");
+      }
+    }, 800);
+  });
+</script>
+
+<style>
+  .setflex-c {
+    display: flex;
+    align-items: center;
+    height: max-content;
+  }
+
+  .setflex-b {
+    margin: 5px;
+    padding: 5px;
+    flex: 1 1 auto;
+  }
+
+  input[type=text] {
+    background: rgb(43, 53, 63);
+    border: none;
+    outline: none;
+    color: white;
+  }
+</style>

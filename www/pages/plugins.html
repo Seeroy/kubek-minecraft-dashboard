@@ -1,0 +1,157 @@
+<div class="window" style="width: 100%;">
+  <div class="blck">
+    Plugins
+    <button type="button" class="btn btn-primary btn-sm" onclick="loadPage('plmanager')">Plugin manager</button>
+  </div>
+  <div class="blck" style="height: 512px; overflow: auto;">
+    <table class="ttt2"></table><br><br>
+    <div class="ggg" style="width: auto; justify-content: center;">
+      <div class="ggg-box">
+        <button type="button" class="btn btn-secondary" onclick="prevPage()"><span
+            class="material-icons material-icons-outlined">keyboard_arrow_left</span></button>
+      </div>
+      <div class="ggg-box">
+        <button type="button" class="btn btn-secondary" onclick="nextPage()"><span
+            class="material-icons material-icons-outlined">keyboard_arrow_right</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="selectPluginModal" tabindex="-1" role="dialog" aria-labelledby="selectPluginModallLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="selectPluginModallLabel">Downloading file</h5>
+      </div>
+      <div class="modal-body">
+        <center>
+          <p style="color: black;" class="spStatus">Select version</p>
+          <select class="custom-select spSelect"></select><br><br><br>
+          <button type="button" class="btn btn-primary spInstall">Install</button>
+        </center>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var page = 1;
+
+  $(document).ready(function () {
+    updateFromPage();
+  });
+
+  function updateFromPage() {
+    $(".loadBg").show();
+    $(".blck .ttt2").html("");
+    if (page == 1) {
+      $.get("/bukkitorg/plugins/list?server=" + currentServer, function (data) {
+        data.forEach(function (elem) {
+          btnt = "";
+          if (elem.showbtn == true) {
+            btnt = '<button class="btn btn-light" style="color: black;" onclick="downloadPlugin(' + "'" + elem.name + "'" + ', ' + "'" + elem.download_url + "'" + ')" data-toggle="tooltip" data-placement="top" title="Download"><span class="material-icons material-icons-outlined">download</i></button>';
+          }
+          $(".blck .ttt2").append('<tr><td><img alt="" src="' + elem.image_url + '"></td><td>' + elem.name + '</td><td>' + btnt + '</td></tr>');
+        });
+        $(".loadBg").hide();
+      });
+    } else {
+      $.get("/bukkitorg/plugins/list?page=" + page + "&server=" + currentServer, function (data) {
+        data.forEach(function (elem) {
+          btnt = "";
+          if (elem.showbtn == true) {
+            btnt = '<button class="btn btn-light" style="color: black;" onclick="downloadPlugin(' + "'" + elem.name + "'" + ', ' + "'" + elem.download_url + "'" + ')" data-toggle="tooltip" data-placement="top" title="Download"><span class="material-icons material-icons-outlined">download</i></button>';
+          }
+          $(".blck .ttt2").append('<tr><td><img alt="" src="' + elem.image_url + '"></td><td>' + elem.name + '</td><td>' + btnt + '</td></tr>');
+        });
+        $(".loadBg").hide();
+      });
+    }
+  }
+
+  function prevPage() {
+    if (page != 1) {
+      page--;
+      updateFromPage();
+    }
+  }
+
+  function nextPage() {
+    page++;
+    updateFromPage();
+  }
+
+  function downloadPlugin(fn, url) {
+    myModal = new bootstrap.Modal(document.getElementById('selectPluginModal'));
+    myModal.show();
+    $("#selectPluginModal .spSelect").hide();
+    $("#selectPluginModal .spInstall").hide();
+    $("#selectPluginModal .spStatus").html("Searching...");
+    $("#selectPluginModal #selectPluginModallLabel").html(fn);
+    filesUrl = url.replace("/latest", "");
+    $.get("/bukkitorg/versions?url=" + filesUrl, function (data) {
+      $("#selectPluginModal .spSelect").show();
+      $("#selectPluginModal .spSelect").html("");
+      $("#selectPluginModal .spInstall").show();
+      $("#selectPluginModal .spStatus").html("Select version");
+      data.forEach(function (item) {
+        $("#selectPluginModal .spSelect").append("<option data-url='" + item.url + "'>" + item.name + "</option>");
+      });
+    });
+
+    $("#selectPluginModal .spInstall").click(function () {
+      fnn = $("#selectPluginModal #selectPluginModallLabel").html().split(" ").join("_") + "-" + $("#selectPluginModal .spSelect option:selected").html().split(" ").join("_") + ".jar";
+      urll = $("#selectPluginModal .spSelect option:selected").data("url");
+      $.get("/file/download?filename=" + fnn + "&url=" + urll + "&server=" + currentServer + "&type=plugin");
+      myModal.hide();
+    });
+  }
+
+  $(document).ready(function () {
+    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      updateQuery();
+    } else {
+      $(".g-srvcore .srvcore").html("Unknown");
+      $(".g-srvplayers .srvplayerscount").html("Unknown");
+    }
+
+    di2 = setInterval(function () {
+      updateServersStatus();
+    }, 500);
+
+    di = setInterval(function () {
+      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+        updateQuery();
+      } else {
+        $(".g-srvcore .srvcore").html("Unknown");
+        $(".g-srvplayers .srvplayerscount").html("Unknown");
+      }
+    }, 800);
+  });
+</script>
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  td,
+  th {
+    border-bottom: 1px solid rgb(140, 140, 140);
+    text-align: left;
+    padding: 12px;
+  }
+
+  td:first-child {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  td:last-child {
+    text-align: right;
+  }
+</style>

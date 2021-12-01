@@ -1,0 +1,170 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Kubek - Minecraft Servers</title>
+
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="css/animate.min.css" />
+  <script src="js/shards.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/toastify.min.css">
+  <link rel="stylesheet" href="css/shards.min.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="ntc-pool"></div>
+  <div class="modal fade" id="downloadFileModal" tabindex="-1" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="downloadFileModallLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="downloadFileModalLabel">Downloading file</h5>
+        </div>
+        <div class="modal-body">
+          <center>
+            <p style="color: black;" class="fdStatus"></p>
+            <progress id="fdProgress" max="100" value="0"></progress>
+          </center>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="createServerModal" tabindex="-1" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="createServerModallLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createServerModalLabel">Your first server</h5>
+        </div>
+        <div class="modal-body">
+          <div class="hideWhileCreating">
+            <span style="color: black;">Server name</span>
+            <input type="text" class="form-control srvNamee" required><br>
+            <span style="color: black;">Core</span><br>
+            <select class="custom-select coreSelect" required></select><br><br>
+            <span style="color: black;">Memory (-Xmx)</span>
+            <input type="number" class="form-control xmxMem" min=1024 value=2560 max=8192 step=512 required><br>
+            <span style="color: black;">Port (2000 - 60000)</span>
+            <input type="number" class="form-control srvPort" min=2000 value=25565 max=60000 required><br>
+            <div class="custom-control custom-toggle my-2">
+              <input type="checkbox" id="omtoggle" name="omtoggle" class="custom-control-input onMode" checked>
+              <label class="custom-control-label" for="omtoggle" style="color: black;">Online mode (only license
+                players)</label>
+            </div>
+          </div>
+          <div class="showWhileCreating">
+            <center>
+              <p style="color: black;">Searching core</p>
+              <progress id="downProgress" max="100" value="0"></progress>
+            </center>
+          </div>
+        </div>
+        <div class="modal-footer hideWhileCreating">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary createSrvButton">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  var old_ntcpool = [];
+
+  $(document).ready(function () {
+    $.get("/cores/list", function (data) {
+      $("#createServerModal .coreSelect").html("");
+      data.forEach(function (core, i) {
+        if (i == 0) {
+          sel = " selected";
+        } else {
+          sel = "";
+        }
+        $("#createServerModal .coreSelect").append("<option" + sel + ">" + core + "</option>");
+      });
+      $("#createServerModal .modal-title").html("Your first server");
+      $("#createServerModal .hideWhileCreating").each(function () {
+        $(this).show();
+      });
+      $("#createServerModal .showWhileCreating").each(function () {
+        $(this).hide();
+      });
+      $("#createServerModal .srvNamee").val("");
+      modal = new bootstrap.Modal(document.getElementById('createServerModal'), {backdrop: "static", keyboard: false});
+      modal.show();
+    });
+    $("#createServerModal .createSrvButton").click(function () {
+      if ($("#createServerModal .srvNamee").val() != "" && $("#createServerModal .xmxMem").val() != "") {
+        $("#createServerModal .modal-title").html("Creating server");
+        $("#createServerModal .hideWhileCreating").each(function () {
+          $(this).hide();
+        });
+        $("#createServerModal .showWhileCreating").each(function () {
+          $(this).show();
+        });
+        $("#createServerModal .showWhileCreating p").html("Searching core");
+        sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
+        core = $("#createServerModal .hideWhileCreating .coreSelect option:selected").html();
+        $.get("/cores/search?core=" + core, function (data) {
+          if (data != "") {
+            $("#createServerModal .showWhileCreating p").html("Downloading core");
+            $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data.lastIndexOf('/') + 1) + "&type=core");
+            rr = setInterval(function () { getProgress(data.substring(data.lastIndexOf('/') + 1)) }, 25);
+          }
+        });
+      }
+    });
+  });
+
+  function getProgress(jarfile) {
+    $.get("/tasks/progress", function (data) {
+      if (typeof (old_rgr) === "undefined" || old_rgr != data) {
+        if (typeof (old_rgr) !== "undefined") {
+          keys1 = Object.keys(data);
+          keys2 = Object.keys(old_rgr);
+          diff = arr_diff(keys1, keys2);
+          diff.forEach(function (diffi) {
+            $("#createServerModal .showWhileCreating #downProgress").val(0);
+            clearInterval(rr);
+            $("#createServerModal .showWhileCreating p").html("Completion");
+            $('#createServerModal .hideWhileCreating .onMode').is(':checked') ? ttr = "true" : ttr = "false";
+            $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&memory=" + $("#createServerModal .hideWhileCreating .xmxMem").val() + "&port=" + $("#createServerModal .hideWhileCreating .srvPort").val() + "&onMode=" + ttr, function (data) {
+              document.location.reload();
+            });
+          });
+        }
+        old_rgr = data;
+      }
+      $("#createServerModal .showWhileCreating #downProgress").val(data[jarfile]);
+    });
+  }
+
+  function arr_diff(a1, a2) {
+    var a = [], diff = [];
+    for (var i = 0; i < a1.length; i++) {
+      a[a1[i]] = true;
+    }
+    for (var i = 0; i < a2.length; i++) {
+      if (a[a2[i]]) {
+        delete a[a2[i]];
+      } else {
+        a[a2[i]] = true;
+      }
+    }
+    for (var k in a) {
+      diff.push(k);
+    }
+    return diff;
+  };
+</script>

@@ -1,0 +1,174 @@
+<div class="ttgrid">
+  <div class="tr1">
+    <div class="ttb"></div>
+  </div>
+  <div class="tr2">
+    <div class="ttb"></div>
+  </div>
+  <div class="tr3">
+    <div class="ttb"></div>
+  </div>
+  <div class="tr4">
+    <div class="ttb"></div>
+  </div>
+</div>
+
+<br><br><button type="button" class="btn btn-secondary btn-lg" onclick="saveProps()">Save</button>
+
+<script>
+  $(document).ready(function () {
+    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      updateQuery();
+    } else {
+      $(".g-srvcore .srvcore").html("Unknown");
+      $(".g-srvplayers .srvplayerscount").html("Unknown");
+    }
+
+    di2 = setInterval(function () {
+      updateServersStatus();
+    }, 500);
+
+    di = setInterval(function () {
+      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+        updateQuery();
+      } else {
+        $(".g-srvcore .srvcore").html("Unknown");
+        $(".g-srvplayers .srvplayerscount").html("Unknown");
+      }
+    }, 800);
+  });
+
+  $(document).ready(function () {
+    $.get("/server/properties/get?server=" + currentServer, function (data) {
+      keys = Object.keys(data);
+      fulls = data;
+      keys.forEach(function (key, i) {
+        if (i < 15) {
+          column = 1;
+        } else if (i >= 15 && i < 30) {
+          column = 2;
+        } else if (i >= 30 && i < 45) {
+          column = 3;
+        } else if (i >= 45) {
+          column = 4;
+        }
+        znach = fulls[key];
+          if (typeof znach == "boolean") {
+            if (znach == true) {
+              checkd = " checked";
+            } else {
+              checkd = "";
+            }
+            $(".tr" + column + " .ttb").append('<div class="ttc"><div class="custom-control custom-toggle cbox"><input type="checkbox" id="ct' + i + '" name="ct' + i + '" class="custom-control-input"' + checkd + '><label class="stlabel custom-control-label" for="ct' + i + '">' + key + '</label></div>');
+          } else {
+            if (znach != null) {
+              $(".tr" + column + " .ttb").append('<div class="ttc ttbb"><div class="ttcc"><input type="text" style="width: 256px" class="form-control" value="' + znach + '"></div><div class="ttcc"><span>' + key + '</span></div></div>');
+            } else {
+              $(".tr" + column + " .ttb").append('<div class="ttc ttbb"><div class="ttcc"><input type="text" style="width: 256px" class="form-control" value=""></div><div class="ttcc"><span>' + key + '</span></div></div>');
+            }
+          }
+      });
+    });
+  });
+
+  function saveProps() {
+    var sp;
+    $(".ttgrid .cbox").each(function () {
+      chk = $(this).find("input").is(':checked') ? true : false;
+      key = $(this).find("label").html();
+      if (typeof (sp) !== "undefined") {
+        sp = sp + "\n" + key + "=" + chk;
+      } else {
+        sp = key + "=" + chk;
+      }
+    });
+    $(".ttbb").each(function () {
+      value = $(this).find("input").val();
+      key = $(this).find("span").html();
+      sp = sp + "\n" + key + "=" + value;
+    });
+    sp = btoa(sp);
+    $.get("/server/properties/save?doc=" + sp + "&server=" + currentServer);
+    Toastify({
+      text: "Настройки сохранены, но они применятся только после перезагрузки сервера",
+      duration: 3000,
+      newWindow: true,
+      close: false,
+      gravity: "bottom",
+      position: "left",
+      stopOnFocus: true,
+      style: {
+        background: "#0067f4",
+        color: "white",
+      },
+      onClick: function () { }
+    }).showToast();
+  }
+</script>
+
+<style>
+  .ttb {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+
+  .ttc {
+    margin: 5px;
+    padding: 5px;
+    flex: 0 1 auto;
+  }
+
+  .ttbb {
+    display: flex;
+    align-items: center;
+  }
+
+  .ttcc {
+    flex: 0 1 auto;
+  }
+
+  .ttcc:nth-child(2) {
+    margin-left: 8px;
+  }
+
+  input[type=text] {
+    background: rgb(43, 53, 63);
+    border: none;
+    outline: none;
+    color: white;
+  }
+
+  .stlabel::before {
+    background: rgb(43, 53, 63) !important;
+  }
+
+  .ttgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0px 4px;
+    grid-auto-flow: row;
+    justify-items: stretch;
+    align-items: stretch;
+    grid-template-areas:
+      "tr1 tr2 tr3 tr4";
+    width: 100%;
+    height: 100%;
+  }
+
+  .tr1 {
+    grid-area: tr1;
+  }
+
+  .tr2 {
+    grid-area: tr2;
+  }
+
+  .tr3 {
+    grid-area: tr3;
+  }
+
+  .tr4 {
+    grid-area: tr4;
+  }
+</style>

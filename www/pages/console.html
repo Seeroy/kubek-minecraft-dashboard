@@ -1,0 +1,50 @@
+<div class="window consoleWindow" style="width: 100%;">
+  <div class="blck">
+    Console
+  </div>
+  <div class="blck termiText" style="background: #111111; height: 512px; overflow: auto;">
+
+  </div>
+  <div class="blck termiInput">
+    <input type="text" placeholder="Enter command">
+  </div>
+</div>
+
+<script>
+  var spl = false;
+
+  $(document).ready(function () {
+    updateCoresList();
+    updateLog();
+    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      updateQuery();
+    } else {
+      $(".g-srvcore .srvcore").html("Unknown");
+      $(".g-srvplayers .srvplayerscount").html("Unknown");
+    }
+    $(".termiInput input").keydown(function (e) {
+      if (e.keyCode == 13) {
+        $.get("/sendServerCommand?server=" + currentServer + "&cmd=" + $(".termiInput input").val());
+        $(".termiInput input").val("");
+        setTimeout(function () {
+          maxScroll = $(".termiText")[0].scrollHeight - $(".termiText").outerHeight();
+          $(".termiText").scrollTop(maxScroll);
+        }, 700);
+      }
+    });
+
+    di = setInterval(function () {
+      updateServersStatus();
+      updateLog();
+    }, 500);
+
+    setInterval(function () {
+      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+        updateQuery();
+      } else {
+        $(".g-srvcore .srvcore").html("Unknown");
+        $(".g-srvplayers .srvplayerscount").html("Unknown");
+      }
+    }, 800);
+  });
+</script>
