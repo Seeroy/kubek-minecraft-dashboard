@@ -20,3 +20,7 @@ Starting after installation
 ```
 node app.js
 ```
+
+**OR**
+
+Download and launch last release
