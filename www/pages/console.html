@@ -24,7 +24,7 @@
     }
     $(".termiInput input").keydown(function (e) {
       if (e.keyCode == 13) {
-        $.get("/sendServerCommand?server=" + currentServer + "&cmd=" + $(".termiInput input").val());
+        $.get("/server/command?server=" + currentServer + "&cmd=" + $(".termiInput input").val());
         $(".termiInput input").val("");
         setTimeout(function () {
           maxScroll = $(".termiText")[0].scrollHeight - $(".termiText").outerHeight();
