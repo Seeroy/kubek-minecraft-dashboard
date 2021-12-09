@@ -8,7 +8,6 @@ var spParser = require("minecraft-server-properties");
 const fs = require('fs');
 var colors = require('colors');
 var xmlParser = require('xml2js').parseString;
-const { json } = require('express');
 let url = "https://dev.bukkit.org/bukkit-plugins";
 var options = {
   headers: {
@@ -35,7 +34,7 @@ var os = require('os');
 var cp = {};
 var serDeletes = {};
 const fse = require('fs-extra');
-
+const version = "v1.0.0";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
@@ -50,11 +49,31 @@ if (typeof (configjson) !== "undefined") {
   }
 }
 
-console.log(colors.inverse('================'));
-console.log(colors.inverse('   Kubek v1.0   '));
-console.log(colors.inverse('github.com/UserKrasti/kubek-minecraft-dashboard'));
-console.log(colors.inverse('================'));
+console.log(colors.inverse('Kubek ' + version + ''));
+console.log(colors.inverse('https://github.com/Seeroy/kubek-minecraft-dashboard'));
 console.log(" ");
+
+request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/releases", options, (error, res, body) => {
+  if (error) {
+    return console.error(error);
+  }
+
+  if (!error && res.statusCode == 200) {
+    jsson = JSON.parse(body);
+    if (jsson[0].tag_name == version) {
+      console.log(colors.green('Updates not found'));
+    } else {
+      console.log(colors.yellow('Updates found! URL:'));
+      console.log(colors.yellow(jsson[0].assets[0].browser_download_url));
+    }
+    console.log(" ");
+
+    app.listen(port, () => {
+      link = 'http://localhost:' + port;
+      console.log(getTimeFormatted(), "Kubek listening on", link);
+    });
+  };
+});
 
 if (firstStart == false) {
   app.use("/", express.static(path.join(__dirname, './www')));
@@ -121,11 +140,6 @@ if (firstStart == false) {
     response.send("Success");
   });
 
-  app.listen(port, () => {
-    link = 'http://localhost:' + port;
-    console.log(getTimeFormatted(), "Kubek listening on", link);
-  });
-
   app.get('/servers/deletes/progress', (request, response) => {
     response.set('Content-Type', 'application/json');
     response.send(JSON.stringify(serDeletes));
@@ -137,7 +151,10 @@ if (firstStart == false) {
       fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
       serDeletes[request.query.server] = "deleting";
       setTimeout(function () {
-        fs.rm("./servers/" + request.query.server, { recursive: true, force: true }, function () {
+        fs.rm("./servers/" + request.query.server, {
+          recursive: true,
+          force: true
+        }, function () {
           delete serDeletes[request.query.server];
         });
       }, 500);
@@ -178,7 +195,9 @@ if (firstStart == false) {
 
   app.get('/plugins/installed', (request, response) => {
     console.log(getTimeFormatted(), "GET", request.originalUrl.green);
-    dirents = fs.readdirSync("./servers/" + request.query.server + "/plugins", { withFileTypes: true });
+    dirents = fs.readdirSync("./servers/" + request.query.server + "/plugins", {
+      withFileTypes: true
+    });
     filesNames = dirents
       .filter(dirent => dirent.isFile())
       .map(dirent => dirent.name);
@@ -309,10 +328,6 @@ if (firstStart == false) {
   app.use("/js", express.static(path.join(__dirname, './www/js')));
   app.use("/css", express.static(path.join(__dirname, './www/css')));
   app.use("/", express.static(path.join(__dirname, './www/setup/')));
-  app.listen(port, () => {
-    link = 'http://localhost:' + port;
-    console.log(getTimeFormatted(), "Kubek listening on", link);
-  });
 
   app.get('/server/completion', (request, response) => {
     console.log(getTimeFormatted(), "GET", request.originalUrl.green);
