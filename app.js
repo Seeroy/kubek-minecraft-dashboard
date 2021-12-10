@@ -64,7 +64,7 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
       console.log(colors.green('Updates not found'));
     } else {
       console.log(colors.yellow('Updates found! URL:'));
-      console.log(colors.yellow(jsson[0].assets[0].browser_download_url));
+      console.log(colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + jsson[0].tag_name));
     }
     console.log(" ");
 
