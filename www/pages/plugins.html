@@ -101,6 +101,7 @@
       });
     });
 
+    $("#selectPluginModal .spInstall").unbind("click");
     $("#selectPluginModal .spInstall").click(function () {
       fnn = $("#selectPluginModal #selectPluginModallLabel").html().split(" ").join("_") + "-" + $("#selectPluginModal .spSelect option:selected").html().split(" ").join("_") + ".jar";
       urll = $("#selectPluginModal .spSelect option:selected").data("url");
