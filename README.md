@@ -4,8 +4,8 @@ Kubek - New Minecraft server control dashboard, written on Node.js
 **After creating first server app WILL BE CLOSED, restart it!**
 
 Features:
-- Using Paper API for download core
-- Auto-parsing and downloading plugins from bukkit.org
+- Paper and Spigot support/auto-install
+- Full-auto plugin manager (bukkit.org)
 - Real-time console
 - Server.properties editor
 
