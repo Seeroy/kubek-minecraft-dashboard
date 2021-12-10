@@ -34,7 +34,7 @@ var os = require('os');
 var cp = {};
 var serDeletes = {};
 const fse = require('fs-extra');
-const version = "v1.0.3";
+const version = "v1.0.3-hotfix";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
