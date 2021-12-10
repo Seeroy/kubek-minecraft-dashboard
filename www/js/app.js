@@ -48,13 +48,26 @@ $(document).ready(function () {
       $("#createServerModal .showWhileCreating p").html("Searching core");
       sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
       core = $("#createServerModal .hideWhileCreating .coreSelect option:selected").html();
-      $.get("/cores/search?core=" + core, function (data) {
-        if (data != "") {
+      if (core.substring(0, 1) == "P") {
+        $.get("/cores/search?core=" + core, function (data) {
+          if (data != "") {
+            $("#createServerModal .showWhileCreating p").html("Downloading core");
+            $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data.lastIndexOf('/') + 1) + "&type=core");
+            rr = setInterval(function () {
+              getProgress(data.substring(data.lastIndexOf('/') + 1))
+            }, 25);
+          }
+        });
+      } else {
+        $.get("/cores/spigot/list", function (data) {
+          url = data[core.replace("Spigot ", "")];
           $("#createServerModal .showWhileCreating p").html("Downloading core");
-          $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data.lastIndexOf('/') + 1) + "&type=core");
-          rr = setInterval(function () { getProgress(data.substring(data.lastIndexOf('/') + 1)) }, 25);
-        }
-      });
+          $.get("/file/download?url=" + url + "&server=" + sname + "&filename=" + url.substring(url.lastIndexOf('/') + 1) + "&type=core");
+          rr = setInterval(function () {
+            getProgress(url.substring(url.lastIndexOf('/') + 1))
+          }, 25);
+        });
+      }
     }
   });
 });
@@ -213,7 +226,9 @@ function updateQuery() {
       $(".g-srvplayers .srvplayerscount").html("Unknown");
     }
     maxmem = Math.round(data.totalmem / 1024 / 1024 / 1024) * 1024;
-    $("#createServerModal .hideWhileCreating .xmxMem").attr({ "max": maxmem });
+    $("#createServerModal .hideWhileCreating .xmxMem").attr({
+      "max": maxmem
+    });
     if ($(".blck .ttt1")[0] != "") {
       $(".blck .ttt1").html("");
       if (typeof (data.players) !== "undefined") {
@@ -239,6 +254,14 @@ function updateCoresList() {
         sel = "";
       }
       $("#createServerModal .coreSelect").append("<option" + sel + ">" + core + "</option>");
+    });
+  });
+  $.get("/cores/spigot/list", function (data) {
+    console.log(data);
+    keys = Object.keys(data);
+    keys.forEach(function (key) {
+      core = "Spigot " + key;
+      $("#createServerModal .coreSelect").append("<option>" + core + "</option>");
     });
   });
 }

@@ -34,7 +34,7 @@ var os = require('os');
 var cp = {};
 var serDeletes = {};
 const fse = require('fs-extra');
-const version = "v1.0.2";
+const version = "v1.0.3";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
@@ -334,7 +334,13 @@ if (firstStart == false) {
     server = request.query.server;
     console.log(getTimeFormatted(), "EULA saved on server", server);
     fs.writeFileSync("./servers/" + server + "/eula.txt", "eula=true");
-    fs.writeFileSync("./servers/" + server + "/start.bat", "@echo off\nchcp 65001>nul\ncd servers\ncd " + server + "\njava -Xms512M -Xmx" + request.query.memory + "M -jar " + request.query.jf + " nogui");
+    if (process.platform == "win32") {
+      fs.writeFileSync("./servers/" + server + "/start.bat", "@echo off\nchcp 65001>nul\ncd servers\ncd " + server + "\njava -Xms512M -Xmx" + request.query.memory + "M -jar " + request.query.jf + " nogui");
+    } else if (process.platform == "linux") {
+      fs.writeFileSync("./servers/" + server + "/start.sh", "cd servers\ncd " + server + "\njava -Xms512M -Xmx" + request.query.memory + "M -jar " + request.query.jf + " nogui");
+    } else {
+      console.log(colors.red(getTimeFormatted() + " " + process.platform + " not supported"));
+    }
     fs.writeFileSync("./servers/" + server + "/server.properties", "server-port=" + request.query.port + "\nquery.port=" + request.query.port + "\nenable-query=true\nonline-mode=" + request.query.onMode + "\nmotd=" + server);
     cge = {};
     servers_logs[server] = "";
@@ -353,38 +359,50 @@ if (firstStart == false) {
 
 function startServer(server) {
   servers_logs[server] = "";
-  servers_instances[server] = spawn("servers/" + server + "/start.bat");
-  console.log(getTimeFormatted(), "STARTING SERVER:", server.green);
-  statuss = "starting";
-  servers_instances[server].on('close', (code) => {
-    statuss = "stopped";
-    configjson[server].status = statuss;
+  if (process.platform == "win32") {
+    servers_instances[server] = spawn("servers/" + server + "/start.bat");
+    start = true;
+  } else if (process.platform == "linux") {
+    servers_instances[server] = spawn("servers/" + server + "/start.sh");
+    start = true;
+  } else {
+    console.log(colors.red(getTimeFormatted() + " " + process.platform + " not supported"));
+    start = false;
+  }
+
+  if (start == true) {
+    console.log(getTimeFormatted(), "STARTING SERVER:", server.green);
+    statuss = "starting";
+    servers_instances[server].on('close', (code) => {
+      statuss = "stopped";
+      configjson[server].status = statuss;
+      fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
+      if (code != 0) {
+        servers_logs[server] = servers_logs[server] + "<br>" + "ERROR: Process finished with exit code " + code;
+        console.log(getTimeFormatted(), "STOPPED SERVER WITH CODE " + code + ":", server.red);
+      } else {
+        console.log(getTimeFormatted(), "STOPPED SERVER:", server.green);
+      }
+    });
+    servers_instances[server].stdout.on('data', (data) => {
+      data = iconvlite.decode(data, "win1251");
+      servers_logs[server] = servers_logs[server] + "<br>" + data.toString();
+      if (data.indexOf("Loading libraries, please wait...") >= 0) {
+        statuss = "starting";
+      }
+      if (data.indexOf("Done") >= 0) {
+        statuss = "started";
+        console.log(getTimeFormatted(), "STARTED SERVER:", server.green);
+      }
+      if (data.indexOf("Saving players") >= 0) {
+        console.log(getTimeFormatted(), "STOPPING SERVER:", server.green);
+        statuss = "stopping";
+      }
+      configjson[server].status = statuss;
+      fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
+    });
     fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
-    if (code != 0) {
-      servers_logs[server] = servers_logs[server] + "<br>" + "ERROR: Process finished with exit code " + code;
-      console.log(getTimeFormatted(), "STOPPED SERVER WITH CODE " + code + ":", server.red);
-    } else {
-      console.log(getTimeFormatted(), "STOPPED SERVER:", server.green);
-    }
-  });
-  servers_instances[server].stdout.on('data', (data) => {
-    data = iconvlite.decode(data, "win1251");
-    servers_logs[server] = servers_logs[server] + "<br>" + data.toString();
-    if (data.indexOf("Loading libraries, please wait...") >= 0) {
-      statuss = "starting";
-    }
-    if (data.indexOf("Done") >= 0) {
-      statuss = "started";
-      console.log(getTimeFormatted(), "STARTED SERVER:", server.green);
-    }
-    if (data.indexOf("Saving players") >= 0) {
-      console.log(getTimeFormatted(), "STOPPING SERVER:", server.green);
-      statuss = "stopping";
-    }
-    configjson[server].status = statuss;
-    fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
-  });
-  fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
+  }
 }
 
 function getInstallerFile(installerfileURL, installerfilename, ffn) {
@@ -481,6 +499,27 @@ app.get('/cores/list', (request, response) => {
         jsona.push(coreName + " " + version.split("-")[0]);
       });
       response.send(jsona);
+    };
+  });
+});
+
+app.get('/cores/spigot/list', (request, response) => {
+  console.log(getTimeFormatted(), "GET", request.originalUrl.green);
+  response.set('Content-Type', 'application/json');
+
+  optionss2 = {
+    headers: {
+      'User-Agent': 'MY IPHINE 7s'
+    },
+    json: true
+  };
+  request_lib("https://seeroy.github.io/spigots.json", optionss2, (error, res, body) => {
+    if (error) {
+      return console.log(error)
+    };
+
+    if (!error && res.statusCode == 200) {
+      response.send(body);
     };
   });
 });
