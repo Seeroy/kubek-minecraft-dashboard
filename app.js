@@ -4,6 +4,19 @@ const app = express();
 const port = 3000;
 const path = require('path');
 const request_lib = require('request');
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
+const upload = multer({
+  storage: storage
+});
+
 var spParser = require("minecraft-server-properties");
 const fs = require('fs');
 var colors = require('colors');
@@ -34,7 +47,10 @@ var os = require('os');
 var cp = {};
 var serDeletes = {};
 const fse = require('fs-extra');
-const version = "v1.0.3-hotfix";
+const {
+  response
+} = require('express');
+const version = "v1.0.4";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
@@ -552,4 +568,26 @@ app.get('/file/download', (request, response) => {
 app.get('/tasks/progress', (request, response) => {
   response.set('Content-Type', 'application/json');
   response.send(JSON.stringify(cp));
+});
+
+app.get('/kubek/version', (request, response) => {
+  console.log(getTimeFormatted(), "GET", request.originalUrl.green);
+  response.send(version);
+});
+
+app.get('/kubek/usage', (request, response) => {
+  var data = {};
+  osutils.cpuUsage(function (value) {
+    data["cpu"] = Math.round(value * 100);
+    totalmem = os.totalmem();
+    usedmem = totalmem - os.freemem();
+    data["usedmem"] = usedmem;
+    data["totalmem"] = totalmem;
+    response.send(data);
+  });
+});
+
+app.post('/core/uploadOwn', upload.single('avatar'), (req, res) => {
+  console.log(req.file, req.body);
+  res.send("uploaded");
 });

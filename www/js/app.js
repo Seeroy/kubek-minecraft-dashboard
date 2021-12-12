@@ -4,9 +4,76 @@ var di;
 var di2;
 var old_rgr;
 
+var cBar;
+var mBar;
+
 $(document).ready(function () {
+  mBar = new ProgressBar.SemiCircle(memoryBar, {
+    strokeWidth: 6,
+    color: '#FFEA82',
+    trailColor: '#eee',
+    trailWidth: 1,
+    easing: 'easeInOut',
+    duration: 1400,
+    svgStyle: null,
+    text: {
+      value: '',
+      alignToBottom: false
+    },
+    from: {
+      color: '#FFEA82'
+    },
+    to: {
+      color: '#ED6A5A'
+    },
+    step: (state, mBar) => {
+      mBar.path.setAttribute('stroke', state.color);
+      var value = Math.round(mBar.value() * 100);
+      if (value === 0) {
+        mBar.setText('');
+      } else {
+        mBar.setText(value);
+      }
+
+      mBar.text.style.color = state.color;
+    }
+  });
+  cBar = new ProgressBar.SemiCircle(cpuBar, {
+    strokeWidth: 6,
+    color: '#FFEA82',
+    trailColor: '#eee',
+    trailWidth: 1,
+    easing: 'easeInOut',
+    duration: 1400,
+    svgStyle: null,
+    text: {
+      value: '',
+      alignToBottom: false
+    },
+    from: {
+      color: '#FFEA82'
+    },
+    to: {
+      color: '#ED6A5A'
+    },
+    step: (state, cBar) => {
+      cBar.path.setAttribute('stroke', state.color);
+      var value = Math.round(cBar.value() * 100);
+      if (value === 0) {
+        cBar.setText('');
+      } else {
+        cBar.setText(value);
+      }
+
+      cBar.text.style.color = state.color;
+    }
+  });
+
   loadPage("console");
   currentServer = findGetParameter("server");
+  cBar.animate(0.0);
+  mBar.animate(0.0);
+  $(".kubekVersion").load("/kubek/version");
   $(".lay2 .tabs .tab").click(function () {
     $(".lay2 .tabs .selected").removeClass("selected");
     $(this).addClass("selected");
@@ -71,6 +138,17 @@ $(document).ready(function () {
     }
   });
 });
+
+function updateUsage() {
+  console.log(cBar);
+  $.get("/kubek/usage", function (data) {
+    $(".cValue").html(data.cpu + "%");
+    cBar.animate((data.cpu / 100).toFixed(2));
+    $(".mValue").html((data.usedmem / 1024 / 1024 / 1024).toFixed(1) + " GB / " + (data.totalmem / 1024 / 1024 / 1024).toFixed(1) + " GB");
+    mbvalue = (data.usedmem / data.totalmem).toFixed(2);
+    mBar.animate(mbvalue);
+  });
+}
 
 function getProgress(jarfile) {
   $.get("/tasks/progress", function (data) {

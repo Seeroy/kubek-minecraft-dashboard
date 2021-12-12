@@ -10,7 +10,47 @@ body {
   font-family: 'Inter', sans-serif, 'Segoe UI';
 }
 
+.mainLayout {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  grid-template-rows: 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "menu layout";
+  width: 100%;
+  height: 100%;
+}
+
+.menu {
+  grid-area: menu;
+  background: rgb(25, 32, 36);
+  padding: 16px;
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  align-items: center;
+}
+
+.menu .fc {
+  flex: 0 1 auto;
+}
+
+.menu .fc:nth-child(1) {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+.menu .fc:not(:nth-child(1)) {
+  margin-top: 8px;
+}
+
+.nav.flex-column:hover {
+  background: transparent !important;
+}
+
 .layout {
+  grid-area: layout;
   display: flex;
   flex-flow: column nowrap;
 }
@@ -327,4 +367,82 @@ progress {
 .ntc-poolbox {
   margin: 5px;
   flex: 0 1 auto;
+}
+
+.pbara {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  justify-content: center;
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  grid-template-areas:
+    "pbar caption"
+    "pbar value";
+  width: max-content;
+  height: max-content;
+}
+
+.pbar {
+  grid-area: pbar;
+}
+
+.caption {
+  grid-area: caption;
+  font-weight: 600;
+}
+
+.value {
+  grid-area: value;
+  font-weight: 200;
+}
+
+.pbara {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  gap: 0px 16px;
+  grid-auto-flow: row;
+  justify-content: center;
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  grid-template-areas:
+    "cBar cCapt"
+    "cBar cValue"
+    "mBar mCapt"
+    "mBar mValue";
+  width: 100%;
+  height: max-content;
+}
+
+.cBar {
+  grid-area: cBar;
+}
+
+.mBar {
+  grid-area: mBar;
+}
+
+.cCapt {
+  grid-area: cCapt;
+  font-weight: 600;
+}
+
+.cValue {
+  grid-area: cValue;
+  font-weight: 200;
+}
+
+.mCapt {
+  grid-area: mCapt;
+  font-weight: 600;
+}
+
+.mValue {
+  grid-area: mValue;
+  font-weight: 200;
 }

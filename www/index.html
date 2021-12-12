@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/shards.min.css">
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/sweetalert2.all.min.js"></script>
+  <script src="js/progressbar.min.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,66 +87,98 @@
     </div>
   </div>
 
-  <div class="layout">
-    <div class="block header">
-      <div class="item">
+  <div class="mainLayout">
+    <div class="menu">
+      <div class="fc">
         <img src="assets/logo.svg" width="200px">
+        <center>
+          <p style="margin-top: 4px; width: max-content; height: min-content;" class="kubekVersion"></p>
+        </center>
+
+        <ul class="nav flex-column nav-pills nav-justified">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/">Servers</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/settings.html">Settings</a>
+          </li>
+        </ul>
       </div>
-      <div class="item">
-        <select class="custom-select serSelect" style="background: rgb(43,53,63); color: white; border: 0;"></select>
-      </div>
-      <div class="item">
-        <button type="button" class="btn btn-outline-light toggleCreateServerModal" data-toggle="modal"
-          data-target="#createServerModal" data-backdrop="static" data-keyboard="false">Create
-          server</button>
+
+      <div class="fc">
+        <div class="pbara">
+          <div class="cBar">
+            <div id="cpuBar" style="width: 60px; height: 30px;"></div>
+          </div>
+          <div class="mBar">
+            <div id="memoryBar" style="width: 60px; height: 30px;"></div>
+          </div>
+          <div class="cCapt">CPU</div>
+          <div class="cValue"></div>
+          <div class="mCapt">Memory</div>
+          <div class="mValue"></div>
+        </div>
       </div>
     </div>
-    <div class="block tabs lay2">
-      <div class="blck">
-        <div class="hdr">
-          <div class="hdr-left">
-            <div class="gcont">
-              <div class="g-caption servername" style="font-size: 20pt; font-weight: 500;"></div>
-              <div class="g-srvaddr">
-                <div class="seamlessCont" style="color: rgb(140,140,140);">
-                  <div class="seamlessBox"><span class="material-icons material-icons-outlined">language</span></div>
-                  <div class="seamlessBox srvIP" style="font-weight: 500;"></div>
+    <div class="layout">
+      <div class="block header">
+        <div class="item"></div>
+        <div class="item">
+          <select class="custom-select serSelect" style="background: rgb(43,53,63); color: white; border: 0;"></select>
+        </div>
+        <div class="item">
+          <button type="button" class="btn btn-outline-light toggleCreateServerModal" data-toggle="modal"
+            data-target="#createServerModal" data-backdrop="static" data-keyboard="false">Create
+            server</button>
+        </div>
+      </div>
+      <div class="block tabs lay2">
+        <div class="blck">
+          <div class="hdr">
+            <div class="hdr-left">
+              <div class="gcont">
+                <div class="g-caption servername" style="font-size: 20pt; font-weight: 500;"></div>
+                <div class="g-srvaddr">
+                  <div class="seamlessCont" style="color: rgb(140,140,140);">
+                    <div class="seamlessBox"><span class="material-icons material-icons-outlined">language</span></div>
+                    <div class="seamlessBox srvIP" style="font-weight: 500;"></div>
+                  </div>
                 </div>
-              </div>
-              <div class="g-srvplayers">
-                <div class="seamlessCont" style="color: rgb(140,140,140);">
-                  <div class="seamlessBox"><img src="https://minotar.net/avatar/Steve/24" alt=""></div>
-                  <div class="seamlessBox srvPlayersCount" style="font-weight: 500;"></div>
+                <div class="g-srvplayers">
+                  <div class="seamlessCont" style="color: rgb(140,140,140);">
+                    <div class="seamlessBox"><img src="https://minotar.net/avatar/Steve/24" alt=""></div>
+                    <div class="seamlessBox srvPlayersCount" style="font-weight: 500;"></div>
+                  </div>
                 </div>
-              </div>
-              <div class="g-srvcore">
-                <div class="seamlessCont" style="color: rgb(140,140,140);">
-                  <div class="seamlessBox"><span class="material-icons material-icons-outlined">bookmark</span></div>
-                  <div class="seamlessBox srvCore" style="font-weight: 500;"></div>
+                <div class="g-srvcore">
+                  <div class="seamlessCont" style="color: rgb(140,140,140);">
+                    <div class="seamlessBox"><span class="material-icons material-icons-outlined">bookmark</span></div>
+                    <div class="seamlessBox srvCore" style="font-weight: 500;"></div>
+                  </div>
                 </div>
-              </div>
-              <div class="g-srvstatus">
-                <span class="badge badge-success srvStatus" style="margin-left: 8px;">Online</span>
+                <div class="g-srvstatus">
+                  <span class="badge badge-success srvStatus" style="margin-left: 8px;">Online</span>
+                </div>
               </div>
             </div>
+            <div class="hdr-right">
+              <button type="button" class="btn btn-primary startbtn">Start</button>
+              <button type="button" class="btn btn-danger stopbtn">Shut down</button>
+            </div>
           </div>
-          <div class="hdr-right">
-            <button type="button" class="btn btn-primary startbtn">Start</button>
-            <button type="button" class="btn btn-danger stopbtn">Shut down</button>
+        </div>
+        <div class="blck">
+          <div class="tabs">
+            <div class="tab selected">Console</div>
+            <div class="tab">Players</div>
+            <div class="tab">Plugins</div>
+            <div class="tab">Settings</div>
+            <div class="tab">Server.properties</div>
           </div>
         </div>
       </div>
-      <div class="blck">
-        <div class="tabs">
-          <div class="tab selected">Console</div>
-          <div class="tab">Players</div>
-          <div class="tab">Plugins</div>
-          <div class="tab">Settings</div>
-          <div class="tab">Server.properties</div>
-        </div>
-      </div>
+      <div class="block main"></div>
     </div>
-    <div class="block main"></div>
   </div>
 </body>
 
@@ -156,6 +189,14 @@
     updateIP();
     updateServersList();
   });
+
+  $(document).ready(function () {
+    updateUsage();
+  });
+
+  setInterval(function () {
+    updateUsage();
+  }, 10000);
 
   setInterval(function () {
     $.get("/tasks/progress", function (data) {
@@ -179,7 +220,7 @@
                   background: "#0067f4",
                   color: "white",
                 },
-                onClick: function () { }
+                onClick: function () {}
               }).showToast();
             }
           });
@@ -187,13 +228,17 @@
         old_ntcpool = data;
       }
       Object.keys(data).forEach(function (k) {
-        $(".ntc-pool").append('<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' + k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] + '" class="pnf"></progress></div></div>');
+        $(".ntc-pool").append(
+          '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
+          k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
+          '" class="pnf"></progress></div></div>');
       });
     });
   }, 200);
 
   function arr_diff(a1, a2) {
-    var a = [], diff = [];
+    var a = [],
+      diff = [];
     for (var i = 0; i < a1.length; i++) {
       a[a1[i]] = true;
     }
