@@ -73,6 +73,7 @@ $(document).ready(function () {
   currentServer = findGetParameter("server");
   cBar.animate(0.0);
   mBar.animate(0.0);
+  $(".g-img img").attr("src", "/server/icon?server=" + currentServer);
   $(".kubekVersion").load("/kubek/version");
   $(".lay2 .tabs .tab").click(function () {
     $(".lay2 .tabs .selected").removeClass("selected");
@@ -147,6 +148,42 @@ function updateUsage() {
     $(".mValue").html((data.usedmem / 1024 / 1024 / 1024).toFixed(1) + " GB / " + (data.totalmem / 1024 / 1024 / 1024).toFixed(1) + " GB");
     mbvalue = (data.usedmem / data.totalmem).toFixed(2);
     mBar.animate(mbvalue);
+  });
+}
+
+function changeServerIcon(){
+  $("#g-img-input").trigger('click');
+  $("#g-img-input").off("change");
+  $("#g-img-input").change(function () {
+    alert($(this).val());
+    $("#g-type-input").val("server-icon");
+    $("#g-server-input").val(currentServer);
+    var formData = new FormData($("#g-img-form")[0]);
+    console.log(formData);
+    jQuery.ajax({
+      url: '/file/upload?type=server-icon.png&server=' + currentServer,
+      type: "POST",
+      data: formData,
+      success: function(data) {
+        Swal.fire(
+          'Success :)',
+          'Restart server to see changes',
+          'success'
+        ).then((result) => {
+          window.location="";
+        });
+      },
+      error: function(data) {
+        Swal.fire(
+          'Oops :(',
+          'Error while upload. Try other .png files',
+          'error'
+        );
+      },
+      cache: false,
+      contentType: false,
+      processData: false,
+    });
   });
 }
 

@@ -5,18 +5,24 @@ const port = 3000;
 const path = require('path');
 const request_lib = require('request');
 const multer = require('multer');
-const storage = multer.diskStorage({
+storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads')
+    cb(null, './servers/' + req.query["server"])
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname)
+    cb(null, req.query["type"])
   }
 })
-const upload = multer({
-  storage: storage
+upload = multer({
+  storage: storage,
+  fileFilter: function (req, file, callback) {
+    var ext = path.extname(file.originalname);
+    if (ext !== '.png') {
+      return callback('Only png allowed');
+    }
+    callback(null, true)
+  }
 });
-
 var spParser = require("minecraft-server-properties");
 const fs = require('fs');
 var colors = require('colors');
@@ -50,7 +56,7 @@ const fse = require('fs-extra');
 const {
   response
 } = require('express');
-const version = "v1.0.4";
+const version = "v1.0.5";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
@@ -93,6 +99,58 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
 
 if (firstStart == false) {
   app.use("/", express.static(path.join(__dirname, './www')));
+
+  app.get("/server/icon", function (req, res) {
+    if (typeof (req.query.server) !== "undefined") {
+      if (fs.existsSync("./servers/" + req.query.server + "/server-icon.png")) {
+        res.sendFile("servers/" + req.query.server + "/server-icon.png", {
+          root: "./"
+        });
+      } else {
+        res.sendFile("www/assets/k.png", {
+          root: "./"
+        });
+      }
+    } else {
+      res.sendFile("www/assets/k.png", {
+        root: "./"
+      });
+    }
+  });
+
+  app.get('/bukkitorg/plugins/search', function (request, response) {
+    console.log(getTimeFormatted(), "GET", request.originalUrl.green);
+    response.set('Content-Type', 'application/json');
+    var jsons = [];
+    var pg = "";
+    customHeaderRequest.get("https://dev.bukkit.org/search?search=" + request.query.search, options, (error, res, body) => {
+      if (error) {
+        return console.error(error);
+      }
+
+      if (!error && res.statusCode == 200) {
+        const $ = cheerio.load(body);
+        $(".results-name").each(function (i, plugin) {
+          if (typeof (plugin.parent.parent.children[1].children[1].children[1]) !== "undefined") {
+            var pluginn = {
+              name: plugin.children[1].children[0].data,
+              url: "https://dev.bukkit.org" + plugin.children[1].attribs.href,
+              download_url: "https://dev.bukkit.org" + plugin.children[1].attribs.href + "/files/latest",
+              image_url: plugin.parent.parent.children[1].children[1].children[1].attribs.src
+            };
+          } else {
+            var pluginn = {
+              name: plugin.children[1].children[0].data,
+              url: "https://dev.bukkit.org" + plugin.children[1].attribs.href,
+              download_url: "https://dev.bukkit.org" + plugin.children[1].attribs.href + "/files/latest"
+            };
+          }
+          jsons.push(pluginn);
+        });
+        response.send(JSON.stringify(jsons));
+      };
+    });
+  });
 
   app.get('/bukkitorg/plugins/list', function (request, response) {
     console.log(getTimeFormatted(), "GET", request.originalUrl.green);
@@ -190,21 +248,29 @@ if (firstStart == false) {
       json: false
     };
     var jsonss = [];
-    request_lib.get(request.query.url, optionss, (error, res, body) => {
+    request_lib.get(request.query.url.replace('/files/latest', ''), optionss, (error, res, body) => {
       if (error) {
         return console.error(error);
       }
 
       if (!error && res.statusCode == 200) {
-        const $ = cheerio.load(body);
-        $(".project-file-list-item .project-file-name").each(function (i, item) {
-          var dnn = {
-            name: item.children[1].children[3].children[1].attribs["data-name"],
-            url: "https://dev.bukkit.org" + item.children[1].children[3].children[1].attribs.href + "/download"
+        request_lib.get("https://dev.bukkit.org" + res.req.path + "/files", optionss, (error, res, body) => {
+          if (error) {
+            return console.error(error);
+          }
+
+          if (!error && res.statusCode == 200) {
+            const $ = cheerio.load(body);
+            $(".project-file-list-item .project-file-name").each(function (i, item) {
+              var dnn = {
+                name: item.children[1].children[3].children[1].attribs["data-name"],
+                url: "https://dev.bukkit.org" + item.children[1].children[3].children[1].attribs.href + "/download"
+              };
+              jsonss.push(dnn);
+            });
+            response.send(jsonss);
           };
-          jsonss.push(dnn);
         });
-        response.send(jsonss);
       };
     });
   });
@@ -587,7 +653,10 @@ app.get('/kubek/usage', (request, response) => {
   });
 });
 
-app.post('/core/uploadOwn', upload.single('avatar'), (req, res) => {
-  console.log(req.file, req.body);
-  res.send("uploaded");
+app.post('/file/upload', upload.single('g-img-input'), (req, res) => {
+  if(req.query["type"] == "server-icon" && fs.existsSync("./servers/" + req.query["server"])){
+    res.send("uploaded");
+  } else {
+    res.send('false');
+  }
 });

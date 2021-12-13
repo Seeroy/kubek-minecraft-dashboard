@@ -4,6 +4,7 @@
     <button type="button" class="btn btn-primary btn-sm" onclick="loadPage('plmanager')">Plugin manager</button>
   </div>
   <div class="blck" style="height: 512px; overflow: auto;">
+    <input type="text" class="form-control searchBar" placeholder="Search"><br>
     <table class="ttt2"></table><br><br>
     <div class="ggg" style="width: auto; justify-content: center;">
       <div class="ggg-box">
@@ -51,25 +52,46 @@
         data.forEach(function (elem) {
           btnt = "";
           if (elem.showbtn == true) {
-            btnt = '<button class="btn btn-light" style="color: black;" onclick="downloadPlugin(' + "'" + elem.name + "'" + ', ' + "'" + elem.download_url + "'" + ')" data-toggle="tooltip" data-placement="top" title="Download"><span class="material-icons material-icons-outlined">download</i></button>';
+            btnt = '<button class="btn btn-light" style="color: black;" onclick="downloadPlugin(' + "'" + elem
+              .name + "'" + ', ' + "'" + elem.download_url + "'" +
+              ')" data-toggle="tooltip" data-placement="top" title="Download"><span class="material-icons material-icons-outlined">download</i></button>';
           }
-          $(".blck .ttt2").append('<tr><td><img alt="" src="' + elem.image_url + '"></td><td>' + elem.name + '</td><td>' + btnt + '</td></tr>');
+          $(".blck .ttt2").append('<tr><td><img alt="" src="' + elem.image_url + '"></td><td>' + elem.name +
+            '</td><td>' + btnt + '</td></tr>');
         });
         $(".loadBg").hide();
       });
     } else {
       $.get("/bukkitorg/plugins/list?page=" + page + "&server=" + currentServer, function (data) {
         data.forEach(function (elem) {
-          btnt = "";
-          if (elem.showbtn == true) {
-            btnt = '<button class="btn btn-light" style="color: black;" onclick="downloadPlugin(' + "'" + elem.name + "'" + ', ' + "'" + elem.download_url + "'" + ')" data-toggle="tooltip" data-placement="top" title="Download"><span class="material-icons material-icons-outlined">download</i></button>';
-          }
-          $(".blck .ttt2").append('<tr><td><img alt="" src="' + elem.image_url + '"></td><td>' + elem.name + '</td><td>' + btnt + '</td></tr>');
+          btnt = '<button class="btn btn-light" style="color: black;" onclick="downloadPlugin(' + "'" + elem
+            .name + "'" + ', ' + "'" + elem.download_url + "'" +
+            ')" data-toggle="tooltip" data-placement="top" title="Download"><span class="material-icons material-icons-outlined">download</i></button>';
+          $(".blck .ttt2").append('<tr><td><img alt="" src="' + elem.image_url + '"></td><td>' + elem.name +
+            '</td><td>' + btnt + '</td></tr>');
         });
         $(".loadBg").hide();
       });
     }
   }
+
+  $(".searchBar").keydown(function (e) {
+    if (e.keyCode == 13) {
+      $(".loadBg").show();
+      $(".blck .ttt2").html("");
+      $.get("/bukkitorg/plugins/search?search=" + $(".searchBar").val(), function (data) {
+        data.forEach(function (elem) {
+          btnt = '<button class="btn btn-light" style="color: black;" onclick="downloadPlugin(' + "'" + elem
+            .name + "'" + ', ' + "'" + elem.url + "'" +
+            ')" data-toggle="tooltip" data-placement="top" title="Download"><span class="material-icons material-icons-outlined">download</i></button>';
+          $(".blck .ttt2").append('<tr><td><img alt="" src="' + elem.image_url + '"></td><td>' + elem.name +
+            '</td><td>' + btnt + '</td></tr>');
+        });
+        $(".loadBg").hide();
+      });
+      $(".searchBar").val("");
+    }
+  });
 
   function prevPage() {
     if (page != 1) {
@@ -97,13 +119,15 @@
       $("#selectPluginModal .spInstall").show();
       $("#selectPluginModal .spStatus").html("Select version");
       data.forEach(function (item) {
-        $("#selectPluginModal .spSelect").append("<option data-url='" + item.url + "'>" + item.name + "</option>");
+        $("#selectPluginModal .spSelect").append("<option data-url='" + item.url + "'>" + item.name +
+          "</option>");
       });
     });
 
     $("#selectPluginModal .spInstall").unbind("click");
     $("#selectPluginModal .spInstall").click(function () {
-      fnn = $("#selectPluginModal #selectPluginModallLabel").html().split(" ").join("_") + "-" + $("#selectPluginModal .spSelect option:selected").html().split(" ").join("_") + ".jar";
+      fnn = $("#selectPluginModal #selectPluginModallLabel").html().split(" ").join("_") + "-" + $(
+        "#selectPluginModal .spSelect option:selected").html().split(" ").join("_") + ".jar";
       urll = $("#selectPluginModal .spSelect option:selected").data("url");
       $.get("/file/download?filename=" + fnn + "&url=" + urll + "&server=" + currentServer + "&type=plugin");
       myModal.hide();

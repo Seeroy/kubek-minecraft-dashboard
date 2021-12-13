@@ -197,25 +197,27 @@ body {
 
 .lay2 .gcont {
   display: grid;
-  grid-template-columns: max-content max-content max-content max-content;
+  grid-template-columns: max-content max-content max-content max-content max-content;
   grid-template-rows: 1fr 1fr;
   gap: 0px 0px;
   grid-auto-flow: row;
   justify-items: start;
   align-items: center;
   grid-template-areas:
-    "g-caption g-caption g-caption g-caption"
-    "g-srvaddr g-srvplayers g-srvcore g-srvstatus";
+    "g-img g-caption g-caption g-caption g-caption"
+    "g-img g-srvaddr g-srvplayers g-srvcore g-srvstatus";
   width: max-content;
   height: max-content;
 }
 
 .lay2 .gcont .g-caption {
   grid-area: g-caption;
+  margin-left: 16px;
 }
 
 .lay2 .gcont .g-srvaddr {
   grid-area: g-srvaddr;
+  margin-left: 10px;
 }
 
 .lay2 .gcont .g-srvplayers {
@@ -224,6 +226,10 @@ body {
 
 .lay2 .gcont .g-srvcore {
   grid-area: g-srvcore;
+}
+
+.lay2 .gcont .g-img {
+  grid-area: g-img;
 }
 
 .lay2 .gcont .g-srvstatus {
