@@ -35,10 +35,10 @@
 
         <ul class="nav flex-column nav-pills nav-justified">
           <li class="nav-item">
-            <a class="nav-link" href="/">Servers</a>
+            <a class="nav-link" href="/">{{servers}}</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="/settings.html">Settings</a>
+            <a class="nav-link active" href="/settings.html">{{settings}}</a>
           </li>
         </ul>
       </div>
@@ -48,12 +48,70 @@
       </div>
     </div>
     <div class="layout" style="padding: 16px;">
-      <p style="font-size: 28pt; font-weight: 700;">Settings</p>
-      nothing)
+      <p style="font-size: 28pt; font-weight: 700;">{{settings}}</p>
+      <div class="setflex-c">
+        <div class="setflex-b">
+          {{softLang}}
+        </div>
+        <div class="setflex-b">
+          <div class="custom-controls-stacked">
+            <div class="custom-control custom-radio mb-3">
+              <input type="radio" id="russianRadio" name="customRadio" data-lang="ru" class="custom-control-input">
+              <label class="custom-control-label" for="russianRadio">Русский</label>
+            </div>
+            <div class="custom-control custom-radio mb-3">
+              <input type="radio" id="englishRadio" name="customRadio" data-lang="en" class="custom-control-input">
+              <label class="custom-control-label" for="englishRadio">English</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br><br><button class="btn btn-primary saveBtn">{{ok}}</button>
     </div>
   </div>
 </body>
 
 <script>
+var kubekCfg;
 $(".kubekVersion").load("/kubek/version");
+
+$(document).ready(function(){
+  $.get("/kubek/config", function(data) {
+    kubekCfg = JSON.parse(data);
+    if(kubekCfg['lang'] == "en"){
+      $("#englishRadio").attr("checked", true);
+    } else if(kubekCfg['lang'] == "ru"){
+      $("#russianRadio").attr("checked", true);
+    }
+  });
+});
+
+$(".saveBtn").click(function(){
+  checked = $("input:checked").data("lang");
+  kubekCfg["lang"] = checked;
+  $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function(data) {
+    location.reload();
+  });
+});
 </script>
+
+<style>
+  .setflex-c {
+    display: flex;
+    align-items: center;
+    height: max-content;
+  }
+
+  .setflex-b {
+    margin: 5px;
+    padding: 5px;
+    flex: 1 1 auto;
+  }
+
+  input {
+    background: rgb(43, 53, 63) !important;
+    border: none !important;
+    outline: none !important;
+    color: white !important;
+  }
+</style>

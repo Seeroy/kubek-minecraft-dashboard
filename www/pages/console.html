@@ -1,12 +1,12 @@
 <div class="window consoleWindow" style="width: 100%;">
   <div class="blck">
-    Console
+    {{console}}
   </div>
   <div class="blck termiText" style="background: #111111; height: 512px; overflow: auto;">
 
   </div>
   <div class="blck termiInput">
-    <input type="text" placeholder="Enter command">
+    <input type="text" placeholder="{{enterCommand}}">
   </div>
 </div>
 
@@ -16,11 +16,11 @@
   $(document).ready(function () {
     updateCoresList();
     updateLog();
-    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+    if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
       updateQuery();
     } else {
-      $(".g-srvcore .srvcore").html("Unknown");
-      $(".g-srvplayers .srvplayerscount").html("Unknown");
+      $(".g-srvcore .srvcore").html("{{unknown}}");
+      $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
     }
     $(".termiInput input").keydown(function (e) {
       if (e.keyCode == 13) {
@@ -39,11 +39,11 @@
     }, 500);
 
     setInterval(function () {
-      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
         updateQuery();
       } else {
-        $(".g-srvcore .srvcore").html("Unknown");
-        $(".g-srvplayers .srvplayerscount").html("Unknown");
+        $(".g-srvcore .srvcore").html("{{unknown}}");
+        $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
       }
     }, 800);
   });

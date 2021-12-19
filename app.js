@@ -1,10 +1,12 @@
 const express = require('express');
 const cheerio = require('cheerio');
 const app = express();
+var mime = require('mime');
 const port = 3000;
 const path = require('path');
 const request_lib = require('request');
 const multer = require('multer');
+const ngrok = require('ngrok');
 storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './servers/' + req.query["server"])
@@ -45,6 +47,7 @@ if (fs.existsSync("./servers/servers.json")) {
 const spawn = require('cross-spawn');
 var servers_logs = [];
 var servers_instances = [];
+var ngrok_instances = [];
 var iconvlite = require('iconv-lite');
 const getIP = require('external-ip')();
 const mcutil = require("minecraft-status").MinecraftQuery;
@@ -56,7 +59,7 @@ const fse = require('fs-extra');
 const {
   response
 } = require('express');
-const version = "v1.0.5";
+const version = "v1.0.6";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
@@ -68,6 +71,7 @@ if (typeof (configjson) !== "undefined") {
   for (t in configjson) {
     servers_logs[t] = "";
     servers_instances[t] = "";
+    ngrok_instances[t] = "";
   }
 }
 
@@ -89,17 +93,36 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
       console.log(colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + jsson[0].tag_name));
     }
     console.log(" ");
-
-    app.listen(port, () => {
-      link = 'http://localhost:' + port;
-      console.log(getTimeFormatted(), "Kubek listening on", link);
-    });
   };
+  app.use(function (req, res, next) {
+    if (fs.existsSync(path.join(__dirname, "./www/" + req["_parsedUrl"].pathname))) {
+      if (req["_parsedUrl"].pathname == "/") {
+        req["_parsedUrl"].pathname = "/index.html";
+      }
+      file = fs.readFileSync(path.join(__dirname, "./www/" + req["_parsedUrl"].pathname));
+      cfg = fs.readFileSync("./config.json");
+      cfg = JSON.parse(cfg);
+      
+      jtranslate = fs.readFileSync(path.join(__dirname, "./translations/" + cfg["lang"] + ".json"));
+      jtranslate = JSON.parse(jtranslate);
+      matches = [];
+      matches = file.toString().match(/\{{[a-zA-Z]+\}}/gm);
+      if (matches != null) {
+        matches.forEach(function (match) {
+          file = file.toString().replace(match, jtranslate[match]);
+        });
+      }
+      res.set('content-type', mime.getType(path.join(__dirname, "./www/" + req["_parsedUrl"].pathname)));
+      res.send(file);
+    }
+  });
+  app.listen(port, () => {
+    link = 'http://localhost:' + port;
+    console.log(getTimeFormatted(), "Kubek listening on", link);
+  });
 });
 
 if (firstStart == false) {
-  app.use("/", express.static(path.join(__dirname, './www')));
-
   app.get("/server/icon", function (req, res) {
     if (typeof (req.query.server) !== "undefined") {
       if (fs.existsSync("./servers/" + req.query.server + "/server-icon.png")) {
@@ -116,6 +139,13 @@ if (firstStart == false) {
         root: "./"
       });
     }
+  });
+
+  app.get("/server/ngrok/save", function (request, response) {
+    read = fs.readFileSync("./servers/servers.json");
+    read = JSON.parse(read);
+    read[request.query.server].ngrok = request.query.ngrok;
+    fs.writeFileSync("./servers/servers.json", JSON.stringify(read));
   });
 
   app.get('/bukkitorg/plugins/search', function (request, response) {
@@ -206,7 +236,8 @@ if (firstStart == false) {
     servers_logs[server] = "";
     servers_instances[server] = "";
     sss = {
-      status: "stopped"
+      status: "stopped",
+      ngrok: "off"
     };
     cge[server] = sss;
     configjson = cge;
@@ -277,13 +308,20 @@ if (firstStart == false) {
 
   app.get('/plugins/installed', (request, response) => {
     console.log(getTimeFormatted(), "GET", request.originalUrl.green);
-    dirents = fs.readdirSync("./servers/" + request.query.server + "/plugins", {
-      withFileTypes: true
-    });
-    filesNames = dirents
-      .filter(dirent => dirent.isFile())
-      .map(dirent => dirent.name);
-    response.send(filesNames);
+    if (fs.existsSync("./servers/" + request.query.server + "/plugins")) {
+      dirents = fs.readdirSync("./servers/" + request.query.server + "/plugins", {
+        withFileTypes: true
+      });
+      filesNames = dirents
+        .filter(dirent => dirent.isFile())
+        .map(dirent => dirent.name);
+      response.send(filesNames);
+    } else {
+      tr = [];
+      response.set("content-type", "application/json");
+      tt = JSON.stringify(tr);
+      response.send(tt);
+    }
   });
 
   app.get('/plugins/delete', (request, response) => {
@@ -380,6 +418,19 @@ if (firstStart == false) {
     }
   });
 
+  app.get("/server/ngrokIP", function (request, response) {
+    console.log(getTimeFormatted(), "GET", request.originalUrl.green);
+    if (typeof (configjson[request.query.server]) !== 'undefined') {
+      if (ngrok_instances[request.query.server] != "") {
+        response.send(ngrok_instances[request.query.server]);
+      } else {
+        response.send(" ");
+      }
+    } else {
+      response.send(" ");
+    }
+  });
+
   app.get('/server/query', function (request, response) {
     if (typeof (configjson[request.query.server]) !== 'undefined' && configjson[request.query.server].status != "stopped") {
       data = fs.readFileSync("./servers/" + request.query.server + "/server.properties");
@@ -411,6 +462,10 @@ if (firstStart == false) {
   app.use("/css", express.static(path.join(__dirname, './www/css')));
   app.use("/", express.static(path.join(__dirname, './www/setup/')));
 
+  if(!fs.existsSync("config.json")){
+    fs.writeFileSync("config.json", '{"lang":"en"}');
+  }
+
   app.get('/server/completion', (request, response) => {
     console.log(getTimeFormatted(), "GET", request.originalUrl.green);
     server = request.query.server;
@@ -428,7 +483,8 @@ if (firstStart == false) {
     servers_logs[server] = "";
     servers_instances[server] = "";
     sss = {
-      status: "stopped"
+      status: "stopped",
+      ngrok: "off"
     };
     cge[server] = sss;
     configjson = cge;
@@ -453,6 +509,7 @@ function startServer(server) {
   }
 
   if (start == true) {
+    configjson = JSON.parse(fs.readFileSync("./servers/servers.json"));
     console.log(getTimeFormatted(), "STARTING SERVER:", server.green);
     statuss = "starting";
     servers_instances[server].on('close', (code) => {
@@ -463,6 +520,12 @@ function startServer(server) {
         servers_logs[server] = servers_logs[server] + "<br>" + "ERROR: Process finished with exit code " + code;
         console.log(getTimeFormatted(), "STOPPED SERVER WITH CODE " + code + ":", server.red);
       } else {
+        if (ngrok_instances[server] != "") {
+          (async function () {
+            await ngrok.disconnect(ngrok_instances[server]);
+            ngrok_instances[server] = "";
+          })();
+        }
         console.log(getTimeFormatted(), "STOPPED SERVER:", server.green);
       }
     });
@@ -473,6 +536,17 @@ function startServer(server) {
         statuss = "starting";
       }
       if (data.indexOf("Done") >= 0) {
+        if (configjson[server].ngrok == "on") {
+          data = fs.readFileSync("./servers/" + server + "/server.properties");
+          parseData = spParser.parse(data.toString());
+          serverport = parseData["server-port"];
+          (async function () {
+            ngrok_instances[server] = await ngrok.connect({
+              proto: 'tcp',
+              addr: serverport
+            });
+          })();
+        }
         statuss = "started";
         console.log(getTimeFormatted(), "STARTED SERVER:", server.green);
       }
@@ -480,6 +554,12 @@ function startServer(server) {
         console.log(getTimeFormatted(), "STOPPING SERVER:", server.green);
         statuss = "stopping";
       }
+      configjson[server].status = statuss;
+      fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
+    });
+    servers_instances[server].stderr.on('data', (data) => {
+      data = iconvlite.decode(data, "win1251");
+      servers_logs[server] = servers_logs[server] + "<br>ERROR: " + data.toString();
       configjson[server].status = statuss;
       fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
     });
@@ -653,8 +733,17 @@ app.get('/kubek/usage', (request, response) => {
   });
 });
 
+app.get("/kubek/config", (request, response) => {
+  response.send(fs.readFileSync("./config.json").toString());
+});
+
+app.get("/kubek/saveConfig", (request, response) => {
+  fs.writeFileSync("./config.json", request.query.data);
+  response.send("true");
+});
+
 app.post('/file/upload', upload.single('g-img-input'), (req, res) => {
-  if(req.query["type"] == "server-icon" && fs.existsSync("./servers/" + req.query["server"])){
+  if (req.query["type"] == "server-icon" && fs.existsSync("./servers/" + req.query["server"])) {
     res.send("uploaded");
   } else {
     res.send('false');

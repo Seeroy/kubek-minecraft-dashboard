@@ -1,7 +1,7 @@
 <div class="window" style="width: 100%;">
   <div class="blck">
-    Plugins
-    <button type="button" class="btn btn-primary btn-sm" onclick="loadPage('plmanager')">Plugin manager</button>
+    {{plugins}}
+    <button type="button" class="btn btn-primary btn-sm" onclick="loadPage('plmanager')">{{pluginManager}}</button>
   </div>
   <div class="blck" style="height: 512px; overflow: auto;">
     <input type="text" class="form-control searchBar" placeholder="Search"><br>
@@ -24,13 +24,13 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="selectPluginModallLabel">Downloading file</h5>
+        <h5 class="modal-title" id="selectPluginModallLabel">{{downloadingFile}}</h5>
       </div>
       <div class="modal-body">
         <center>
-          <p style="color: black;" class="spStatus">Select version</p>
+          <p style="color: black;" class="spStatus">{{selectVersion}}</p>
           <select class="custom-select spSelect"></select><br><br><br>
-          <button type="button" class="btn btn-primary spInstall">Install</button>
+          <button type="button" class="btn btn-primary spInstall">{{ok}}</button>
         </center>
       </div>
     </div>
@@ -110,14 +110,14 @@
     myModal.show();
     $("#selectPluginModal .spSelect").hide();
     $("#selectPluginModal .spInstall").hide();
-    $("#selectPluginModal .spStatus").html("Searching...");
+    $("#selectPluginModal .spStatus").html("{{searching}}");
     $("#selectPluginModal #selectPluginModallLabel").html(fn);
     filesUrl = url.replace("/latest", "");
     $.get("/bukkitorg/versions?url=" + filesUrl, function (data) {
       $("#selectPluginModal .spSelect").show();
       $("#selectPluginModal .spSelect").html("");
       $("#selectPluginModal .spInstall").show();
-      $("#selectPluginModal .spStatus").html("Select version");
+      $("#selectPluginModal .spStatus").html("{{selectVersion}}");
       data.forEach(function (item) {
         $("#selectPluginModal .spSelect").append("<option data-url='" + item.url + "'>" + item.name +
           "</option>");
@@ -135,11 +135,11 @@
   }
 
   $(document).ready(function () {
-    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+    if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
       updateQuery();
     } else {
-      $(".g-srvcore .srvcore").html("Unknown");
-      $(".g-srvplayers .srvplayerscount").html("Unknown");
+      $(".g-srvcore .srvcore").html("{{unknown}}");
+      $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
     }
 
     di2 = setInterval(function () {
@@ -147,11 +147,11 @@
     }, 500);
 
     di = setInterval(function () {
-      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
         updateQuery();
       } else {
-        $(".g-srvcore .srvcore").html("Unknown");
-        $(".g-srvplayers .srvplayerscount").html("Unknown");
+        $(".g-srvcore .srvcore").html("{{unknown}}");
+        $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
       }
     }, 800);
   });

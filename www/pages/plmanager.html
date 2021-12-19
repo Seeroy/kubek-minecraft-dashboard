@@ -1,7 +1,7 @@
 <div class="window" style="width: 100%;">
   <div class="blck">
-    Plugin manager
-    <button type="button" class="btn btn-primary btn-sm" onclick="loadPage('plugins')">Install new</button>
+    {{pluginManager}}
+    <button type="button" class="btn btn-primary btn-sm" onclick="loadPage('plugins')">{{installNew}}</button>
   </div>
   <div class="blck" style="height: 512px; overflow: auto;">
     <table class="ttt2"></table>
@@ -17,11 +17,11 @@
       });
       $(".loadBg").hide();
     });
-    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+    if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
       updateQuery();
     } else {
-      $(".g-srvcore .srvcore").html("Unknown");
-      $(".g-srvplayers .srvplayerscount").html("Unknown");
+      $(".g-srvcore .srvcore").html("{{unknown}}");
+      $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
     }
 
     di2 = setInterval(function () {
@@ -29,11 +29,11 @@
     }, 500);
 
     di = setInterval(function () {
-      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
         updateQuery();
       } else {
-        $(".g-srvcore .srvcore").html("Unknown");
-        $(".g-srvplayers .srvplayerscount").html("Unknown");
+        $(".g-srvcore .srvcore").html("{{unknown}}");
+        $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
       }
     }, 800);
   });

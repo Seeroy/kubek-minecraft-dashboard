@@ -13,15 +13,15 @@
   </div>
 </div>
 
-<br><br><button type="button" class="btn btn-secondary btn-lg" onclick="saveProps()">Save</button>
+<br><br><button type="button" class="btn btn-secondary btn-lg" onclick="saveProps()">{{ok}}</button>
 
 <script>
   $(document).ready(function () {
-    if ($(".g-srvstatus .srvStatus").html() == "Online") {
+    if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
       updateQuery();
     } else {
-      $(".g-srvcore .srvcore").html("Unknown");
-      $(".g-srvplayers .srvplayerscount").html("Unknown");
+      $(".g-srvcore .srvcore").html("{{unknown}}");
+      $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
     }
 
     di2 = setInterval(function () {
@@ -29,11 +29,11 @@
     }, 500);
 
     di = setInterval(function () {
-      if ($(".g-srvstatus .srvStatus").html() == "Online") {
+      if ($(".g-srvstatus .srvStatus").html() == "{{online}}") {
         updateQuery();
       } else {
-        $(".g-srvcore .srvcore").html("Unknown");
-        $(".g-srvplayers .srvplayerscount").html("Unknown");
+        $(".g-srvcore .srvcore").html("{{unknown}}");
+        $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
       }
     }, 800);
   });
@@ -90,7 +90,7 @@
     sp = btoa(sp);
     $.get("/server/properties/save?doc=" + sp + "&server=" + currentServer);
     Toastify({
-      text: "Настройки сохранены, но они применятся только после перезагрузки сервера",
+      text: "{{settingsSaved}}",
       duration: 3000,
       newWindow: true,
       close: false,

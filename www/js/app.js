@@ -3,6 +3,9 @@ var rr;
 var di;
 var di2;
 var old_rgr;
+var publicIP;
+var localIP;
+var ngrokIP = " ";
 
 var cBar;
 var mBar;
@@ -78,7 +81,7 @@ $(document).ready(function () {
   $(".lay2 .tabs .tab").click(function () {
     $(".lay2 .tabs .selected").removeClass("selected");
     $(this).addClass("selected");
-    loadPage($(this).html().toLowerCase());
+    loadPage($(this).data("page"));
   });
 
   $(".serSelect").change(function () {
@@ -119,7 +122,7 @@ $(document).ready(function () {
       if (core.substring(0, 1) == "P") {
         $.get("/cores/search?core=" + core, function (data) {
           if (data != "") {
-            $("#createServerModal .showWhileCreating p").html("Downloading core");
+            $("#createServerModal .showWhileCreating p").html("{{downloadingcore}}");
             $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data.lastIndexOf('/') + 1) + "&type=core");
             rr = setInterval(function () {
               getProgress(data.substring(data.lastIndexOf('/') + 1))
@@ -129,7 +132,7 @@ $(document).ready(function () {
       } else {
         $.get("/cores/spigot/list", function (data) {
           url = data[core.replace("Spigot ", "")];
-          $("#createServerModal .showWhileCreating p").html("Downloading core");
+          $("#createServerModal .showWhileCreating p").html("{{downloadingcore}}");
           $.get("/file/download?url=" + url + "&server=" + sname + "&filename=" + url.substring(url.lastIndexOf('/') + 1) + "&type=core");
           rr = setInterval(function () {
             getProgress(url.substring(url.lastIndexOf('/') + 1))
@@ -166,8 +169,8 @@ function changeServerIcon(){
       data: formData,
       success: function(data) {
         Swal.fire(
-          'Success :)',
-          'Restart server to see changes',
+          '{{success}}',
+          '{{restartServerToSeeChanges}}',
           'success'
         ).then((result) => {
           window.location="";
@@ -175,8 +178,8 @@ function changeServerIcon(){
       },
       error: function(data) {
         Swal.fire(
-          'Oops :(',
-          'Error while upload. Try other .png files',
+          '{{error}}',
+          '{{ErrorWhileUploadingPNG}}',
           'error'
         );
       },
@@ -197,7 +200,7 @@ function getProgress(jarfile) {
         diff.forEach(function (diffi) {
           $("#createServerModal .showWhileCreating #downProgress").val(0);
           clearInterval(rr);
-          $("#createServerModal .showWhileCreating p").html("Completion");
+          $("#createServerModal .showWhileCreating p").html("{{Completion}}");
           $('#createServerModal .hideWhileCreating .onMode').is(':checked') ? ttr = "true" : ttr = "false";
           $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&memory=" + $("#createServerModal .hideWhileCreating .xmxMem").val() + "&port=" + $("#createServerModal .hideWhileCreating .srvPort").val() + "&onMode=" + ttr, function (data) {
             document.location.reload();
@@ -251,25 +254,25 @@ function updateServersStatus() {
       if (data[currentServer].status == "stopped") {
         $(".srvstatus").removeClass("badge-success badge-warning");
         $(".srvstatus").addClass("badge-danger");
-        $(".srvstatus").html("Offline");
+        $(".srvstatus").html("{{offline}}");
         $(".tabs .startbtn").show();
         $(".tabs .stopbtn").hide();
       } else if (data[currentServer].status == "started") {
         $(".srvstatus").removeClass("badge-danger badge-warning");
         $(".srvstatus").addClass("badge-success");
-        $(".srvstatus").html("Online");
+        $(".srvstatus").html("{{online}}");
         $(".tabs .startbtn").hide();
         $(".tabs .stopbtn").show();
       } else if (data[currentServer].status == "starting") {
         $(".srvstatus").removeClass("badge-success badge-danger");
         $(".srvstatus").addClass("badge-warning");
-        $(".srvstatus").html("Starting");
+        $(".srvstatus").html("{{starting}}");
         $(".tabs .startbtn").hide();
         $(".tabs .stopbtn").hide();
       } else if (data[currentServer].status == "stopping") {
         $(".srvstatus").removeClass("badge-success badge-danger");
         $(".srvstatus").addClass("badge-warning");
-        $(".srvstatus").html("Stopping");
+        $(".srvstatus").html("{{stopping}}");
         $(".tabs .startbtn").hide();
         $(".tabs .stopbtn").hide();
       }
@@ -279,7 +282,8 @@ function updateServersStatus() {
 
 function updateIP() {
   $.get("/server/publicIP?server=" + currentServer, function (data) {
-    $(".srvIP").html(data);
+    publicIP = data;
+    localIP = "localhost:" + data.split(":")[1];
   });
 }
 
@@ -307,7 +311,7 @@ function updateLog() {
         } else {
           $(".termiText").append("<span style='color: #ffb400 !important; font-weight: 400;'>" + line + "</span><br>");
         }
-      } else if (line.indexOf("ERROR") >= 0) {
+      } else if (line.indexOf("ERROR") >= 0 || line.indexOf("ERR") >= 0) {
         if (time.substr(0, 1) == "[") {
           $(".termiText").append("<span style='color: #c4183c !important; font-weight: 400;'>" + time + line + "</span><br>");
         } else {
@@ -333,12 +337,12 @@ function updateQuery() {
     if (typeof (data.version) !== "undefined") {
       $(".g-srvcore .srvcore").html(data.version.name);
     } else {
-      $(".g-srvcore .srvcore").html("Unknown");
+      $(".g-srvcore .srvcore").html("{{unknown}}");
     }
     if (typeof (data.players) !== "undefined") {
       $(".g-srvplayers .srvplayerscount").html(data.players.online + "/" + data.players.max + " players");
     } else {
-      $(".g-srvplayers .srvplayerscount").html("Unknown");
+      $(".g-srvplayers .srvplayerscount").html("{{unknown}}");
     }
     maxmem = Math.round(data.totalmem / 1024 / 1024 / 1024) * 1024;
     $("#createServerModal .hideWhileCreating .xmxMem").attr({
