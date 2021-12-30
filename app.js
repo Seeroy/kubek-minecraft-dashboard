@@ -59,7 +59,7 @@ const fse = require('fs-extra');
 const {
   response
 } = require('express');
-const version = "v1.0.6";
+const version = "v1.0.6-fix";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
@@ -498,10 +498,10 @@ if (firstStart == false) {
 function startServer(server) {
   servers_logs[server] = "";
   if (process.platform == "win32") {
-    servers_instances[server] = spawn("servers/" + server + "/start.bat");
+    servers_instances[server] = spawn('"servers/' + server + '/start.bat"');
     start = true;
   } else if (process.platform == "linux") {
-    servers_instances[server] = spawn("servers/" + server + "/start.sh");
+    servers_instances[server] = spawn('"servers/' + server + '/start.sh"');
     start = true;
   } else {
     console.log(colors.red(getTimeFormatted() + " " + process.platform + " not supported"));
