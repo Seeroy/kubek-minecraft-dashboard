@@ -59,7 +59,7 @@ const fse = require('fs-extra');
 const {
   response
 } = require('express');
-const version = "v1.0.6-fix";
+const version = "v1.0.7";
 
 var customHeaderRequest = request_lib.defaults({
   headers: {
@@ -102,7 +102,7 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
       file = fs.readFileSync(path.join(__dirname, "./www/" + req["_parsedUrl"].pathname));
       cfg = fs.readFileSync("./config.json");
       cfg = JSON.parse(cfg);
-      
+
       jtranslate = fs.readFileSync(path.join(__dirname, "./translations/" + cfg["lang"] + ".json"));
       jtranslate = JSON.parse(jtranslate);
       matches = [];
@@ -130,14 +130,10 @@ if (firstStart == false) {
           root: "./"
         });
       } else {
-        res.sendFile("www/assets/k.png", {
-          root: "./"
-        });
+        res.send("");
       }
     } else {
-      res.sendFile("www/assets/k.png", {
-        root: "./"
-      });
+      res.send("");
     }
   });
 
@@ -252,18 +248,34 @@ if (firstStart == false) {
 
   app.get("/server/delete", (request, response) => {
     if (typeof (configjson[request.query.server]) !== 'undefined') {
-      delete configjson[request.query.server];
-      fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
-      serDeletes[request.query.server] = "deleting";
-      setTimeout(function () {
-        fs.rm("./servers/" + request.query.server, {
-          recursive: true,
-          force: true
-        }, function () {
-          delete serDeletes[request.query.server];
-        });
-      }, 500);
+      fs.readdir("./servers", (err, files) => {
+        if (files.length <= 2) {
+          serDeletes[request.query.server] = "deleting";
+          setTimeout(function () {
+            fs.rm("./servers", {
+              recursive: true,
+              force: true
+            }, function () {
+              delete serDeletes[request.query.server];
+            });
+          }, 500);
+        } else {
+          delete configjson[request.query.server];
+          fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
+          serDeletes[request.query.server] = "deleting";
+          setTimeout(function () {
+            fs.rm("./servers/" + request.query.server, {
+              recursive: true,
+              force: true
+            }, function () {
+              delete serDeletes[request.query.server];
+            });
+          }, 500);
+        }
+      });
       response.send("true");
+      console.log("RESTART APP!");
+      process.exit();
     } else {
       response.send("false");
     }
@@ -462,7 +474,7 @@ if (firstStart == false) {
   app.use("/css", express.static(path.join(__dirname, './www/css')));
   app.use("/", express.static(path.join(__dirname, './www/setup/')));
 
-  if(!fs.existsSync("config.json")){
+  if (!fs.existsSync("config.json")) {
     fs.writeFileSync("config.json", '{"lang":"en"}');
   }
 
