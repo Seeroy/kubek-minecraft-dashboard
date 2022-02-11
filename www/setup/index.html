@@ -52,7 +52,26 @@
             <span style="color: black;">Server name</span>
             <input type="text" class="form-control srvNamee" required><br>
             <span style="color: black;">Core</span><br>
-            <select class="custom-select coreSelect" required></select><br><br>
+
+            <div class="form-check" style="color: black;">
+              <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="select"
+                checked>
+              <label class="form-check-label" for="flexRadioDefault1">
+                Select from list
+              </label>
+            </div>
+            <div class="form-check" style="color: black;">
+              <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2"
+                value="upload">
+              <label class="form-check-label" for="flexRadioDefault2">
+                Upload your
+              </label>
+            </div>
+
+            <form id="g-core-form" style="display: none;" enctype="multipart/form-data">
+              <input class="form-control" type="file" id="g-core-input" name="g-core-input">
+            </form>
+            <select class="custom-select coreSelect" required></select>
             <span style="color: black;">Memory (-Xmx)</span>
             <input type="number" class="form-control xmxMem" min=1024 value=2560 max=8192 step=512 required><br>
             <span style="color: black;">Port (2000 - 60000)</span>
@@ -116,34 +135,81 @@
         $("#createServerModal .showWhileCreating").each(function () {
           $(this).show();
         });
-        $("#createServerModal .showWhileCreating p").html("Searching core");
-        sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
-        core = $("#createServerModal .hideWhileCreating .coreSelect option:selected").html();
-        if (core.substring(0, 1) == "P") {
-          $.get("/cores/search?core=" + core, function (data) {
-            if (data != "") {
+        if ($('.hideWhileCreating input[type=radio][name=flexRadioDefault]:checked').val() == "select") {
+          $("#createServerModal .showWhileCreating #downProgress").show();
+          $("#createServerModal .showWhileCreating p").html("Searching core");
+          sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
+          core = $("#createServerModal .hideWhileCreating .coreSelect option:selected").html();
+          if (core.substring(0, 1) == "P") {
+            $.get("/cores/search?core=" + core, function (data) {
+              if (data != "") {
+                $("#createServerModal .showWhileCreating p").html("Downloading core");
+                $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
+                  .lastIndexOf('/') + 1) + "&type=core");
+                rr = setInterval(function () {
+                  getProgress(data.substring(data.lastIndexOf('/') + 1))
+                }, 25);
+              }
+            });
+          } else {
+            $.get("/cores/spigot/list", function (data) {
+              url = data[core.replace("Spigot ", "")];
               $("#createServerModal .showWhileCreating p").html("Downloading core");
-              $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
+              $.get("/file/download?url=" + url + "&server=" + sname + "&filename=" + url.substring(url
                 .lastIndexOf('/') + 1) + "&type=core");
               rr = setInterval(function () {
-                getProgress(data.substring(data.lastIndexOf('/') + 1))
+                getProgress(url.substring(url.lastIndexOf('/') + 1))
               }, 25);
-            }
-          });
-        } else {
-          $.get("/cores/spigot/list", function (data) {
-            url = data[core.replace("Spigot ", "")];
-            $("#createServerModal .showWhileCreating p").html("Downloading core");
-            $.get("/file/download?url=" + url + "&server=" + sname + "&filename=" + url.substring(url
-              .lastIndexOf('/') + 1) + "&type=core");
-            rr = setInterval(function () {
-              getProgress(url.substring(url.lastIndexOf('/') + 1))
-            }, 25);
-          });
+            });
+          }
+        } else if ($('.hideWhileCreating input[type=radio][name=flexRadioDefault]:checked').val() == "upload") {
+          $("#createServerModal .showWhileCreating #downProgress").hide();
+          $("#createServerModal .showWhileCreating p").html("Uploading core");
+          uploadCore();
         }
       }
     });
   });
+
+  $('input[type=radio][name=flexRadioDefault]').change(function () {
+    if ($(this).val() == "select") {
+      $("#g-core-form").hide();
+      $(".coreSelect").show();
+    } else if ($(this).val() == "upload") {
+      $("#g-core-form").show();
+      $(".coreSelect").hide();
+    }
+  });
+
+  function uploadCore() {
+    var formData = new FormData($("#g-core-form")[0]);
+    jQuery.ajax({
+      url: '/core/upload?server=' + $(".srvNamee").val(),
+      type: "POST",
+      data: formData,
+      success: function (data) {
+        $("#createServerModal .showWhileCreating p").html("Completion");
+        $('#createServerModal .hideWhileCreating .onMode').is(':checked') ? ttr = "true" : ttr = "false";
+        sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
+        jarfile = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
+        $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&memory=" + $(
+          "#createServerModal .hideWhileCreating .xmxMem").val() + "&port=" + $(
+          "#createServerModal .hideWhileCreating .srvPort").val() + "&onMode=" + ttr, function (data) {
+          document.location.reload();
+        });
+      },
+      error: function (data) {
+        Swal.fire(
+          'Error',
+          'Error while uploading core',
+          'error'
+        );
+      },
+      cache: false,
+      contentType: false,
+      processData: false,
+    });
+  }
 
   function getProgress(jarfile) {
     $.get("/tasks/progress", function (data) {

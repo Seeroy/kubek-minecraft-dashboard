@@ -2,6 +2,7 @@
   <div class="blck">
     {{plugins}}
     <button type="button" class="btn btn-primary btn-sm" onclick="loadPage('plmanager')">{{pluginManager}}</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="uploadPluginOwn()">Upload own</button>
   </div>
   <div class="blck" style="height: 512px; overflow: auto;">
     <input type="text" class="form-control searchBar" placeholder="Search"><br>
@@ -18,6 +19,11 @@
     </div>
   </div>
 </div>
+
+<form id="g-plugin-form" enctype="multipart/form-data">
+  <input name="g-plugin-input" id="g-plugin-input"
+    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file">
+</form>
 
 <div class="modal fade" id="selectPluginModal" tabindex="-1" role="dialog" aria-labelledby="selectPluginModallLabel"
   aria-hidden="true">
@@ -43,6 +49,38 @@
   $(document).ready(function () {
     updateFromPage();
   });
+
+  function uploadPluginOwn() {
+    $("#g-plugin-input").trigger('click');
+    $("#g-plugin-input").off("change");
+    $("#g-plugin-input").change(function () {
+      var formData = new FormData($("#g-plugin-form")[0]);
+      jQuery.ajax({
+        url: '/plugin/upload?server=' + currentServer,
+        type: "POST",
+        data: formData,
+        success: function (data) {
+          Swal.fire(
+            '{{success}}',
+            '{{restartServerToSeeChanges}}',
+            'success'
+          ).then((result) => {
+            window.location = "";
+          });
+        },
+        error: function (data) {
+          Swal.fire(
+            '{{error}}',
+            '{{ErrorWhileUploadingCore}}',
+            'error'
+          );
+        },
+        cache: false,
+        contentType: false,
+        processData: false,
+      });
+    });
+  }
 
   function updateFromPage() {
     $(".loadBg").show();

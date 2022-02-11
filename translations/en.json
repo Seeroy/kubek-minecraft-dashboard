@@ -9,7 +9,7 @@
   "{{memory}}": "Memory",
   "{{port}}": "Port",
   "{{onlinemode}}": "Online mode (only license players)",
-  "{{searchingcore}}": "Searchin core",
+  "{{searchingcore}}": "Searching core",
   "{{cancel}}": "Cancel",
   "{{ok}}": "Ok",
   "{{servers}}": "Servers",
@@ -39,5 +39,9 @@
   "{{searching}}": "Searching",
   "{{settingsSaved}}": "Settings saved!",
   "{{installNew}}": "Install new",
-  "{{softLang}}": "Software language"
+  "{{softLang}}": "Software language",
+  "{{selectFromList}}": "Select from list",
+  "{{uploadYour}}": "Upload your",
+  "{{ErrorWhileUploadingCore}}": "Error while uploading your core/plugin",
+  "{{uploadingCore}}": "Uploading your core..."
 }

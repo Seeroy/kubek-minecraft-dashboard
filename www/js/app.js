@@ -88,6 +88,16 @@ $(document).ready(function () {
     window.location = "/?server=" + $(".serSelect option:selected").text();
   });
 
+  $('input[type=radio][name=flexRadioDefault]').change(function () {
+    if ($(this).val() == "select") {
+      $("#g-core-form").hide();
+      $(".coreSelect").show();
+    } else if ($(this).val() == "upload") {
+      $("#g-core-form").show();
+      $(".coreSelect").hide();
+    }
+  });
+
   $(".tabs .startbtn").click(function () {
     $.get("/server/start?server=" + currentServer);
   });
@@ -116,35 +126,41 @@ $(document).ready(function () {
       $("#createServerModal .showWhileCreating").each(function () {
         $(this).show();
       });
-      $("#createServerModal .showWhileCreating p").html("Searching core");
-      sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
-      core = $("#createServerModal .hideWhileCreating .coreSelect option:selected").html();
-      if (core.substring(0, 1) == "P") {
-        $.get("/cores/search?core=" + core, function (data) {
-          if (data != "") {
+      if ($('.hideWhileCreating input[type=radio][name=flexRadioDefault]:checked').val() == "select") {
+        $("#createServerModal .showWhileCreating #downProgress").show();
+        $("#createServerModal .showWhileCreating p").html("Searching core");
+        sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
+        core = $("#createServerModal .hideWhileCreating .coreSelect option:selected").html();
+        if (core.substring(0, 1) == "P") {
+          $.get("/cores/search?core=" + core, function (data) {
+            if (data != "") {
+              $("#createServerModal .showWhileCreating p").html("{{downloadingcore}}");
+              $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data.lastIndexOf('/') + 1) + "&type=core");
+              rr = setInterval(function () {
+                getProgress(data.substring(data.lastIndexOf('/') + 1))
+              }, 25);
+            }
+          });
+        } else {
+          $.get("/cores/spigot/list", function (data) {
+            url = data[core.replace("Spigot ", "")];
             $("#createServerModal .showWhileCreating p").html("{{downloadingcore}}");
-            $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data.lastIndexOf('/') + 1) + "&type=core");
+            $.get("/file/download?url=" + url + "&server=" + sname + "&filename=" + url.substring(url.lastIndexOf('/') + 1) + "&type=core");
             rr = setInterval(function () {
-              getProgress(data.substring(data.lastIndexOf('/') + 1))
+              getProgress(url.substring(url.lastIndexOf('/') + 1))
             }, 25);
-          }
-        });
-      } else {
-        $.get("/cores/spigot/list", function (data) {
-          url = data[core.replace("Spigot ", "")];
-          $("#createServerModal .showWhileCreating p").html("{{downloadingcore}}");
-          $.get("/file/download?url=" + url + "&server=" + sname + "&filename=" + url.substring(url.lastIndexOf('/') + 1) + "&type=core");
-          rr = setInterval(function () {
-            getProgress(url.substring(url.lastIndexOf('/') + 1))
-          }, 25);
-        });
+          });
+        }
+      } else if ($('.hideWhileCreating input[type=radio][name=flexRadioDefault]:checked').val() == "upload") {
+        $("#createServerModal .showWhileCreating #downProgress").hide();
+        $("#createServerModal .showWhileCreating p").html("{{uploadingCore}}");
+        uploadCore();
       }
     }
   });
 });
 
 function updateUsage() {
-  console.log(cBar);
   $.get("/kubek/usage", function (data) {
     $(".cValue").html(data.cpu + "%");
     cBar.animate((data.cpu / 100).toFixed(2));
@@ -154,29 +170,27 @@ function updateUsage() {
   });
 }
 
-function changeServerIcon(){
+function changeServerIcon() {
   $("#g-img-input").trigger('click');
   $("#g-img-input").off("change");
   $("#g-img-input").change(function () {
-    alert($(this).val());
     $("#g-type-input").val("server-icon");
     $("#g-server-input").val(currentServer);
     var formData = new FormData($("#g-img-form")[0]);
-    console.log(formData);
     jQuery.ajax({
       url: '/file/upload?type=server-icon.png&server=' + currentServer,
       type: "POST",
       data: formData,
-      success: function(data) {
+      success: function (data) {
         Swal.fire(
           '{{success}}',
           '{{restartServerToSeeChanges}}',
           'success'
         ).then((result) => {
-          window.location="";
+          window.location = "";
         });
       },
-      error: function(data) {
+      error: function (data) {
         Swal.fire(
           '{{error}}',
           '{{ErrorWhileUploadingPNG}}',
@@ -187,6 +201,34 @@ function changeServerIcon(){
       contentType: false,
       processData: false,
     });
+  });
+}
+
+function uploadCore() {
+  var formData = new FormData($("#g-core-form")[0]);
+  jQuery.ajax({
+    url: '/core/upload?server=' + $(".srvNamee").val(),
+    type: "POST",
+    data: formData,
+    success: function (data) {
+      $("#createServerModal .showWhileCreating p").html("{{Completion}}");
+      $('#createServerModal .hideWhileCreating .onMode').is(':checked') ? ttr = "true" : ttr = "false";
+      sname = $("#createServerModal .hideWhileCreating .srvNamee").val();
+      jarfile = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
+      $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&memory=" + $("#createServerModal .hideWhileCreating .xmxMem").val() + "&port=" + $("#createServerModal .hideWhileCreating .srvPort").val() + "&onMode=" + ttr, function (data) {
+        document.location.reload();
+      });
+    },
+    error: function (data) {
+      Swal.fire(
+        '{{error}}',
+        '{{ErrorWhileUploadingCore}}',
+        'error'
+      );
+    },
+    cache: false,
+    contentType: false,
+    processData: false,
   });
 }
 
@@ -376,7 +418,6 @@ function updateCoresList() {
     });
   });
   $.get("/cores/spigot/list", function (data) {
-    console.log(data);
     keys = Object.keys(data);
     keys.forEach(function (key) {
       core = "Spigot " + key;
