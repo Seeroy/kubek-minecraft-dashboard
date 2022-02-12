@@ -1,0 +1,95 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Kubek - Minecraft Servers</title>
+
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/shards.min.js"></script>
+  <link rel="stylesheet" href="css/shards.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+</head>
+
+<body class="text-center">
+  <main class="form-signin">
+    <img class="mb-4" src="assets/logo.png" alt="" width="200px">
+    <h1 class="h3 mb-3 fw-normal">{{signin}}</h1><br>
+
+    <div class="form-floating">
+      <input type="text" class="form-control" id="floatingInput" placeholder="{{username}}">
+    </div><br>
+    <div class="form-floating">
+      <input type="password" class="form-control" id="floatingPassword" placeholder="{{password}}">
+    </div><br>
+
+    <center><span id="autherror" style='display: none; color: red; text-align: center;'>{{autherror}}</span></center><br>
+    <button class="w-100 btn btn-lg btn-primary">{{signinbtn}}</button>
+  </main>
+</body>
+
+<style>
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    background-color: #f5f5f5;
+  }
+
+  .form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+  }
+
+  .form-signin .checkbox {
+    font-weight: 400;
+  }
+
+  .form-signin .form-floating:focus-within {
+    z-index: 2;
+  }
+
+  .form-signin input[type="email"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .form-signin input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+</style>
+
+<script>
+  $(document).ready(function () {
+    $(".btn").click(function () {
+      login = $("#floatingInput").val();
+      password = $("#floatingPassword").val();
+      $.get("/auth/login?login=" + login + "&password=" + password, function (data) {
+        if(data == "Wrong credetinals!"){
+          $("#autherror").show();
+        } else {
+          $("#autherror").hide();
+          window.location = "/";
+        }
+      });
+    });
+  });
+</script>

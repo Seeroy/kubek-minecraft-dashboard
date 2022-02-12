@@ -44,7 +44,7 @@
       </div>
 
       <div class="fc">
-        
+
       </div>
     </div>
     <div class="layout" style="padding: 16px;">
@@ -56,43 +56,155 @@
         <div class="setflex-b">
           <div class="custom-controls-stacked">
             <div class="custom-control custom-radio mb-3">
-              <input type="radio" id="russianRadio" name="customRadio" data-lang="ru" class="custom-control-input">
+              <input type="radio" id="russianRadio" name="lang" value="ru" class="custom-control-input langRadio">
               <label class="custom-control-label" for="russianRadio">Русский</label>
             </div>
             <div class="custom-control custom-radio mb-3">
-              <input type="radio" id="englishRadio" name="customRadio" data-lang="en" class="custom-control-input">
+              <input type="radio" id="englishRadio" name="lang" value="en" class="custom-control-input langRadio">
               <label class="custom-control-label" for="englishRadio">English</label>
             </div>
           </div>
         </div>
       </div>
-      <br><br><button class="btn btn-primary saveBtn">{{ok}}</button>
+      <div class="setflex-c">
+        <div class="setflex-b">
+          {{ftpserver}}
+        </div>
+        <div class="setflex-b">
+          <div class="custom-controls-stacked">
+            <div class="custom-control custom-radio mb-3">
+              <input type="radio" id="ftponRadio" name="ftp" value=true class="custom-control-input ftpRadio">
+              <label class="custom-control-label" for="ftponRadio">{{on}}</label>
+            </div>
+            <div class="custom-control custom-radio mb-3">
+              <input type="radio" id="ftpoffRadio" name="ftp" value=false class="custom-control-input ftpRadio">
+              <label class="custom-control-label" for="ftpoffRadio">{{off}}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="setflex-c">
+        <div class="setflex-b">
+          FTP {{user}}
+        </div>
+        <div class="setflex-b">
+          <input type="text" style="width: 320px;" class="form-control ftpuser">
+        </div>
+      </div>
+      <div class="setflex-c">
+        <div class="setflex-b">
+          FTP {{password}}
+        </div>
+        <div class="setflex-b">
+          <div class="d-flex flex-row align-items-center">
+            <div class="p-2"><input type="password" style="width: 320px;" class="form-control ftppass"></div>
+            <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye" data-inp=".ftppass">visibility</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="setflex-c">
+        <div class="setflex-b">
+          {{auth}}
+        </div>
+        <div class="setflex-b">
+          <div class="custom-controls-stacked">
+            <div class="custom-control custom-radio mb-3">
+              <input type="radio" id="authonRadio" name="auth" value=true class="custom-control-input authRadio">
+              <label class="custom-control-label" for="authonRadio">{{on}}</label>
+            </div>
+            <div class="custom-control custom-radio mb-3">
+              <input type="radio" id="authoffRadio" name="auth" value=false class="custom-control-input authRadio">
+              <label class="custom-control-label" for="authoffRadio">{{off}}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="setflex-c">
+        <div class="setflex-b">
+          {{auth}} {{user}}
+        </div>
+        <div class="setflex-b">
+          <input type="text" style="width: 320px;" class="form-control authuser">
+        </div>
+      </div>
+      <div class="setflex-c">
+        <div class="setflex-b">
+          {{auth}} {{password}}
+        </div>
+        <div class="setflex-b">
+          <div class="d-flex flex-row align-items-center">
+            <div class="p-2"><input type="password" style="width: 320px;" class="form-control authpass"></div>
+            <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye" data-inp=".authpass">visibility</span></div>
+          </div>
+        </div>
+      </div>
+      <button style="margin-top: 48px;" class="btn btn-primary saveBtn">{{ok}}</button>
     </div>
   </div>
 </body>
 
 <script>
-var kubekCfg;
-$(".kubekVersion").load("/kubek/version");
+  var kubekCfg;
+  $(".kubekVersion").load("/kubek/version");
 
-$(document).ready(function(){
-  $.get("/kubek/config", function(data) {
-    kubekCfg = JSON.parse(data);
-    if(kubekCfg['lang'] == "en"){
-      $("#englishRadio").attr("checked", true);
-    } else if(kubekCfg['lang'] == "ru"){
-      $("#russianRadio").attr("checked", true);
+  $(document).ready(function () {
+    $.get("/kubek/config", function (data) {
+      kubekCfg = JSON.parse(data);
+      if (kubekCfg['lang'] == "en") {
+        $("#englishRadio").attr("checked", true);
+      } else if (kubekCfg['lang'] == "ru") {
+        $("#russianRadio").attr("checked", true);
+      }
+
+      if (kubekCfg['ftpd'] == true) {
+        $("#ftponRadio").attr("checked", true);
+      } else if (kubekCfg['ftpd'] == false) {
+        $("#ftpoffRadio").attr("checked", true);
+      }
+
+      if (kubekCfg['auth'] == true) {
+        $("#authonRadio").attr("checked", true);
+      } else if (kubekCfg['auth'] == false) {
+        $("#authoffRadio").attr("checked", true);
+      }
+
+      $(".ftppass").val(kubekCfg["ftpd-password"]);
+      $(".ftpuser").val(kubekCfg["ftpd-user"]);
+      $(".authpass").val(kubekCfg["auth-password"]);
+      $(".authuser").val(kubekCfg["auth-user"]);
+    });
+  });
+
+  $(".eye").click(function() {
+    inp = $(this).data("inp");
+    type = $(inp).attr("type");
+    if(type == "password"){
+      $(inp).attr("type", "text");
+    } else {
+      $(inp).attr("type", "password");
     }
   });
-});
 
-$(".saveBtn").click(function(){
-  checked = $("input:checked").data("lang");
-  kubekCfg["lang"] = checked;
-  $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function(data) {
-    location.reload();
+  $(".saveBtn").click(function () {
+    checked = $(".langRadio:checked").val();
+    ftpd = $(".ftpRadio:checked").val();
+    auth = $(".authRadio:checked").val();
+    ftpd == "true" ? ftpd = true : ftpd = false;
+    console.log(ftpd);
+    auth == "true" ? auth = true : auth = false;
+    kubekCfg["lang"] = checked;
+    kubekCfg["ftpd"] = ftpd;
+    kubekCfg["auth"] = auth;
+    kubekCfg["ftpd-password"] = $(".ftppass").val();
+    kubekCfg["ftpd-user"] = $(".ftpuser").val();
+    kubekCfg["auth-password"] = $(".authpass").val();
+    kubekCfg["auth-user"] = $(".authuser").val();
+    $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function (data) {
+      $.get("/ftpd/set?value=" + ftpd, function (data) {
+        location.reload();
+      });
+    });
   });
-});
 </script>
 
 <style>
@@ -106,6 +218,14 @@ $(".saveBtn").click(function(){
     margin: 5px;
     padding: 5px;
     flex: 1 1 auto;
+  }
+
+  .setflex-b:nth-child(1) {
+    width: 30%;
+  }
+
+  .setflex-b:nth-child(2) {
+    width: min-content;
   }
 
   input {

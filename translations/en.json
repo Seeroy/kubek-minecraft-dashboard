@@ -43,5 +43,15 @@
   "{{selectFromList}}": "Select from list",
   "{{uploadYour}}": "Upload your",
   "{{ErrorWhileUploadingCore}}": "Error while uploading your core/plugin",
-  "{{uploadingCore}}": "Uploading your core..."
+  "{{uploadingCore}}": "Uploading your core...",
+  "{{user}}": "User",
+  "{{username}}": "Username",
+  "{{password}}": "Password",
+  "{{ftpserver}}": "FTP-server",
+  "{{on}}": "On",
+  "{{off}}": "Off",
+  "{{auth}}": "Authorization",
+  "{{signin}}": "Sign in",
+  "{{signinbtn}}": "Sign in",
+  "{{autherror}}": "Invalid username or password"
 }
