@@ -45,7 +45,7 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.2";
+const version = "v1.1.2-fix";
 const ftpd = require("./ftpd.js");
 var ftpserver;
 
@@ -120,7 +120,7 @@ function isAuth(hash) {
   var authsucc = false;
   cfg = fs.readFileSync("./config.json");
   cfg = JSON.parse(cfg);
-  if (cfg.auth == false || hash == crypto.createHash('md5').update(cfg["auth-password"]).digest('hex')) {
+  if (typeof(hash) !== "undefined" && hash != "" && cfg.auth == false || hash == crypto.createHash('md5').update(cfg["auth-password"]).digest('hex')) {
     authsucc = true;
   }
   return authsucc;
@@ -156,9 +156,8 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
   app.use(function (req, res, next) {
     if (typeof (req.cookies) !== "undefined" && typeof(req.cookies["__auth__"]) !== "undefined") {
       var is_authsucc = isAuth(req.cookies["__auth__"]);
-      if (req["_parsedUrl"].pathname == "/login.html") {
-        is_authsucc = true;
-      }
+    } else if (req["_parsedUrl"].pathname == "/login.html") {
+      is_authsucc = true;
     }
     if (is_authsucc == true || path.extname(req["_parsedUrl"].pathname) == ".js" || path.extname(req["_parsedUrl"].pathname) == ".png" || path.extname(req["_parsedUrl"].pathname) == ".css") {
       if (fs.existsSync(path.join(__dirname, "./www/" + req["_parsedUrl"].pathname))) {
