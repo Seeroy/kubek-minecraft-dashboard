@@ -30,7 +30,8 @@
       <input type="password" class="form-control" id="floatingPassword" placeholder="{{password}}">
     </div><br>
 
-    <center><span id="autherror" style='display: none; color: red; text-align: center;'>{{autherror}}</span></center><br>
+    <center><span id="autherror" style='display: none; color: red; text-align: center;'>{{autherror}}</span></center>
+    <br>
     <button class="w-100 btn btn-lg btn-primary">{{signinbtn}}</button>
   </main>
 </body>
@@ -82,13 +83,25 @@
     $(".btn").click(function () {
       login = $("#floatingInput").val();
       password = $("#floatingPassword").val();
-      $.get("/auth/login?login=" + login + "&password=" + password, function (data) {
-        if(data == "Wrong credetinals!"){
-          $("#autherror").show();
-        } else {
-          $("#autherror").hide();
-          window.location = "/";
-        }
+
+      $.ajax("/auth/login?login=" + login + "&password=" + password, {
+        type: "GET",
+        statusCode: {
+          200: function (response) {
+            console.log(response);
+            if (response == "Wrong credetinals!") {
+              $("#autherror").show();
+              $("#autherror").html("Ошибка авторизации. Неверные данные");
+            } else {
+              $("#autherror").hide();
+              window.location = "/";
+            }
+          },
+          429: function (response) {
+            $("#autherror").show();
+            $("#autherror").html("Слишком много запросов, попробуйте повторить через 5 секунд");
+          }
+        },
       });
     });
   });

@@ -53,5 +53,10 @@
   "{{auth}}": "Authorization",
   "{{signin}}": "Sign in",
   "{{signinbtn}}": "Sign in",
-  "{{autherror}}": "Invalid username or password"
+  "{{autherror}}": "Invalid username or password",
+  "{{passgen}}": "Password generator",
+  "{{passgenDesc}}": "After pressing the Start button, move the mouse across the page to generate a password",
+  "{{passgenLength}}": "Password length",
+  "{{passgenNL}}": "Not limited",
+  "{{passgenYC}}": "Your code is: "
 }

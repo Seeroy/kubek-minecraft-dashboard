@@ -45,12 +45,22 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.2-fix";
+const version = "v1.1.3";
 const ftpd = require("./ftpd.js");
+const rateLimit = require('express-rate-limit');
 var ftpserver;
 
 app.use(fileUpload());
 app.use(cookieParser());
+
+const authLimiter = rateLimit({
+	windowMs: 5000,
+	max: 1,
+	standardHeaders: true,
+	legacyHeaders: false,
+})
+
+app.use('/auth/login', authLimiter);
 
 if (!fs.existsSync("config.json")) {
   fs.writeFileSync("config.json", '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"auth-user":"kubek","auth-password":"kubek"}');
