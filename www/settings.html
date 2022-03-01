@@ -43,6 +43,9 @@
           <li class="nav-item">
             <a class="nav-link" href="/passgen-tool.html">{{passgen}}</a>
           </li>
+          <!--<li class="nav-item">
+            <a class="nav-link" href="/userseditor.html">{{userseditor}}</a>
+          </li>-->
         </ul>
       </div>
 
@@ -101,7 +104,8 @@
         <div class="setflex-b">
           <div class="d-flex flex-row align-items-center">
             <div class="p-2"><input type="password" style="width: 320px;" class="form-control ftppass"></div>
-            <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye" data-inp=".ftppass">visibility</span></div>
+            <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye"
+                data-inp=".ftppass">visibility</span></div>
           </div>
         </div>
       </div>
@@ -124,7 +128,7 @@
       </div>
       <div class="setflex-c">
         <div class="setflex-b">
-          {{auth}} {{user}}
+          {{owner}} {{user}}
         </div>
         <div class="setflex-b">
           <input type="text" style="width: 320px;" class="form-control authuser">
@@ -132,15 +136,18 @@
       </div>
       <div class="setflex-c">
         <div class="setflex-b">
-          {{auth}} {{password}}
+          {{owner}} {{password}}
         </div>
         <div class="setflex-b">
           <div class="d-flex flex-row align-items-center">
             <div class="p-2"><input type="password" style="width: 320px;" class="form-control authpass"></div>
-            <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye" data-inp=".authpass">visibility</span></div>
+            <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye"
+                data-inp=".authpass">visibility</span></div>
           </div>
         </div>
       </div>
+      {{otherusers}}
+      
       <button style="margin-top: 48px;" class="btn btn-primary saveBtn">{{ok}}</button>
     </div>
   </div>
@@ -173,15 +180,15 @@
 
       $(".ftppass").val(kubekCfg["ftpd-password"]);
       $(".ftpuser").val(kubekCfg["ftpd-user"]);
-      $(".authpass").val(kubekCfg["auth-password"]);
-      $(".authuser").val(kubekCfg["auth-user"]);
+      $(".authpass").val(kubekCfg["owner-password"]);
+      $(".authuser").val(kubekCfg["owner-user"]);
     });
   });
 
-  $(".eye").click(function() {
+  $(".eye").click(function () {
     inp = $(this).data("inp");
     type = $(inp).attr("type");
-    if(type == "password"){
+    if (type == "password") {
       $(inp).attr("type", "text");
     } else {
       $(inp).attr("type", "password");
@@ -200,8 +207,8 @@
     kubekCfg["auth"] = auth;
     kubekCfg["ftpd-password"] = $(".ftppass").val();
     kubekCfg["ftpd-user"] = $(".ftpuser").val();
-    kubekCfg["auth-password"] = $(".authpass").val();
-    kubekCfg["auth-user"] = $(".authuser").val();
+    kubekCfg["owner-password"] = $(".authpass").val();
+    kubekCfg["owner-user"] = $(".authuser").val();
     $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function (data) {
       $.get("/ftpd/set?value=" + ftpd, function (data) {
         location.reload();

@@ -58,5 +58,10 @@
   "{{passgenDesc}}": "After pressing the Start button, move the mouse across the page to generate a password",
   "{{passgenLength}}": "Password length",
   "{{passgenNL}}": "Not limited",
-  "{{passgenYC}}": "Your code is: "
+  "{{passgenYC}}": "Your code is: ",
+  "{{otherusers}}": "Other users",
+  "{{edit}}": "Edit",
+  "{{owner}}": "Owner",
+  "{{userseditor}}": "Users manager",
+  "{{delete}}": "Delete"
 }

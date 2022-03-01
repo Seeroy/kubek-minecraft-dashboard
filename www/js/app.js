@@ -390,14 +390,6 @@ function updateQuery() {
     $("#createServerModal .hideWhileCreating .xmxMem").attr({
       "max": maxmem
     });
-    if ($(".blck .ttt1")[0] != "") {
-      $(".blck .ttt1").html("");
-      if (typeof (data.players) !== "undefined") {
-        data.players.sample.forEach(function (player) {
-          $(".blck .ttt1").append('<tr><td><img alt="" src="https://minotar.net/avatar/' + player + '/48.png"></td><td>' + player + '</td><td><button class="btn btn-light" style="color: black;" onclick="banPlayer(' + "'" + player + "'" + ')" data-toggle="tooltip" data-placement="top" title="Ban"><span class="material-icons material-icons-outlined">remove_circle</i></button></td></tr>');
-        });
-      }
-    }
   });
 }
 

@@ -45,7 +45,7 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.3";
+const version = "v1.1.4";
 const ftpd = require("./ftpd.js");
 const rateLimit = require('express-rate-limit');
 var ftpserver;
@@ -54,13 +54,67 @@ app.use(fileUpload());
 app.use(cookieParser());
 
 const authLimiter = rateLimit({
-	windowMs: 5000,
-	max: 1,
-	standardHeaders: true,
-	legacyHeaders: false,
+  windowMs: 5000,
+  max: 1,
+  standardHeaders: true,
+  legacyHeaders: false,
 })
 
 app.use('/auth/login', authLimiter);
+
+function getUserByAuthHash(hash) {
+  cfg = JSON.parse(fs.readFileSync("./config.json"));
+  if (crypto.createHash('md5').update(cfg["owner-password"]).digest('hex') == hash) {
+    return cfg['owner-user'];
+  } else {
+    var usr;
+    if (typeof (cfg['other-users']) !== "undefined" && cfg['other-users'][0] != "") {
+      cfg['other-users'].forEach(function (usercfg) {
+        if (crypto.createHash('md5').update(usercfg["password"]).digest('hex') == hash) {
+          usr = usercfg;
+        }
+      });
+    }
+    return usr['name'];
+  }
+}
+
+function userPrivileges(user) {
+  cfg = JSON.parse(fs.readFileSync("./config.json"));
+  if (cfg['owner-user'] == user) {
+    return {
+      "console-access": true,
+      "server.properties-access": true,
+      "plugins-access": true,
+      "server-config-access": true,
+      "kubek-config-access": true,
+      "creating-servers-access": true,
+      "users-editor-access": true
+    }
+  } else {
+    var usr;
+    if (typeof (cfg['other-users']) !== "undefined" && cfg['other-users'][0] != "") {
+      cfg['other-users'].forEach(function (usercfg) {
+        if (usercfg["name"] == user) {
+          usr = usercfg;
+        }
+      });
+    }
+    if (typeof usr !== "undefined") {
+      return usr['privileges'];
+    } else {
+      return {
+        "console-access": false,
+        "server.properties-access": false,
+        "plugins-access": false,
+        "server-config-access": false,
+        "kubek-config-access": false,
+        "creating-servers-access": false,
+        "users-editor-access": false
+      }
+    }
+  }
+}
 
 if (!fs.existsSync("config.json")) {
   fs.writeFileSync("config.json", '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"auth-user":"kubek","auth-password":"kubek"}');
@@ -90,7 +144,7 @@ if (typeof (configjson) !== "undefined") {
 
 const download = (url, filename, callback) => {
   const progressBar = new _cliProgress.SingleBar({
-    format: colors.blue("[+]") + ' Downloading indiftpd : [{bar}] {percentage}%'
+    format: colors.blue("[+]") + ' Downloading ' + filename + ' : [{bar}] {percentage}%'
   }, _cliProgress.Presets.legacy);
   const file = fs.createWriteStream(filename);
   let receivedBytes = 0
@@ -130,23 +184,29 @@ function isAuth(hash) {
   var authsucc = false;
   cfg = fs.readFileSync("./config.json");
   cfg = JSON.parse(cfg);
-  if (typeof(hash) !== "undefined" && hash != "" && cfg.auth == false || hash == crypto.createHash('md5').update(cfg["auth-password"]).digest('hex')) {
+  if (cfg.auth == false) {
     authsucc = true;
+  } else {
+    if (typeof (hash) !== "undefined" && hash != "" && hash == crypto.createHash('md5').update(cfg["owner-password"]).digest('hex')) {
+      authsucc = true;
+    }
   }
   return authsucc;
-}
-
-if (!fs.existsSync("indiftpd.exe") || !fs.existsSync("indiftpd")) {
-  download("https://seeroy.github.io/indiftpd/indiftpd.exe", "indiftpd.exe", () => {
-    download("https://seeroy.github.io/indiftpd/indiftpd", "indiftpd", () => {
-      //completed
-    });
-  });
 }
 
 console.log(colors.inverse('Kubek ' + version + ''));
 console.log(colors.inverse('https://github.com/Seeroy/kubek-minecraft-dashboard'));
 console.log(" ");
+
+setTimeout(function () {
+  if (!fs.existsSync("indiftpd.exe") || !fs.existsSync("indiftpd")) {
+    download("https://seeroy.github.io/indiftpd/indiftpd.exe", "indiftpd.exe", () => {
+      download("https://seeroy.github.io/indiftpd/indiftpd", "indiftpd", () => {
+        //completed
+      });
+    });
+  }
+}, 1000);
 
 request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/releases", options, (error, res, body) => {
   if (error) {
@@ -164,7 +224,7 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
     console.log(" ");
   };
   app.use(function (req, res, next) {
-    if (typeof (req.cookies) !== "undefined" && typeof(req.cookies["__auth__"]) !== "undefined") {
+    if (typeof (req.cookies) !== "undefined" && typeof (req.cookies["__auth__"]) !== "undefined") {
       var is_authsucc = isAuth(req.cookies["__auth__"]);
     } else if (req["_parsedUrl"].pathname == "/login.html") {
       is_authsucc = true;
@@ -202,7 +262,7 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
 
 if (firstStart == false) {
   app.get("/server/icon", function (req, res) {
-    if (!isAuth(request.cookies["__auth__"])) {
+    if (typeof (request.cookies) !== "undefined" && typeof (request.cookies["__auth__"]) !== "undefined" && !isAuth(request.cookies["__auth__"])) {
       response.redirect("/login.html");
     } else {
       if (typeof (req.query.server) !== "undefined") {
@@ -233,6 +293,16 @@ if (firstStart == false) {
       read = JSON.parse(read);
       read[request.query.server].ngrok = request.query.ngrok;
       fs.writeFileSync("./servers/servers.json", JSON.stringify(read));
+    }
+  });
+
+  app.get("/auth/myPrivileges", function (request, response) {
+    if (!isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      user = getUserByAuthHash(request.cookies["__auth__"]);
+      response.set('Content-Type', 'application/json');
+      response.send(userPrivileges(user));
     }
   });
 
@@ -673,7 +743,8 @@ if (firstStart == false) {
 function startServer(server) {
   servers_logs[server] = "";
   if (process.platform == "win32") {
-    if (fs.existsSync('"servers/' + server + '/start.bat"')) {
+    startFile = path.resolve("./servers/" + server + "/start.bat");
+    if (fs.existsSync(startFile)) {
       servers_instances[server] = spawn('"servers/' + server + '/start.bat"');
       start = true;
     } else {
@@ -681,7 +752,8 @@ function startServer(server) {
       start = false;
     }
   } else if (process.platform == "linux") {
-    if (fs.existsSync('"servers/' + server + '/start.sh"')) {
+    startFile = path.resolve("./servers/" + server + "/start.sh");
+    if (fs.existsSync(startFile)) {
       servers_instances[server] = spawn('"servers/' + server + '/start.sh"');
       start = true;
     } else {
@@ -1082,12 +1154,12 @@ app.get("/ftpd/set", (request, response) => {
 app.get("/auth/login", (request, response) => {
   cfg = fs.readFileSync("./config.json");
   cfg = JSON.parse(cfg);
-  if (request.query.password == cfg["auth-password"] && request.query.login == cfg["auth-user"]) {
+  if (request.query.password == cfg["owner-password"] && request.query.login == cfg["owner-user"]) {
     let options = {
       maxAge: 120 * 24 * 60 * 60 * 1000,
       httpOnly: true
     }
-    response.cookie("__auth__", crypto.createHash('md5').update(cfg["auth-password"]).digest('hex'), options);
+    response.cookie("__auth__", crypto.createHash('md5').update(cfg["owner-password"]).digest('hex'), options);
     response.redirect("/");
   } else {
     response.send("Wrong credetinals!");
