@@ -45,7 +45,7 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.4";
+const version = "v1.1.4-fix";
 const ftpd = require("./ftpd.js");
 const rateLimit = require('express-rate-limit');
 var ftpserver;
@@ -117,7 +117,7 @@ function userPrivileges(user) {
 }
 
 if (!fs.existsSync("config.json")) {
-  fs.writeFileSync("config.json", '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"auth-user":"kubek","auth-password":"kubek"}');
+  fs.writeFileSync("config.json", '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"owner-user":"kubek","owner-password":"kubek"}');
 }
 
 if (fs.existsSync("./config.json")) {
@@ -224,10 +224,15 @@ request_lib.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/r
     console.log(" ");
   };
   app.use(function (req, res, next) {
-    if (typeof (req.cookies) !== "undefined" && typeof (req.cookies["__auth__"]) !== "undefined") {
-      var is_authsucc = isAuth(req.cookies["__auth__"]);
-    } else if (req["_parsedUrl"].pathname == "/login.html") {
+    var is_authsucc;
+    if (req["_parsedUrl"].pathname == "/login.html") {
       is_authsucc = true;
+    } else {
+      if (typeof (req.cookies) !== "undefined" && typeof (req.cookies["__auth__"]) !== "undefined") {
+        is_authsucc = isAuth(req.cookies["__auth__"]);
+      } else {
+        is_authsucc = true;
+      }
     }
     if (is_authsucc == true || path.extname(req["_parsedUrl"].pathname) == ".js" || path.extname(req["_parsedUrl"].pathname) == ".png" || path.extname(req["_parsedUrl"].pathname) == ".css") {
       if (fs.existsSync(path.join(__dirname, "./www/" + req["_parsedUrl"].pathname))) {
