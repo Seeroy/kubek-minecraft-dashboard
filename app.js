@@ -45,7 +45,7 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.4-fix2";
+const version = "v1.1.5";
 const ftpd = require("./ftpd.js");
 const rateLimit = require('express-rate-limit');
 var ftpserver;
@@ -989,6 +989,9 @@ app.get('/file/download', (request, response) => {
     if (!fs.existsSync("./servers/" + request.query.server)) {
       fs.mkdirSync("./servers/" + request.query.server);
     }
+    if (!fs.existsSync("./servers/" + request.query.server + "/plugins")) {
+      fs.mkdirSync("./servers/" + request.query.server + "/plugins");
+    }
     console.log(getTimeFormatted(), "Download started:", request.query.filename, "server: " + request.query.server);
     if (request.query.type != "plugin") {
       getInstallerFile(request.query.url, "./servers/" + request.query.server + "/" + request.query.filename, request.query.filename);
@@ -1084,7 +1087,7 @@ app.post('/core/upload', (request, response) => {
     if (!fs.existsSync("./servers")) {
       fs.mkdirSync("./servers");
     }
-    fs.mkdirSync("./servers/" + req.query["server"]);
+    fs.mkdirSync("./servers/" + request.query["server"]);
     let sampleFile;
     let uploadPath;
 
@@ -1100,7 +1103,7 @@ app.post('/core/upload', (request, response) => {
         if (err)
           return response.status(400).send(err);
 
-        res.send("uploaded");
+        response.send("uploaded");
       });
     } else {
       return response.status(400).send("false");
