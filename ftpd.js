@@ -11,8 +11,6 @@ exports.startFTPD = () => {
   passwd = cfg["ftpd-password"];
   if (process.platform == "win32") {
     ftpserver = cprocess.spawn('indiftpd.exe', ['-U' + user, '-P' + passwd, '-H./servers']);
-  } else if (process.platform == "linux") {
-    ftpserver = cprocess.spawn('./indiftpd', ['-U' + user, '-P' + passwd, '-H./servers']);
   }
   return ftpserver;
 }

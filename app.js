@@ -45,7 +45,7 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.5";
+const version = "v1.1.6";
 const ftpd = require("./ftpd.js");
 const rateLimit = require('express-rate-limit');
 var ftpserver;
@@ -124,7 +124,11 @@ if (fs.existsSync("./config.json")) {
   cfg = fs.readFileSync("./config.json");
   cfg = JSON.parse(cfg);
   if (cfg.ftpd == true) {
-    ftpserver = ftpd.startFTPD();
+    if (process.platform == "linux") {
+      console.log("Currently FTP cannot be used on Linux, sorry");
+    } else {
+      ftpserver = ftpd.startFTPD();
+    }
   }
 }
 
@@ -765,7 +769,7 @@ function startServer(server) {
   } else if (process.platform == "linux") {
     startFile = path.resolve("./servers/" + server + "/start.sh");
     if (fs.existsSync(startFile)) {
-      servers_instances[server] = spawn('"servers/' + server + '/start.sh"');
+      servers_instances[server] = spawn('sh', ["./servers/" + server + "/start.sh"]);
       start = true;
     } else {
       console.log(colors.red(getTimeFormatted() + " " + '"servers/' + server + '/start.sh"' + " not found! Try to delete, and create new server!"));
@@ -1148,10 +1152,17 @@ app.get("/ftpd/set", (request, response) => {
     ftpd.stopFTPD();
     setTimeout(function () {
       if (request.query.value == "true") {
-        ftpserver = ftpd.startFTPD();
-        cfg = fs.readFileSync("./config.json");
-        cfg = JSON.parse(cfg);
-        cfg.ftpd = true;
+        if (process.platform == "linux") {
+          console.log("Currently FTP cannot be used on Linux, sorry");
+          cfg = fs.readFileSync("./config.json");
+          cfg = JSON.parse(cfg);
+          cfg.ftpd = false;
+        } else {
+          ftpserver = ftpd.startFTPD();
+          cfg = fs.readFileSync("./config.json");
+          cfg = JSON.parse(cfg);
+          cfg.ftpd = true;
+        }
         fs.writeFileSync("./config.json", JSON.stringify(cfg));
       } else {
         ftpd.stopFTPD();
