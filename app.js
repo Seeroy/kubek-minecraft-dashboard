@@ -45,7 +45,7 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.6";
+const version = "v1.1.6-fix";
 const ftpd = require("./ftpd.js");
 const rateLimit = require('express-rate-limit');
 var ftpserver;
@@ -1137,7 +1137,7 @@ app.post('/plugin/upload', (request, response) => {
         if (err)
           return response.status(400).send(err);
 
-        res.send("uploaded");
+        response.send("uploaded");
       });
     } else {
       return response.status(400).send("false");
