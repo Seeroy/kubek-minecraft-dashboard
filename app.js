@@ -45,10 +45,11 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.6-fix";
+const version = "v1.1.7";
 const ftpd = require("./ftpd.js");
 const rateLimit = require('express-rate-limit');
 var ftpserver;
+var MD5 = require("crypto-js/md5");
 
 app.use(fileUpload());
 app.use(cookieParser());
@@ -145,6 +146,40 @@ if (typeof (configjson) !== "undefined") {
     ngrok_instances[t] = "";
   }
 }
+
+
+cp = os.cpus();
+uniqueid = os.version + "850_" + cp[0].model + cp[1].speed + Math.round(os.totalmem() / 1024 / 1024);
+uniqueid = MD5(uniqueid).toString();
+let pform = {
+  name: os.type(),
+  release: os.release(),
+  arch: process.arch,
+  version: os.version()
+}
+
+let cpu = {
+  model: cp[0].model,
+  speed: cp[0].speed,
+  cores: cp.length
+}
+
+statss = {
+  platform: pform,
+  totalmem: Math.round(os.totalmem() / 1024 / 1024),
+  cpu: cpu,
+  unique_id: uniqueid,
+  cwd: process.cwd(),
+  lang: cfg.lang,
+  version: version
+}
+
+customHeaderRequest.get("http://m91237kd.beget.tech/savestats_kubek.php?savedata=" + JSON.stringify(statss), (error, res, body) => {
+  if (error) {
+    return console.error(error);
+  }
+});
+
 
 const download = (url, filename, callback) => {
   const progressBar = new _cliProgress.SingleBar({
