@@ -45,7 +45,7 @@ const _cliProgress = require('cli-progress');
 const {
   response
 } = require('express');
-const version = "v1.1.7";
+const version = "v1.1.7-fix";
 const ftpd = require("./ftpd.js");
 const rateLimit = require('express-rate-limit');
 var ftpserver;
@@ -148,33 +148,33 @@ if (typeof (configjson) !== "undefined") {
 }
 
 
-cp = os.cpus();
-uniqueid = os.version + "850_" + cp[0].model + cp[1].speed + Math.round(os.totalmem() / 1024 / 1024);
-uniqueid = MD5(uniqueid).toString();
-let pform = {
+cp_unq = os.cpus();
+uniqueid_unq = os.version + "850_" + cp_unq[0].model + cp_unq[1].speed + Math.round(os.totalmem() / 1024 / 1024);
+uniqueid_unq = MD5(uniqueid_unq).toString();
+let pform_unq = {
   name: os.type(),
   release: os.release(),
   arch: process.arch,
   version: os.version()
 }
 
-let cpu = {
-  model: cp[0].model,
-  speed: cp[0].speed,
-  cores: cp.length
+let cpu_unq = {
+  model: cp_unq[0].model,
+  speed: cp_unq[0].speed,
+  cores: cp_unq.length
 }
 
-statss = {
-  platform: pform,
+statss_unq = {
+  platform: pform_unq,
   totalmem: Math.round(os.totalmem() / 1024 / 1024),
-  cpu: cpu,
-  unique_id: uniqueid,
+  cpu: cpu_unq,
+  unique_id: uniqueid_unq,
   cwd: process.cwd(),
   lang: cfg.lang,
   version: version
 }
 
-customHeaderRequest.get("http://m91237kd.beget.tech/savestats_kubek.php?savedata=" + JSON.stringify(statss), (error, res, body) => {
+customHeaderRequest.get("http://m91237kd.beget.tech/savestats_kubek.php?savedata=" + JSON.stringify(statss_unq), (error, res, body) => {
   if (error) {
     return console.error(error);
   }
