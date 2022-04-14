@@ -1,21 +1,34 @@
 <head>
+  <!-- Meta -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Kubek - Minecraft Servers</title>
 
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <script src="js/jquery-3.6.0.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/shards.min.js"></script>
-  <link rel="stylesheet" href="css/shards.min.css">
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- MDB -->
+  <script src="js/mdb.min.js"></script>
+  <link rel="stylesheet" href="css/mdb.min.css">
 
+  <!-- Others -->
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/animate.min.css" />
+  <link rel="stylesheet" href="css/toastify.min.css" />
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/toastify-js.js"></script>
+  <script src="js/sweetalert2.all.min.js"></script>
+
+  <!-- Own -->
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/template.nav.css" />
+  <script src="js/funcs.js"></script>
+  <script src="js/sweetalert2.all.min.js"></script>
+
+  <!-- Fonts and icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
     rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 
 <body class="text-center">
@@ -23,12 +36,8 @@
     <img class="mb-4" src="assets/logo.png" alt="" width="200px">
     <h1 class="h3 mb-3 fw-normal">{{signin}}</h1><br>
 
-    <div class="form-floating">
-      <input type="text" class="form-control" id="floatingInput" placeholder="{{username}}">
-    </div><br>
-    <div class="form-floating">
-      <input type="password" class="form-control" id="floatingPassword" placeholder="{{password}}">
-    </div><br>
+    <input type="text" id="floatingInput" class="form-control" placeholder="{{user}}" /><br>
+    <input type="password" id="floatingPassword" class="form-control" placeholder="{{password}}" /><br>
 
     <center><span id="autherror" style='display: none; color: red; text-align: center;'>{{autherror}}</span></center>
     <br>
@@ -88,7 +97,6 @@
         type: "GET",
         statusCode: {
           200: function (response) {
-            console.log(response);
             if (response == "Wrong credetinals!") {
               $("#autherror").show();
               $("#autherror").html("Ошибка авторизации. Неверные данные");

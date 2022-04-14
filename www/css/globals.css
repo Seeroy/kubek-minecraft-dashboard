@@ -1,0 +1,10 @@
+* {
+  font-family: 'Open Sans', sans-serif;
+  transition: .2s !important;
+}
+
+:root {
+  --bradius: 8px;
+  --bradius-big: 16px;
+  --bradius-small: 5px;
+}

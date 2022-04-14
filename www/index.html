@@ -4,303 +4,235 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Kubek - Minecraft Servers</title>
 
+  <!-- MDB -->
+  <script src="js/mdb.min.js"></script>
+  <link rel="stylesheet" href="css/mdb.min.css">
+
   <!-- Others -->
   <script src="js/jquery-3.6.0.min.js"></script>
-  <script src="js/popper.min.js"></script>
   <link rel="stylesheet" href="css/animate.min.css" />
-  <link rel="stylesheet" type="text/css" href="css/toastify.min.css">
-  <script type="text/javascript" src="js/toastify-js.js"></script>
+  <link rel="stylesheet" href="css/toastify.min.css" />
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/toastify-js.js"></script>
   <script src="js/sweetalert2.all.min.js"></script>
-  <script src="js/progressbar.min.js"></script>
 
-  <!-- Bootstrap and Shards -->
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/shards.min.js"></script>
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/shards.min.css">
-
-  <!-- Custom -->
-  <script src="js/app.js"></script>
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- Own -->
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/template.nav.css" />
+  <script src="js/funcs.js"></script>
 
   <!-- Fonts and icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
     rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+  <!-- Page unique -->
+  <link rel="stylesheet" href="css/pages/dashboard.css">
+
+  <!-- 
+    #table-server-version (Paper 1.18.2)
+    #table-server-online (4/20 players)
+    #table-server-os (windows 10 pro)
+    #table-server-plugins-count (100)
+    #usage-memory-pbar (set width and aria-valuenow)
+    #usage-memory-percent (50%)
+    #usage-memory-count (0.5 / 5 GB)
+    #usage-cpu-pbar (set width and aria-valuenow)
+    #usage-cpu-percent (50%)
+    #addr-local (127.0.0.1)
+    #addr-public (127.0.0.1)
+    #addr-ngrok (127.0.0.1)
+  -->
 </head>
 
 <body>
-  <div class="ntc-pool"></div>
-  <div class="modal fade" id="downloadFileModal" tabindex="-1" role="dialog" aria-labelledby="downloadFileModallLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="downloadFileModalLabel">{{downloadingfile}}</h5>
-        </div>
-        <div class="modal-body">
-          <center>
-            <p style="color: black;" class="fdStatus"></p>
-            <progress id="fdProgress" max="100" value="0"></progress>
-          </center>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="loadBg" style="display: none;"><span
-      class="loadText animate__animated animate__infinite animate__heartBeat">K</span></div>
-  <div class="modal fade" id="createServerModal" tabindex="-1" role="dialog" aria-labelledby="createServerModallLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="createServerModalLabel">{{creatingserver}}</h5>
-          <button type="button" class="close hideWhileCreating" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="hideWhileCreating">
-            <span style="color: black;">{{servername}}</span>
-            <input type="text" class="form-control srvNamee" required><br>
-            <span style="color: black;">{{core}}</span><br>
-
-            <div class="form-check" style="color: black;">
-              <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="select"
-                checked>
-              <label class="form-check-label" for="flexRadioDefault1">
-                {{selectFromList}}
-              </label>
-            </div>
-            <div class="form-check" style="color: black;">
-              <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2"
-                value="upload">
-              <label class="form-check-label" for="flexRadioDefault2">
-                {{uploadYour}}
-              </label>
-            </div>
-
-            <form id="g-core-form" style="display: none;" enctype="multipart/form-data">
-              <input class="form-control" type="file" id="g-core-input" name="g-core-input">
-            </form>
-            <select class="custom-select coreSelect" required></select>
-            <span style="color: black;">{{memory}} (-Xmx)</span>
-            <input type="number" class="form-control xmxMem" min=1024 value=2560 max=8192 step=512 required><br>
-            <span style="color: black;">{{port}} (2000 - 60000)</span>
-            <input type="number" class="form-control srvPort" min=2000 value=25565 max=60000 required><br>
-            <div class="custom-control custom-toggle my-2">
-              <input type="checkbox" id="omtoggle" name="omtoggle" class="custom-control-input onMode" checked>
-              <label class="custom-control-label" for="omtoggle" style="color: black;">{{onlinemode}}</label>
-            </div>
-          </div>
-          <div class="showWhileCreating">
-            <center>
-              <p style="color: black;">{{searchingcore}}</p>
-              <progress id="downProgress" max="100" value="0"></progress>
-            </center>
+  <div id="oldc">
+    <div class="dashboard">
+      <div class="item">
+        <p class="fs-5 fw-bold text-black">{{about-server}}</p>
+        <div class="card border border-primary shadow-0" style="height: 11.7rem;">
+          <div class="card-body">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th style="text-align:left;">{{server-version}}</th>
+                  <td style="text-align:right;" id="table-server-version">Unknown</td>
+                </tr>
+                <tr>
+                  <th style="text-align:left;">{{online}}</th>
+                  <td style="text-align:right;" id="table-server-online">Unknown</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div class="modal-footer hideWhileCreating">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">{{cancel}}</button>
-          <button type="button" class="btn btn-primary createSrvButton">{{ok}}</button>
-        </div>
       </div>
-    </div>
-  </div>
-
-  <div class="mainLayout">
-    <div class="menu">
-      <div class="fc">
-        <img src="assets/logo.svg" width="200px">
-        <center>
-          <p style="margin-top: 4px; width: max-content; height: min-content;" class="kubekVersion"></p>
-        </center>
-
-        <ul class="nav flex-column nav-pills nav-justified">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/">{{servers}}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/settings.html">{{settings}}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/passgen-tool.html">{{passgen}}</a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="fc">
-        <div class="pbara">
-          <div class="cBar">
-            <div id="cpuBar" style="width: 60px; height: 30px;"></div>
-          </div>
-          <div class="mBar">
-            <div id="memoryBar" style="width: 60px; height: 30px;"></div>
-          </div>
-          <div class="cCapt">CPU</div>
-          <div class="cValue"></div>
-          <div class="mCapt">{{memory}}</div>
-          <div class="mValue"></div>
-        </div>
-      </div>
-    </div>
-    <div class="layout">
-      <div class="block header">
-        <div class="item"></div>
-        <div class="item">
-          <select class="custom-select serSelect" style="background: rgb(43,53,63); color: white; border: 0;"></select>
-        </div>
-        <div class="item">
-          <button type="button" class="btn btn-outline-light toggleCreateServerModal" data-toggle="modal"
-            data-target="#createServerModal" data-backdrop="static" data-keyboard="false">{{createserver}}</button>
-        </div>
-      </div>
-      <div class="block tabs lay2">
-        <div class="blck">
-          <div class="hdr">
-            <div class="hdr-left">
-              <div class="gcont">
-                <div class="g-img" style="cursor: pointer;" onclick="changeServerIcon()"><img alt="" height=64
-                    class="rounded"></div>
-                <form id="g-img-form" enctype="multipart/form-data">
-                  <input name="g-img-input" id="g-img-input"
-                    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file">
-                </form>
-                <div class="g-caption servername" style="font-size: 20pt; font-weight: 500;"></div>
-                <div class="g-srvaddr">
-                  <div class="seamlessCont" style="color: rgb(140,140,140);">
-                    <button class="btn btn-sm btn-primary showIPs"><span
-                        class="material-icons material-icons-outlined">language</span></button>
-                  </div>
-                </div>
-                <div class="g-srvplayers">
-                  <div class="seamlessCont" style="color: rgb(140,140,140);">
-                    <div class="seamlessBox"><img src="https://minotar.net/avatar/Steve/24" alt=""></div>
-                    <div class="seamlessBox srvPlayersCount" style="font-weight: 500;"></div>
-                  </div>
-                </div>
-                <div class="g-srvcore">
-                  <div class="seamlessCont" style="color: rgb(140,140,140);">
-                    <div class="seamlessBox"><span class="material-icons material-icons-outlined">bookmark</span></div>
-                    <div class="seamlessBox srvCore" style="font-weight: 500;"></div>
-                  </div>
-                </div>
-                <div class="g-srvstatus">
-                  <span class="badge badge-success srvStatus" style="margin-left: 8px;">Online</span>
-                </div>
+      <div class="item">
+        <p class="fs-5 fw-bold text-black">{{resource-usage}}</p>
+        <div class="card border border-primary shadow-0">
+          <div class="card-body">
+            <div class="usage-pbar">
+              <div class="percent" id="usage-memory-percent">0%</div>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+                  aria-valuemax="100" id="usage-memory-pbar"></div>
               </div>
-            </div>
-            <div class="hdr-right">
-              <button type="button" class="btn btn-primary startbtn">{{start}}</button>
-              <button type="button" class="btn btn-danger stopbtn">{{shutdown}}</button>
+              <div class="name">RAM</div>
+              <div class="count" id="usage-memory-count">Unknown</div>
             </div>
           </div>
         </div>
-        <div class="blck">
-          <div class="tabs">
-            <div class="tab selected" data-page="console">{{console}}</div>
-            <div class="tab" data-page="plugins">{{plugins}}</div>
-            <div class="tab" data-page="settings">{{settings}}</div>
-            <div class="tab" data-page="server.properties">Server.properties</div>
+        <div class="card border border-primary shadow-0" style="margin-top: 10px;">
+          <div class="card-body">
+            <div class="usage-pbar">
+              <div class="percent" id="usage-cpu-percent">0%</div>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+                  aria-valuemax="100" id="usage-cpu-pbar"></div>
+              </div>
+              <div class="name">CPU</div>
+              <div class="count"></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="block main"></div>
+      <div class="item">
+        <p class="fs-5 fw-bold text-black">{{ip-adresses}}</p>
+        <div class="card border border-primary shadow-0">
+          <div class="card-body">
+            <span id="addr-capt-local">Local IP</span>
+            <input style="margin-top: 4px; margin-bottom: 8px;" class="form-control" id="addr-local" type="text"
+              readonly value="Unknown" />
+            <span id="addr-capt-publ">Public IP</span>
+            <input style="margin-top: 4px; margin-bottom: 8px;" class="form-control" id="addr-public" type="text"
+              readonly value="Unknown" />
+            <span id="addr-capt-ngrok">ngrok IP</span>
+            <input style="margin-top: 4px;" class="form-control" id="addr-ngrok" type="text" readonly value="Unknown" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </body>
 
 <script>
-  var old_ntcpool = [];
-  $(document).ready(function () {
-    updateServersStatus();
-    updateIP();
-    updateServersList();
-  });
+  var socket;
+  var memoryUpdInterval;
+  var queryUpdInterval;
 
   $(document).ready(function () {
-    updateUsage();
-    $(".showIPs").click(function () {
-      $.get("/server/ngrokIP?server=" + currentServer, function (data) {
-        ngrokIP = data;
-        if (ngrokIP == " ") {
-          text = "Public IP: " + publicIP + "<br>Local IP: " + localIP;
+    loadTemplate(function () {
+      hideLoading();
+    });
+    socket = openSocket();
+    socket.on("handshake", function () {
+      $.get("/server/ips?server=" + currentServer, function (ips) {
+        if (typeof ips.ngrok !== "undefined") {
+          $("#addr-capt-ngrok").show();
+          $("#addr-ngrok").show();
+          $("#addr-ngrok").val(ips.ngrok);
         } else {
-          text = "Public IP: " + publicIP + "<br>Local IP: " + localIP + "<br>Ngrok IP: " + ngrokIP;
+          $("#addr-capt-ngrok").hide();
+          $("#addr-ngrok").hide();
+          $("#addr-ngrok").val("");
         }
-        Swal.fire({
-          title: '',
-          icon: 'info',
-          html: text,
-          showCloseButton: true,
-          showCancelButton: false,
-          showConfirmButton: false
-        })
+        $("#addr-public").val(ips.public);
+        $("#addr-local").val(ips.local);
       });
+      console.log("Socket handshake success");
+      memoryUpdInterval = setInterval(function () {
+        socket.emit("update", {
+          type: "usage"
+        });
+      }, 3000);
+      queryUpdInterval = setInterval(function () {
+        if ($("#server-status").text() == "Online") {
+          socket.emit("update", {
+            type: "query",
+            server: currentServer
+          });
+        } else {
+          $("#table-server-version").text("Unknown");
+          $("#table-server-online").text("Unknown");
+        }
+      }, 6000);
+      if ($("#server-status").text() == "Online") {
+        socket.emit("update", {
+          type: "query",
+          server: currentServer
+        });
+      } else {
+        $("#table-server-version").text("Unknown");
+        $("#table-server-online").text("Unknown");
+      }
+      socket.emit("update", {
+        type: "usage"
+      });
+      socket.emit("update", {
+        type: "servers"
+      });
+    });
+    socket.on("handleUpdate", function (arg) {
+      type = arg.type;
+      data = arg.data;
+      switch (type) {
+        case "usage":
+          $("#usage-cpu-pbar").css("width", data.cpu + "%");
+          $("#usage-cpu-pbar").prop("aria-valuenow", data.cpu);
+          $("#usage-cpu-percent").text(data.cpu + "%");
+          memUsage = (data.usedmem / 1024 / 1024 / 1024).toFixed(1) + " GB / " + (data.totalmem / 1024 / 1024 /
+            1024).toFixed(1) + " GB";
+          memPercent = Math.round(data.usedmem / data.totalmem * 100);
+          $("#usage-memory-count").text(memUsage);
+          $("#usage-memory-pbar").css("width", memPercent + "%");
+          $("#usage-memory-pbar").prop("aria-valuenow", memPercent);
+          $("#usage-memory-percent").text(memPercent + "%");
+          break;
+        case "servers":
+          if (data[currentServer].status == "stopped") {
+            $("#server-status").removeClass("badge-success badge-warning");
+            $("#server-status").addClass("badge-danger");
+            $("#server-status").html("Offline");
+            $("#server-start-button").show();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "started") {
+            $("#server-status").removeClass("badge-danger badge-warning");
+            $("#server-status").addClass("badge-success");
+            $("#server-status").html("Online");
+            $("#server-start-button").hide();
+            $("#server-stop-button").show();
+          } else if (data[currentServer].status == "starting") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Starting");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "stopping") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Stopping");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          }
+          break;
+        case "query":
+          $("#table-server-version").text(data.server_modification.name);
+          $("#table-server-online").text(data.players.online + "/" + data.players.max + " players");
+          console.log(data.players);
+          break;
+        case "downloadTasks":
+          $(".ntc-pool").html("");
+          Object.keys(data).forEach(function (k) {
+            $(".ntc-pool").append(
+              '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
+              k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
+              '" class="pnf"></progress></div></div>');
+          });
+          break;
+      }
     });
   });
-
-  setInterval(function () {
-    updateUsage();
-  }, 10000);
-
-  setInterval(function () {
-    $.get("/tasks/progress", function (data) {
-      $(".ntc-pool").html("");
-      if (typeof (ntc_pool) === "undefined" || old_ntcpool != data) {
-        if (typeof (ntc_pool) !== "undefined") {
-          keys1 = Object.keys(data);
-          keys2 = Object.keys(old_ntcpool);
-          diff = arr_diff(keys1, keys2);
-          diff.forEach(function (diffi) {
-            if (data[diffi] === undefined && old_ntcpool[diffi] !== undefined) {
-              Toastify({
-                text: "{{downloadComplete}}" + diffi,
-                duration: 1500,
-                newWindow: true,
-                close: false,
-                gravity: "bottom",
-                position: "left",
-                stopOnFocus: true,
-                style: {
-                  background: "#0067f4",
-                  color: "white",
-                },
-                onClick: function () {}
-              }).showToast();
-            }
-          });
-        }
-        old_ntcpool = data;
-      }
-      Object.keys(data).forEach(function (k) {
-        $(".ntc-pool").append(
-          '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
-          k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
-          '" class="pnf"></progress></div></div>');
-      });
-    });
-  }, 200);
-
-  function arr_diff(a1, a2) {
-    var a = [],
-      diff = [];
-    for (var i = 0; i < a1.length; i++) {
-      a[a1[i]] = true;
-    }
-    for (var i = 0; i < a2.length; i++) {
-      if (a[a2[i]]) {
-        delete a[a2[i]];
-      } else {
-        a[a2[i]] = true;
-      }
-    }
-    for (var k in a) {
-      diff.push(k);
-    }
-    return diff;
-  };
 </script>

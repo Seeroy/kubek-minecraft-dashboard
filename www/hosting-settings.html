@@ -1,0 +1,260 @@
+<head>
+  <!-- Meta -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Kubek - Minecraft Servers</title>
+
+  <!-- MDB -->
+  <script src="js/mdb.min.js"></script>
+  <link rel="stylesheet" href="css/mdb.min.css">
+
+  <!-- Others -->
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/animate.min.css" />
+  <link rel="stylesheet" href="css/toastify.min.css" />
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/toastify-js.js"></script>
+  <script src="js/sweetalert2.all.min.js"></script>
+
+  <!-- Own -->
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/template.nav.css" />
+  <script src="js/funcs.js"></script>
+
+  <!-- Fonts and icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+  <div id="oldc">
+    <table class="table" style="width: 50%;">
+      <tbody>
+        <tr>
+          <th style="text-align:left;">{{softLang}}</th>
+          <td style="text-align:right;">
+            <div class="custom-controls-stacked">
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="russianRadio" name="lang" value="ru" class="custom-control-input langRadio">
+                <label class="custom-control-label" for="russianRadio">Русский</label>
+              </div>
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="englishRadio" name="lang" value="en" class="custom-control-input langRadio">
+                <label class="custom-control-label" for="englishRadio">English</label>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">{{ftpserver}}</th>
+          <td style="text-align:right;">
+            <div class="custom-controls-stacked">
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="ftponRadio" name="ftp" value=true class="custom-control-input ftpRadio">
+                <label class="custom-control-label" for="ftponRadio">{{on}}</label>
+              </div>
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="ftpoffRadio" name="ftp" value=false class="custom-control-input ftpRadio">
+                <label class="custom-control-label" for="ftpoffRadio">{{off}}</label>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">FTP {{user}}</th>
+          <td style="text-align:right;">
+            <input type="text" class="form-control ftpuser">
+          </td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">FTP {{password}}</th>
+          <td style="text-align:right;">
+            <div class="d-flex flex-row align-items-center">
+              <div class="p-2"><input type="password" class="form-control ftppass"></div>
+              <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye"
+                  data-inp=".ftppass">visibility</span></div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">{{auth}}</th>
+          <td style="text-align:right;">
+            <div class="custom-controls-stacked">
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="authonRadio" name="auth" value=true class="custom-control-input authRadio">
+                <label class="custom-control-label" for="authonRadio">{{on}}</label>
+              </div>
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="authoffRadio" name="auth" value=false class="custom-control-input authRadio">
+                <label class="custom-control-label" for="authoffRadio">{{off}}</label>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">{{auth}} {{user}}</th>
+          <td style="text-align:right;">
+            <input type="text" style="width: 320px;" class="form-control authuser">
+          </td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">{{auth}} {{password}}</th>
+          <td style="text-align:right;">
+            <div class="d-flex flex-row align-items-center">
+              <div class="p-2"><input type="password" style="width: 320px;" class="form-control authpass"></div>
+              <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye"
+                  data-inp=".authpass">visibility</span></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button style="margin-top: 48px;" class="btn btn-primary saveBtn">{{ok}}</button>
+  </div>
+</body>
+
+<script>
+  var socket;
+  $(document).ready(function () {
+    loadTemplate(function () {
+      hideLoading();
+      $(".saveBtn").click(function () {
+        checked = $(".langRadio:checked").val();
+        ftpd = $(".ftpRadio:checked").val();
+        auth = $(".authRadio:checked").val();
+        ftpd == "true" ? ftpd = true : ftpd = false;
+        console.log(ftpd);
+        auth == "true" ? auth = true : auth = false;
+        kubekCfg["lang"] = checked;
+        kubekCfg["ftpd"] = ftpd;
+        kubekCfg["auth"] = auth;
+        kubekCfg["ftpd-password"] = $(".ftppass").val();
+        kubekCfg["ftpd-user"] = $(".ftpuser").val();
+        kubekCfg["owner-password"] = $(".authpass").val();
+        kubekCfg["owner-user"] = $(".authuser").val();
+        $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function (data) {
+          $.get("/ftpd/set?value=" + ftpd, function (data) {
+            location.reload();
+          });
+        });
+      });
+
+      $(".eye").click(function () {
+        inp = $(this).data("inp");
+        type = $(inp).attr("type");
+        if (type == "password") {
+          $(inp).attr("type", "text");
+        } else {
+          $(inp).attr("type", "password");
+        }
+      });
+    });
+    socket = openSocket();
+    socket.on("handshake", function () {
+      console.log("Socket handshake success");
+      socket.emit("update", {
+        type: "servers"
+      });
+      $.get("/kubek/config", function (data) {
+        kubekCfg = data;
+        if (kubekCfg['lang'] == "en") {
+          $("#englishRadio").attr("checked", true);
+        } else if (kubekCfg['lang'] == "ru") {
+          $("#russianRadio").attr("checked", true);
+        }
+
+        if (kubekCfg['ftpd'] == true) {
+          $("#ftponRadio").attr("checked", true);
+        } else if (kubekCfg['ftpd'] == false) {
+          $("#ftpoffRadio").attr("checked", true);
+        }
+
+        if (kubekCfg['auth'] == true) {
+          $("#authonRadio").attr("checked", true);
+        } else if (kubekCfg['auth'] == false) {
+          $("#authoffRadio").attr("checked", true);
+        }
+
+        $(".ftppass").val(kubekCfg["ftpd-password"]);
+        $(".ftpuser").val(kubekCfg["ftpd-user"]);
+        $(".authpass").val(kubekCfg["owner-password"]);
+        $(".authuser").val(kubekCfg["owner-user"]);
+      });
+    });
+    socket.on("handleUpdate", function (arg) {
+      type = arg.type;
+      data = arg.data;
+      switch (type) {
+        case "servers":
+          if (data[currentServer].status == "stopped") {
+            $("#server-status").removeClass("badge-success badge-warning");
+            $("#server-status").addClass("badge-danger");
+            $("#server-status").html("Offline");
+            $("#server-start-button").show();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "started") {
+            $("#server-status").removeClass("badge-danger badge-warning");
+            $("#server-status").addClass("badge-success");
+            $("#server-status").html("Online");
+            $("#server-start-button").hide();
+            $("#server-stop-button").show();
+          } else if (data[currentServer].status == "starting") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Starting");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "stopping") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Stopping");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          }
+          break;
+        case "downloadTasks":
+          $(".ntc-pool").html("");
+          Object.keys(data).forEach(function (k) {
+            $(".ntc-pool").append(
+              '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
+              k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
+              '" class="pnf"></progress></div></div>');
+          });
+          break;
+      }
+    });
+  });
+</script>
+
+<style>
+  .setflex-c {
+    display: flex;
+    align-items: center;
+    height: max-content;
+  }
+
+  .setflex-b {
+    margin: 5px;
+    padding: 5px;
+    flex: 1 1 auto;
+  }
+
+  .setflex-b:nth-child(1) {
+    width: 30%;
+  }
+
+  .setflex-b:nth-child(2) {
+    width: min-content;
+  }
+
+  input {
+    background: rgb(43, 53, 63) !important;
+    border: none !important;
+    outline: none !important;
+    color: white !important;
+  }
+</style>

@@ -1,0 +1,135 @@
+/*.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-auto-columns: 1fr;
+  gap: 4em 4em;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  align-items: stretch;
+  grid-template-areas:
+    "statistics usage"
+    "addr .";
+  width: 80%;
+  height: 80%;
+}
+
+.dashboard .statistics {
+  grid-area: statistics;
+}
+
+.dashboard .usage {
+  grid-area: usage;
+}
+
+.dashboard .addr {
+  grid-area: addr;
+}
+
+.window {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: max-content 1fr;
+  grid-auto-columns: 1fr;
+  gap: 0em 0em;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  align-items: stretch;
+  grid-template-areas:
+    "header"
+    "content";
+  width: 100%;
+  height: 100%;
+  border-radius: var(--bradius-big);
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+
+.window .header {
+  grid-area: header;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--mdb-gray-300);
+  font-weight: 700;
+}
+
+.window .content {
+  grid-area: content;
+  padding: 16px;
+}*/
+
+.dashboard {
+  display: flex;
+  flex-flow: row wrap;
+  align-content: flex-start;
+  width: 100%;
+}
+
+.dashboard .item {
+  margin: 5px;
+  padding: 5px;
+  flex: 0 1 48%;
+  height: 100%;
+  width: 100%;
+}
+
+.dashboard .item .card {
+  border-color: var(--mdb-gray-300) !important;
+}
+
+table tr:last-child {
+  border-bottom-color: transparent;
+}
+
+.usage-pbar {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content;
+  grid-template-rows: 1fr min-content;
+  grid-auto-columns: 1fr;
+  gap: 0.5em 1em;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  align-items: stretch;
+  grid-template-areas:
+    "percent name count"
+    "percent progress progress";
+  width: 100%;
+  height: max-content;
+}
+
+.usage-pbar .percent {
+  justify-self: center;
+  align-self: end;
+  grid-area: percent;
+  font-size: 18pt;
+  font-weight: 300;
+}
+
+.usage-pbar .progress {
+  grid-area: progress;
+}
+
+.usage-pbar .name {
+  justify-self: start;
+  align-self: end;
+  grid-area: name;
+  font-weight: 600;
+}
+
+.usage-pbar .count {
+  justify-self: end;
+  align-self: end;
+  grid-area: count;
+  font-weight: 600;
+}
+
+input:read-only {
+  border: 1px solid var(--mdb-gray-300);
+  background-color: white !important;
+}
+
+@media (orientation: portrait) {
+  .dashboard .item {
+    flex: 0 1 100%;
+    height: max-content;
+  }
+}

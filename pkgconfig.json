@@ -1,5 +1,5 @@
 {
-  "assets": ["www/**/*", "translations/**/*", "ftpd.js"],
+  "assets": ["www/**/*", "translations/**/*", "ftpd.js", "my_modules/**/*", "www/assets/**/*"],
   "targets": ["node16-win-x64", "node16-linux-x64"],
   "outputPath": "dist"
 }

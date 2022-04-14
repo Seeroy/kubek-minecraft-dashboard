@@ -1,0 +1,51 @@
+.window {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: max-content 1fr;
+  grid-auto-columns: 1fr;
+  gap: 0em 0em;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  align-items: stretch;
+  grid-template-areas:
+    "header"
+    "content";
+  width: 100%;
+  height: 100%;
+  border-radius: var(--bradius-big);
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+
+.window .header {
+  grid-area: header;
+  padding: 16px;
+  border-bottom: 1px solid var(--mdb-gray-300);
+  font-weight: 700;
+}
+
+.window .content {
+  grid-area: content;
+}
+
+.window .content .console {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+}
+
+.window .content .input {
+  width: 100%;
+  height: 64px;
+  padding: 10px 24px;
+  border-top: 1px solid var(--mdb-gray-300);
+}
+
+.window .content .input input {
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  outline: none;
+  border: none;
+  appearance: none;
+}

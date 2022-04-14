@@ -1,0 +1,260 @@
+<head>
+  <!-- Meta -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Kubek - Minecraft Servers</title>
+
+  <!-- MDB -->
+  <script src="js/mdb.min.js"></script>
+  <link rel="stylesheet" href="css/mdb.min.css">
+
+  <!-- Others -->
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/animate.min.css" />
+  <link rel="stylesheet" href="css/toastify.min.css" />
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/toastify-js.js"></script>
+  <script src="js/sweetalert2.all.min.js"></script>
+
+  <!-- Own -->
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/template.nav.css" />
+  <script src="js/funcs.js"></script>
+
+  <!-- Fonts and icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Page unique -->
+  <link rel="stylesheet" href="css/pages/server-settings.css">
+</head>
+
+<body>
+  <div id="oldc">
+    <form id="g-img-form" enctype="multipart/form-data">
+      <input name="g-img-input" id="g-img-input"
+        style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file"
+        accept=".png">
+    </form>
+    <!-- Tabs navs -->
+    <ul class="nav nav-tabs nav-justified mb-3" id="ex1" role="tablist">
+      <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="ex3-tab-1" data-mdb-toggle="tab" href="#ex3-tabs-1" role="tab"
+          aria-controls="ex3-tabs-1" aria-selected="true">{{summary}}</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="ex3-tab-2" data-mdb-toggle="tab" href="#ex3-tabs-2" role="tab"
+          aria-controls="ex3-tabs-2" aria-selected="false">{{startup}}</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="ex3-tab-3" data-mdb-toggle="tab" href="#ex3-tabs-3" role="tab"
+          aria-controls="ex3-tabs-3" aria-selected="false">{{world}}</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="ex3-tab-4" data-mdb-toggle="tab" href="#ex3-tabs-4" role="tab"
+          aria-controls="ex3-tabs-4" aria-selected="false">{{deletion}}</a>
+      </li>
+    </ul>
+    <!-- Tabs navs -->
+
+    <!-- Tabs content -->
+    <div class="tab-content" id="ex2-content">
+      <div class="tab-pane fade show active" id="ex3-tabs-1" role="tabpanel" aria-labelledby="ex3-tab-1">
+        <div style="height: 87%;" class="w-100 d-flex flex-column justify-content-start">
+          <div class="flex-fill">
+            <div class="d-flex justify-content-center align-items-center"
+              style="width: max-content; height: max-content;" id="sicon">
+              <div
+                style="background: rgb(240,240,240); padding: 16px; width: min-content; height: min-content; border-radius: var(--bradius); border: 2px dashed rgb(210,210,210); cursor: pointer;">
+                <img height="48px" onclick="changeServerIcon()">
+              </div>
+              <div style="font-size: 12pt; color: rgb(150,150,150); margin-left: 8px;">{{use-64-for-better-look}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="ex3-tabs-2" role="tabpanel" aria-labelledby="ex3-tab-2">
+        <div style="height: 93%;" class="w-100 d-flex flex-column justify-content-start">
+          <div class="flex-fill">
+            <div class="input-group mb-3" style="height: 40px;">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-mdb-toggle="dropdown"
+                aria-expanded="false" id="cur-jv" style="height: 40px;"></button>
+              <ul class="dropdown-menu" id="java-vers-dropdown"></ul>
+              <input type="text" class="form-control" id="fsc" aria-label="Full start command input"
+                style="height: 40px;" />
+            </div>
+          </div>
+          <button class="btn btn-lg w-100 btn-success" onclick="saveStartScript()">{{save}}</button>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="ex3-tabs-3" role="tabpanel" aria-labelledby="ex3-tab-3">
+        This page is temporarily unavailable. I'll add it in the next update. Thanks
+      </div>
+      <div class="tab-pane fade" id="ex3-tabs-4" role="tabpanel" aria-labelledby="ex3-tab-4">
+        <div style="height: 80%;" class="w-100 d-flex justify-content-center align-items-center">
+          <div class="delete-layout">
+            <div class="sicon">
+              <img width=128 class="rounded-circle">
+            </div>
+            <div class="sname fs-5 fw-bold text-warning"></div>
+            <div class="sinput">
+              <input type="text" required>
+            </div>
+            <div class="sbutton">
+              <button class="btn btn-lg btn-danger" onclick="deleteServer()" disabled>{{delete}}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Tabs content -->
+  </div>
+</body>
+
+<script>
+  var socket;
+
+  function saveStartScript() {
+    script = '"' + $("#cur-jv").text() + '" ' + $("#fsc").val();
+    $.get("/server/startScript/save?server=" + currentServer + "&script=" + btoa(script));
+  }
+
+  function deleteServer() {
+    Swal.fire({
+      title: "<span style='font-weight: 600; font-size: 16pt;'>{{removing}} " + currentServer +
+        "...</span><br><span style='font-weight: 400; font-size: 15pt;'>{{do-not-reload-page}}!</span>",
+      html: '<div style="display: flex; justify-content: center;"><div style="width: 48px; height: 48px; border-radius: 50%; background: #0067f4;" class="animate__animated animate__fadeIn animate__infinite"></div></div>',
+      showCancelButton: false,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+    })
+    $.get("/server/delete?server=" + currentServer, function () {
+      window.location = "/";
+    });
+  }
+
+  function changeServerIcon() {
+    $("#g-img-input").trigger('click');
+    $("#g-img-input").off("change");
+    $("#g-img-input").change(function () {
+      $("#g-server-input").val(currentServer);
+      var formData = new FormData($("#g-img-form")[0]);
+      jQuery.ajax({
+        url: '/icon/upload?server=' + currentServer,
+        type: "POST",
+        data: formData,
+        success: function (data) {
+          Swal.fire(
+            '{{success}}',
+            '{{restartServerToSeeChanges}}',
+            'success'
+          ).then((result) => {
+            window.location = "";
+          });
+        },
+        error: function (data) {
+          Swal.fire(
+            '{{error}}',
+            '{{ErrorWhileUploadingPNG}}',
+            'error'
+          );
+        },
+        cache: false,
+        contentType: false,
+        processData: false,
+      });
+    });
+  }
+
+  $(document).ready(function () {
+    loadTemplate(function () {
+      hideLoading();
+    });
+    socket = openSocket();
+    socket.on("handshake", function () {
+      console.log("Socket handshake success");
+      socket.emit("update", {
+        type: "servers"
+      });
+      $("#ex3-tabs-1 #sicon img").attr("src", "/server/icon?server=" + currentServer);
+      $("#ex3-tabs-4 .sicon img").attr("src", "/server/icon?server=" + currentServer);
+      $("#ex3-tabs-4 .sname").text("{{do-you-really-want-to-delete}} " + currentServer +
+        "? {{input-server-name-if-u-want}}");
+      $("#ex3-tabs-4 .sinput input").attr("placeholder", currentServer);
+      $("#ex3-tabs-4 .sinput input").keyup(function () {
+        if ($(this).val() == currentServer) {
+          $("#ex3-tabs-4 .sbutton button").removeAttr("disabled");
+        } else {
+          $("#ex3-tabs-4 .sbutton button").attr("disabled", "true");
+        }
+      });
+      $.get("/server/startScript/get?server=" + currentServer, function (data) {
+        javaPath = data.toString().substring(1, data.length);
+        javaPath = javaPath.substring(0, javaPath.search('"'));
+        others = data.toString().replace('"' + javaPath + '" ', "");
+        $("#fsc").val(others);
+        $.get("/kubek/javaVersions", function (jv) {
+          jv.forEach(function (jfile) {
+            if (jfile == javaPath) {
+              $("#cur-jv").text(javaPath);
+            }
+            $("#java-vers-dropdown").append('<li><a class="dropdown-item" href="#">' + jfile +
+              '</a></li>');
+          });
+          $("#java-vers-dropdown li a").click(function () {
+            $("#cur-jv").text($(this).html());
+          });
+        });
+      });
+    });
+    socket.on("handleUpdate", function (arg) {
+      type = arg.type;
+      data = arg.data;
+      switch (type) {
+        case "servers":
+          if (data[currentServer].status == "stopped") {
+            $("#server-status").removeClass("badge-success badge-warning");
+            $("#server-status").addClass("badge-danger");
+            $("#server-status").html("Offline");
+            $("#server-start-button").show();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "started") {
+            $("#server-status").removeClass("badge-danger badge-warning");
+            $("#server-status").addClass("badge-success");
+            $("#server-status").html("Online");
+            $("#server-start-button").hide();
+            $("#server-stop-button").show();
+          } else if (data[currentServer].status == "starting") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Starting");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "stopping") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Stopping");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          }
+          break;
+        case "downloadTasks":
+          $(".ntc-pool").html("");
+          Object.keys(data).forEach(function (k) {
+            $(".ntc-pool").append(
+              '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
+              k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
+              '" class="pnf"></progress></div></div>');
+          });
+          break;
+      }
+    });
+  });
+</script>

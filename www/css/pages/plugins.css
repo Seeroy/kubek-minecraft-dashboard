@@ -1,0 +1,135 @@
+.win-fullscreen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: max-content 1fr;
+  grid-auto-columns: 1fr;
+  gap: 0em 0em;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  align-items: stretch;
+  grid-template-areas:
+    "caption1 caption2"
+    "search installed"
+    "repository installed";
+  width: 100%;
+  height: 35rem;
+  overflow: auto;
+  background: white;
+  border: 1px solid var(--mdb-gray-300);
+}
+
+.win-fullscreen .search {
+  justify-self: center;
+  align-self: center;
+  grid-area: search;
+  padding: 12px 24px;
+  width: 100%;
+  height: 50.6px;
+  border-bottom: 1px solid var(--mdb-gray-300);
+}
+
+.win-fullscreen .caption1 {
+  justify-self: center;
+  align-self: center;
+  grid-area: caption1;
+}
+
+.win-fullscreen .caption2 {
+  justify-self: center;
+  align-self: center;
+  grid-area: caption2;
+}
+
+.win-fullscreen .repository {
+  grid-area: repository;
+}
+
+.win-fullscreen .installed {
+  grid-area: installed;
+  border-left: 1px solid var(--mdb-gray-300);
+}
+
+.win-fullscreen .search input {
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  outline: none;
+  border: none;
+  appearance: none;
+}
+
+.win-fullscreen .list-group-item {
+  padding: 12px 24px;
+  cursor: pointer;
+}
+
+.win-fullscreen .list-group-item:hover {
+  background: var(--mdb-gray-100);
+}
+
+.cp-abs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  z-index: 4;
+  background: white;
+  border: none;
+  padding: 24px 24px;
+  width: 25%;
+  height: max-content;
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  grid-template-rows: 32px 1fr max-content;
+  grid-auto-columns: 1fr;
+  gap: 2em 1em;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  align-items: stretch;
+  grid-template-areas:
+    "icon name"
+    "selecth selecth"
+    "btnh btnh";
+}
+
+.cp-abs .icon {
+  justify-self: center;
+  align-self: center;
+  grid-area: icon;
+}
+
+.cp-abs .name {
+  justify-self: start;
+  align-self: center;
+  grid-area: name;
+}
+
+.cp-abs .btnh {
+  justify-self: center;
+  align-self: center;
+  grid-area: btnh;
+}
+
+.cp-abs .selecth {
+  justify-self: center;
+  align-self: center;
+  grid-area: selecth;
+}
+
+.cp-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  background: rgb(0, 0, 0, 0.7);
+}
+
+.layblur {
+  filter: blur(6px);
+}

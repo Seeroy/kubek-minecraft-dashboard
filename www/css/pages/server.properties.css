@@ -1,0 +1,57 @@
+.ttb {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.ttc {
+  margin: 5px;
+  padding: 5px;
+  flex: 0 1 auto;
+}
+
+.ttbb {
+  display: flex;
+  align-items: center;
+}
+
+.ttcc {
+  flex: 0 1 auto;
+}
+
+.ttcc:nth-child(2) {
+  margin-left: 8px;
+}
+
+.stlabel::before {
+  background: rgb(43, 53, 63) !important;
+}
+
+.ttgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 0px 4px;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  align-items: stretch;
+  grid-template-areas:
+    "tr1 tr2 tr3 tr4";
+  width: 100%;
+  height: max-content;
+}
+
+.tr1 {
+  grid-area: tr1;
+}
+
+.tr2 {
+  grid-area: tr2;
+}
+
+.tr3 {
+  grid-area: tr3;
+}
+
+.tr4 {
+  grid-area: tr4;
+}

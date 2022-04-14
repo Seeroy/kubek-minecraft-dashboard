@@ -1,0 +1,391 @@
+<head>
+  <!-- Meta -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Kubek - New server</title>
+
+  <!-- MDB -->
+  <script src="js/mdb.min.js"></script>
+  <link rel="stylesheet" href="css/mdb.min.css">
+
+  <!-- Others -->
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/animate.min.css" />
+  <link rel="stylesheet" href="css/toastify.min.css" />
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/toastify-js.js"></script>
+  <script src="js/sweetalert2.all.min.js"></script>
+
+  <!-- Own -->
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/template.nav.css" />
+  <script src="js/funcs.js"></script>
+
+  <!-- Fonts and icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Page unique -->
+  <link rel="stylesheet" href="css/pages/new.server.css">
+</head>
+
+<body style="overflow: hidden;">
+  <div class="card" id="progress-card"
+    style="display: none; margin: auto; position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: max-content; height: max-content; z-index: 999999999; min-width: 30%;">
+    <div class="card-body">
+      <p class="card-text">
+        Loading
+      </p>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+          aria-valuemax="100"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading-overlay" class="w-100 h-100 d-flex justify-content-center align-items-center"
+    style="width: 500% !important; height: 500% !important; margin: auto !important; left: -200% !important;">
+    <div class="spinner-border text-primary" style="width: 5rem; height: 5rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  <div class="w-100 text-center fs-1 fw-bold text-black">{{new-server}}</div>
+
+  <div class="w-100 h-100" style="padding: 5%; overflow: auto;">
+    <div id="step1-layout" class="animate__animated animate__fast animate__fadeInDown animate__delay-1s">
+      <span class="fs-2 fw-bold text-black">{{step}} 1</span>
+      <p class="fs-5 fw-light text-black">{{ent-new-name-and-sel-core}}</p>
+      <div class="card border border-primary shadow-0 server-card w-100" style="width: 20rem;">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <img class="rounded-circle" width=32>
+            <div class="form-outline">
+              <input type="text" id="server-name" class="form-control" />
+              <label class="form-label" for="server-name">{{server-name}}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 25px;">
+        <ul class="nav nav-tabs nav-justified mb-3" id="coreseltab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="coreseltab-tab-1" data-mdb-toggle="tab" href="#coreseltab-tabs-1" role="tab"
+              aria-controls="coreseltab-tabs-1" aria-selected="true" onclick="setActiveTab1()">{{select-from-repo}}</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="coreseltab-tab-2" data-mdb-toggle="tab" href="#coreseltab-tabs-2" role="tab"
+              aria-controls="coreseltab-tabs-2" aria-selected="false"
+              onclick='$("#final-core").text("Own")'>{{upload-own}}</a>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="coreseltab-content">
+          <div class="tab-pane fade show active" id="coreseltab-tabs-1" role="tabpanel"
+            aria-labelledby="coreseltab-tab-1">
+            <div class="d-flex" style="margin-top: 25px; width: max-content;">
+              <ul class="list-group border-primary" style="width: 20rem;" id="core-cats-list"></ul>
+              <ul class="list-group border-primary" id="cores-list"
+                style="width: 20rem; margin-left: 25px; max-height: 20rem; overflow: auto;"></ul>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="coreseltab-tabs-2" role="tabpanel" aria-labelledby="coreseltab-tab-2">
+            <form id="g-core-form" enctype="multipart/form-data">
+              <input type="file" class="form-control" id="g-core-input" name="g-core-input" accept=".jar" />
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="step2-layout" style="margin-top: 50px;"
+      class="animate__animated animate__fast animate__fadeInLeft animate__delay-2s">
+      <span class="fs-2 fw-bold text-black">{{step}} 2</span>
+      <p class="fs-5 fw-light text-black">{{enter-add-settings}}</p>
+      <div class="input-group mb-3" style="height: 40px;">
+        <button class="btn btn-primary dropdown-toggle" type="button" data-mdb-toggle="dropdown" aria-expanded="false"
+          id="cur-jv" style="height: 40px;"></button>
+        <ul class="dropdown-menu" id="java-vers-dropdown"></ul>
+        <input type="text" class="form-control" id="fsc" aria-label="Full start command input" style="height: 40px;" />
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="javaOptiflagsCheckbox"
+          onchange="generateJavaStartup()" />
+        <label class="form-check-label" for="javaOptiflagsCheckbox">{{add-opti-java-flags}} (only for pros.)</label>
+      </div>
+
+      <div class="w-100 d-inline-flex justify-content-between" style="margin-top: 12px;">
+        <div class="input-group mb-3" style="width: 48%; height: 40px;">
+          <span class="input-group-text" id="basic-addon1">{{Memory}} (-Xmx)</span>
+          <input type="number" class="form-control" placeholder="Memory (-Xmx)" aria-label="Memory (-Xmx)"
+            aria-describedby="basic-addon1" min=0.5 max=4 step=0.5 id="xmx" onchange="generateJavaStartup()"
+            style="height: 40px;" />
+          <span class="input-group-text" id="basic-addon1">GB</span>
+        </div>
+        <div class="input-group mb-3" style="width: 48%; height: 40px;">
+          <span class="input-group-text" id="basic-addon1">{{server-port}}</span>
+          <input type="number" class="form-control" placeholder="Server port" aria-label="Server port"
+            aria-describedby="basic-addon1" value=25565 min=20000 max=65000 step=1 id="serverport"
+            style="height: 40px;" />
+        </div>
+      </div>
+
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="onlinemodeCheckbox" />
+        <label class="form-check-label" for="onlinemodeCheckbox">{{online-mode}}</label>
+      </div>
+    </div>
+
+    <div id="step3-layout" style="margin-top: 50px;"
+      class="animate__animated animate__fast animate__fadeInRight animate__delay-3s">
+      <span class="fs-2 fw-bold text-black">{{step}} 3</span>
+      <p class="fs-5 fw-light text-black">{{finalize-server}}</p>
+      <div class="card border border-primary shadow-0 server-card w-100" style="width: 20rem;">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <img class="rounded-circle" width=48>
+            <div class="d-flex flex-column justify-content-start align-items-start" style="margin-left: 25px;">
+              <span class="fw-bold text-black" id="final-sname"></span>
+              <span>
+                <span>{{core}}: <span class="text-black" id="final-core"></span></span>
+                <span style="margin-left: 25px;">{{Memory}}: <span class="text-black" id="final-mem"></span></span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn w-100 btn-lg btn-secondary" style="margin-top: 25px;"
+        onclick="createServer()">{{create}}</button>
+      <button class="btn w-100 btn-lg btn-dark" style="margin-top: 8px;" onclick="history.back()">{{cancel}}</button>
+    </div>
+  </div>
+</body>
+
+<script>
+  var socket;
+  var tasksUpdInterval;
+  var saveCores;
+  var old_ntcpool = [];
+  var rr;
+  var javaOptimizeString =
+    "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=15";
+
+  function generateJavaStartup() {
+    sl = "";
+    sl += "-Xmx" + Math.round($("#xmx").val() * 1024) + "M";
+    sl += " ";
+    if ($("#javaOptiflagsCheckbox").is(":checked")) {
+      sl += javaOptimizeString;
+      sl += " ";
+    }
+    sl += "-jar";
+    $("#fsc").val(sl);
+
+    $("#final-mem").html($("#xmx").val() + " GB");
+    if ($("#coreseltab-tabs-2").css("display") == "block") {
+      $("#final-core").html("Own");
+    } else {
+      setActiveTab1();
+    }
+  }
+
+  function getProgress(jarfile, sname, startcmd, port, onmode) {
+    $.get("/tasks/progress", function (data) {
+      if (typeof (old_rgr) === "undefined" || old_rgr != data) {
+        if (typeof (old_rgr) !== "undefined") {
+          keys1 = Object.keys(data);
+          keys2 = Object.keys(old_rgr);
+          diff = arr_diff(keys1, keys2);
+          diff.forEach(function (diffi) {
+            if (diffi == jarfile) {
+              $("#progress-card .progress-bar").css("width", "100%");
+              clearInterval(rr);
+              $("#progress-card p").html("Completion");
+              $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&startcmd=" + btoa(
+                startcmd) + "&port=" + port + "&onMode=" + onmode, function (data) {
+                if (data == "Success") {
+                  window.location = "/index.html?server=" + encodeURI(sname);
+                }
+              });
+            }
+          });
+        }
+        old_rgr = data;
+      }
+      if (data[jarfile] !== "undefined") {
+        $("#progress-card .progress-bar").css("width", data[jarfile] + "%");
+        $("#progress-card p").html("{{downloading}} " + jarfile + " (" + data[jarfile] + "%)");
+      } else {
+        $("#progress-card .progress-bar").css("width", "100%");
+        clearInterval(rr);
+        $("#progress-card p").html("Completion");
+      }
+
+    });
+  }
+
+  function arr_diff(a1, a2) {
+    var a = [],
+      diff = [];
+    for (var i = 0; i < a1.length; i++) {
+      a[a1[i]] = true;
+    }
+    for (var i = 0; i < a2.length; i++) {
+      if (a[a2[i]]) {
+        delete a[a2[i]];
+      } else {
+        a[a2[i]] = true;
+      }
+    }
+    for (var k in a) {
+      diff.push(k);
+    }
+    return diff;
+  };
+
+  function createServer() {
+    if ($("#fsc").val() != "" && $("#server-name").val() != "" && $("#xmx").val() != "" && $("#serverport").val() !=
+      "" && $("#final-core").html() != "") {
+      showLoading();
+      $("#progress-card").show();
+      $("#progress-card .progress-bar").css("width", "100%");
+      $("#progress-card p").html("Searching core");
+      sname = $("#server-name").val();
+      startLine = '"' + $("#cur-jv").html() + '"' + " " + $("#fsc").val();
+      onlineMode = $("#onlinemodeCheckbox").is(":checked");
+      core = $("#final-core").html();
+      port = $("#serverport").val();
+      if (core.substring(0, 1) == "P") {
+        $.get("/core/paper/search?core=" + core, function (data) {
+          if (data != "") {
+            $("#progress-card p").html("Downloading core");
+            $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
+              .lastIndexOf('/') + 1) + "&type=core");
+            rr = setInterval(function () {
+              getProgress(data.substring(data.lastIndexOf('/') + 1), sname, startLine, port, onlineMode)
+            }, 100);
+          }
+        });
+      } else if (core.substring(0, 1) == "S") {
+        $.get("/core/spigot/search?core=" + core, function (data) {
+          if (data != "") {
+            $("#progress-card p").html("Downloading core");
+            $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
+              .lastIndexOf('/') + 1) + "&type=core");
+            rr = setInterval(function () {
+              getProgress(data.substring(data.lastIndexOf('/') + 1), sname, startLine, port, onlineMode)
+            }, 100);
+          }
+        });
+      } else if (core.substring(0, 1) == "O" && $("#g-core-input").val().toString().length > 2) {
+        var formData = new FormData($("#g-core-form")[0]);
+        jQuery.ajax({
+          url: '/core/upload?server=' + sname,
+          type: "POST",
+          data: formData,
+          success: function (data) {
+            jarfile = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
+            $("#progress-card .progress-bar").css("width", "100%");
+            $("#progress-card p").html("Completion");
+            $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&startcmd=" + btoa(
+              startLine) + "&port=" + port + "&onMode=" + onlineMode, function (data) {
+              if (data == "Success") {
+                window.location = "/index.html?server=" + encodeURI(sname);
+              }
+            });
+          },
+          error: function (data) {
+            $("#progress-card .progress-bar").css("width", "0%");
+            $("#progress-card p").html("Error: " + data.statusText);
+          },
+          cache: false,
+          contentType: false,
+          processData: false,
+        });
+      }
+    }
+  }
+
+  function round512(x) {
+    return Math.ceil(x / 512) * 512;
+  }
+
+  function setActiveTab1() {
+    if ($("#cores-list .list-group-item.active").length > 0) {
+      $("#final-core").html($("#cores-list .list-group-item.active").html());
+    } else {
+      $("#final-core").html("");
+    }
+  }
+
+  $(document).ready(function () {
+    $("#server-name").keyup(function () {
+      $('#final-sname').text($(this).val());
+    });
+    $("#server-name").val("");
+    $.get("/kubek/javaVersions", function (jv) {
+      jv.forEach(function (jfile) {
+        $("#java-vers-dropdown").append('<li><a class="dropdown-item" href="#">' + jfile + '</a></li>');
+      });
+      $("#cur-jv").text(jv[0]);
+      $("#java-vers-dropdown li a").click(function () {
+        $("#cur-jv").text($(this).html());
+      });
+      $.get("/kubek/usage", function (usage) {
+        total = round512(Math.round(usage.totalmem / 1024 / 1024));
+        ttl = (total / 1024).toFixed(1) / 2;
+        max = (total / 1024).toFixed(1);
+        $("#xmx").val(ttl);
+        $("#xmx").attr("max", max);
+        generateJavaStartup();
+      });
+    });
+    $.get("/core/list", function (core_list) {
+      saveCores = core_list;
+      saveCores.possible.forEach(function (ccat) {
+        $("#core-cats-list").append('<button data-corecat="' + ccat.toString().toLowerCase() +
+          '" type="button" class="list-group-item list-group-item-action"> <div class="d-flex align-items-center"> <img class="rounded-circle" src="assets/cores/' +
+            ccat.toString().toLowerCase() + '.png" width=32> <span class="fs-6" style="margin-left: 10px;">' + ccat +
+          '</span> </div> </button>');
+      });
+      $("#core-cats-list .list-group-item-action").click(function () {
+        $("#final-core").html("");
+        if (!$(this).hasClass("active")) {
+          $("#core-cats-list .list-group-item-action.active").removeClass("active");
+          $(this).addClass("active");
+          $(".server-card").each(function () {
+            $(this).find(".rounded-circle").attr("src", "assets/cores/" + $(
+                "#core-cats-list .list-group-item-action.active").data("corecat") +
+              ".png");
+          });
+          $("#cores-list").html("");
+          saveCores[$("#core-cats-list .list-group-item-action.active").data("corecat")].forEach(function (
+            core) {
+            $("#cores-list").append(
+              "<button type='button' class='list-group-item list-group-item-action' style='height: 64px;'>" +
+              capitalizeFirstLetter($("#core-cats-list .list-group-item-action.active").data(
+                "corecat")) + " " + core + "</button>");
+          });
+          $("#cores-list .list-group-item-action").unbind("click");
+          $("#cores-list .list-group-item-action").click(function () {
+            if (!$(this).hasClass("active")) {
+              $("#cores-list .list-group-item-action.active").removeClass("active");
+              $(this).addClass("active");
+              $("#final-core").html($("#cores-list .list-group-item.active").html());
+            }
+          });
+        }
+      });
+      hideLoading();
+    });
+  });
+
+  function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+</script>

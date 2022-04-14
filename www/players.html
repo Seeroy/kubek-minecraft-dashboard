@@ -1,0 +1,146 @@
+<head>
+  <!-- Meta -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Kubek - Minecraft Servers</title>
+
+  <!-- MDB -->
+  <script src="js/mdb.min.js"></script>
+  <link rel="stylesheet" href="css/mdb.min.css">
+
+  <!-- Others -->
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/animate.min.css" />
+  <link rel="stylesheet" href="css/toastify.min.css" />
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/toastify-js.js"></script>
+  <script src="js/sweetalert2.all.min.js"></script>
+
+  <!-- Own -->
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/template.nav.css" />
+  <script src="js/funcs.js"></script>
+
+  <!-- Fonts and icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Page unique -->
+  <link rel="stylesheet" href="css/pages/players.css">
+</head>
+
+<body>
+  <div id="oldc">
+    <span class="fs-1 fw-bold">{{players}}</span>
+    <div class="win-fullscreen"></div>
+  </div>
+</body>
+
+<script>
+  var socket;
+  var queryUpdInterval;
+
+  $(document).ready(function () {
+    loadTemplate(function () {
+      hideLoading();
+    });
+    socket = openSocket();
+    socket.on("handshake", function () {
+      console.log("Socket handshake success");
+      socket.emit("update", {
+        type: "servers"
+      });
+      queryUpdInterval = setInterval(function () {
+        if ($("#server-status").text() == "Online") {
+          socket.emit("update", {
+            type: "query",
+            server: currentServer
+          });
+        }
+      }, 6000);
+      if ($("#server-status").text() == "Online") {
+        socket.emit("update", {
+          type: "query",
+          server: currentServer
+        });
+      }
+    });
+    socket.on("handleUpdate", function (arg) {
+      type = arg.type;
+      data = arg.data;
+      switch (type) {
+        case "servers":
+          if (data[currentServer].status == "stopped") {
+            $("#server-status").removeClass("badge-success badge-warning");
+            $("#server-status").addClass("badge-danger");
+            $("#server-status").html("Offline");
+            $("#server-start-button").show();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "started") {
+            $("#server-status").removeClass("badge-danger badge-warning");
+            $("#server-status").addClass("badge-success");
+            $("#server-status").html("Online");
+            $("#server-start-button").hide();
+            $("#server-stop-button").show();
+          } else if (data[currentServer].status == "starting") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Starting");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "stopping") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Stopping");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          }
+          break;
+        case "downloadTasks":
+          $(".ntc-pool").html("");
+          Object.keys(data).forEach(function (k) {
+            $(".ntc-pool").append(
+              '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
+              k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
+              '" class="pnf"></progress></div></div>');
+          });
+          break;
+        case "query":
+          $(".win-fullscreen").html("");
+          data.players.sample.forEach(function (player) {
+            $(".win-fullscreen").append(
+              '<li class="list-group-item d-flex justify-content-center align-items-center w-100" data-username="' +
+              player + '"><img src="https://minotar.net/avatar/' +
+              player +
+              '/24" width=24 height=24 class="rounded-circle"><span class="flex-fill" style="margin-left: 16px;">' +
+              player +
+              '</span><div class="align-self-end"><button type="button" style="height: 32px; width: 32px;" class="btn btn-danger btn-floating text-white" title="Забанить (/ban)"><span class="material-icons" style="font-size: 14pt;">block</span></button><button type="button" style="height: 32px; width: 32px;" class="btn btn-warning btn-floating text-white" title="Выдать оператора (/op)"><span class="material-icons" style="font-size: 14pt;">grade</span></button><button type="button" style="height: 32px; width: 32px;" class="btn btn-primary btn-floating text-white" title="Выгнать с сервера (/kick)"><span class="material-icons" style="font-size: 14pt;">exit_to_app</span></button></div></li>'
+            );
+          });
+          $(".win-fullscreen li").unbind("click");
+          $(".win-fullscreen li button").click(function () {
+            console.log($(this).parent().parent());
+            if ($(this).hasClass("btn-danger")) {
+              $.get("/server/sendCommand?server=" + currentServer + "&cmd=ban%20" + $(this).parent()
+                .parent().data("username"));
+            } else if ($(this).hasClass("btn-warning")) {
+              $.get("/server/sendCommand?server=" + currentServer + "&cmd=op%20" + $(this).parent()
+                .parent().data("username"));
+            } else if ($(this).hasClass("btn-primary")) {
+              $.get("/server/sendCommand?server=" + currentServer + "&cmd=kick%20" + $(this).parent()
+                .parent().data("username"));
+            }
+            socket.emit("update", {
+              type: "query",
+              server: currentServer
+            });
+          });
+          break;
+      }
+    });
+  });
+</script>
