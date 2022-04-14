@@ -30,8 +30,7 @@ const ip_public = require('external-ip')();
 
 const options = {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: "*"
   }
 };
 const io = require("socket.io")(112, options);
@@ -49,7 +48,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2";
+const version = "v1.2-hotfix";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({

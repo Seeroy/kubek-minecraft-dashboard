@@ -19,6 +19,6 @@ function loadTemplate(cb){
 }
 
 function openSocket(){
-  return io("ws://localhost:112");
+  return io("ws://" + window.location.hostname + ":112");
 }
 
