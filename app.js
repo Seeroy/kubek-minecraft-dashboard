@@ -48,7 +48,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2-hotfix";
+const version = "v1.2.1";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
