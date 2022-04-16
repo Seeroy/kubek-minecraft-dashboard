@@ -64,5 +64,7 @@
   "{{update-found}}": "Program update found! Click to open GitHub",
   "{{signin}}": "Sign in to use this application",
   "{{signinbtn}}": "Sign in",
-  "{{autherror}}": "Authorization error"
+  "{{autherror}}": "Authorization error",
+  "{{savelogs}}": "Save logs",
+  "{{allowintacc}}": "Allow access from other IPs (needs restart to work propertly)"
 }

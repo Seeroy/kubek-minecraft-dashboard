@@ -1,12 +1,21 @@
 const fs = require('fs');
-const defaultConfig = '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"owner-user":"kubek","owner-password":"kubek"}';
+const defaultConfig = '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"owner-user":"kubek","owner-password":"kubek","internet-access":false,"save-logs":true}';
 
 exports.readConfig = () => {
   if (!fs.existsSync("config.json")) {
     this.writeDefaultConfig();
-    return JSON.parse(defaultConfig);
+    parse = JSON.parse(defaultConfig);
+    return parse;
   } else {
-    return JSON.parse(fs.readFileSync("config.json"));
+    parse = JSON.parse(fs.readFileSync("config.json"));
+    // FOR BACKWARD COMPABILITY
+    if(typeof parse['internet-access'] === "undefined"){
+      parse['internet-access'] = false;
+    }
+    if(typeof parse['save-logs'] === "undefined"){
+      parse['save-logs'] = false;
+    }
+    return parse;
   }
 }
 

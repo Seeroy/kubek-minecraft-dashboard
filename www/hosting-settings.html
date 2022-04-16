@@ -111,6 +111,36 @@
             </div>
           </td>
         </tr>
+        <tr>
+          <th style="text-align:left;">{{savelogs}}</th>
+          <td style="text-align:right;">
+            <div class="custom-controls-stacked">
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="savelogsonRadio" name="savelogs" value=true class="custom-control-input savelogsRadio">
+                <label class="custom-control-label" for="savelogsonRadio">{{on}}</label>
+              </div>
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="savelogsoffRadio" name="savelogs" value=false class="custom-control-input savelogsRadio">
+                <label class="custom-control-label" for="savelogsoffRadio">{{off}}</label>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">{{allowintacc}}</th>
+          <td style="text-align:right;">
+            <div class="custom-controls-stacked">
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="allowintacconRadio" name="allowintacc" value=true class="custom-control-input allowintaccRadio">
+                <label class="custom-control-label" for="allowintacconRadio">{{on}}</label>
+              </div>
+              <div class="custom-control custom-radio mb-3">
+                <input type="radio" id="allowintaccoffRadio" name="allowintacc" value=false class="custom-control-input allowintaccRadio">
+                <label class="custom-control-label" for="allowintaccoffRadio">{{off}}</label>
+              </div>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
     <button style="margin-top: 48px;" class="btn btn-primary saveBtn">{{ok}}</button>
@@ -126,12 +156,17 @@
         checked = $(".langRadio:checked").val();
         ftpd = $(".ftpRadio:checked").val();
         auth = $(".authRadio:checked").val();
+        savelogs = $(".savelogsRadio:checked").val();
+        allowint = $(".allowintaccRadio:checked").val();
         ftpd == "true" ? ftpd = true : ftpd = false;
-        console.log(ftpd);
         auth == "true" ? auth = true : auth = false;
+        savelogs == "true" ? savelogs = true : savelogs = false;
+        allowint == "true" ? allowint = true : allowint = false;
         kubekCfg["lang"] = checked;
         kubekCfg["ftpd"] = ftpd;
         kubekCfg["auth"] = auth;
+        kubekCfg["internet-access"] = allowint;
+        kubekCfg["save-logs"] = savelogs;
         kubekCfg["ftpd-password"] = $(".ftppass").val();
         kubekCfg["ftpd-user"] = $(".ftpuser").val();
         kubekCfg["owner-password"] = $(".authpass").val();
@@ -177,6 +212,18 @@
           $("#authonRadio").attr("checked", true);
         } else if (kubekCfg['auth'] == false) {
           $("#authoffRadio").attr("checked", true);
+        }
+
+        if (kubekCfg['save-logs'] == true) {
+          $("#savelogsonRadio").attr("checked", true);
+        } else if (kubekCfg['save-logs'] == false) {
+          $("#savelogsoffRadio").attr("checked", true);
+        }
+
+        if (kubekCfg['internet-access'] == true) {
+          $("#allowintacconRadio").attr("checked", true);
+        } else if (kubekCfg['internet-access'] == false) {
+          $("#allowintaccoffRadio").attr("checked", true);
         }
 
         $(".ftppass").val(kubekCfg["ftpd-password"]);
