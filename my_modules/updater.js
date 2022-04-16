@@ -2,7 +2,7 @@ const fs = require('fs');
 const _cliProgress = require('cli-progress');
 var colors = require('colors');
 const request = require('request');
-const config = require('../config.json');
+const config = require('./config').readConfig();
 const additional = require('./additional');
 
 exports.checkForUpdates = (cb) => {
