@@ -66,5 +66,5 @@
   "{{signinbtn}}": "Sign in",
   "{{autherror}}": "Authorization error",
   "{{savelogs}}": "Save logs",
-  "{{allowintacc}}": "Allow access from other IPs (needs restart to work propertly)"
+  "{{allowintacc}}": "Allow access from other IPs (needs restart to work properly)"
 }
