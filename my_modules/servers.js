@@ -1,4 +1,4 @@
-const config = require("./config.js");
+const config = require("./config");
 var spParser = require("minecraft-server-properties");
 const fs = require('fs');
 const mcutil = require("minecraft-status").MinecraftQuery;

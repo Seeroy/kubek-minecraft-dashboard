@@ -1,14 +1,14 @@
 // My modules
-const ftpd = require("./my_modules/ftpd.js");
-const updater = require("./my_modules/updater.js");
-const statsCollector = require("./my_modules/statistics.js");
-const config = require("./my_modules/config.js");
-const translator = require("./my_modules/translator.js");
-const serverController = require("./my_modules/servers.js");
-const plugins = require("./my_modules/plugins.js");
-const additional = require("./my_modules/additional.js");
-const cores = require("./my_modules/cores.js");
-const kubek = require("./my_modules/kubek.js");
+const ftpd = require("./my_modules/ftpd");
+const updater = require("./my_modules/updater");
+const statsCollector = require("./my_modules/statistics");
+const config = require("./my_modules/config");
+const translator = require("./my_modules/translator");
+const serverController = require("./my_modules/servers");
+const plugins = require("./my_modules/plugins");
+const additional = require("./my_modules/additional");
+const cores = require("./my_modules/cores");
+const kubek = require("./my_modules/kubek");
 
 const express = require('express');
 const app = express();
@@ -59,7 +59,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2.2";
+const version = "v1.2.3";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
