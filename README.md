@@ -1,26 +1,27 @@
 # kubek-minecraft-dashboard
-Kubek - New Minecraft server control dashboard, written on Node.js
-
-**After creating first server app WILL BE CLOSED, restart it!**
+Kubek - Web Minecraft servers dashboard, written on Node.js using MDBootstrap
 
 Features:
-- Paper and Spigot support/auto-install
-- Full-auto plugin manager (bukkit.org)
+- Paper, Spigot support/auto-install
+- Automatic plugin manager (dev.bukkit.org)
 - Real-time console
 - Server.properties editor
+- FTP server included
 
-Installation
+# Installation
+
+Download and launch [latest release](https://github.com/Seeroy/kubek-minecraft-dashboard/releases/latest)
+
+**OR**
+
+Clone repository and install modules
 ```
 git clone https://github.com/UserKrasti/kubek-minecraft-dashboard.git
 cd kubek-minecraft-dashboard
 npm install
 ```
 
-Starting after installation
+Start after installation
 ```
 node app.js
 ```
-
-**OR**
-
-Download and launch last release
