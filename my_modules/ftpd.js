@@ -1,6 +1,7 @@
 const cprocess = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const additional = require('./additional');
 
 exports.startFTPD = () => {
   if (fs.existsSync("./config.json")) {
@@ -9,8 +10,13 @@ exports.startFTPD = () => {
   }
   user = cfg["ftpd-user"];
   passwd = cfg["ftpd-password"];
-  if (process.platform == "win32") {
-    ftpserver = cprocess.spawn('indiftpd.exe', ['-U' + user, '-P' + passwd, '-H./servers']);
+  ftpserver = false;
+  if(fs.existsSync("./../indiftpd.exe")){
+    if (process.platform == "win32") {
+      ftpserver = cprocess.spawn('indiftpd.exe', ['-U' + user, '-P' + passwd, '-H./servers']);
+    }
+  } else {
+    console.log(additional.getTimeFormatted(), "Restart Kubek to download indiftpd.exe");
   }
   return ftpserver;
 }
