@@ -23,22 +23,27 @@ exports.checkForUpdates = (cb) => {
   });
 }
 
-exports.getFTPD = () => {
+exports.getFTPD = (cb) => {
   var timeout = setTimeout(function () {
     if (config.ftpd == false) {
       clearTimeout(timeout);
       console.log(additional.getTimeFormatted(), "FTP is disabled in config, stopping download of indiftpd.exe");
+      cb();
       return;
     }
     if (process.platform == "linux") {
       clearTimeout(timeout);
       console.log(additional.getTimeFormatted(), "Currently FTP is not supported on linux");
+      cb();
       return;
     }
     if (!fs.existsSync("indiftpd.exe")) {
       download("https://seeroy.github.io/indiftpd/indiftpd.exe", "indiftpd.exe", () => {
         clearTimeout(timeout);
+        cb();
       });
+    } else {
+      cb();
     }
   }, 1000);
 }

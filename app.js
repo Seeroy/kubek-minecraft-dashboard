@@ -59,7 +59,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2.3.1";
+const version = "v1.2.3";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -124,14 +124,6 @@ if (fs.existsSync("./servers/servers.json")) {
   fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
 }
 
-if (cfg.ftpd == true) {
-  if (process.platform == "linux") {
-    console.log("Currently FTP cannot be used on Linux, sorry");
-  } else {
-    ftpserver = ftpd.startFTPD();
-  }
-}
-
 if (typeof (configjson) !== "undefined") {
   for (t in configjson) {
     servers_logs[t] = "";
@@ -160,7 +152,15 @@ console.log(colors.inverse('Kubek ' + version + ''));
 console.log(colors.inverse('https://github.com/Seeroy/kubek-minecraft-dashboard'));
 console.log(" ");
 
-updater.getFTPD();
+updater.getFTPD(function () {
+  if (cfg.ftpd == true) {
+    if (process.platform == "linux") {
+      console.log("Currently FTP cannot be used on Linux, sorry");
+    } else {
+      ftpserver = ftpd.startFTPD();
+    }
+  }
+});
 
 updater.checkForUpdates(function (upd) {
   if (upd != 0 && version != upd) {
@@ -241,13 +241,13 @@ function showRequestInLogs(req) {
   ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
   url = req.originalUrl;
   console.log(additional.getTimeFormatted(), "[" + colors.yellow(ip) + "]", method, colors.green(url));
-  if(cfg['save-logs'] == true){
-    if(!fs.existsSync("./logs/")){
+  if (cfg['save-logs'] == true) {
+    if (!fs.existsSync("./logs/")) {
       fs.mkdirSync("./logs");
     }
     date = new Date();
     fname = date.getDate().toString().padStart(2, "0") + "-" + date.getMonth().toString().padStart(2, "0") + "-" + date.getFullYear().toString().padStart(2, "0") + ".log";
-    if(fs.existsSync("./logs/" + fname)){
+    if (fs.existsSync("./logs/" + fname)) {
       rf = fs.readFileSync("./logs/" + fname);
       rf = rf + "\n" + additional.getTimeFormatted() + " [" + ip + "] " + method + " " + url;
     } else {
