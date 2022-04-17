@@ -2,6 +2,8 @@ const fs = require('fs');
 const _cliProgress = require('cli-progress');
 var colors = require('colors');
 const request = require('request');
+const config = require('./config').readConfig();
+const additional = require('./additional');
 
 exports.checkForUpdates = (cb) => {
   options = {
@@ -22,7 +24,17 @@ exports.checkForUpdates = (cb) => {
 }
 
 exports.getFTPD = () => {
-  setTimeout(function () {
+  var timeout = setTimeout(function () {
+    if (config.ftpd == false) {
+      clearTimeout(timeout);
+      console.log(additional.getTimeFormatted(), "FTP is disabled in config, stopping download of initftpd.exe")
+      return;
+    }
+    if (process.platform == "linux") {
+      clearTimeout(timeout);
+      console.log(additional.getTimeFormatted(), "FTP is not supported on linux, stopping download of initftpd.exe")
+      return;
+    }
     if (!fs.existsSync("indiftpd.exe") || !fs.existsSync("indiftpd")) {
       download("https://seeroy.github.io/indiftpd/indiftpd.exe", "indiftpd.exe", () => {
         download("https://seeroy.github.io/indiftpd/indiftpd", "indiftpd", () => {
