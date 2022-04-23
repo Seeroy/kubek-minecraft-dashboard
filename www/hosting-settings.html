@@ -28,125 +28,119 @@
     href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
     rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Page unique -->
+  <link rel="stylesheet" href="css/pages/hosting-settings.css">
 </head>
 
 <body>
   <div id="oldc">
-    <table class="table" style="width: 50%;">
-      <tbody>
-        <tr>
-          <th style="text-align:left;">{{softLang}}</th>
-          <td style="text-align:right;">
-            <div class="custom-controls-stacked">
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="russianRadio" name="lang" value="ru" class="custom-control-input langRadio">
-                <label class="custom-control-label" for="russianRadio">Русский</label>
-              </div>
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="englishRadio" name="lang" value="en" class="custom-control-input langRadio">
-                <label class="custom-control-label" for="englishRadio">English</label>
-              </div>
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="dutchRadio" name="lang" value="nl" class="custom-control-input langRadio">
-                <label class="custom-control-label" for="dutchRadio">Dutch / Netherlands</label>
-              </div>
+    <div class="window">
+      <div class="d-flex flex-column">
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">translate</span></div>
+          <div class="caption">{{softLang}}</div>
+          <div class="element">
+            <div class="form-check">
+              <input class="form-check-input langRadio" type="radio" value="ru" name="lang" id="russianRadio" />
+              <label class="form-check-label" for="russianRadio"> Русский (Russian)</label>
             </div>
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">{{ftpserver}}</th>
-          <td style="text-align:right;">
-            <div class="custom-controls-stacked">
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="ftponRadio" name="ftp" value=true class="custom-control-input ftpRadio">
-                <label class="custom-control-label" for="ftponRadio">{{on}}</label>
-              </div>
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="ftpoffRadio" name="ftp" value=false class="custom-control-input ftpRadio">
-                <label class="custom-control-label" for="ftpoffRadio">{{off}}</label>
-              </div>
+            <div class="form-check">
+              <input class="form-check-input langRadio" type="radio" value="en" name="lang" id="englishRadio" />
+              <label class="form-check-label" for="englishRadio"> English </label>
             </div>
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">FTP {{user}}</th>
-          <td style="text-align:right;">
-            <input type="text" class="form-control ftpuser">
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">FTP {{password}}</th>
-          <td style="text-align:right;">
-            <div class="d-flex flex-row align-items-center">
-              <div class="p-2"><input type="password" class="form-control ftppass"></div>
-              <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye"
-                  data-inp=".ftppass">visibility</span></div>
+            <div class="form-check">
+              <input class="form-check-input langRadio" type="radio" value="nl" name="lang" id="dutchRadio" />
+              <label class="form-check-label" for="dutchRadio"> Nederlands (Dutch / Netherlands) </label>
             </div>
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">{{auth}}</th>
-          <td style="text-align:right;">
-            <div class="custom-controls-stacked">
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="authonRadio" name="auth" value=true class="custom-control-input authRadio">
-                <label class="custom-control-label" for="authonRadio">{{on}}</label>
-              </div>
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="authoffRadio" name="auth" value=false class="custom-control-input authRadio">
-                <label class="custom-control-label" for="authoffRadio">{{off}}</label>
-              </div>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">task</span></div>
+          <div class="caption">{{savelogs}}</div>
+          <div class="element">
+            <label class="switch">
+              <input type="checkbox" id="savelogs-checkbox">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">cloud</span></div>
+          <div class="caption">{{allowintacc}}</div>
+          <div class="element">
+            <label class="switch">
+              <input type="checkbox" id="allowintacc-checkbox">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="window" style="margin-top: 32px;">
+      <div class="d-flex flex-column">
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">filter_drama</span></div>
+          <div class="caption">{{ftpserver}}</div>
+          <div class="element">
+            <label class="switch">
+              <input type="checkbox" id="ftpserver-checkbox">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">person</span></div>
+          <div class="caption">FTP {{user}}</div>
+          <div class="element">
+            <input type="text" style="width: 320px;" class="form-control ftpuser">
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">password</span></div>
+          <div class="caption">FTP {{password}}</div>
+          <div class="element">
+            <div class="d-flex justify-content-center align-items-center" style="width: 320px;">
+              <input type="password" class="form-control ftppass" style="width: 90%;">
+              <span style="cursor: pointer; color: rgb(210,210,210); margin-left: 16px;" class="material-icons eye"
+                data-inp=".ftppass">visibility</span>
             </div>
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">{{auth}} {{user}}</th>
-          <td style="text-align:right;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="window" style="margin-top: 32px;">
+      <div class="d-flex flex-column">
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">login</span></div>
+          <div class="caption">{{auth}}</div>
+          <div class="element">
+            <label class="switch">
+              <input type="checkbox" id="auth-checkbox">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">person</span></div>
+          <div class="caption">{{auth}} {{user}}</div>
+          <div class="element">
             <input type="text" style="width: 320px;" class="form-control authuser">
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">{{auth}} {{password}}</th>
-          <td style="text-align:right;">
-            <div class="d-flex flex-row align-items-center">
-              <div class="p-2"><input type="password" style="width: 320px;" class="form-control authpass"></div>
-              <div class="p-2"><span style="cursor: pointer; color: rgb(210,210,210);" class="material-icons eye"
-                  data-inp=".authpass">visibility</span></div>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="icon"><span class="material-icons">password</span></div>
+          <div class="caption">{{auth}} {{password}}</div>
+          <div class="element">
+            <div class="d-flex justify-content-center align-items-center" style="width: 320px;">
+              <input type="password" class="form-control authpass" style="width: 90%;">
+              <span style="cursor: pointer; color: rgb(210,210,210); margin-left: 16px;" class="material-icons eye"
+                data-inp=".authpass">visibility</span>
             </div>
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">{{savelogs}}</th>
-          <td style="text-align:right;">
-            <div class="custom-controls-stacked">
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="savelogsonRadio" name="savelogs" value=true class="custom-control-input savelogsRadio">
-                <label class="custom-control-label" for="savelogsonRadio">{{on}}</label>
-              </div>
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="savelogsoffRadio" name="savelogs" value=false class="custom-control-input savelogsRadio">
-                <label class="custom-control-label" for="savelogsoffRadio">{{off}}</label>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <th style="text-align:left;">{{allowintacc}}</th>
-          <td style="text-align:right;">
-            <div class="custom-controls-stacked">
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="allowintacconRadio" name="allowintacc" value=true class="custom-control-input allowintaccRadio">
-                <label class="custom-control-label" for="allowintacconRadio">{{on}}</label>
-              </div>
-              <div class="custom-control custom-radio mb-3">
-                <input type="radio" id="allowintaccoffRadio" name="allowintacc" value=false class="custom-control-input allowintaccRadio">
-                <label class="custom-control-label" for="allowintaccoffRadio">{{off}}</label>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+        </div>
+      </div>
+    </div>
     <button style="margin-top: 48px;" class="btn btn-primary saveBtn">{{ok}}</button>
   </div>
 </body>
@@ -158,14 +152,10 @@
       hideLoading();
       $(".saveBtn").click(function () {
         checked = $(".langRadio:checked").val();
-        ftpd = $(".ftpRadio:checked").val();
-        auth = $(".authRadio:checked").val();
-        savelogs = $(".savelogsRadio:checked").val();
-        allowint = $(".allowintaccRadio:checked").val();
-        ftpd == "true" ? ftpd = true : ftpd = false;
-        auth == "true" ? auth = true : auth = false;
-        savelogs == "true" ? savelogs = true : savelogs = false;
-        allowint == "true" ? allowint = true : allowint = false;
+        ftpd = $("#ftpserver-checkbox").is(":checked");
+        auth = $("#auth-checkbox").is(":checked");
+        savelogs = $("#savelogs-checkbox").is(":checked");
+        allowint = $("#allowintacc-checkbox").is(":checked");
         kubekCfg["lang"] = checked;
         kubekCfg["ftpd"] = ftpd;
         kubekCfg["auth"] = auth;
@@ -187,8 +177,10 @@
         type = $(inp).attr("type");
         if (type == "password") {
           $(inp).attr("type", "text");
+          $(this).css("color", "var(--mdb-primary)");
         } else {
           $(inp).attr("type", "password");
+          $(this).css("color", "rgb(210,210,210)");
         }
       });
     });
@@ -209,27 +201,19 @@
         }
 
         if (kubekCfg['ftpd'] == true) {
-          $("#ftponRadio").attr("checked", true);
-        } else if (kubekCfg['ftpd'] == false) {
-          $("#ftpoffRadio").attr("checked", true);
+          $("#ftpserver-checkbox").attr("checked", true);
         }
 
         if (kubekCfg['auth'] == true) {
-          $("#authonRadio").attr("checked", true);
-        } else if (kubekCfg['auth'] == false) {
-          $("#authoffRadio").attr("checked", true);
+          $("#auth-checkbox").attr("checked", true);
         }
 
         if (kubekCfg['save-logs'] == true) {
-          $("#savelogsonRadio").attr("checked", true);
-        } else if (kubekCfg['save-logs'] == false) {
-          $("#savelogsoffRadio").attr("checked", true);
+          $("#savelogs-checkbox").attr("checked", true);
         }
 
         if (kubekCfg['internet-access'] == true) {
-          $("#allowintacconRadio").attr("checked", true);
-        } else if (kubekCfg['internet-access'] == false) {
-          $("#allowintaccoffRadio").attr("checked", true);
+          $("#allowintacc-checkbox").attr("checked", true);
         }
 
         $(".ftppass").val(kubekCfg["ftpd-password"]);
@@ -282,32 +266,3 @@
     });
   });
 </script>
-
-<style>
-  .setflex-c {
-    display: flex;
-    align-items: center;
-    height: max-content;
-  }
-
-  .setflex-b {
-    margin: 5px;
-    padding: 5px;
-    flex: 1 1 auto;
-  }
-
-  .setflex-b:nth-child(1) {
-    width: 30%;
-  }
-
-  .setflex-b:nth-child(2) {
-    width: min-content;
-  }
-
-  input {
-    background: rgb(43, 53, 63) !important;
-    border: none !important;
-    outline: none !important;
-    color: white !important;
-  }
-</style>
