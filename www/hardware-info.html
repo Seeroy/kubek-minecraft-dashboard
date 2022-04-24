@@ -1,0 +1,192 @@
+<head>
+  <!-- Meta -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Kubek - Minecraft Servers</title>
+
+  <!-- MDB -->
+  <script src="js/mdb.min.js"></script>
+  <link rel="stylesheet" href="css/mdb.min.css">
+
+  <!-- Others -->
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/animate.min.css" />
+  <link rel="stylesheet" href="css/toastify.min.css" />
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/toastify-js.js"></script>
+  <script src="js/sweetalert2.all.min.js"></script>
+
+  <!-- Own -->
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/template.nav.css" />
+  <script src="js/funcs.js"></script>
+
+  <!-- Fonts and icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Page unique -->
+  <link rel="stylesheet" href="css/pages/hardware-info.css">
+</head>
+
+<body>
+  <div id="oldc">
+    <p class="fs-1 fw-bold">Software summary</p>
+    <table class="table">
+      <tbody>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-icons">wysiwyg</span>
+              <span style="margin-left: 16px;">OS Name</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="os-name">Unknown</td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-icons">wysiwyg</span>
+              <span style="margin-left: 16px;">OS Build</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="os-build">Unknown</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="fs-1 fw-bold">CPU and memory</p>
+    <table class="table">
+      <tbody>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-icons">memory</span>
+              <span style="margin-left: 16px;">Total RAM</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="totalmem">Unknown</td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-icons">memory</span>
+              <span style="margin-left: 16px;">CPU Model</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="cpu-model">Unknown</td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-icons">memory</span>
+              <span style="margin-left: 16px;">CPU Speed</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="cpu-speed">Unknown</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="fs-1 fw-bold">Local disks</p>
+    <table class="table" id="disks-table">
+      <thead>
+        <tr>
+          <th>Letter</th>
+          <th>Type</th>
+          <th>Used</th>
+          <th>Free</th>
+          <th>Total </th>
+          <th>Used %</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p class="fs-1 fw-bold">Enviroment values</p>
+    <table class="table" id="env-table">
+      <tbody></tbody>
+    </table>
+  </div>
+</body>
+
+<script>
+  var socket;
+  $(document).ready(function () {
+    loadTemplate(function () {
+      hideLoading();
+    });
+    socket = openSocket();
+    socket.on("handshake", function () {
+      console.log("Socket handshake success");
+      socket.emit("update", {
+        type: "servers"
+      });
+      $.get("/kubek/hardware", function (hw) {
+        for (var key in hw.enviroment) {
+          value = hw.enviroment[key];
+          $("#env-table tbody").append('<tr><th style="text-align:left;">' + key +
+            '</th><td style="text-align:right;">' + value + '</td></tr>');
+        }
+        hw.disks.forEach(function (disk){
+          console.log(disk);
+          type = disk['_filesystem'];
+          letter = disk['_mounted'];
+          total = Math.round(disk['_blocks'] / 1024 / 1024 / 1024) + " GB";
+          used  = Math.round(disk['_used'] / 1024 / 1024 / 1024) + " GB";
+          free = Math.round(disk['_available'] / 1024 / 1024 / 1024) + " GB";
+          percent = disk['_capacity'];
+          $("#disks-table tbody").append('<tr><td>' + letter + '</td><td>' + type + '</td><td>' + used + '</td><td>' + free + '</td><td>' + total + '</td><td>' + percent + '</td></tr>');
+        });
+        $("#os-name").text(hw.platform.version + " (" + hw.platform.arch + ")");
+        $("#os-build").text(hw.platform.release);
+        $("#totalmem").text(hw.totalmem + " Mb");
+        $("#cpu-model").text(hw.cpu.model + " (" + hw.cpu.cores + " cores)");
+        $("#cpu-speed").text(hw.cpu.speed + " MHz");
+      });
+    });
+    socket.on("handleUpdate", function (arg) {
+      type = arg.type;
+      data = arg.data;
+      switch (type) {
+        case "servers":
+          if (data[currentServer].status == "stopped") {
+            $("#server-status").removeClass("badge-success badge-warning");
+            $("#server-status").addClass("badge-danger");
+            $("#server-status").html("Offline");
+            $("#server-start-button").show();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "started") {
+            $("#server-status").removeClass("badge-danger badge-warning");
+            $("#server-status").addClass("badge-success");
+            $("#server-status").html("Online");
+            $("#server-start-button").hide();
+            $("#server-stop-button").show();
+          } else if (data[currentServer].status == "starting") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Starting");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          } else if (data[currentServer].status == "stopping") {
+            $("#server-status").removeClass("badge-success badge-danger");
+            $("#server-status").addClass("badge-warning");
+            $("#server-status").html("Stopping");
+            $("#server-start-button").hide();
+            $("#server-stop-button").hide();
+          }
+          break;
+        case "downloadTasks":
+          $(".ntc-pool").html("");
+          Object.keys(data).forEach(function (k) {
+            $(".ntc-pool").append(
+              '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
+              k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
+              '" class="pnf"></progress></div></div>');
+          });
+          break;
+      }
+    });
+  });
+</script>

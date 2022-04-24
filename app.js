@@ -26,7 +26,9 @@ var colors = require('colors');
 const spawn = require("cross-spawn");
 var iconvlite = require('iconv-lite');
 var ip_local = require("ip");
+const os = require("os");
 const ip_public = require('external-ip')();
+const nodeDiskInfo = require('node-disk-info');
 
 var cfg = config.readConfig();
 
@@ -59,7 +61,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2.4";
+const version = "v1.2.5";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -1082,6 +1084,48 @@ app.get("/kubek/config", (request, response) => {
       response.redirect("/login.html");
     } else {
       response.send(config.readConfig());
+    }
+  }
+});
+
+app.get("/kubek/hardware", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      nodeDiskInfo.getDiskInfo()
+        .then(disks => {
+          cpu = os.cpus()[0]['model'];
+          cp_unq = os.cpus();
+          let pform_unq = {
+            name: os.type(),
+            release: os.release(),
+            arch: process.arch,
+            version: os.version()
+          }
+
+          let cpu_unq = {
+            model: cp_unq[0].model,
+            speed: cp_unq[0].speed,
+            cores: cp_unq.length
+          }
+
+          hardware = {
+            platform: pform_unq,
+            totalmem: Math.round(os.totalmem() / 1024 / 1024),
+            cpu: cpu_unq,
+            enviroment: process.env,
+            disks: disks
+          }
+          response.send(hardware);
+        })
+        .catch(reason => {
+          console.error(reason);
+        });
     }
   }
 });

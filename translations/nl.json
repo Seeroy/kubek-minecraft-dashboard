@@ -66,5 +66,6 @@
   "{{signinbtn}}": "Log in",
   "{{autherror}}": "Authenticatie fout",
   "{{savelogs}}": "Logs opslaan",
-  "{{allowintacc}}": "Toegang vanaf andere IP's toestaan (opnieuw opstarten is vereist om correct te werken)"
+  "{{allowintacc}}": "Toegang vanaf andere IP's toestaan (opnieuw opstarten is vereist om correct te werken)",
+  "{{hardware-info}}": "Systeem informatie"
 }
