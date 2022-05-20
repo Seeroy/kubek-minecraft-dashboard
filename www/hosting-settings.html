@@ -142,6 +142,8 @@
       </div>
     </div>
     <button style="margin-top: 48px;" class="btn btn-primary saveBtn">{{ok}}</button>
+    <br><br>
+    <span style="font-size: 11pt; color: rgb(170,170,170);">{{sup-uid}}: </span><span style="font-size: 11pt; color: black;" id="support-uid"></span>
   </div>
 </body>
 
@@ -189,6 +191,9 @@
       console.log("Socket handshake success");
       socket.emit("update", {
         type: "servers"
+      });
+      $.get("/kubek/support-uid", function(uid){
+        $("#support-uid").text(uid);
       });
       $.get("/kubek/config", function (data) {
         kubekCfg = data;

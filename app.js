@@ -61,7 +61,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2.5";
+const version = "v1.2.6";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -1070,6 +1070,20 @@ app.get('/kubek/usage', (request, response) => {
       kubek.getUsage(function (usage) {
         response.send(usage);
       });
+    }
+  }
+});
+
+app.get("/kubek/support-uid", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      response.send(statsCollector.supportUID());
     }
   }
 });
