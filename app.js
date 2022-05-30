@@ -61,7 +61,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2.8";
+const version = "v1.2.8-fix1";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -1176,7 +1176,7 @@ app.post('/icon/upload', (request, response) => {
       }
 
       sampleFile = request.files['g-img-input'];
-      uploadPath = __dirname + "/servers/" + request.query["server"] + "/server-icon.png";
+      uploadPath = "./servers/" + request.query["server"] + "/server-icon.png";
 
       if (path.extname(sampleFile.name) == ".png") {
         sampleFile.mv(uploadPath, function (err) {
@@ -1213,7 +1213,7 @@ app.post('/core/upload', (request, response) => {
       }
 
       sampleFile = request.files['g-core-input'];
-      uploadPath = __dirname + "/servers/" + request.query["server"] + "/" + sampleFile.name;
+      uploadPath = "./servers/" + request.query["server"] + "/" + sampleFile.name;
 
       if (path.extname(sampleFile.name) == ".jar") {
         sampleFile.mv(uploadPath, function (err) {
@@ -1249,7 +1249,7 @@ app.post('/plugin/upload', (request, response) => {
       }
 
       sampleFile = request.files['g-plugin-input'];
-      uploadPath = __dirname + "/servers/" + request.query["server"] + "/plugins/" + sampleFile.name;
+      uploadPath = "./servers/" + request.query["server"] + "/plugins/" + sampleFile.name;
 
       if (path.extname(sampleFile.name) == ".jar") {
         sampleFile.mv(uploadPath, function (err) {
