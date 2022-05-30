@@ -11,7 +11,11 @@ exports.getStatuses = () => {
 
 exports.getStartScript = (name) => {
   if (fs.existsSync("./servers/" + name)) {
-    datat = fs.readFileSync("./servers/" + name + "/start.bat");
+    if (process.platform == "linux") {
+      datat = fs.readFileSync("./servers/" + name + "/start.sh");
+    } else {
+      datat = fs.readFileSync("./servers/" + name + "/start.bat");
+    }
     datat = datat.toString().split("\n");
     return datat[datat.length - 1];
   } else {
@@ -21,10 +25,18 @@ exports.getStartScript = (name) => {
 
 exports.saveStartScript = (name, script) => {
   if (fs.existsSync("./servers/" + name)) {
-    datat = fs.readFileSync("./servers/" + name + "/start.bat");
+    if (process.platform == "linux") {
+      datat = fs.readFileSync("./servers/" + name + "/start.sh");
+    } else {
+      datat = fs.readFileSync("./servers/" + name + "/start.bat");
+    }
     datat = datat.toString().split("\n");
     datat[datat.length - 1] = Buffer.from(script, 'base64').toString("ascii");
-    fs.writeFileSync("./servers/" + name + "/start.bat", datat.join("\n"));
+    if (process.platform == "linux") {
+      fs.writeFileSync("./servers/" + name + "/start.sh", datat.join("\n"));
+    } else {
+      fs.writeFileSync("./servers/" + name + "/start.bat", datat.join("\n"));
+    }
     return true;
   } else {
     return false;
@@ -61,7 +73,7 @@ exports.queryServer = (name, cb) => {
 }
 
 exports.listServers = () => {
-  if(fs.existsSync("./servers/servers.json")){
+  if (fs.existsSync("./servers/servers.json")) {
     files = fs.readdirSync("./servers");
     files.splice(files.indexOf("servers.json"), 1);
   } else {
