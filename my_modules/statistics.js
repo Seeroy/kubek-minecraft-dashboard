@@ -47,7 +47,7 @@ exports.sendStats = (stats) => {
     },
     json: true
   };
-  request.get(url + JSON.stringify(stats), options, (error, res, body) => {
+  request.get(url + encodeURIComponent(JSON.stringify(stats)), options, (error, res, body) => {
     if (error) {
       return console.error("WARNING! Error when sending stats: " + error)
     } else {
