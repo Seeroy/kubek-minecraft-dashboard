@@ -44,8 +44,12 @@ exports.saveStartScript = (name, script) => {
 }
 
 exports.getServerProperties = (name) => {
-  data = fs.readFileSync("./servers/" + name + "/server.properties");
-  return spParser.parse(data.toString());
+	if(typeof name !== "undefined" && fs.existsSync("./servers/" + name + "/server.properties")){
+	  data = fs.readFileSync("./servers/" + name + "/server.properties");
+	  return spParser.parse(data.toString());
+	} else{
+		return false;
+	}
 }
 
 exports.saveServerProperties = (name, doc) => {

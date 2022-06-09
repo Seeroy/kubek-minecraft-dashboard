@@ -213,13 +213,16 @@
         data.forEach(function (file) {
           size = 0;
           if (file.size < 1024 * 1024) {
-            size = file.size * 1024 + " Kb";
+			size = Math.round(file.size / 1024 * 10) / 10 + " Kb";
           }
           if (file.size < 1024) {
             size = file.size + " B";
           }
           if (file.size >= 1024 * 1024) {
             size = Math.round(file.size / 1024 / 1024 * 10) / 10 + " Mb";
+          }
+		  if (file.size >= 1024 * 1024 * 1024) {
+            size = Math.round(file.size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
           }
           if (file.type == "directory") {
             act =
