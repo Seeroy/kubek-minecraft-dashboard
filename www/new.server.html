@@ -282,6 +282,14 @@
             }, 100);
           }
         });
+      } else if (core.substring(0, 1) == "F") {
+        data = "http://m91237kd.beget.tech/forges/" + core.substring(6) + ".tar";
+        $("#progress-card p").html("Downloading core");
+        $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
+          .lastIndexOf('/') + 1) + "&type=core");
+        rr = setInterval(function () {
+          getProgress(data.substring(data.lastIndexOf('/') + 1), sname, startLine, port, onlineMode)
+        }, 100);
       } else if (core.substring(0, 1) == "O" && $("#g-core-input").val().toString().length > 2) {
         var formData = new FormData($("#g-core-form")[0]);
         jQuery.ajax({
@@ -350,7 +358,8 @@
       saveCores.possible.forEach(function (ccat) {
         $("#core-cats-list").append('<button data-corecat="' + ccat.toString().toLowerCase() +
           '" type="button" class="list-group-item list-group-item-action"> <div class="d-flex align-items-center"> <img class="rounded-circle" src="assets/cores/' +
-            ccat.toString().toLowerCase() + '.png" width=32> <span class="fs-6" style="margin-left: 10px;">' + ccat +
+          ccat.toString().toLowerCase() +
+          '.png" width=32> <span class="fs-6" style="margin-left: 10px;">' + ccat +
           '</span> </div> </button>');
       });
       $("#core-cats-list .list-group-item-action").click(function () {

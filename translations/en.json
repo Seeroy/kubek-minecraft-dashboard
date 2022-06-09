@@ -68,5 +68,11 @@
   "{{savelogs}}": "Save logs",
   "{{allowintacc}}": "Allow access from other IPs (needs restart to work properly)",
   "{{hardware-info}}": "System information",
-  "{{sup-uid}}": "Support-ID"
+  "{{sup-uid}}": "Support-ID",
+  "{{file-manager}}": "File manager",
+  "{{dorename}}": "Rename file",
+  "{{rename}}": "Rename",
+  "{{aredelete}}": "Are you really want to delete?",
+  "{{yesdelete}}": "Yes, delete it",
+  "{{new-directory}}": "NEW DIRECTORY"
 }

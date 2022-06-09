@@ -9,6 +9,7 @@ const plugins = require("./my_modules/plugins");
 const additional = require("./my_modules/additional");
 const cores = require("./my_modules/cores");
 const kubek = require("./my_modules/kubek");
+const fmapi = require("./my_modules/fmapi");
 
 const express = require('express');
 const app = express();
@@ -61,7 +62,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2.8-fix1";
+const version = "v1.2.9";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -995,6 +996,7 @@ app.get('/file/download', (request, response) => {
       if (!fs.existsSync("./servers/" + request.query.server + "/plugins")) {
         fs.mkdirSync("./servers/" + request.query.server + "/plugins");
       }
+      console.log(request.query);
       console.log(additional.getTimeFormatted(), "Download started:", request.query.filename, "server: " + request.query.server);
       if (request.query.type != "plugin") {
         getInstallerFile(request.query.url, "./servers/" + request.query.server + "/" + request.query.filename, request.query.filename);
@@ -1083,6 +1085,7 @@ app.get("/kubek/support-uid", (request, response) => {
     if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
       response.redirect("/login.html");
     } else {
+      showRequestInLogs(request);
       response.send(statsCollector.supportUID());
     }
   }
@@ -1097,6 +1100,7 @@ app.get("/kubek/config", (request, response) => {
     if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
       response.redirect("/login.html");
     } else {
+      showRequestInLogs(request);
       response.send(config.readConfig());
     }
   }
@@ -1111,6 +1115,7 @@ app.get("/kubek/hardware", (request, response) => {
     if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
       response.redirect("/login.html");
     } else {
+      showRequestInLogs(request);
       nodeDiskInfo.getDiskInfo()
         .then(disks => {
           cpu = os.cpus()[0]['model'];
@@ -1154,6 +1159,7 @@ app.get("/kubek/saveConfig", (request, response) => {
       response.redirect("/login.html");
     } else {
       fs.writeFileSync("./config.json", request.query.data);
+      showRequestInLogs(request);
       response.send("true");
     }
   }
@@ -1177,6 +1183,7 @@ app.post('/icon/upload', (request, response) => {
 
       sampleFile = request.files['g-img-input'];
       uploadPath = "./servers/" + request.query["server"] + "/server-icon.png";
+      showRequestInLogs(request);
 
       if (path.extname(sampleFile.name) == ".png") {
         sampleFile.mv(uploadPath, function (err) {
@@ -1214,6 +1221,7 @@ app.post('/core/upload', (request, response) => {
 
       sampleFile = request.files['g-core-input'];
       uploadPath = "./servers/" + request.query["server"] + "/" + sampleFile.name;
+      showRequestInLogs(request);
 
       if (path.extname(sampleFile.name) == ".jar") {
         sampleFile.mv(uploadPath, function (err) {
@@ -1250,6 +1258,7 @@ app.post('/plugin/upload', (request, response) => {
 
       sampleFile = request.files['g-plugin-input'];
       uploadPath = "./servers/" + request.query["server"] + "/plugins/" + sampleFile.name;
+      showRequestInLogs(request);
 
       if (path.extname(sampleFile.name) == ".jar") {
         sampleFile.mv(uploadPath, function (err) {
@@ -1275,6 +1284,7 @@ app.get("/ftpd/set", (request, response) => {
       response.redirect("/login.html");
     } else {
       ftpd.stopFTPD();
+      showRequestInLogs(request);
       setTimeout(function () {
         if (request.query.value == "true") {
           if (process.platform == "linux") {
@@ -1298,6 +1308,98 @@ app.get("/ftpd/set", (request, response) => {
         }
         response.send("true");
       }, 500);
+    }
+  }
+});
+
+app.get("/fmapi/scanDirectory", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      fmapi.scanDirectory(request.query.server, request.query.directory, function(res){
+        response.send(res);
+      });
+      showRequestInLogs(request);
+    }
+  }
+});
+
+app.get("/fmapi/getFile", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      response.send(fmapi.readFile(request.query.server, request.query.path));
+      showRequestInLogs(request);
+    }
+  }
+});
+
+app.get("/fmapi/saveFile", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      response.send(fmapi.saveFile(request.query.server, request.query.path, request.query.text));
+      showRequestInLogs(request);
+    }
+  }
+});
+
+app.get("/fmapi/deleteFM", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      response.send(fmapi.deleteFM(request.query.server, request.query.path));
+      showRequestInLogs(request);
+    }
+  }
+});
+
+app.get("/fmapi/renameFM", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      response.send(fmapi.renameFM(request.query.server, request.query.path, request.query.newname));
+      showRequestInLogs(request);
+    }
+  }
+});
+
+app.get("/fmapi/newdirFM", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      response.send(fmapi.newdirFM(request.query.server, request.query.path, request.query.newdir));
+      showRequestInLogs(request);
     }
   }
 });

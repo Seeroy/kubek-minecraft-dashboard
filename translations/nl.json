@@ -68,5 +68,11 @@
   "{{savelogs}}": "Logs opslaan",
   "{{allowintacc}}": "Toegang vanaf andere IP's toestaan (opnieuw opstarten is vereist om correct te werken)",
   "{{hardware-info}}": "Systeem informatie",
-  "{{sup-uid}}": "Support-ID"
+  "{{sup-uid}}": "Support-ID",
+  "{{file-manager}}": "Bestandsbeheer",
+  "{{dorename}}": "Hernoem bestand",
+  "{{rename}}": "Hernoemen",
+  "{{aredelete}}": "Wil je echt verwijderen?",
+  "{{yesdelete}}": "Ja, verwijder het",
+  "{{new-directory}}": "NIEUWE DIRECTORY"
 }
