@@ -23,7 +23,7 @@ exports.getStartScript = (name) => {
   }
 }
 
-exports.saveStartScript = (name, script) => {
+exports.saveStartScript = (name, script, resonerr) => {
   if (fs.existsSync("./servers/" + name)) {
     if (process.platform == "linux") {
       datat = fs.readFileSync("./servers/" + name + "/start.sh");
@@ -37,6 +37,13 @@ exports.saveStartScript = (name, script) => {
     } else {
       fs.writeFileSync("./servers/" + name + "/start.bat", datat.join("\n"));
     }
+    srv = JSON.parse(fs.readFileSync("./servers/servers.json"));
+    if(resonerr == "true"){
+      srv[name]['restartOnError'] = true;
+    } else {
+      srv[name]['restartOnError'] = false;
+    }
+    fs.writeFileSync("./servers/servers.json", JSON.stringify(srv));
     return true;
   } else {
     return false;
@@ -44,12 +51,12 @@ exports.saveStartScript = (name, script) => {
 }
 
 exports.getServerProperties = (name) => {
-	if(typeof name !== "undefined" && fs.existsSync("./servers/" + name + "/server.properties")){
-	  data = fs.readFileSync("./servers/" + name + "/server.properties");
-	  return spParser.parse(data.toString());
-	} else{
-		return false;
-	}
+  if (typeof name !== "undefined" && fs.existsSync("./servers/" + name + "/server.properties")) {
+    data = fs.readFileSync("./servers/" + name + "/server.properties");
+    return spParser.parse(data.toString());
+  } else {
+    return false;
+  }
 }
 
 exports.saveServerProperties = (name, doc) => {
@@ -59,21 +66,33 @@ exports.saveServerProperties = (name, doc) => {
 
 exports.queryServer = (name, cb) => {
   data = this.getServerProperties(name);
-  mcutil.fullQuery("127.0.0.1", data["server-port"], 3000)
-    .then((data) => {
-      osutils.cpuUsage(function (value) {
-        data["cpu"] = Math.round(value * 100);
-        totalmem = os.totalmem();
-        usedmem = totalmem - os.freemem();
-        data["usedmem"] = usedmem;
-        data["totalmem"] = totalmem;
-        cb(data);
-      });
-    })
-    .catch((error) => {
-      console.error(error);
-      cb(error);
+  if (process.platform == "linux") { // mcutil is not crossplatform
+    osutils.cpuUsage(function (value) {
+      data["cpu"] = Math.round(value * 100);
+      totalmem = os.totalmem();
+      usedmem = totalmem - os.freemem();
+      data["usedmem"] = usedmem;
+      data["totalmem"] = totalmem;
+      cb(data);
     });
+  } else {
+    mcutil.fullQuery("127.0.0.1", data["server-port"], 3000)
+      .then((data) => {
+        osutils.cpuUsage(function (value) {
+          data["cpu"] = Math.round(value * 100);
+          totalmem = os.totalmem();
+          usedmem = totalmem - os.freemem();
+          data["usedmem"] = usedmem;
+          data["totalmem"] = totalmem;
+          cb(data);
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+        cb(error);
+      });
+  }
+
 }
 
 exports.listServers = () => {

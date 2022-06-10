@@ -74,5 +74,6 @@
   "{{rename}}": "Rename",
   "{{aredelete}}": "Are you really want to delete?",
   "{{yesdelete}}": "Yes, delete it",
-  "{{new-directory}}": "NEW DIRECTORY"
+  "{{new-directory}}": "NEW DIRECTORY",
+  "{{resonerr}}": "Restart server on crash (detecting by error code)"
 }

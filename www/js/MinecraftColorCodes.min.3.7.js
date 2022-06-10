@@ -13,7 +13,6 @@ var styleMap = {
     '§9': 'font-weight:normal;text-decoration:none;color:#3f3ffe',
     '§d': 'font-weight:normal;text-decoration:none;color:#fe3ffe',
     '§5': 'font-weight:normal;text-decoration:none;color:#be00be',
-    '§f': 'font-weight:normal;text-decoration:none;color:#ffffff',
     '§7': 'font-weight:normal;text-decoration:none;color:#bebebe',
     '§8': 'font-weight:normal;text-decoration:none;color:#3f3f3f',
     '§0': 'font-weight:normal;text-decoration:none;color:#000000',

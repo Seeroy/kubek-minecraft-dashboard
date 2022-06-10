@@ -24,7 +24,10 @@ var crypto = require('crypto');
 var spParser = require("minecraft-server-properties");
 const fs = require('fs');
 var colors = require('colors');
-const spawn = require("cross-spawn");
+//const spawn = require("cross-spawn");
+const {
+  spawn
+} = require('node:child_process');
 var iconvlite = require('iconv-lite');
 var ip_local = require("ip");
 const os = require("os");
@@ -62,7 +65,7 @@ const {
 } = require('express');
 
 // Kubek version
-const version = "v1.2.10";
+const version = "v1.2.11";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -262,6 +265,7 @@ function showRequestInLogs(req) {
 
 app.get("/auth/login", (request, response) => {
   cfg = config.readConfig();
+  showRequestInLogs(request);
   if (request.query.password == cfg["owner-password"] && request.query.login == cfg["owner-user"]) {
     let options = {
       maxAge: 120 * 24 * 60 * 60 * 1000,
@@ -368,7 +372,8 @@ app.get('/server/completion', (req, res) => {
       servers_logs[req.query.server] = "";
       servers_instances[req.query.server] = "";
       sss = {
-        status: "stopped"
+        status: "stopped",
+        restartOnError: true
       };
       cge[req.query.server] = sss;
       res.send("Success");
@@ -408,6 +413,7 @@ app.get("/kubek/javaVersions", (request, response) => {
         javas = ["java"];
       }
       response.send(javas);
+      showRequestInLogs(request);
     }
   }
 });
@@ -465,6 +471,7 @@ app.get("/server/delete", (request, response) => {
     if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
       response.redirect("/login.html");
     } else {
+      showRequestInLogs(request);
       if (typeof (configjson[request.query.server]) !== 'undefined') {
         delete configjson[request.query.server];
         fs.writeFileSync("./servers/servers.json", JSON.stringify(configjson));
@@ -584,7 +591,7 @@ app.get('/server/startScript/save', (request, response) => {
     } else {
       showRequestInLogs(request);
       if (typeof (configjson[request.query.server]) !== 'undefined') {
-        response.send(serverController.saveStartScript(request.query.server, request.query.script));
+        response.send(serverController.saveStartScript(request.query.server, request.query.script, request.query.resonerr));
       } else {
         response.send("false");
       }
@@ -717,7 +724,11 @@ function startServer(server) {
   if (process.platform == "win32") {
     startFile = path.resolve("./servers/" + server + "/start.bat");
     if (fs.existsSync(startFile)) {
-      servers_instances[server] = spawn('"servers/' + server + '/start.bat"');
+      try {
+        servers_instances[server] = spawn(startFile);
+      } catch (error) {
+        console.error(error);
+      }
       start = true;
     } else {
       console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.bat"' + " not found! Try to delete, and create new server!"));
@@ -726,7 +737,11 @@ function startServer(server) {
   } else if (process.platform == "linux") {
     startFile = path.resolve("./servers/" + server + "/start.sh");
     if (fs.existsSync(startFile)) {
-      servers_instances[server] = spawn('sh', ["./servers/" + server + "/start.sh"]);
+      try {
+        servers_instances[server] = spawn('sh', [startFile]);
+      } catch (error) {
+        console.error(error);
+      }
       start = true;
     } else {
       console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.sh"' + " not found! Try to delete, and create new server!"));
@@ -755,6 +770,23 @@ function startServer(server) {
       if (code != 0) {
         servers_logs[server] = servers_logs[server] + "ERROR: Process finished with exit code " + code;
         console.log(additional.getTimeFormatted(), "STOPPED SERVER WITH CODE " + code + ":", server.red);
+        if (configjson[server]['restartOnError'] == true) {
+          console.log(additional.getTimeFormatted(), "RESTARTING SERVER IN 3 SECONDS:", server.red);
+          servers_logs[server] = servers_logs[server] + "Restarting server in 3 seconds";
+          setTimeout(function () {
+            startServer(server);
+          }, 3000);
+        }
+        fsock = io.sockets.sockets;
+        for (const socket of fsock) {
+          socket[1].emit("handleUpdate", {
+            type: "console",
+            data: {
+              server: server,
+              data: servers_logs[server]
+            }
+          });
+        }
       } else {
         console.log(additional.getTimeFormatted(), "STOPPED SERVER:", server.green);
       }
@@ -1321,7 +1353,7 @@ app.get("/fmapi/scanDirectory", (request, response) => {
     if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
       response.redirect("/login.html");
     } else {
-      fmapi.scanDirectory(request.query.server, request.query.directory, function(res){
+      fmapi.scanDirectory(request.query.server, request.query.directory, function (res) {
         response.send(res);
       });
       showRequestInLogs(request);

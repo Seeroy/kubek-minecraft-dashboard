@@ -74,5 +74,6 @@
   "{{rename}}": "Hernoemen",
   "{{aredelete}}": "Wil je echt verwijderen?",
   "{{yesdelete}}": "Ja, verwijder het",
-  "{{new-directory}}": "NIEUWE DIRECTORY"
+  "{{new-directory}}": "NIEUWE DIRECTORY",
+  "{{resonerr}}": "Herstart server bij crash (gecontroleerd door afsluitcode)"
 }
