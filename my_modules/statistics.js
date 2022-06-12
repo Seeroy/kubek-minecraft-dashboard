@@ -1,5 +1,6 @@
 const request = require('request');
 const url = "http://m91237kd.beget.tech/savestats_kubek.php?savedata=";
+const fs = require('fs');
 var os = require('os');
 var MD5 = require("crypto-js/md5");
 
