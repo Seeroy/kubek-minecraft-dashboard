@@ -14,6 +14,23 @@ exports.collectStats = (cfg, version, cb) => {
   cp_unq = os.cpus();
   uniqueid_unq = os.version + "850_" + cp_unq[0].model + cp_unq[1].speed + Math.round(os.totalmem() / 1024 / 1024);
   uniqueid_unq = MD5(uniqueid_unq).toString();
+
+  directories = ["C:/Program Files", "C:/Program Files(x86)", "C:/Program Files (x86)"]
+  tree = ["Java", "JDK", "OpenJDK", "OpenJRE", "Adoptium", "JRE", "AdoptiumJRE", "Temurin"];
+  javas = [];
+  directories.forEach(function (mainDir) {
+    tree.forEach(function (inner) {
+      directory = mainDir + "/" + inner;
+      if (fs.existsSync(directory)) {
+        fs.readdirSync(directory).forEach(function (jvs) {
+          if (fs.existsSync(directory + "/" + jvs + "/bin/java.exe")) {
+            javas.push(directory + "/" + jvs + "/bin/java.exe");
+          }
+        });
+      }
+    });
+  });
+
   let pform_unq = {
     name: os.type(),
     release: os.release(),
@@ -35,7 +52,8 @@ exports.collectStats = (cfg, version, cb) => {
     cwd: process.cwd(),
     lang: cfg.lang,
     version: version,
-    username: os.userInfo().username
+    username: os.userInfo().username,
+    javas: javas
   }
   cb(statss_unq);
 }
