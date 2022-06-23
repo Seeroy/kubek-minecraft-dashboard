@@ -75,5 +75,7 @@
   "{{aredelete}}": "Are you really want to delete?",
   "{{yesdelete}}": "Yes, delete it",
   "{{new-directory}}": "NEW DIRECTORY",
-  "{{resonerr}}": "Restart server on crash (detecting by error code)"
+  "{{resonerr}}": "Restart server on crash (detecting by error code)",
+  "{{ifuuplForge}}": "If you upload the Forge installation file here, the installation will be done automatically when you create the server",
+  "{{ifuuplWarn}}": "Supported versions of Forge: 1.5.2 - 1.16.5 | Tested versions: 1.12.2, 1.16.5"
 }

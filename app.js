@@ -59,13 +59,14 @@ var serDeletes = {};
 var servers_logs = [];
 var servers_instances = [];
 var updatesByIntArray = {};
+var forgesIns = [];
 
 const {
   response
 } = require('express');
 
 // Kubek version
-const version = "v1.2.12";
+const version = "v1.2.13";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -668,7 +669,8 @@ app.get("/server/log", function (request, response) {
       response.redirect("/login.html");
     } else {
       if (typeof (configjson[request.query.server]) !== 'undefined') {
-        response.send(servers_logs[request.query.server]);
+        spl = servers_logs[request.query.server].split(/\r?\n/).slice(-100);
+        response.send(spl.join("\r\n"));
       } else {
         response.send("false");
       }
@@ -779,11 +781,12 @@ function startServer(server) {
         }
         fsock = io.sockets.sockets;
         for (const socket of fsock) {
+          spl = servers_logs[server].split(/\r?\n/).slice(-100);
           socket[1].emit("handleUpdate", {
             type: "console",
             data: {
               server: server,
-              data: servers_logs[server]
+              data: spl.join("\r\n")
             }
           });
         }
@@ -796,11 +799,12 @@ function startServer(server) {
       servers_logs[server] = servers_logs[server] + data.toString();
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
+        spl = servers_logs[server].split(/\r?\n/).slice(-100);
         socket[1].emit("handleUpdate", {
           type: "console",
           data: {
             server: server,
-            data: servers_logs[server]
+            data: spl.join("\r\n")
           }
         });
       }
@@ -830,11 +834,12 @@ function startServer(server) {
       servers_logs[server] = servers_logs[server] + "ERROR: " + data.toString();
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
+        spl = servers_logs[server].split(/\r?\n/).slice(-100);
         socket[1].emit("handleUpdate", {
           type: "console",
           data: {
             server: server,
-            data: servers_logs[server]
+            data: spl.join("\r\n")
           }
         });
       }
@@ -949,10 +954,9 @@ app.get("/core/list", (request, response) => {
     } else {
       showRequestInLogs(request);
       response.set('Content-Type', 'application/json');
-      possbileCores = ['Spigot', 'Paper', 'Forge'];
+      possbileCores = ['Spigot', 'Paper'];
       paperVers = [];
       spigotVers = [];
-      forgeVers = [];
       cores.getPaperCores(function (cores_p) {
         cores_p = cores_p.reverse();
         cores_p.forEach(function (core) {
@@ -965,8 +969,7 @@ app.get("/core/list", (request, response) => {
           let jsn = {
             possible: possbileCores,
             paper: paperVers,
-            spigot: spigotVers,
-            forge: forgeVers
+            spigot: spigotVers
           }
           response.send(jsn);
         });
@@ -1435,3 +1438,67 @@ app.get("/fmapi/newdirFM", (request, response) => {
     }
   }
 });
+
+app.get("/forgeInstaller", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      showRequestInLogs(request);
+      startForgeInstaller(request.query.server, request.query.filename);
+      response.send("true");
+    }
+  }
+});
+
+app.get("/forge/installProgress", (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      response.send(forgesIns[request.query.server]);
+    }
+  }
+});
+
+function startForgeInstaller(server, file) {
+  fp = "./servers/" + server + "/" + file;
+
+  if (process.platform == "win32") {
+    fs.writeFileSync("./servers/" + server + "/finstall.bat", "@echo off\nchcp 65001>nul\ncd servers\ncd " + server + "\njava -jar " + file + " -i .");
+    startFile = path.resolve("./servers/" + server + "/finstall.bat");
+    fi = spawn(startFile);
+  } else if (process.platform == "linux") {
+    fs.writeFileSync("./servers/" + server + "/finstall.sh", "cd servers\ncd " + server + "\njava -jar " + file + " -i .");
+    startFile = path.resolve("./servers/" + server + "/finstall.sh");
+    fi = spawn('sh', [startFile]);
+  } else {
+    console.log(colors.red(getTimeFormatted() + " " + process.platform + " not supported"));
+  }
+
+  fi.on('close', (code) => {
+    if(code == 0){
+      console.log(colors.green("Forge installed successfully on " + server));
+      forgesIns[server] = "ok,installed";
+      fs.unlinkSync(fp);
+    } else {
+      console.log(colors.red("Forge failed on " + server + " with code " + code));
+    }
+  });
+  fi.stdout.on('data', (data) => {
+    data = iconvlite.decode(data, "win1251");
+    forgesIns[server] = forgesIns[server] + "\n" + data.toString();
+  });
+  fi.stderr.on('data', (data) => {
+    data = iconvlite.decode(data, "win1251");
+    forgesIns[server] = forgesIns[server] + "\n" + data.toString();
+  });
+}

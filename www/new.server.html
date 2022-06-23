@@ -44,6 +44,9 @@
         <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
           aria-valuemax="100"></div>
       </div>
+      <div
+        style="background: rgb(240,240,240); width: 700px; height: 500px; overflow: auto; margin-top: 6px; border-radius: 4px; display: none;"
+        id="forgeins"></div>
     </div>
   </div>
 
@@ -79,8 +82,7 @@
           </li>
           <li class="nav-item" role="presentation">
             <a class="nav-link" id="coreseltab-tab-2" data-mdb-toggle="tab" href="#coreseltab-tabs-2" role="tab"
-              aria-controls="coreseltab-tabs-2" aria-selected="false"
-              onclick='$("#final-core").text("Own")'>{{upload-own}}</a>
+              aria-controls="coreseltab-tabs-2" aria-selected="false">{{upload-own}}</a>
           </li>
         </ul>
 
@@ -97,6 +99,8 @@
             <form id="g-core-form" enctype="multipart/form-data">
               <input type="file" class="form-control" id="g-core-input" name="g-core-input" accept=".jar" />
             </form>
+            <p style="font-size: 11pt; color: rgb(170,170,170);">{{ifuuplForge}}</p>
+            <span style="font-size: 11pt; color: var(--mdb-red);">{{ifuuplWarn}}</span>
           </div>
         </div>
       </div>
@@ -187,8 +191,15 @@
     $("#fsc").val(sl);
 
     $("#final-mem").html($("#xmx").val() + " GB");
+    fn = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
     if ($("#coreseltab-tabs-2").css("display") == "block") {
-      $("#final-core").html("Own");
+      if (fn.match(/forge-/gm) && fn.match(/-installer\.jar/gm)) {
+        $("#final-core").text("Forge");
+        $(".card-body").find(".rounded-circle").attr("src", "assets/cores/forge.png");
+      } else {
+        $("#final-core").text("Own (Non-Forge)");
+        $(".card-body").find(".rounded-circle").attr("src", "assets/cores/jar.png");
+      }
     } else {
       setActiveTab1();
     }
@@ -282,15 +293,8 @@
             }, 100);
           }
         });
-      } else if (core.substring(0, 1) == "F") {
-        data = "http://m91237kd.beget.tech/forges/" + core.substring(6) + ".tar";
-        $("#progress-card p").html("Downloading core");
-        $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
-          .lastIndexOf('/') + 1) + "&type=core");
-        rr = setInterval(function () {
-          getProgress(data.substring(data.lastIndexOf('/') + 1), sname, startLine, port, onlineMode)
-        }, 100);
-      } else if (core.substring(0, 1) == "O" && $("#g-core-input").val().toString().length > 2) {
+      } else if (core.substring(0, 2) == "Ow" || core.substring(0, 2) == "Fo" && $("#g-core-input").val().toString()
+        .length > 2) {
         var formData = new FormData($("#g-core-form")[0]);
         jQuery.ajax({
           url: '/core/upload?server=' + sname,
@@ -300,10 +304,30 @@
             jarfile = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
             $("#progress-card .progress-bar").css("width", "100%");
             $("#progress-card p").html("Completion");
-            $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&startcmd=" + btoa(
+            $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile.replace(/-installer/gm, "") + "&startcmd=" + btoa(
               startLine) + "&port=" + port + "&onMode=" + onlineMode, function (data) {
               if (data == "Success") {
-                window.location = "/index.html?server=" + encodeURI(sname);
+                if (core.substring(0, 2) == "Fo") {
+                  $("#progress-card .progress-bar").css("width", "0%");
+                  $("#progress-card p").html("Installing Forge");
+                  $("#progress-card #forgeins").show();
+                  $("#progress-card #forgeins").text("");
+                  $.get("/forgeInstaller?server=" + encodeURI(sname) + "&filename=" + jarfile);
+                  iint = setInterval(function(){
+                    $.get("/forge/installProgress?server=" + encodeURI(sname), function(get){
+                      if(get != "ok,installed"){
+                        get = get.split(/\r?\n/).slice(-100);
+                        get = get.join("<br>");
+                        $("#progress-card #forgeins").html(get);
+                        $("#progress-card #forgeins").scrollTop($("#progress-card #forgeins")[0].scrollHeight);
+                      } else {
+                        window.location = "/index.html?server=" + encodeURI(sname);
+                      }
+                    });
+                  }, 500);
+                } else {
+                  window.location = "/index.html?server=" + encodeURI(sname);
+                }
               }
             });
           },
@@ -332,6 +356,29 @@
   }
 
   $(document).ready(function () {
+    $("#g-core-input").val("");
+
+    $("#g-core-input").change(function () {
+      fn = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
+      if (fn.match(/forge-/gm) && fn.match(/-installer\.jar/gm)) {
+        $("#final-core").text("Forge");
+        $(".card-body").find(".rounded-circle").attr("src", "assets/cores/forge.png");
+      } else {
+        $("#final-core").text("Own (Non-Forge)");
+        $(".card-body").find(".rounded-circle").attr("src", "assets/cores/jar.png");
+      }
+    });
+
+    $("#coreseltab-tab-2").click(function () {
+      fn = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
+      if (fn.match(/forge-/gm) && fn.match(/-installer\.jar/gm)) {
+        $("#final-core").text("Forge");
+        $(".card-body").find(".rounded-circle").attr("src", "assets/cores/forge.png");
+      } else {
+        $("#final-core").text("Own (Non-Forge)");
+        $(".card-body").find(".rounded-circle").attr("src", "");
+      }
+    });
     $("#server-name").keyup(function () {
       $('#final-sname').text($(this).val());
     });

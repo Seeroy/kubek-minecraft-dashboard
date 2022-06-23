@@ -75,5 +75,7 @@
   "{{aredelete}}": "Wil je echt verwijderen?",
   "{{yesdelete}}": "Ja, verwijder het",
   "{{new-directory}}": "NIEUWE DIRECTORY",
-  "{{resonerr}}": "Herstart server bij crash (gecontroleerd door afsluitcode)"
+  "{{resonerr}}": "Herstart server bij crash (gecontroleerd door afsluitcode)",
+  "{{ifuuplForge}}": "Als u het Forge-installatiebestand hier uploadt, wordt de installatie automatisch uitgevoerd wanneer u de server maakt",
+  "{{ifuuplWarn}}": "Ondersteunde versies van Forge: 1.5.2 - 1.16.5 | Geteste versies: 1.12.2, 1.16.5"
 }
