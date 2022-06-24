@@ -2,11 +2,14 @@
 Kubek - Web Minecraft servers dashboard, written on Node.js using MDBootstrap
 
 Features:
-- Paper, Spigot support/auto-install
+- Paper/Spigot/BungeeCord/Forge server cores support/auto-install
+- Can be installed on Linux VDS
 - Automatic plugin manager (dev.bukkit.org)
 - Real-time console
 - Server.properties editor
 - FTP server included
+- Web file manager
+- Players manager
 
 # Installation
 
