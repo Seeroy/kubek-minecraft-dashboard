@@ -293,6 +293,21 @@
             }, 100);
           }
         });
+      } else if (core.substring(0, 1) == "B") {
+        alert("Currently console not working on BungeeCord! idk how to fix it :(\nНа данный момент консоль у BungeeCord нормально не работает!");
+        if(core.substring(0, 15) == "Bungeecord Late"){
+          core = "Latest";
+        }
+        $.get("/core/bungee/search?core=" + encodeURI(core), function (data) {
+          if (data != "") {
+            $("#progress-card p").html("Downloading core");
+            $.get("/file/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
+              .lastIndexOf('/') + 1) + "&type=core");
+            rr = setInterval(function () {
+              getProgress(data.substring(data.lastIndexOf('/') + 1), sname, startLine, port, onlineMode)
+            }, 100);
+          }
+        });
       } else if (core.substring(0, 2) == "Ow" || core.substring(0, 2) == "Fo" && $("#g-core-input").val().toString()
         .length > 2) {
         var formData = new FormData($("#g-core-form")[0]);

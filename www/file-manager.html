@@ -37,7 +37,10 @@
   <div id="oldc">
     <p class="fs-1 fw-bold">File manager</p>
     <div class="cdirDiv"></div><br>
-    <button type="button" class="btn btn-link" data-mdb-ripple-color="dark" onclick=newdirFM()>{{new-directory}}</button>
+    <button type="button" class="btn btn-link" data-mdb-ripple-color="dark"
+      onclick=newdirFM()>{{new-directory}}</button>
+
+    <button type="button" class="btn btn-primary" onclick=uploadFM()>{{uploadFile}}</button>
     <table class="table table-hover">
       <thead>
         <tr>
@@ -49,6 +52,11 @@
       </thead>
       <tbody id="fmtable"></tbody>
     </table>
+
+    <form id="g-file-form" enctype="multipart/form-data">
+      <input name="g-file-input" id="g-file-input"
+        style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file">
+    </form>
 
     <div class="modal top fade" id="feModal" tabindex="-1" aria-labelledby="feModalLabel" aria-hidden="true"
       data-mdb-backdrop="static" data-mdb-keyboard="false">
@@ -113,7 +121,7 @@
     })
   }
 
-  function newdirFM(){
+  function newdirFM() {
     Swal.fire({
       title: '{{new-directory}}',
       input: 'text',
@@ -144,6 +152,36 @@
         refreshDir();
       }
     })
+  }
+
+  function uploadFM() {
+    $("#g-file-input").trigger('click');
+    $("#g-file-input").off("change");
+    $("#g-file-input").change(function () {
+      var formData = new FormData($("#g-file-form")[0]);
+      jQuery.ajax({
+        url: '/fmapi/uploadFM?server=' + currentServer + "&path=" + encodeURI(curDir),
+        type: "POST",
+        data: formData,
+        success: function (data) {
+          Swal.fire(
+            '{{success}}',
+            'success'
+          ).then((result) => {
+            window.location = "";
+          });
+        },
+        error: function (data) {
+          Swal.fire(
+            '{{error}}',
+            'error'
+          );
+        },
+        cache: false,
+        contentType: false,
+        processData: false,
+      });
+    });
   }
 
   function renameFM(path) {
@@ -183,9 +221,36 @@
 
   function saveFile() {
     fn = $("#feModalLabel").text();
-    path = curDir + fn;
-    $.get("/fmapi/saveFile?server=" + currentServer + "&path=" + path + "&text=" + btoa($(
-      "#feModal .modal-body textarea").val()), function () {});
+    path = currentServer + curDir + fn;
+    randCode = genID(20);
+
+    socket.emit("startFileWrite", {
+      path: path,
+      randCode: randCode
+    });
+
+    textSplit = $("#feModal .modal-body textarea").val().split("\n");
+    textSplit.forEach(function (seg) {
+      socket.emit("addFileWrite", {
+        add: seg,
+        randCode: randCode
+      });
+    });
+
+    socket.emit("finishFileWrite", {
+      randCode: randCode
+    });
+  }
+
+  function genID(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() *
+        charactersLength));
+    }
+    return result;
   }
 
   function refreshDir() {
@@ -213,7 +278,7 @@
         data.forEach(function (file) {
           size = 0;
           if (file.size < 1024 * 1024) {
-			size = Math.round(file.size / 1024 * 10) / 10 + " Kb";
+            size = Math.round(file.size / 1024 * 10) / 10 + " Kb";
           }
           if (file.size < 1024) {
             size = file.size + " B";
@@ -221,7 +286,7 @@
           if (file.size >= 1024 * 1024) {
             size = Math.round(file.size / 1024 / 1024 * 10) / 10 + " Mb";
           }
-		  if (file.size >= 1024 * 1024 * 1024) {
+          if (file.size >= 1024 * 1024 * 1024) {
             size = Math.round(file.size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
           }
           if (file.type == "directory") {
@@ -249,7 +314,8 @@
           }
           $("#fmtable").append(
             '<tr data-type="' + file.type +
-            '"><td style="width: 20px;"><span class="material-icons">' + icon + '</span></td><td class="fn" style="padding-top: 18px;">' +
+            '"><td style="width: 20px;"><span class="material-icons">' + icon +
+            '</span></td><td class="fn" style="padding-top: 18px;">' +
             file.name + '</td><td>' + size + '</td><td>' + act + '</td></tr>');
         });
         $("#fmtable").unbind("click");
@@ -260,7 +326,7 @@
           }
           if ($(this).data("type") == "file") {
             ext = $(this).find(".fn")[0].innerText.split(".").slice(-1)[0];
-            allowedExt = ["txt", "log", "yml", "xml", "cfg", "conf", "config", "json", "yaml", "properties"];
+            allowedExt = ["txt", "log", "yml", "xml", "cfg", "conf", "config", "json", "yaml", "properties", "sh", "bat"];
             if (allowedExt.indexOf(ext) >= 0) {
               $("#feModalLabel").text($(this).find(".fn")[0].innerText);
               $.get("/fmapi/getFile?server=" + currentServer + "&path=" + curDir + $(this).find(".fn")[0]

@@ -24,7 +24,6 @@ var crypto = require('crypto');
 var spParser = require("minecraft-server-properties");
 const fs = require('fs');
 var colors = require('colors');
-//const spawn = require("cross-spawn");
 const {
   spawn
 } = require('node:child_process');
@@ -61,12 +60,15 @@ var servers_instances = [];
 var updatesByIntArray = {};
 var forgesIns = [];
 
+var currentFileWritings = [];
+var currentFileWritingsText = [];
+
 const {
   response
 } = require('express');
 
 // Kubek version
-const version = "v1.2.13";
+const version = "v1.2.14";
 
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
@@ -116,7 +118,27 @@ io.on("connection", (socket) => {
         break;
     }
   });
+  socket.on("startFileWrite", (arg) => { // Start file upload after edit (FM)
+    currentFileWritings[arg.randCode] = "./servers/" + arg.path;
+    currentFileWritingsText[arg.randCode] = "";
+  });
+  socket.on("addFileWrite", (arg) => { // Add fragment to file upload (FM)
+    if (typeof currentFileWritingsText[arg.randCode] !== "undefined") {
+      if (currentFileWritingsText[arg.randCode] == "") {
+        currentFileWritingsText[arg.randCode] = arg.add;
+      } else {
+        currentFileWritingsText[arg.randCode] = currentFileWritingsText[arg.randCode] + "\n" + arg.add;
+      }
 
+    }
+  });
+  socket.on("finishFileWrite", (arg) => { // Finish write to file (FM)
+    if (typeof currentFileWritingsText[arg.randCode] !== "undefined") {
+      fs.writeFileSync(currentFileWritings[arg.randCode], currentFileWritingsText[arg.randCode]);
+      delete currentFileWritings[arg.randCode];
+      delete currentFileWritingsText[arg.randCode];
+    }
+  });
 });
 
 app.use(fileUpload());
@@ -815,6 +837,10 @@ function startServer(server) {
         statuss = "started";
         console.log(additional.getTimeFormatted(), "STARTED SERVER:", server.green);
       }
+      if (data.match(/\[INFO] Listening on/gm)) {
+        statuss = "started";
+        console.log(additional.getTimeFormatted(), "STARTED SERVER:", server.green);
+      }
       if (data.indexOf("Saving players") >= 0) {
         console.log(additional.getTimeFormatted(), "STOPPING SERVER:", server.green);
         statuss = "stopping";
@@ -954,9 +980,10 @@ app.get("/core/list", (request, response) => {
     } else {
       showRequestInLogs(request);
       response.set('Content-Type', 'application/json');
-      possbileCores = ['Spigot', 'Paper'];
+      possbileCores = ['Spigot', 'Paper', 'BungeeCord'];
       paperVers = [];
       spigotVers = [];
+      bungeeVers = ["Latest (> 1.7.10)", "1.7.10", "1.6.4", "1.5.2"];
       cores.getPaperCores(function (cores_p) {
         cores_p = cores_p.reverse();
         cores_p.forEach(function (core) {
@@ -969,7 +996,8 @@ app.get("/core/list", (request, response) => {
           let jsn = {
             possible: possbileCores,
             paper: paperVers,
-            spigot: spigotVers
+            spigot: spigotVers,
+            bungeecord: bungeeVers
           }
           response.send(jsn);
         });
@@ -992,6 +1020,40 @@ app.get('/core/spigot/list', (request, response) => {
       cores.getSpigotCores(function (cores) {
         response.send(cores);
       });
+    }
+  }
+});
+
+app.get('/core/bungee/search', (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      showRequestInLogs(request);
+      r = "";
+      if (typeof request.query.core !== "undefined") {
+        switch (request.query.core) {
+          case "Latest":
+            r = "https://ci.md-5.net/job/BungeeCord/lastSuccessfulBuild/artifact/bootstrap/target/BungeeCord.jar";
+            break;
+          case "Bungeecord 1.7.10":
+            r = "https://ci.md-5.net/job/BungeeCord/1119/artifact/bootstrap/target/BungeeCord.jar";
+            break;
+          case "Bungeecord 1.6.4":
+            r = "https://ci.md-5.net/job/BungeeCord/701/artifact/bootstrap/target/BungeeCord.jar";
+            break;
+          case "Bungeecord 1.5.2":
+            r = "https://ci.md-5.net/job/BungeeCord/548/artifact/proxy/target/BungeeCord.jar";
+            break;
+        }
+        response.send(r);
+      } else {
+        response.send(false);
+      }
     }
   }
 });
@@ -1439,6 +1501,36 @@ app.get("/fmapi/newdirFM", (request, response) => {
   }
 });
 
+app.post('/fmapi/uploadFM', (request, response) => {
+  ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+    response.send("Cannot be accessed from the internet");
+  } else {
+    if (typeof request.cookies !== "undefined" && typeof request.cookies["__auth__"] !== "undefined" && !isAuth(request.cookies["__auth__"])) {
+      response.redirect("/login.html");
+    } else {
+      let sampleFile;
+      let uploadPath;
+
+      if (!request.files || Object.keys(request.files).length === 0) {
+        return response.status(400).send('No files were uploaded.');
+      }
+
+      sampleFile = request.files['g-file-input'];
+      uploadPath = "./servers/" + request.query["server"] + request.query["path"] + sampleFile.name;
+      showRequestInLogs(request);
+
+      sampleFile.mv(uploadPath, function (err) {
+        if (err)
+          return response.status(400).send(err);
+
+        response.send("uploaded");
+      });
+    }
+  }
+});
+
 app.get("/forgeInstaller", (request, response) => {
   ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
   ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
@@ -1485,7 +1577,7 @@ function startForgeInstaller(server, file) {
   }
 
   fi.on('close', (code) => {
-    if(code == 0){
+    if (code == 0) {
       console.log(colors.green("Forge installed successfully on " + server));
       forgesIns[server] = "ok,installed";
       fs.unlinkSync(fp);
