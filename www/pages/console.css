@@ -1,0 +1,32 @@
+/* Main console container */
+.console-container {
+  padding: 2%;
+  height: 92vh;
+}
+
+/* Console properties modal */
+.modal-console-props {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: max-content;
+  height: max-content;
+  padding: 12px;
+  z-index: 2;
+}
+
+.modal-console-props .flex-fill {
+  font-size: 14pt;
+  font-weight: 600;
+}
+
+/* Console styling */
+#command-input {
+  background: transparent;
+  width: 100%;
+  appearance: none;
+  border: 0 !important;
+  outline: 0 !important;
+}

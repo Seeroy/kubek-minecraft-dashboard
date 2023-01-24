@@ -1,0 +1,24 @@
+.pluginsandmods-container {
+  padding: 2%;
+  height: 92vh;
+}
+
+/* Blocks styling */
+.pl-blocks {
+  height: 86vh;
+}
+
+.pl-blocks .contentt .list-group-item {
+  border: 0;
+  outline: 0;
+  border-radius: 0 !important;
+  background: transparent;
+}
+
+.pl-blocks .contentt .list-group {
+  overflow-y: auto;
+}
+
+.pl-blocks .btn.btn-danger * {
+  color: white !important
+}

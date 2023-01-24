@@ -1,0 +1,104 @@
+<!--
+  #breadcrumb-fm
+  #fm-table
+  #create-new-folder-button
+  #upload-file-button
+-->
+
+<link rel="stylesheet" href="/pages/file_manager.css">
+<script src="/pages/file_manager.js"></script>
+
+<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: .3s; padding-right: 24px;">
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span id="server-name" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <div id="status-circle" class="rounded-circle bg-success"></div>
+    <span id="status-text" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">groups</span>
+    <span id="status-text" class="bold-chip">{{players}}:</span>
+    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <img id="server-version-icon" height="24">
+    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+  </div>
+
+  <div class="flex-fill"></div>
+  <button class="btn btn-danger server-control" onclick="stopServer()"><span
+      class="material-symbols-outlined">crop_square</span></button>
+  <button class="btn btn-success server-control" onclick="startServer()"><span
+      class="material-symbols-outlined">play_arrow</span></button>
+  <button class="btn btn-warning server-control" onclick="restartServer()"><span
+      class="material-symbols-outlined">autorenew</span></button>
+</div>
+
+<div class="modal top fade" id="feModal" tabindex="-1" aria-labelledby="feModalLabel" aria-hidden="true"
+  data-mdb-backdrop="static" data-mdb-keyboard="false">
+  <div class="modal-dialog modal-xl  modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="feModalLabel"></h5>
+        <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-outline">
+          <textarea class="form-control" id="textAreaExample" rows="10"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+          {{cancel}}
+        </button>
+        <button type="button" class="btn btn-primary" onclick="saveFile()" data-mdb-dismiss="modal">{{save}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form id="g-file-form" enctype="multipart/form-data">
+  <input name="g-file-input" id="g-file-input"
+    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file">
+</form>
+
+<div class="fm_container">
+  <div class="sub-block console card border border-1 shadow-0">
+    <div class="header d-flex flex-row align-items-center">
+      <span class="flex-fill">{{file-manager}}</span>
+      <button type="button" class="btn btn-primary" style="margin-right: 10px;">
+        <span class="material-symbols-outlined" onclick="refreshDir()">autorenew</span>
+      </button>
+      <button type="button" class="btn btn-primary" style="margin-right: 10px;">
+        <span class="material-symbols-outlined" onclick="newdirFM()">create_new_folder</span>
+      </button>
+      <button type="button" class="btn btn-primary">
+        <span class="material-symbols-outlined" onclick="uploadFM()">publish</span>
+      </button>
+    </div>
+    <div class="contentt">
+      <div class="d-flex flex-row">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb" id="breadcrumb-fm"></ol>
+        </nav>
+      </div>
+
+      <table class="table" id="fm-table">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 32px; "></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>

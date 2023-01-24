@@ -108,17 +108,41 @@ exports.getPluginVersions = (url, cb) => {
 }
 
 exports.getInstalledPlugins = (name) => {
-  dirents = fs.readdirSync("./servers/" + name + "/plugins", {
-    withFileTypes: true
-  });
-  filesNames = dirents
-    .filter(dirent => dirent.isFile())
-    .map(dirent => dirent.name);
-  return filesNames;
+  if (fs.existsSync("./servers/" + name + "/plugins")) {
+    dirents = fs.readdirSync("./servers/" + name + "/plugins", {
+      withFileTypes: true
+    });
+    filesNames = dirents
+      .filter(dirent => dirent.isFile())
+      .map(dirent => dirent.name);
+    return filesNames;
+  } else {
+    return JSON.stringify([]);
+  }
+}
+
+exports.getInstalledMods = (name) => {
+  if (fs.existsSync("./servers/" + name + "/mods")) {
+    dirents = fs.readdirSync("./servers/" + name + "/mods", {
+      withFileTypes: true
+    });
+    filesNames = dirents
+      .filter(dirent => dirent.isFile())
+      .map(dirent => dirent.name);
+    return filesNames;
+  } else {
+    return JSON.stringify([]);
+  }
 }
 
 exports.deleteInstalledPlugin = (name, filename) => {
   if (fs.existsSync("./servers/" + name + "/plugins/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
     fs.unlinkSync("./servers/" + name + "/plugins/" + filename);
+  }
+}
+
+exports.deleteInstalledMod = (name, filename) => {
+  if (fs.existsSync("./servers/" + name + "/mods/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
+    fs.unlinkSync("./servers/" + name + "/mods/" + filename);
   }
 }

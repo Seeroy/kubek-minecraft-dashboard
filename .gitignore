@@ -6,3 +6,5 @@ spigots.json
 config.json
 indiftpd*
 logs/
+old/
+users.json

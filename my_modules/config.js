@@ -1,5 +1,8 @@
 const fs = require('fs');
-const defaultConfig = '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"owner-user":"kubek","owner-password":"kubek","internet-access":false,"save-logs":true}';
+const CONFIG_VERSION = 1;
+const defaultConfig = '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"internet-access":false,"save-logs":true,"config-version":1}';
+const defaultUsersConfig = '{"kubek": {"username": "kubek","password": "72ba608dbfac8d46d4aaf40f428badf85af1f929fece7480e56602b4452a71fe","mail": "","hash": "","permissions": ["console", "plugins", "filemanager", "server_settings", "kubek_settings"]}}';
+var crypto = require('crypto');
 
 exports.readConfig = () => {
   if (!fs.existsSync("config.json")) {
@@ -9,26 +12,65 @@ exports.readConfig = () => {
   } else {
     parse = JSON.parse(fs.readFileSync("config.json"));
     // FOR BACKWARD COMPABILITY
-    if(typeof parse['internet-access'] === "undefined"){
+    if (typeof parse['internet-access'] === "undefined") {
       parse['internet-access'] = false;
     }
-    if(typeof parse['save-logs'] === "undefined"){
+    if (typeof parse['config-version'] === "undefined") {
+      parse['config-version'] = CONFIG_VERSION;
+    }
+    if (typeof parse['owner-password'] !== "undefined") {
+      users__cfg = this.readUsersConfig();
+      users__cfg['kubek']['password'] = crypto.createHash('sha256').update(parse['owner-password']).digest('hex');
+      this.writeUsersConfig(users__cfg);
+      parse['owner-password'] = "";
+      parse['owner-user'] = "";
+      delete parse['owner-password'];
+      delete parse['owner-user'];
+      this.writeConfig(parse);
+    }
+    if (typeof parse['save-logs'] === "undefined") {
       parse['save-logs'] = false;
     }
     return parse;
   }
 }
 
+exports.readUsersConfig = () => {
+  if (!fs.existsSync("users.json")) {
+    ret = this.writeDefaultUsersConfig();
+    return ret;
+  } else {
+    parsess = JSON.parse(fs.readFileSync("users.json"));
+    return parsess;
+  }
+}
+
 exports.writeConfig = (config) => {
-  fs.writeFileSync("config.json", config)
+  fs.writeFileSync("config.json", JSON.stringify(config, null, "\t"))
+}
+
+exports.writeUsersConfig = (config) => {
+  fs.writeFileSync("users.json", JSON.stringify(config, null, "\t"))
+}
+
+exports.writeServersJSON = (config) => {
+  fs.writeFileSync("./servers/servers.json", JSON.stringify(config, null, "\t"))
 }
 
 exports.writeDefaultConfig = () => {
   fs.writeFileSync("config.json", defaultConfig);
 }
 
+exports.writeDefaultUsersConfig = () => {
+  newHash = crypto.randomUUID().toString();
+  du = JSON.parse(defaultUsersConfig);
+  du['kubek']['hash'] = newHash;
+  fs.writeFileSync("users.json", JSON.stringify(du, null, "\t"));
+  return du;
+}
+
 exports.readServersJSON = () => {
-  if(fs.existsSync("./servers/servers.json")){
+  if (fs.existsSync("./servers/servers.json")) {
     return JSON.parse(fs.readFileSync("./servers/servers.json"));
   } else {
     return false;

@@ -1,0 +1,110 @@
+<link rel="stylesheet" href="/pages/sysmon.css">
+<script src="/pages/sysmon.js"></script>
+
+<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: .3s; padding-right: 24px;">
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span id="server-name" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <div id="status-circle" class="rounded-circle bg-success"></div>
+    <span id="status-text" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">groups</span>
+    <span id="status-text" class="bold-chip">{{players}}:</span>
+    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <img id="server-version-icon" height="24">
+    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+  </div>
+
+  <div class="flex-fill"></div>
+  <button class="btn btn-danger server-control" onclick="stopServer()"><span
+      class="material-symbols-outlined">crop_square</span></button>
+  <button class="btn btn-success server-control" onclick="startServer()"><span
+      class="material-symbols-outlined">play_arrow</span></button>
+  <button class="btn btn-warning server-control" onclick="restartServer()"><span
+      class="material-symbols-outlined">autorenew</span></button>
+</div>
+
+<div class="sysmon-container">
+  <div id="oldc">
+    <p class="fs-1 fw-bold">{{summary-sysmon}}</p>
+    <table class="table">
+      <tbody>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-symbols-outlined">wysiwyg</span>
+              <span style="margin-left: 16px;">OS</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="os-name">{{unknown}}</td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-symbols-outlined">wysiwyg</span>
+              <span style="margin-left: 16px;">OS Build</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="os-build">{{unknown}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="fs-1 fw-bold">{{cpu-mem-sysmon}}</p>
+    <table class="table">
+      <tbody>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-symbols-outlined">memory</span>
+              <span style="margin-left: 16px;">Total RAM</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="totalmem">{{unknown}}</td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-symbols-outlined">memory</span>
+              <span style="margin-left: 16px;">CPU Model</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="cpu-model">{{unknown}}</td>
+        </tr>
+        <tr>
+          <th style="text-align:left;">
+            <div class="d-flex align-items-center">
+              <span class="material-symbols-outlined">memory</span>
+              <span style="margin-left: 16px;">CPU Speed</span>
+            </div>
+          </th>
+          <td style="text-align:right;" id="cpu-speed">{{unknown}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="fs-1 fw-bold">{{local-disks-sysmon}}</p>
+    <table class="table" id="disks-table">
+      <thead>
+        <tr>
+          <th>Letter</th>
+          <th>Used</th>
+          <th>Free</th>
+          <th>Total </th>
+          <th>Used %</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p class="fs-1 fw-bold">Enviroment values</p>
+    <table class="table" id="env-table">
+      <tbody></tbody>
+    </table>
+  </div>
+</div>

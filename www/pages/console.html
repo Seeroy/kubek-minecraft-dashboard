@@ -1,0 +1,75 @@
+<!-- 
+  console page
+  #status-circle (classes backgrounds mdb)
+  #status-text (Online/Offline/Pending)
+  #server-name
+  #server-version (Paper 1.18.2)
+  #server-players-count (cur/max)
+
+  #command-input
+  #console-text
+-->
+
+<link rel="stylesheet" href="/pages/console.css">
+<script src="/pages/console.js"></script>
+<script src="/js/MinecraftColorCodes.min.3.7.js"></script>
+
+<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: .3s; padding-right: 24px;">
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span id="server-name" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <div id="status-circle" class="rounded-circle"></div>
+    <span id="status-text" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">groups</span>
+    <span id="status-text" class="bold-chip">{{players}}:</span>
+    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <img id="server-version-icon" height="24">
+    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+  </div>
+
+  <div class="flex-fill"></div>
+  <button class="btn btn-danger server-control" onclick="stopServer()"><span
+      class="material-symbols-outlined">crop_square</span></button>
+  <button class="btn btn-success server-control" onclick="startServer()"><span
+      class="material-symbols-outlined">play_arrow</span></button>
+  <button class="btn btn-warning server-control" onclick="restartServer()"><span
+      class="material-symbols-outlined">autorenew</span></button>
+</div>
+<div class="console-container">
+  <div class="sub-block console card border border-1 shadow-0">
+    <div class="header d-flex flex-row align-items-center">
+      <span class="flex-fill">{{console}}</span>
+      <button type="button" class="btn btn-tertiary" id="open-logs-button" style="margin-right: 16px;">{{openlogs-console}}</button>
+      <button type="button" class="btn" id="console-settings-button">{{settings}}</button>
+    </div>
+    <div class="contentt" id="console-text"></div>
+    <div class="footer">
+      <input type="text" id="command-input" placeholder="{{enter-command-console}}"
+            onkeyup="if(event.key == 'Enter'){$.get('/server/sendCommand?server=' + window.localStorage.selectedServer + '&cmd=' + this.value); this.value = ''}">
+    </div>
+  </div>
+</div>
+
+<div class="modal-console-props rounded-3" style="display: none;">
+  <div class="d-flex flex-row justify-content-center align-items-center">
+    <span class="flex-fill">{{settings}}</span>
+    <button type="button" class="btn-close" aria-label="Close" onclick='$(".modal-console-props").hide();'></button>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" checked type="checkbox" value="" id="autoupdateConsoleCheckbox" />
+    <label class="form-check-label" for="autoupdateConsoleCheckbox">{{autoupdate-console}}</label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" checked type="checkbox" value="" id="autoscrollConsoleCheckbox" />
+    <label class="form-check-label" for="autoscrollConsoleCheckbox">{{autoscroll-console}}</label>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+.sysmon-container {
+  padding: 2%;
+  height: 92vh;
+}
+
+#env-table tbody th,
+#env-table tbody td {
+  padding: 0.2rem 1.3rem;
+}

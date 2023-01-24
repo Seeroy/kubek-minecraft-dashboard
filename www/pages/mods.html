@@ -1,0 +1,74 @@
+<!-- 
+  #installed-plugins-list
+  #installed-mods-list
+-->
+
+<link rel="stylesheet" href="/pages/mods.css">
+<script src="/pages/mods.js"></script>
+
+<form id="g-plugin-form" enctype="multipart/form-data">
+  <input name="g-plugin-input" id="g-plugin-input"
+    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file" accept=".jar">
+</form>
+
+<form id="g-mod-form" enctype="multipart/form-data">
+  <input name="g-mod-input" id="g-mod-input"
+    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file" accept=".jar">
+</form>
+
+<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: .3s; padding-right: 24px;">
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span id="server-name" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <div id="status-circle" class="rounded-circle bg-success"></div>
+    <span id="status-text" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">groups</span>
+    <span id="status-text" class="bold-chip">{{players}}:</span>
+    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <img id="server-version-icon" height="24">
+    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+  </div>
+
+  <div class="flex-fill"></div>
+  <button class="btn btn-danger server-control" onclick="stopServer()"><span
+      class="material-symbols-outlined">crop_square</span></button>
+  <button class="btn btn-success server-control" onclick="startServer()"><span
+      class="material-symbols-outlined">play_arrow</span></button>
+  <button class="btn btn-warning server-control" onclick="restartServer()"><span
+      class="material-symbols-outlined">autorenew</span></button>
+</div>
+<div class="pluginsandmods-container">
+  <div class="row gx-5">
+    <div class="col-md-6">
+      <div class="sub-block pl-blocks card border border-1 shadow-0">
+        <div class="header d-flex flex-row align-items-center">
+          <span class="flex-fill">{{plugins}}</span>
+          <button type="button" class="btn" onclick="uploadPlugin()">{{upload}}</button>
+        </div>
+        <div class="contentt">
+          <ul class="list-group list-group-light flex-fill" id="installed-plugins-list" style="overflow-y: auto;"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="sub-block pl-blocks card border border-1 shadow-0">
+        <div class="header d-flex flex-row align-items-center">
+          <span class="flex-fill">{{mods}}</span>
+          <button type="button" class="btn" onclick="uploadMod()">{{upload}}</button>
+        </div>
+        <div class="contentt">
+          <ul class="list-group list-group-light flex-fill" id="installed-mods-list" style="overflow-y: auto;"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

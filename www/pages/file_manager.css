@@ -1,0 +1,59 @@
+.fm_container {
+  padding: 2%;
+  height: 92vh;
+}
+
+.fm_container .btn.btn-primary {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fm_container .btn.btn-primary * {
+  color: white;
+}
+
+.fm_container .contentt {
+  padding: 1%;
+}
+
+#fm-table td {
+  vertical-align: middle;
+}
+
+#fm-table {
+  border-radius: 8px;
+}
+
+#fm-table * {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#fm-table th,
+#fm-table tr {
+  height: 48px;
+  max-height: 48px;
+  min-height: 48px;
+}
+
+#fm-table button {
+  outline: none;
+  border: none;
+  appearance: none;
+  background: transparent;
+  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  padding: 6px;
+  box-shadow: none;
+  margin: 0;
+}
+
+#fm-table button:not(:first-child) {
+  margin-left: 6px;
+}

@@ -1,238 +1,366 @@
+<!DOCTYPE html>
+
 <head>
   <!-- Meta -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Kubek - Minecraft Servers</title>
+  <title>Kubek</title>
 
   <!-- MDB -->
-  <script src="js/mdb.min.js"></script>
-  <link rel="stylesheet" href="css/mdb.min.css">
+  <script src="/js/mdb.min.js"></script>
+  <link rel="stylesheet" id="mdbLight" href="/css/mdb.min.css">
+  <link rel="stylesheet" media="none" id="mdbDark" href="/css/mdb.dark.min.css">
+
+  <!-- Theme modes -->
+  <link rel="stylesheet" id="linkLight" href="/css/modes/white.css">
+  <link rel="stylesheet" media="none" id="linkDark" href="/css/modes/dark.css">
 
   <!-- Others -->
-  <script src="js/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="css/animate.min.css" />
-  <link rel="stylesheet" href="css/toastify.min.css" />
-  <script src="js/socket.io.min.js"></script>
-  <script src="js/toastify-js.js"></script>
+  <script src="/js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="/css/animate.min.css" />
+  <script src="/js/socket.io.min.js"></script>
+  <script src="/js/popper.min.js"></script>
+  <link rel="stylesheet" href="/css/main.css">
+
   <script src="js/sweetalert2.all.min.js"></script>
+  <link rel="stylesheet" href="/css/sweetalert.dark.css">
+
+  <script src="js/toastify-js.js"></script>
+  <link rel="stylesheet" href="css/toastify.min.css" />
 
   <!-- Own -->
-  <link rel="stylesheet" href="css/globals.css" />
-  <link rel="stylesheet" href="css/template.nav.css" />
-  <script src="js/funcs.js"></script>
+  <link rel="stylesheet" href="/css/globals.css" />
+  <script src="/js/funcs.js"></script>
+  <script src="/js/ui.functions.js"></script>
 
-  <!-- Fonts and icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-    rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-  <!-- Page unique -->
-  <link rel="stylesheet" href="css/pages/dashboard.css">
+  <!-- Icons and font -->
+  <link rel="stylesheet" href="/fonts/Inter/stylesheet.css" />
+  <link rel="stylesheet" href="/fonts/MaterialSymbols/stylesheet.css" />
 
   <!-- 
-    #table-server-version (Paper 1.18.2)
-    #table-server-online (4/20 players)
-    #table-server-os (windows 10 pro)
-    #table-server-plugins-count (100)
-    #usage-memory-pbar (set width and aria-valuenow)
-    #usage-memory-percent (50%)
-    #usage-memory-count (0.5 / 5 GB)
-    #usage-cpu-pbar (set width and aria-valuenow)
-    #usage-cpu-percent (50%)
-    #addr-local (127.0.0.1)
-    #addr-public (127.0.0.1)
-    #addr-ngrok (127.0.0.1)
+    sidebar items:
+    #kubek-version-sidebar
+    #servers-list-sidebar
+    #new-server-button
   -->
 </head>
 
 <body>
-  <div id="oldc">
-    <div class="dashboard">
-      <div class="item">
-        <p class="fs-5 fw-bold text-black">{{about-server}}</p>
-        <div class="card border border-primary shadow-0" style="height: 11.7rem;">
-          <div class="card-body">
-            <table class="table">
-              <tbody>
-                <tr>
-                  <th style="text-align:left;">{{server-version}}</th>
-                  <td style="text-align:right;" id="table-server-version">Unknown</td>
-                </tr>
-                <tr>
-                  <th style="text-align:left;">{{online}}</th>
-                  <td style="text-align:right;" id="table-server-online">Unknown</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+  <div class="d-flex flex-row w-100 h-100">
+    <div class="menuContainer text-body d-flex flex-column animate__animated animate__slideInLeft animate__fast">
+      <div class="d-flex flex-row mb-3 align-items-center justify-content-center">
+        <div class="p-2">
+          <img src="assets/icon.png" height="56">
         </div>
+        <div class="p-2 ms-3 kubekLogoText">Kubek</div>
+        <span id="kubek-version-sidebar"></span>
       </div>
-      <div class="item">
-        <p class="fs-5 fw-bold text-black">{{resource-usage}}</p>
-        <div class="card border border-primary shadow-0">
-          <div class="card-body">
-            <div class="usage-pbar">
-              <div class="percent" id="usage-memory-percent">0%</div>
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
-                  aria-valuemax="100" id="usage-memory-pbar"></div>
-              </div>
-              <div class="name">RAM</div>
-              <div class="count" id="usage-memory-count">Unknown</div>
-            </div>
-          </div>
-        </div>
-        <div class="card border border-primary shadow-0" style="margin-top: 10px;">
-          <div class="card-body">
-            <div class="usage-pbar">
-              <div class="percent" id="usage-cpu-percent">0%</div>
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
-                  aria-valuemax="100" id="usage-cpu-pbar"></div>
-              </div>
-              <div class="name">CPU</div>
-              <div class="count"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="item">
-        <p class="fs-5 fw-bold text-black">{{ip-adresses}}</p>
-        <div class="card border border-primary shadow-0">
-          <div class="card-body">
-            <span id="addr-capt-local">Local IP</span>
-            <input style="margin-top: 4px; margin-bottom: 8px;" class="form-control" id="addr-local" type="text"
-              readonly value="Unknown" />
-            <span id="addr-capt-publ">Public IP</span>
-            <input style="margin-top: 4px; margin-bottom: 8px;" class="form-control" id="addr-public" type="text"
-              readonly value="Unknown" />
-            <span id="addr-capt-ngrok">ngrok IP</span>
-            <input style="margin-top: 4px;" class="form-control" id="addr-ngrok" type="text" readonly value="Unknown" />
-          </div>
-        </div>
-      </div>
+
+      <ul class="sidenavLayout list-group list-group-light flex-fill" id="sidebar-menu-list"
+        style="overflow-y: auto; margin-bottom: 12px;">
+        <li class="list-group-item px-4 active d-flex flex-row align-items-center" data-page="home" aria-current="true">
+          <span class="material-symbols-outlined">home</span>
+          <span class="ms-2">{{dashboard}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center console-menu-item" data-page="console">
+          <span class="material-symbols-outlined">terminal</span>
+          <span class="ms-2">{{console}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center plugins-menu-item" data-page="mods">
+          <span class="material-symbols-outlined">extension</span>
+          <span class="ms-2">{{plugins-and-mods}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center fm-menu-item" data-page="file_manager">
+          <span class="material-symbols-outlined">folder_open</span>
+          <span class="ms-2">{{file-manager}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center serversett-menu-item"
+          data-page="server_settings">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="ms-2">{{server-settings}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center kubeksett-menu-item"
+          data-page="kubek_settings">
+          <span class="material-symbols-outlined">settings_applications</span>
+          <span class="ms-2">{{kubek-settings}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center" data-page="sysmon">
+          <span class="material-symbols-outlined">monitoring</span>
+          <span class="ms-2">{{system-monitor}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center" onclick="logoutUser()">
+          <span class="material-symbols-outlined">logout</span>
+          <span class="ms-2">{{logout-account}}</span>
+        </li>
+      </ul>
+
+      <ul class="sidenavLayout list-group list-group-light" id="servers-list-sidebar">
+        <li class="list-group-item px-4 d-flex flex-row align-items-center" id="new-server-button">
+          <span class="material-symbols-outlined">add</span>
+          <span class="ms-2 flex-fill">{{create-server}}</span>
+          <span class="material-symbols-outlined goicon">chevron_right</span>
+        </li>
+      </ul>
+
+      <ul class="nav nav-pills nav-justified mb-3" id="theme-mode-selector">
+        <li class="nav-item">
+          <a class="nav-link lighttheme-button" data-theme="light" data-mdb-toggle="pill">LIGHT</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link darktheme-button" data-theme="dark" data-mdb-toggle="pill">DARK</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="content flex-fill" style="width: 1vh;"></div>
+  </div>
+
+  <div id="loading-overlay" class="w-100 h-100">
+    <div class="spinner-border text-primary" style="width: 5rem; height: 5rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 </body>
 
 <script>
-  var socket;
-  var memoryUpdInterval;
-  var queryUpdInterval;
+  console.log("[UI] Starting Kubek UI...");
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  act = urlParams.get('act');
+  var old = "";
+  var selectedServer = "";
+  var socket = "";
+  var cs = true;
+  var connect_socket_error = false;
 
   $(document).ready(function () {
-    loadTemplate(function () {
-      hideLoading();
+    $.get("/auth/permissions", function (perms) {
+      if (!perms.includes("console")) {
+        $(".sidenavLayout .console-menu-item").removeClass("d-flex");
+        $(".sidenavLayout .console-menu-item").hide();
+      }
+      if (!perms.includes("plugins")) {
+        $(".sidenavLayout .plugins-menu-item").removeClass("d-flex");
+        $(".sidenavLayout .plugins-menu-item").hide();
+      }
+      if (!perms.includes("filemanager")) {
+        $(".sidenavLayout .fm-menu-item").removeClass("d-flex");
+        $(".sidenavLayout .fm-menu-item").hide();
+      }
+      if (!perms.includes("server_settings")) {
+        $(".sidenavLayout .serversett-menu-item").removeClass("d-flex");
+        $(".sidenavLayout .serversett-menu-item").hide();
+      }
+      if (!perms.includes("kubek_settings")) {
+        $(".sidenavLayout .kubeksett-menu-item").removeClass("d-flex");
+        $(".sidenavLayout .kubeksett-menu-item").hide();
+      }
     });
+    if (typeof window.localStorage.currentTheme !== "undefined") {
+      if (window.localStorage.currentTheme == "dark") {
+        $("#theme-mode-selector .darktheme-button").addClass("active");
+        $("body").addClass("dark");
+        $("#linkDark")[0].media = '';
+        $("#mdbDark")[0].media = '';
+        $("#linkLight")[0].media = 'none';
+        $("#mdbLight")[0].media = 'none';
+      } else if (window.localStorage.currentTheme == "light") {
+        $("#theme-mode-selector .lighttheme-button").addClass("active");
+        $("body").removeClass("dark");
+        $("#linkDark")[0].media = 'none';
+        $("#mdbDark")[0].media = 'none';
+        $("#linkLight")[0].media = '';
+        $("#mdbLight")[0].media = '';
+      }
+    } else {
+      window.localStorage.setItem("currentTheme", "light");
+      $("#theme-mode-selector .lighttheme-button").addClass("active");
+      $("body").removeClass("dark");
+      $("#linkDark")[0].media = 'none';
+      $("#mdbDark")[0].media = 'none';
+      $("#linkLight")[0].media = '';
+      $("#mdbLight")[0].media = '';
+    }
+    $("#new-server-button").click(function () {
+      window.location = "/new.server.html";
+    });
+
+    $("#sidebar-menu-list .list-group-item").click(function () {
+      if ($("#servers-list-sidebar .list-group-item").length < 2) {
+        gotoPage("welcome");
+      } else {
+        pg = $(this).data("page");
+        gotoPage(pg);
+      }
+    });
+
+    $.get('/kubek/version', function (data) {
+      $("#kubek-version-sidebar").html(data.replace("v", "").trim());
+    });
+
+    $.get("/server/statuses", function (data) {
+      for (const [key, value] of Object.entries(data)) {
+        active = "";
+        if (window.localStorage.selectedServer == key) {
+          active = " active";
+        }
+        $("#servers-list-sidebar").prepend(
+          '<li class="list-group-item px-4 d-flex flex-row align-items-center' + active +
+          '" aria-current="true"><img src="/server/icon?server=' + key +
+          '" height="24"><span class="ms-2 flex-fill">' + key + '</span><img src="assets/statuses/' + value
+          .status +
+          '.png" class="server-status" height="24"><span class="material-symbols-outlined goicon">chevron_right</span></li>'
+        );
+      }
+      if (typeof window.localStorage.selectedServer !== "undefined" && thisServerExists(window.localStorage
+          .selectedServer)) {
+        selectedServer = window.localStorage.selectedServer;
+      } else {
+        if ($("#servers-list-sidebar .list-group-item").length >= 2) {
+          thiss = $("#servers-list-sidebar .list-group-item").eq(0);
+          serverName = $(thiss).children("span.ms-2.flex-fill").text();
+          window.localStorage.setItem("selectedServer", serverName);
+          window.location.reload();
+        }
+      }
+
+      $("#servers-list-sidebar .list-group-item").click(function () {
+        if ($(this)[0].id != "new-server-button") {
+          serverName = $(this).children("span.ms-2.flex-fill").text();
+          window.localStorage.setItem("selectedServer", serverName);
+          window.location.reload();
+        }
+      });
+
+      if ($("#servers-list-sidebar .list-group-item").length < 2) {
+        gotoPage("welcome");
+      } else {
+        if (typeof act !== "undefined" && act !== "undefined") {
+          console.log("[UI]", "act is not null, trying to load", act);
+          gotoPage(act, true);
+        } else {
+          console.log("[UI]", "act is null, loading home");
+          gotoPage("home", true);
+        }
+      }
+    });
+
     socket = openSocket();
     socket.on("handshake", function () {
-      $.get("/server/ips?server=" + currentServer, function (ips) {
-        if (typeof ips.ngrok !== "undefined") {
-          $("#addr-capt-ngrok").show();
-          $("#addr-ngrok").show();
-          $("#addr-ngrok").val(ips.ngrok);
-        } else {
-          $("#addr-capt-ngrok").hide();
-          $("#addr-ngrok").hide();
-          $("#addr-ngrok").val("");
-        }
-        $("#addr-public").val(ips.public);
-        $("#addr-local").val(ips.local);
-      });
-      console.log("Socket handshake success");
-      memoryUpdInterval = setInterval(function () {
-        socket.emit("update", {
-          type: "usage"
-        });
-      }, 3000);
-      queryUpdInterval = setInterval(function () {
-        if ($("#server-status").text() == "Online") {
-          socket.emit("update", {
-            type: "query",
-            server: currentServer
-          });
-        } else {
-          $("#table-server-version").text("Unknown");
-          $("#table-server-online").text("Unknown");
-        }
-      }, 6000);
-      if ($("#server-status").text() == "Online") {
-        socket.emit("update", {
-          type: "query",
-          server: currentServer
-        });
-      } else {
-        $("#table-server-version").text("Unknown");
-        $("#table-server-online").text("Unknown");
+      console.log("[WS]", "WebSocket handshake successful");
+      if(connect_socket_error == true){
+        hideLoading();
+        connect_socket_error = false;
       }
-      socket.emit("update", {
-        type: "usage"
-      });
-      socket.emit("update", {
-        type: "servers"
+      afterSocketHandshake();
+    });
+    socket.on("disconnect", () => {
+      showLoading();
+      connect_socket_error = true;
+    });
+    socket.on("reconnect", () => {
+      hideLoading();
+    });
+    socket.on("connect_error", () => {
+      showLoading();
+      connect_socket_error = true;
+    });
+    socket.on("handleServerError", function (arg) {
+      console.log("[WS]", "Update handled: " + arg.type);
+      $.get("/kubek/translate?text=" + arg.data, function (text) {
+        Toastify({
+          text: text,
+          duration: 10000,
+          newWindow: true,
+          close: true,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "#dc4c64",
+            color: "white",
+          },
+          onClick: function () {}
+        }).showToast();
       });
     });
     socket.on("handleUpdate", function (arg) {
+      console.log("[WS]", "Update handled: " + arg.type);
       type = arg.type;
       data = arg.data;
       switch (type) {
-        case "usage":
-          $("#usage-cpu-pbar").css("width", data.cpu + "%");
-          $("#usage-cpu-pbar").prop("aria-valuenow", data.cpu);
-          $("#usage-cpu-percent").text(data.cpu + "%");
-          memUsage = (data.usedmem / 1024 / 1024 / 1024).toFixed(1) + " GB / " + (data.totalmem / 1024 / 1024 /
-            1024).toFixed(1) + " GB";
-          memPercent = Math.round(data.usedmem / data.totalmem * 100);
-          $("#usage-memory-count").text(memUsage);
-          $("#usage-memory-pbar").css("width", memPercent + "%");
-          $("#usage-memory-pbar").prop("aria-valuenow", memPercent);
-          $("#usage-memory-percent").text(memPercent + "%");
-          break;
-        case "servers":
-          if (data[currentServer].status == "stopped") {
-            $("#server-status").removeClass("badge-success badge-warning");
-            $("#server-status").addClass("badge-danger");
-            $("#server-status").html("Offline");
-            $("#server-start-button").show();
-            $("#server-stop-button").hide();
-          } else if (data[currentServer].status == "started") {
-            $("#server-status").removeClass("badge-danger badge-warning");
-            $("#server-status").addClass("badge-success");
-            $("#server-status").html("Online");
-            $("#server-start-button").hide();
-            $("#server-stop-button").show();
-          } else if (data[currentServer].status == "starting") {
-            $("#server-status").removeClass("badge-success badge-danger");
-            $("#server-status").addClass("badge-warning");
-            $("#server-status").html("Starting");
-            $("#server-start-button").hide();
-            $("#server-stop-button").hide();
-          } else if (data[currentServer].status == "stopping") {
-            $("#server-status").removeClass("badge-success badge-danger");
-            $("#server-status").addClass("badge-warning");
-            $("#server-status").html("Stopping");
-            $("#server-start-button").hide();
-            $("#server-stop-button").hide();
+        case "console":
+          if ($(".console-container").length > 0 && data.server == window.localStorage.selectedServer && $(
+              "#autoupdateConsoleCheckbox").is(":checked")) {
+            split = data.data.split(/\r?\n/);
+            $("#console-text").html("");
+
+            split.forEach(function (line) {
+              ln = "";
+              $(line.replaceColorCodes()).children().each(function () {
+                ln = ln + this.outerHTML;
+              });
+              line = ln;
+              $("#console-text").append(line + "<br>");
+            });
+            if ($("#autoscrollConsoleCheckbox").is(":checked")) {
+              $("#console-text").scrollTop($("#console-text")[0].scrollHeight);
+            }
+            hideLoading();
           }
           break;
-        case "query":
-          $("#table-server-version").text(data.server_modification.name);
-          $("#table-server-online").text(data.players.online + "/" + data.players.max + " players");
-          console.log(data.players);
+        case "usage":
+          updateMemoryAndCPUUsage_ui(data);
           break;
-        case "downloadTasks":
-          $(".ntc-pool").html("");
-          Object.keys(data).forEach(function (k) {
-            $(".ntc-pool").append(
-              '<div class="ntc ntc-poolbox" style="background: rgb(43,53,63); color: white;"><div class="ntb">Downloading ' +
-              k + ' (' + data[k] + '%)</div><div class="ntb"><progress max="100" value="' + data[k] +
-              '" class="pnf"></progress></div></div>');
-          });
+        case "servers":
+          if (cs == false) {
+            if (data[window.localStorage.selectedServer]['restartOnError'] == true && $("#resOnErrCheckbox")
+              .length > 0) {
+              $('#resOnErrCheckbox').prop('checked', true);
+            } else {
+              $('#resOnErrCheckbox').prop('checked', false);
+            }
+            cs = true;
+          }
+          updateServersStatuses_ui(data);
+          break;
+        case "query":
+          updateServerDataFromQuery_ui(data);
           break;
       }
     });
+
+    console.log("[UI]", "Document is ready");
   });
+
+  $("#theme-mode-selector .nav-link").click(function () {
+    console.log("[UI]", "Changing theme...");
+    th = this;
+    if ($(th).data("theme") == "dark") {
+      window.localStorage.setItem("currentTheme", "dark");
+      $("body").addClass("dark");
+      $("#linkDark")[0].media = '';
+      $("#mdbDark")[0].media = '';
+      $("#linkLight")[0].media = 'none';
+      $("#mdbLight")[0].media = 'none';
+    }
+    if ($(th).data("theme") == "light") {
+      window.localStorage.setItem("currentTheme", "light");
+      $("body").removeClass("dark");
+      $("#linkDark")[0].media = 'none';
+      $("#mdbDark")[0].media = 'none';
+      $("#linkLight")[0].media = '';
+      $("#mdbLight")[0].media = '';
+    }
+  });
+
+  function thisServerExists(sn) {
+    r = false;
+    $("#servers-list-sidebar li").each(function () {
+      if ($(this).find(".ms-2").text() == sn) {
+        r = true;
+      }
+    });
+    return r;
+  }
 </script>

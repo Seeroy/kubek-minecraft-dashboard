@@ -1,0 +1,89 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+  max-height: 100vh;
+}
+
+.content {
+  overflow: auto;
+}
+
+/* Theme mode selector in sidebar */
+#theme-mode-selector .nav-link:hover:not(.active) {
+  cursor: pointer;
+}
+
+/* Servers list in sidebar */
+#servers-list-sidebar {
+  max-height: 25%;
+  overflow-y: auto;
+}
+
+#servers-list-sidebar .list-group-item:hover .goicon {
+  display: block;
+}
+
+#servers-list-sidebar .list-group-item .goicon {
+  display: none;
+  color: var(--mdb-gray-500);
+}
+
+#servers-list-sidebar .list-group-item:hover .server-status {
+  display: none;
+}
+
+/* Full sidebar container */
+.menuContainer {
+  padding: 1.1%;
+  padding-bottom: 0;
+  width: 21%;
+  height: 100%;
+}
+
+.menuContainer .sidenavLayout li {
+  border: 0;
+  cursor: pointer;
+}
+
+.menuContainer .sidenavLayout li:not(:first-child) {
+  margin-top: 10px;
+  border-radius: var(--mdb-list-group-light-active-border-radius);
+}
+
+.menuContainer .kubekLogoText {
+  font-size: 27pt;
+  font-family: 'Montserrat';
+  font-weight: 700;
+}
+
+/* IP Chip style for animation of IP copying */
+.ip-chip-clone {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading overlay */
+#loading-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgb(0,0,0,0.3);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#servers-list-sidebar .list-group-item {
+  border-radius: var(--mdb-list-group-light-active-border-radius);
+}

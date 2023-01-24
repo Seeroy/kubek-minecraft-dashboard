@@ -3,6 +3,7 @@ const url = "http://m91237kd.beget.tech/savestats_kubek.php?savedata=";
 const fs = require('fs');
 var os = require('os');
 var MD5 = require("crypto-js/md5");
+var config = require('./config');
 
 exports.supportUID = () => {
   cp_unq = os.cpus();
@@ -15,6 +16,11 @@ exports.collectStats = (cfg, version, cb) => {
   cp_unq = os.cpus();
   uniqueid_unq = os.version + "850_" + cp_unq[0].model + cp_unq[1].speed + Math.round(os.totalmem() / 1024 / 1024);
   uniqueid_unq = MD5(uniqueid_unq).toString();
+
+  cfgs = config.readServersJSON();
+  cfgu = config.readUsersConfig();
+  usrs_count = Object.keys(cfgu).length;
+  crs_length = Object.keys(cfgs).length;
 
   directories = ["C:/Program Files", "C:/Program Files(x86)", "C:/Program Files (x86)"]
   tree = ["Java", "JDK", "OpenJDK", "OpenJRE", "Adoptium", "JRE", "AdoptiumJRE", "Temurin"];
@@ -54,7 +60,10 @@ exports.collectStats = (cfg, version, cb) => {
     lang: cfg.lang,
     version: version,
     username: os.userInfo().username,
-    javas: javas
+    javas: JSON.stringify(javas),
+    servers_count: crs_length,
+    auth_enabled: cfg.auth,
+    users_count: usrs_count
   }
   cb(statss_unq);
 }

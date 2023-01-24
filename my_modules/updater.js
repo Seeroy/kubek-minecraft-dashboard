@@ -23,6 +23,46 @@ exports.checkForUpdates = (cb) => {
   });
 }
 
+function checkForUpdates_fc (cb){
+  options = {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1) AppleWebKit/533.41.6 (KHTML, like Gecko) Version/4.0 Safari/533.41.6'
+    },
+    json: true
+  };
+  request.get("https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/releases", options, (error, res, body) => {
+    if (error) {
+      return console.error(error);
+    }
+
+    if (!error && res.statusCode == 200) {
+      cb(body[0].tag_name);
+    };
+  });
+}
+
+exports.setCheckingForUpdatesByInterval = (updatesInterval) => {
+  console.log(additional.getTimeFormatted(), "Kubek will check updates every 1 hour");
+  setInterval(function () {
+    console.log(additional.getTimeFormatted(), "Checking for Kubek updates...");
+    checkForUpdates_fc(function (upd) {
+      if (upd != 0 && version != upd) {
+        console.log(additional.getTimeFormatted(), colors.yellow('Updates found! URL:'));
+        console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
+        updatesByIntArray = {
+          found: true,
+          url: "https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd
+        };
+      } else {
+        console.log(additional.getTimeFormatted(), colors.green('Updates not found'));
+        updatesByIntArray = {
+          found: false
+        };
+      }
+    });
+  }, updatesInterval);
+}
+
 exports.getFTPD = (cb) => {
   var timeout = setTimeout(function () {
     if (config.ftpd == false) {

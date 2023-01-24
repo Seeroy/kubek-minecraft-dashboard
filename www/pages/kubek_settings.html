@@ -1,0 +1,217 @@
+<link rel="stylesheet" href="/pages/kubek_settings.css">
+<script src="/pages/kubek_settings.js"></script>
+
+<div class="modal top fade" id="userEditModal" tabindex="-1" data-mdb-backdrop="true" data-mdb-keyboard="true">
+  <div class="modal-dialog   modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userEditModalLabel">Modal title</h5>
+        <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group mb-3 usrname-group">
+          <span class="input-group-text" id="basic-addon1">@</span>
+          <input type="text" class="form-control usrname-input" placeholder="Username" />
+        </div>
+
+        <div class="input-group mb-3">
+          <input type="email" class="form-control mail-input" placeholder="E-mail" />
+        </div>
+
+        <div class="input-group mb-3">
+          <input type="password" class="form-control password-input" placeholder="Password" />
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="serverControlCheckedDisabled" checked disabled />
+          <label class="form-check-label" for="serverControlCheckedDisabled">{{server-control-ks}}</label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="consolePermCheckedDisabled"
+            data-perm="console" />
+          <label class="form-check-label" for="consolePermCheckedDisabled">{{console-acc-ks}}</label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="pluginsPermCheckedDisabled"
+            data-perm="plugins" />
+          <label class="form-check-label" for="pluginsPermCheckedDisabled">{{sect-acc-ks}}
+            "{{plugins-and-mods}}"</label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="filemanPermCheckedDisabled"
+            data-perm="filemanager" />
+          <label class="form-check-label" for="filemanPermCheckedDisabled">{{sect-acc-ks}} "{{file-manager}}"</label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="serversettPermCheckedDisabled"
+            data-perm="server_settings" />
+          <label class="form-check-label" for="serversettPermCheckedDisabled">{{sect-acc-ks}}
+            "{{server-settings}}"</label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="kubeksettPermCheckedDisabled"
+            data-perm="kubek_settings" />
+          <label class="form-check-label" for="kubeksettPermCheckedDisabled">
+            <div class="d-flex flex-row">{{sect-acc-ks}} "{{kubek-settings}}"<span data-mdb-toggle="tooltip"
+                data-mdb-placement="right" data-mdb-html="true" title="{{kubek-sett-warn-ks}}" id="tooltip-acc"
+                class="material-symbols-outlined">info</span></div>
+          </label>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; flex-direction: column;" class="buttons-cont">
+          <button type="button" class="btn btn-success btn-rounded" id="logoutAccButton"
+            onclick="regenCurrUserHash()">{{logout-all-ks}}</button>
+          <button type="button" class="btn btn-danger btn-rounded" id="delAccButton" style="margin-top: 8px;"
+            onclick="deleteCurrUserAccount()">{{del-acc-ks}}</button>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+          {{cancel}}
+        </button>
+        <button type="button" class="btn btn-primary" onclick="saveUser()">{{save}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal top fade" id="adminEditModal" tabindex="-1" data-mdb-backdrop="true" data-mdb-keyboard="true">
+  <div class="modal-dialog   modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adminEditModalLabel">{{edit-adm-acc-ks}}</h5>
+        <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group mb-3">
+          <input type="password" class="form-control opassword-input" placeholder="Old password" />
+        </div>
+        <div class="input-group mb-3">
+          <input type="password" class="form-control npassword-input" placeholder="New password" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+          {{cancel}}
+        </button>
+        <button type="button" class="btn btn-primary" onclick="changeAdminPass()">{{save}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="k-settings-container">
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">translate</span>
+    <span class="caption flex-fill">{{softLang-ks}}</span>
+    <div class="element">
+      <div class="form-check">
+        <input class="form-check-input langRadio" type="radio" value="ru" name="lang" id="russianRadio" />
+        <label class="form-check-label" for="russianRadio"> Русский (Russian)</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input langRadio" type="radio" value="en" name="lang" id="englishRadio" />
+        <label class="form-check-label" for="englishRadio"> English </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input langRadio" type="radio" value="nl" name="lang" id="dutchRadio" />
+        <label class="form-check-label" for="dutchRadio"> Nederlands (Dutch / Netherlands) </label>
+      </div>
+    </div>
+  </li>
+
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">task</span>
+    <span class="caption flex-fill">{{savelogs-ks}}</span>
+    <div class="element">
+      <label class="switch">
+        <input type="checkbox" id="savelogs-checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+  </li>
+
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">cloud</span>
+    <span class="caption flex-fill">{{allowintacc-ks}}</span>
+    <div class="element">
+      <label class="switch">
+        <input type="checkbox" id="allowintacc-checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+  </li>
+
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">filter_drama</span>
+    <span class="caption flex-fill">{{ftpserver-ks}}</span>
+    <div class="element">
+      <label class="switch">
+        <input type="checkbox" id="ftpserver-checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+  </li>
+
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">person</span>
+    <span class="caption flex-fill">FTP {{user}}</span>
+    <div class="element">
+      <input type="text" class="form-control ftpuser">
+    </div>
+  </li>
+
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">password</span>
+    <span class="caption flex-fill">FTP {{password}}</span>
+    <div class="element">
+      <input type="password" class="form-control ftppass">
+    </div>
+  </li>
+
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">login</span>
+    <span class="caption flex-fill">{{auth}}</span>
+    <div class="element">
+      <label class="switch">
+        <input type="checkbox" id="auth-checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+  </li>
+
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-column align-items-center">
+    <span class="caption flex-fill">{{accounts}}</span>
+    <div class="row" style="width: 100%; margin-top: 16px; margin-bottom: 16px;" id="users-list">
+      <div class="col-xl-4 col-lg-6">
+        <div class="card" onclick="openNewUserModal()">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <span class="material-symbols-outlined">add_circle</span>
+              <div class="ms-3">
+                <p class="fw-bold mb-1">{{new-usr-ks}}</p>
+                <p class="text-muted mb-0">{{new-usr-muted-ks}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+
+  <button type="button" class="btn btn-secondary btn-lg" onclick="saveKubekSettings()">{{save}}</button>
+</div>

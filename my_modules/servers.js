@@ -43,7 +43,7 @@ exports.saveStartScript = (name, script, resonerr) => {
     } else {
       srv[name]['restartOnError'] = false;
     }
-    fs.writeFileSync("./servers/servers.json", JSON.stringify(srv));
+    config.writeServersJSON(srv);
     return true;
   } else {
     return false;

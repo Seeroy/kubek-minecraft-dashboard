@@ -2,46 +2,36 @@
   <!-- Meta -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Kubek - Minecraft Servers</title>
+  <title>Kubek</title>
 
   <!-- MDB -->
-  <script src="js/mdb.min.js"></script>
-  <link rel="stylesheet" href="css/mdb.min.css">
+  <script src="/js/mdb.min.js"></script>
+  <link rel="stylesheet" href="/css/mdb.min.css">
 
   <!-- Others -->
-  <script src="js/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="css/animate.min.css" />
-  <link rel="stylesheet" href="css/toastify.min.css" />
-  <script src="js/socket.io.min.js"></script>
-  <script src="js/toastify-js.js"></script>
-  <script src="js/sweetalert2.all.min.js"></script>
+  <script src="/js/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="/css/animate.min.css" />
 
   <!-- Own -->
-  <link rel="stylesheet" href="css/globals.css" />
-  <link rel="stylesheet" href="css/template.nav.css" />
-  <script src="js/funcs.js"></script>
-  <script src="js/sweetalert2.all.min.js"></script>
+  <link rel="stylesheet" href="/css/globals.css" />
+  <script src="/js/funcs.js"></script>
 
-  <!-- Fonts and icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Open Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-    rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Icons and font -->
+  <link rel="stylesheet" href="/fonts/Inter/stylesheet.css" />
+  <link rel="stylesheet" href="/fonts/MaterialSymbols/stylesheet.css" />
 </head>
 
 <body class="text-center">
   <main class="form-signin">
-    <img class="mb-4" src="assets/logo.png" alt="" width="200px">
-    <h1 class="h3 mb-3 fw-normal">{{signin}}</h1><br>
+    <img class="mb-4" src="/assets/icon.png" alt="" width="140px">
+    <h1 class="h3 mb-3 fw-normal">{{signin-msg-login}}</h1><br>
 
     <input type="text" id="floatingInput" class="form-control" placeholder="{{user}}" /><br>
     <input type="password" id="floatingPassword" class="form-control" placeholder="{{password}}" /><br>
 
-    <center><span id="autherror" style='display: none; color: red; text-align: center;'>{{autherror}}</span></center>
+    <span id="autherror" style='display: none; color: red; text-align: center; width: 100%;'></span>
     <br>
-    <button class="w-100 btn btn-lg btn-primary">{{signinbtn}}</button>
+    <button class="w-100 btn btn-lg btn-primary">{{signinbtn-login}}</button>
   </main>
 </body>
 
@@ -99,7 +89,7 @@
           200: function (response) {
             if (response == "Wrong credetinals!") {
               $("#autherror").show();
-              $("#autherror").html("Ошибка авторизации. Неверные данные");
+              $("#autherror").html("{{wrong-cred-login}}");
             } else {
               $("#autherror").hide();
               window.location = "/";
@@ -107,7 +97,7 @@
           },
           429: function (response) {
             $("#autherror").show();
-            $("#autherror").html("Слишком много запросов, попробуйте повторить через 5 секунд");
+            $("#autherror").html("{{rate-limit-login}}");
           }
         },
       });

@@ -1,0 +1,136 @@
+/* GLOBALS */
+.sub-block .header {
+  background: var(--mdb-gray-100);
+  color: black;
+}
+
+.sub-block .contentt {
+  background: var(--mdb-white);
+}
+
+.sub-block .footer {
+  background: var(--mdb-gray-100);
+}
+
+/* GLOBALS END */
+
+/* Sidebar styling */
+.menuContainer .sidenavLayout li:not(.active):hover {
+  background: var(--mdb-gray-200) !important;
+}
+
+.menuContainer .sidenavLayout li:not(.active) {
+  background: var(--mdb-gray-100);
+}
+
+.menuContainer .sidenavLayout li.active {
+  background: var(--mdb-gray-300);
+}
+
+.menuContainer {
+  background: var(--mdb-gray-100);
+}
+
+.menuContainer * {
+  color: var(--mdb-black);
+}
+
+/* Chip and kub block stylings */
+.chip {
+  color: var(--mdb-black);
+  background: var(--mdb-white);
+}
+
+.chip-nb {
+  color: var(--mdb-black);
+}
+
+.chip.ip-chip:hover {
+  background: var(--mdb-gray-300);
+}
+
+.kub-card * {
+  color: black;
+}
+
+/* Home page styling */
+#players-list li span {
+  color: black;
+}
+
+/* SERVER INFO HEADER */
+.server-info-header {
+  background: var(--mdb-gray-100);
+}
+
+.server-info-header .chip {
+  background: var(--mdb-gray-100);
+}
+
+/* Console page stylings */
+.console-container .console * {
+  color: var(--mdb-black);
+}
+
+.modal-console-props * {
+  color: var(--mdb-black);
+}
+
+.modal-console-props {
+  background: var(--mdb-gray-100);
+}
+
+#console-settings-button {
+  background: var(--mdb-white);
+  box-shadow: none;
+}
+
+/* Mods page styling */
+.pl-blocks .contentt .list-group-item:hover {
+  background: var(--mdb-gray-100);
+}
+
+.pl-blocks .btn:not(.btn-danger) {
+  background: var(--mdb-white);
+  box-shadow: none;
+}
+
+.pl-blocks * {
+  color: var(--mdb-black);
+}
+
+/* File manager styling */
+#fm-table * {
+  color: var(--mdb-black);
+}
+
+#fm-table {
+  background: var(--mdb-gray-100);
+}
+
+#fm-table th:hover, 
+#fm-table tr:hover {
+  background: var(--mdb-gray-100);
+}
+
+#fm-table button {
+  color: var(--mdb-black);
+}
+
+#fm-table button:hover {
+  background: var(--mdb-gray-300);
+}
+
+/* Server settings styling */
+#speditor-pills input[type="text"] {
+  color: var(--mdb-black);
+}
+
+.list-group-item * {
+  color: var(--mdb-black);
+}
+
+/* Kubek settings styling */
+#users-list .card {
+  background: var(--mdb-white);
+}
