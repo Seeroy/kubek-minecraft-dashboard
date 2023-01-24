@@ -88,7 +88,7 @@ router.get('/statuses', function (req, res) {
 });
 
 router.get('/getStartScript', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof (configjson[req.query.server]) !== 'undefined') {
       res.send(serverController.getStartScript(req.query.server));
@@ -101,7 +101,7 @@ router.get('/getStartScript', function (req, res) {
 });
 
 router.get('/saveStartScript', (req, res) => {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof (configjson[req.query.server]) !== 'undefined') {
       res.send(serverController.saveStartScript(req.query.server, req.query.script, req.query.resonerr));
@@ -114,7 +114,7 @@ router.get('/saveStartScript', (req, res) => {
 });
 
 router.get('/getServerPropertiesFile', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof (configjson[req.query.server]) !== 'undefined') {
       res.set('Content-Type', 'application/json');
@@ -128,7 +128,7 @@ router.get('/getServerPropertiesFile', function (req, res) {
 });
 
 router.get('/saveServerPropertiesFile', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof (configjson[req.query.server]) !== 'undefined') {
       res.send(serverController.saveServerProperties(req.query.server, req.query.doc));
@@ -141,7 +141,7 @@ router.get('/saveServerPropertiesFile', function (req, res) {
 });
 
 router.get('/log', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (typeof (configjson[req.query.server]) !== 'undefined') {
       spl = servers_logs[req.query.server].split(/\r?\n/).slice(-100);
@@ -155,7 +155,7 @@ router.get('/log', function (req, res) {
 });
 
 router.get('/delete', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof (configjson[req.query.server]) !== 'undefined') {
       delete configjson[req.query.server];

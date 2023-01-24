@@ -54,18 +54,23 @@ router.get('/login', function (req, res) {
 });
 
 router.get('/permissions', function (req, res) {
-  login = req.cookies['kbk__login'];
-  hash = req.cookies['kbk__hash'];
-  if (typeof login !== "undefined" && typeof hash !== "undefined" && login.length > 0 && hash.length > 0) {
-    perms = auth_manager.getUserPermissions(hash, login);
+  cfg = config.readConfig();
+  if (cfg['auth'] == true) {
+    perms = auth_manager.getUserPermissions(req);
     res.send(perms);
   } else {
-    res.send(false);
+    res.send([
+      "console",
+      "plugins",
+      "filemanager",
+      "server_settings",
+      "kubek_settings"
+    ]);
   }
 });
 
 router.get('/listUsers', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     users = config.readUsersConfig();
     res.send(users);
@@ -75,7 +80,7 @@ router.get('/listUsers', function (req, res) {
 });
 
 router.get('/getUserInfo', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     users = config.readUsersConfig();
     username = req.query.username;
@@ -91,7 +96,7 @@ router.get('/getUserInfo', function (req, res) {
 });
 
 router.get('/newUser', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     result = false;
     login = req.query.login;
@@ -126,7 +131,7 @@ router.get('/logout', function (req, res) {
 });
 
 router.get('/editUser', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     result = false;
     login = req.query.login;
@@ -145,7 +150,7 @@ router.get('/editUser', function (req, res) {
 });
 
 router.get('/changeAdminPass', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     result = false;
     oldPass = req.query.oldPass;
@@ -162,7 +167,7 @@ router.get('/changeAdminPass', function (req, res) {
 });
 
 router.get('/deleteUser', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     result = false;
     login = req.query.login;
@@ -178,7 +183,7 @@ router.get('/deleteUser', function (req, res) {
 });
 
 router.get('/regenUserHash', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     result = false;
     login = req.query.login;

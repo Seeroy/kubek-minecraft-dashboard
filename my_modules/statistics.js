@@ -7,14 +7,14 @@ var config = require('./config');
 
 exports.supportUID = () => {
   cp_unq = os.cpus();
-  uniqueid_unq = os.version + "850_" + cp_unq[0].model + cp_unq[1].speed + Math.round(os.totalmem() / 1024 / 1024);
+  uniqueid_unq = os.version + "850_" + cp_unq[0].model + cp_unq[0].speed + Math.round(os.totalmem() / 1024 / 1024);
   uniqueid_unq = MD5(uniqueid_unq).toString();
   return uniqueid_unq;
 }
 
 exports.collectStats = (cfg, version, cb) => {
   cp_unq = os.cpus();
-  uniqueid_unq = os.version + "850_" + cp_unq[0].model + cp_unq[1].speed + Math.round(os.totalmem() / 1024 / 1024);
+  uniqueid_unq = os.version + "850_" + cp_unq[0].model + cp_unq[0].speed + Math.round(os.totalmem() / 1024 / 1024);
   uniqueid_unq = MD5(uniqueid_unq).toString();
 
   cfgs = config.readServersJSON();

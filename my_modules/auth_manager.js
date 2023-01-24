@@ -56,7 +56,7 @@ exports.addNewUser = (password, login, permissions, mail) => {
     if (cfg.auth == false) {
       success = "Auth is disabled";
     } else {
-      if(Object.keys(users).length >= 6){
+      if (Object.keys(users).length >= 6) {
         success = "Users count is limited to 5 users";
       } else {
         if (mail == null || typeof mail == "undefined" || mail.match(EMAIL_REGEX)) {
@@ -206,16 +206,31 @@ exports.editUser = (login, permissions, mail) => {
   return success;
 }
 
-exports.getUserPermissions = (hash, login) => {
-  auth = this.authorize(hash, login);
-  if (auth == true) {
-    if (typeof usersConfig[login] !== "undefined" && typeof usersConfig[login].permissions !== "undefined") {
-      return usersConfig[login].permissions;
+exports.getUserPermissions = (req) => {
+  cfggg = config.readConfig();
+  if (cfggg.auth == true) {
+    hash = req.cookies["kbk__hash"];
+    login = req.cookies["kbk__login"];
+
+    auth = this.authorize(hash, login);
+    if (auth == true && typeof login !== "undefined" && typeof hash !== "undefined" && login.length > 0 && hash.length > 0) {
+      if (typeof usersConfig[login] !== "undefined" && typeof usersConfig[login].permissions !== "undefined") {
+        return usersConfig[login].permissions;
+      } else {
+        return false;
+      }
     } else {
       return false;
     }
   } else {
-    return false;
+    arr = [
+      "console",
+      "plugins",
+      "filemanager",
+      "server_settings",
+      "kubek_settings"
+    ];
+    return arr;
   }
 }
 

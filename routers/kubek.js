@@ -92,7 +92,7 @@ router.get('/translate', function (req, res) {
 });
 
 router.get('/setFTPDStatus', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     ftpd.stopFTPD();
     setTimeout(function () {
@@ -131,7 +131,7 @@ router.get('/support-uid', function (req, res) {
 });
 
 router.get('/config', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     res.send(config.readConfig());
   } else {
@@ -146,7 +146,7 @@ router.get('/usage', function (req, res) {
 });
 
 router.get('/saveConfig', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (req.query.data != null && typeof req.query.data !== "undefined") {
       fs.writeFileSync("./config.json", req.query.data);

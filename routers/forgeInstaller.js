@@ -21,7 +21,7 @@ router.use(function (req, res, next) {
     res.send("Cannot be accessed from the internet");
   } else {
     authsucc = auth_manager.authorize(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
-    perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+    perms = auth_manager.getUserPermissions(req);
     if (authsucc == true && perms.includes(ACCESS_PERMISSION)) {
       next();
     } else {

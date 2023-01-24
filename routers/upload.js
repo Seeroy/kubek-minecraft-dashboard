@@ -28,7 +28,7 @@ router.use(function (req, res, next) {
 });
 
 router.post('/icon', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     let sampleFile;
     let uploadPath;
@@ -83,7 +83,7 @@ router.post('/core', function (req, res) {
 });
 
 router.post('/plugin', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (!fs.existsSync("./servers/" + req.query["server"] + "/plugins")) {
       fs.mkdirSync("./servers/" + req.query["server"] + "/plugins");
@@ -114,7 +114,7 @@ router.post('/plugin', function (req, res) {
 });
 
 router.post('/mod', function (req, res) {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (!fs.existsSync("./servers/" + req.query["server"] + "/mods")) {
       fs.mkdirSync("./servers/" + req.query["server"] + "/mods");
@@ -145,7 +145,7 @@ router.post('/mod', function (req, res) {
 });
 
 router.post('/file', (request, response) => {
-  perms = auth_manager.getUserPermissions(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+  perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_3)) {
     let sampleFile;
     let uploadPath;
