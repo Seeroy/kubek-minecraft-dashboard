@@ -37,7 +37,7 @@ router.get('/installed', function (req, res) {
 
 router.get('/installedMods', function (req, res) {
   res.set("content-type", "application/json");
-  if (fs.existsSync("./servers/" + req.query.server + "/plugins")) {
+  if (fs.existsSync("./servers/" + req.query.server + "/mods")) {
     res.send(plugins.getInstalledMods(req.query.server));
   } else {
     res.send(JSON.stringify([]));

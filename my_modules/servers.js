@@ -60,7 +60,7 @@ exports.getServerProperties = (name) => {
 }
 
 exports.saveServerProperties = (name, doc) => {
-  fs.writeFileSync("./servers/" + name + "/server.properties", Buffer.from(doc, 'base64').toString('ascii'));
+  fs.writeFileSync("./servers/" + name + "/server.properties", doc);
   return true;
 }
 

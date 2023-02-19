@@ -109,6 +109,9 @@ function refreshServerProperties() {
     fulls = data;
     keys.forEach(function (key, i) {
       znach = fulls[key];
+      if(typeof znach == "object"){
+        znach = JSON.stringify(znach).replace("null", "").trim();;
+      }
       if (typeof znach == "boolean") {
         if (znach == true) {
           checkd = " checked";
@@ -136,11 +139,11 @@ function refreshServerProperties() {
 }
 
 function saveProps() {
-  var sp;
+  var sp = "";
   $(".ttgrid .cbox").each(function () {
     chk = $(this).find("input").is(':checked') ? true : false;
     key = $(this).find("label").html();
-    if (typeof (sp) !== "undefined") {
+    if (sp !== "") {
       sp = sp + "\n" + key + "=" + chk;
     } else {
       sp = key + "=" + chk;
@@ -151,7 +154,8 @@ function saveProps() {
     key = $(this).find("span").html();
     sp = sp + "\n" + key + "=" + value;
   });
-  $.get("/server/saveServerPropertiesFile?doc=" + sp + "&server=" + window.localStorage.selectedServer);
+  sp = sp.trim();
+  $.get("/server/saveServerPropertiesFile?doc=" + encodeURIComponent(sp) + "&server=" + window.localStorage.selectedServer);
   Toastify({
     text: "{{settings-saved}}",
     duration: 3000,
