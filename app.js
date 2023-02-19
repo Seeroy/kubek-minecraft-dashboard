@@ -43,6 +43,18 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 })
+const authLimiter2 = rateLimit({
+  windowMs: 2000,
+  max: 1,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+const authLimiter3 = rateLimit({
+  windowMs: 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 // Config loading
 var cfg = config.readConfig();
@@ -135,11 +147,16 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.version = "v2.0.1";
+global.kubek_version = "v2.0.2";
 
 app.use(fileUpload());
 app.use(cookieParser());
 app.use('/auth/login', authLimiter);
+app.use('/upload', authLimiter2);
+app.use('/server/completion', authLimiter2);
+app.use('/kubek/saveConfig', authLimiter2);
+app.use('/plugins', authLimiter3);
+app.use('/downloader/download', authLimiter3);
 
 global.configjson = config.readServersJSON();
 for (var i in configjson) {
@@ -156,11 +173,11 @@ if (typeof (configjson) !== "undefined") {
   }
 }
 
-statsCollector.collectStats(cfg, version, function (stats) {
+statsCollector.collectStats(cfg, kubek_version, function (stats) {
   statsCollector.sendStats(stats);
 });
 
-console.log(colors.inverse('Kubek ' + version + ''));
+console.log(colors.inverse('Kubek ' + kubek_version + ''));
 console.log(colors.inverse('https://github.com/Seeroy/kubek-minecraft-dashboard'));
 console.log(" ");
 
@@ -175,7 +192,7 @@ updater.getFTPD(function () {
 });
 
 updater.checkForUpdates(function (upd) {
-  if (upd != 0 && version != upd) {
+  if (upd != 0 && kubek_version != upd) {
     console.log(additional.getTimeFormatted(), colors.yellow('Updates found! URL:'));
     console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
     updatesByIntArray = {

@@ -136,13 +136,17 @@ exports.getInstalledMods = (name) => {
 }
 
 exports.deleteInstalledPlugin = (name, filename) => {
-  if (fs.existsSync("./servers/" + name + "/plugins/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
-    fs.unlinkSync("./servers/" + name + "/plugins/" + filename);
+  if(typeof filename == "string") {
+    if (fs.existsSync("./servers/" + name + "/plugins/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
+      fs.unlinkSync("./servers/" + name + "/plugins/" + filename);
+    }
   }
 }
 
 exports.deleteInstalledMod = (name, filename) => {
-  if (fs.existsSync("./servers/" + name + "/mods/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
-    fs.unlinkSync("./servers/" + name + "/mods/" + filename);
+  if(typeof filename == "string") {
+    if (fs.existsSync("./servers/" + name + "/mods/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
+      fs.unlinkSync("./servers/" + name + "/mods/" + filename);
+    }
   }
 }

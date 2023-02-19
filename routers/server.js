@@ -57,10 +57,54 @@ router.get('/icon', function (req, res) {
 
 router.get('/completion', function (req, res) {
   fs.writeFileSync("./servers/" + req.query.server + "/eula.txt", "eula=true");
+  newForgeInstalling = false;
+  jfn = req.query.jf;
+  if (jfn.match(/forge/gmi) != null) {
+    version = jfn.match(/1\.\d+\.\d+/gmi);
+    if (version != null) {
+      version = version[0];
+      version_index = version.split(".")[1];
+      if (version_index > 16) {
+        newForgeInstalling = true;
+      }
+    }
+  }
   if (process.platform == "win32") {
-    fs.writeFileSync("./servers/" + req.query.server + "/start.bat", "@echo off\nchcp 65001>nul\ncd servers\ncd " + req.query.server + "\n" + Buffer.from(req.query.startcmd, 'base64') + " " + req.query.jf + " nogui");
+    if (newForgeInstalling == true) {
+      run_read = fs.readFileSync("./servers/" + req.query.server + "/run.bat").toString();
+      run_read = run_read.split("\n");
+      jl = null;
+      run_read.forEach(function (line) {
+        if (line.match(/java/gm) != null) {
+          jl = line;
+        }
+      });
+      if (jl != null) {
+        args_path = jl.split("@")[2];
+        args_path = args_path.replace("\r", "").trim();
+        fs.writeFileSync("./servers/" + req.query.server + "/start.bat", "@echo off\nchcp 65001>nul\ncd servers\ncd " + req.query.server + "\n" + Buffer.from(req.query.startcmd, 'base64').toString().replace("-jar", "").trim() + " @" + args_path + " nogui");
+      }
+    } else {
+      fs.writeFileSync("./servers/" + req.query.server + "/start.bat", "@echo off\nchcp 65001>nul\ncd servers\ncd " + req.query.server + "\n" + Buffer.from(req.query.startcmd, 'base64') + " " + req.query.jf + " nogui");
+    }
   } else if (process.platform == "linux") {
-    fs.writeFileSync("./servers/" + req.query.server + "/start.sh", "cd servers\ncd " + req.query.server + "\n" + Buffer.from(req.query.startcmd, 'base64') + " " + req.query.jf + " nogui");
+    if (newForgeInstalling == true) {
+      run_read = fs.readFileSync("./servers/" + req.query.server + "/run.sh").toString();
+      run_read = run_read.split("\n");
+      jl = null;
+      run_read.forEach(function (line) {
+        if (line.match(/java/gm) != null) {
+          jl = line;
+        }
+      });
+      if (jl != null) {
+        args_path = jl.split("@")[2];
+        args_path = args_path.replace("\r", "").trim();
+        fs.writeFileSync("./servers/" + req.query.server + "/start.sh", "cd servers\ncd " + req.query.server + "\n" + Buffer.from(req.query.startcmd, 'base64').toString().replace("-jar", "").trim() + " @" + args_path + " nogui");
+      }
+    } else {
+      fs.writeFileSync("./servers/" + req.query.server + "/start.sh", "cd servers\ncd " + req.query.server + "\n" + Buffer.from(req.query.startcmd, 'base64') + " " + req.query.jf + " nogui");
+    }
   } else {
     console.log(colors.red(getTimeFormatted() + " " + process.platform + " not supported"));
   }

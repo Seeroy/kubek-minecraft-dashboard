@@ -108,7 +108,7 @@
       <div id="third-stage" style="display: none;">
         <p>{{selected-core-sw}}: <span class="corever"></span></p>
         <p>{{selected-sn-sw}}: <span class="sn"></span></p>
-        
+
         <div class="input-group mb-3" style="height: 40px;">
           <button class="btn btn-primary dropdown-toggle" type="button" data-mdb-toggle="dropdown" aria-expanded="false"
             id="cur-jv" style="height: 40px;"></button>
@@ -223,15 +223,20 @@
       selectedCore = $("#second-stage .card.active").data("core");
       selectedCore = selectedCore.charAt(0).toUpperCase() +
         selectedCore.slice(1);
+      selectedCoreVersion = null;
       if (selectedCore == "Spigot") {
         selectedCoreVersion = $("#spigot-versel").val();
       }
       if (selectedCore == "Paper") {
         selectedCoreVersion = $("#paper-versel").val();
       }
-      $.get("/kubek/verToJava?version=" + selectedCoreVersion, function(jv){
-        $("#third-stage .req-java").text("{{recomm-java-msg-sw}} " + jv);
-      });
+      if (selectedCoreVersion != null) {
+        $.get("/kubek/verToJava?version=" + selectedCoreVersion, function (jv) {
+          $("#third-stage .req-java").text("{{recomm-java-msg-sw}} " + jv);
+        });
+      } else {
+        $("#third-stage .req-java").text("");
+      }
       if ($("#second-stage .card.active").data("core") == "own") {
         $("#g-core-input").trigger('click');
         $("#g-core-input").off("change");
@@ -328,37 +333,46 @@
             jarfile = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
             $("#progress-card .progress-bar").css("width", "100%");
             $("#progress-card p").html("{{completion-text-sw}}");
-            $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile.replace(/-installer/gm, "") +
-              "&startcmd=" + btoa(
-                startLine) + "&port=" + port + "&onMode=" + onlineMode,
-              function (data) {
-                if (data == "Success") {
-                  if (core.substring(0, 2) == "Fo") {
-                    $("#progress-card .progress-bar").css("width", "0%");
-                    $("#progress-card p").html("{{forge-ins-text-sw}}");
-                    $("#progress-card #forgeins").show();
-                    $("#progress-card #forgeins").text("");
-                    $.get("/forgeInstaller/start?server=" + encodeURI(sname) + "&filename=" + jarfile);
-                    iint = setInterval(function () {
-                      $.get("/forgeInstaller/progress?server=" + encodeURI(sname), function (get) {
-                        if (get != "allisok") {
-                          get = get.split(/\r?\n/).slice(-100);
-                          get = get.join("<br>");
-                          $("#progress-card #forgeins").html(get);
-                          $("#progress-card #forgeins").scrollTop($("#progress-card #forgeins")[0]
-                            .scrollHeight);
-                        } else {
+            if (core.substring(0, 2) == "Fo") {
+              $("#progress-card .progress-bar").css("width", "0%");
+              $("#progress-card p").html("{{forge-ins-text-sw}}");
+              $("#progress-card #forgeins").show();
+              $("#progress-card #forgeins").text("");
+              $.get("/forgeInstaller/start?server=" + encodeURI(sname) + "&filename=" + jarfile);
+              iint = setInterval(function () {
+                $.get("/forgeInstaller/progress?server=" + encodeURI(sname), function (get) {
+                  if (get != "allisok") {
+                    get = get.split(/\r?\n/).slice(-100);
+                    get = get.join("<br>");
+                    $("#progress-card #forgeins").html(get);
+                    $("#progress-card #forgeins").scrollTop($("#progress-card #forgeins")[0]
+                      .scrollHeight);
+                  } else {
+                    $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile
+                      .replace(/-installer/gm, "") +
+                      "&startcmd=" + btoa(
+                        startLine) + "&port=" + port + "&onMode=" + onlineMode,
+                      function (data) {
+                        if (data == "Success") {
                           window.localStorage.setItem("selectedServer", sname);
                           window.location = "/";
                         }
                       });
-                    }, 500);
-                  } else {
+                  }
+                });
+              }, 500);
+            } else {
+              $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile.replace(
+                  /-installer/gm, "") +
+                "&startcmd=" + btoa(
+                  startLine) + "&port=" + port + "&onMode=" + onlineMode,
+                function (data) {
+                  if (data == "Success") {
                     window.localStorage.setItem("selectedServer", sname);
                     window.location = "/";
                   }
-                }
-              });
+                });
+            }
           },
           error: function (data) {
             $("#progress-card .progress-bar").css("width", "0%");

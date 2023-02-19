@@ -81,7 +81,7 @@ router.get('/verToJava', function (req, res) {
 });
 
 router.get('/version', function (req, res) {
-  res.send(version);
+  res.send(kubek_version);
 });
 
 router.get('/translate', function (req, res) {
