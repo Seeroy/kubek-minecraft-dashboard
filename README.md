@@ -1,15 +1,31 @@
 # kubek-minecraft-dashboard
 Kubek - Web Minecraft servers dashboard, written on Node.js using MDBootstrap
 
-Features:
-- Paper/Spigot/BungeeCord/Forge server cores support/auto-install
-- Can be installed on Linux VDS
-- Automatic plugin manager (dev.bukkit.org)
+**Features:**
+- Linux and Windows supported
+- Pure Web UI with dark and light themes
+- Plugins and mods manager
 - Real-time console
 - Server.properties editor
-- FTP server included
+- FTP server included (tested only on Windows)
 - Web file manager
-- Players manager
+- Users and roles system
+
+**Tested and working cores**:
+- All popular PaperMC versions
+- Spigot 1.8 - 1.18.2 (not included all versions)
+- Forge 1.12.2 - 1.19.2 (not included all versions)
+- Velocity 1.19.3
+
+**Not tested/not working properly/not supported cores:**
+- BungeeCord (_working with problems_)
+- TCauldron/Magma and other hybrid cores (_not tested_)
+
+**Natively supported cores:**
+- PaperMC
+- Spigot
+- CraftBukkit
+- Forge (upload installer)
 
 # Installation
 
