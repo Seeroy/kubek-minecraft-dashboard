@@ -193,8 +193,9 @@ console.log(" ");
 
 updater.getFTPD(function () {
   if (cfg.ftpd == true) {
-    if (process.platform != "win32") {
+    if (process.platform == "win32") {
       ftpserver = ftpd.startFTPD();
+      console.log(additional.getTimeFormatted(), "FTP", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 21);
     } else {
       console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-ftpnotsup}}", cfg['lang']), colors.yellow(process.platform));
     }
