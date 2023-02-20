@@ -46,7 +46,7 @@ exports.setCheckingForUpdatesByInterval = (updatesInterval) => {
   setInterval(function () {
     console.log(additional.getTimeFormatted(), "Checking for Kubek updates...");
     checkForUpdates_fc(function (upd) {
-      if (upd != 0 && version != upd) {
+      if (upd != 0 && kubek_version != upd) {
         console.log(additional.getTimeFormatted(), colors.yellow('Updates found! URL:'));
         console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
         updatesByIntArray = {

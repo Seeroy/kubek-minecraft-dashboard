@@ -19,7 +19,9 @@ const ACCESS_PERMISSION = "server_settings";
 const ACCESS_PERMISSION_2 = "console";
 
 router.use(function (req, res, next) {
-  additional.showRequestInLogs(req, res);
+  if(req['_parsedUrl']['pathname'] != "/icon"){
+    additional.showRequestInLogs(req, res);
+  }
   cfg = config.readConfig();
   ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
