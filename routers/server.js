@@ -109,7 +109,7 @@ router.get('/completion', function (req, res) {
       fs.writeFileSync("./servers/" + req.query.server + "/start.sh", "cd servers\ncd " + req.query.server + "\n" + Buffer.from(req.query.startcmd, 'base64') + " " + req.query.jf + " nogui");
     }
   } else {
-    console.log(colors.red(getTimeFormatted() + " " + process.platform + " not supported"));
+    console.log(colors.red(additional.getTimeFormatted() + " " + process.platform + " not supported"));
   }
   fs.writeFileSync("./servers/" + req.query.server + "/server.properties", "server-port=" + req.query.port + "\nquery.port=" + req.query.port + "\nenable-query=true\nonline-mode=" + req.query.onMode + "\nmotd=" + req.query.server);
   if (fs.existsSync("./servers/servers.json")) {

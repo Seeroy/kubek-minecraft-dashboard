@@ -53,16 +53,16 @@ function startForgeInstaller(server, file) {
     startFile = path.resolve("./servers/" + server + "/finstall.sh");
     fi = spawn('sh', [startFile]);
   } else {
-    console.log(colors.red(getTimeFormatted() + " " + process.platform + translator.translateHTML(" {{consolemsg-notsup}}", cfg['lang'])));
+    console.log(colors.red(additional.getTimeFormatted() + " " + process.platform + translator.translateHTML(" {{consolemsg-notsup}}", cfg['lang'])));
   }
 
   fi.on('close', (code) => {
     if (code == 0) {
-      console.log(colors.green(translator.translateHTML("Forge {{consolemsg-succinst}} ", cfg['lang']) + server));
+      console.log(colors.green(additional.getTimeFormatted() + translator.translateHTML("Forge {{consolemsg-succinst}} ", cfg['lang']) + server));
       forgesIns[server] = "allisok";
       fs.unlinkSync(fp);
     } else {
-      console.log(colors.red(translator.translateHTML("Forge {{consolemsg-failinst}} ", cfg['lang']) + server + translator.translateHTML(" {{consolemsg-succinst-2}} ", cfg['lang']) + code));
+      console.log(colors.red(additional.getTimeFormatted() + translator.translateHTML("Forge {{consolemsg-failinst}} ", cfg['lang']) + server + translator.translateHTML(" {{consolemsg-succinst-2}} ", cfg['lang']) + code));
     }
   });
   fi.stdout.on('data', (data) => {

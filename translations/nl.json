@@ -130,7 +130,21 @@
   "{{consolemsg-noupd}}": "Updates niet gevonden",
   "{{consolemsg-yesupd}}": "Update gevonden, downloadlink:",
   "{{consolemsg-usingport}}": "gebruikt poort",
-  "{{consolemsg-ftpdisabled}}": "FTP uitgeschakeld in configuratie, laad indiftpd.exe niet",
+  "{{consolemsg-ftpdisabled}}": "FTP uitgeschakeld in configuratie, annuleer het downloaden van indiftpd.exe",
   "{{consolemsg-ftpnotsup}}": "FTP wordt niet ondersteund op het platform",
-  "{{consolemsg-restartkubftpd}}": "Herstart Kubek om de FTP-module (indiftpd.exe) te downloaden"
+  "{{consolemsg-restartkubftpd}}": "Herstart Kubek om de FTP-module (indiftpd.exe) te downloaden",
+  "{{consolemsg-notsup}}": "niet ondersteund",
+  "{{consolemsg-succinst}}": "succesvol geïnstalleerd op",
+  "{{consolemsg-failinst}}": "niet geïnstalleerd",
+  "{{consolemsg-succinst-2}}": "met code",
+  "{{consolemsg-downstarted}}": "Het downloaden is gestart",
+  "{{consolemsg-downcompleted}}": "Het downloaden is voltooid",
+  "{{consolemsg-notfound-tr}}": "niet gevonden. ",
+  "{{consolemsg-stopwithcode}}": "SERVER GESTOPT, VERLAAT CODE",
+  "{{consolemsg-stop}}": "SERVER GESTOPT",
+  "{{consolemsg-stopping}}": "SERVER STOPPEN",
+  "{{consolemsg-starting}}": "SERVER START",
+  "{{consolemsg-start}}": "SERVER WERKT",
+  "{{consolemsg-restartatt}}": "SERVER START, POGING",
+  "{{consolemsg-downloading-cap}}": "downloaden"
 }

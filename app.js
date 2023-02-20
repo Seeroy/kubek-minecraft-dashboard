@@ -193,10 +193,10 @@ console.log(" ");
 
 updater.getFTPD(function () {
   if (cfg.ftpd == true) {
-    if (process.platform == "win32") {
+    if (process.platform != "win32") {
       ftpserver = ftpd.startFTPD();
     } else {
-      console.log(translator.translateHTML("{{consolemsg-ftpnotsup}", cfg['lang']), process.platform);
+      console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-ftpnotsup}}", cfg['lang']), colors.yellow(process.platform));
     }
   }
 });
@@ -250,7 +250,7 @@ updater.checkForUpdates(function (upd) {
   });
   app.listen(port, () => {
     link = 'http://localhost:' + port;
-    console.log(additional.getTimeFormatted(), "Webserver", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), link);
+    console.log(additional.getTimeFormatted(), "Webserver", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), port);
   });
   console.log(additional.getTimeFormatted(), "Socket.io", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 112);
 });
