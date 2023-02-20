@@ -98,20 +98,16 @@ router.get('/setFTPDStatus', function (req, res) {
     setTimeout(function () {
       if (req.query.value == "true") {
         if (process.platform == "linux") {
-          console.log("Currently FTP cannot be used on Linux, sorry");
-          cfg = fs.readFileSync("./config.json");
-          cfg = JSON.parse(cfg);
+          cfg = config.readConfig();
           cfg.ftpd = false;
         } else {
           ftpserver = ftpd.startFTPD();
-          cfg = fs.readFileSync("./config.json");
-          cfg = JSON.parse(cfg);
+          cfg = config.readConfig();
           cfg.ftpd = true;
         }
       } else {
         ftpd.stopFTPD();
-        cfg = fs.readFileSync("./config.json");
-        cfg = JSON.parse(cfg);
+        cfg = config.readConfig();
         cfg.ftpd = false;
       }
       config.writeConfig(cfg);

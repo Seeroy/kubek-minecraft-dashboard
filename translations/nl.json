@@ -124,5 +124,13 @@
 
   "{{java-incomp-error}}": "Misschien heeft u een versie van Java die niet compatibel is met deze versie van de server, u kunt de versie van Java wijzigen in de serverinstellingen",
   "{{java-path-error}}": "Het is mogelijk dat verouderde informatie in het opstartbestand van de server is geschreven. Probeer naar de serverinstellingen te gaan en de juiste Java-versie te selecteren / de huidige te wijzigen",
-  "{{jarfile-access-error}}": "Als de server niet start, wordt het kernelbestand dat nodig is om te starten mogelijk niet gevonden. Probeer het ontbrekende bestand te retourneren of maak de server opnieuw op een nieuwe"
+  "{{jarfile-access-error}}": "Als de server niet start, wordt het kernelbestand dat nodig is om te starten mogelijk niet gevonden. Probeer het ontbrekende bestand te retourneren of maak de server opnieuw op een nieuwe",
+
+  "{{consolemsg-update1h}}": "Kubek controleert elk uur op updates",
+  "{{consolemsg-noupd}}": "Updates niet gevonden",
+  "{{consolemsg-yesupd}}": "Update gevonden, downloadlink:",
+  "{{consolemsg-usingport}}": "gebruikt poort",
+  "{{consolemsg-ftpdisabled}}": "FTP uitgeschakeld in configuratie, laad indiftpd.exe niet",
+  "{{consolemsg-ftpnotsup}}": "FTP wordt niet ondersteund op het platform",
+  "{{consolemsg-restartkubftpd}}": "Herstart Kubek om de FTP-module (indiftpd.exe) te downloaden"
 }

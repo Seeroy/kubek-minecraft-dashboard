@@ -5,6 +5,7 @@ var additional = require('./../my_modules/additional');
 var request = require('request');
 var config = require("./../my_modules/config");
 const auth_manager = require("./../my_modules/auth_manager");
+const translator = require('./../my_modules/translator');
 
 router.use(function (req, res, next) {
   additional.showRequestInLogs(req, res);
@@ -34,8 +35,7 @@ router.get('/download', function (req, res) {
   if (!fs.existsSync("./servers/" + req.query.server + "/plugins")) {
     fs.mkdirSync("./servers/" + req.query.server + "/plugins");
   }
-  console.log(req.query);
-  console.log(additional.getTimeFormatted(), "Download started:", req.query.filename, "server: " + req.query.server);
+  console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downstarted}}", cfg['lang']) + ": ", req.query.filename, "server: " + req.query.server);
   if (req.query.type != "plugin") {
     startDownloadByURL(req.query.url, "./servers/" + req.query.server + "/" + req.query.filename, req.query.filename);
   } else {
@@ -73,7 +73,7 @@ function startDownloadByURL(url, filename, ffn) {
     })
     .on('end', function () {
       delete cp[ffn];
-      console.log(additional.getTimeFormatted(), "Download complete: " + ffn);
+      console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downcompleted}}", cfg['lang']) + ": " + ffn);
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {

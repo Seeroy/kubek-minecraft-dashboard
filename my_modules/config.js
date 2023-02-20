@@ -1,9 +1,9 @@
 const fs = require('fs');
 const CONFIG_VERSION = 1;
-const additional = require('./additional');
 const defaultConfig = '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"internet-access":false,"save-logs":true,"config-version":1}';
 const defaultUsersConfig = '{"kubek": {"username": "kubek","password": "72ba608dbfac8d46d4aaf40f428badf85af1f929fece7480e56602b4452a71fe","mail": "","hash": "","permissions": ["console", "plugins", "filemanager", "server_settings", "kubek_settings"]}}';
 var SHA256 = require("crypto-js/sha256");
+var crypto = require("crypto");
 
 exports.readConfig = () => {
   if (!fs.existsSync("config.json")) {
@@ -63,7 +63,7 @@ exports.writeDefaultConfig = () => {
 }
 
 exports.writeDefaultUsersConfig = () => {
-  newHash = additional.uuidv4().toString();
+  newHash = crypto.randomUUID().toString();
   du = JSON.parse(defaultUsersConfig);
   du['kubek']['hash'] = newHash;
   fs.writeFileSync("users.json", JSON.stringify(du, null, "\t"));

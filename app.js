@@ -57,7 +57,7 @@ const authLimiter3 = rateLimit({
 })
 
 // Config loading
-var cfg = config.readConfig();
+global.cfg = config.readConfig();
 
 // Socket.io initialization
 var socket_options;
@@ -177,30 +177,40 @@ statsCollector.collectStats(cfg, kubek_version, function (stats) {
   statsCollector.sendStats(stats);
 });
 
-console.log(colors.inverse('Kubek ' + kubek_version + ''));
+console.log(" ");
+console.log(colors.magenta(additional.kubekLogo));
+console.log(" ");
+kl_oneline = additional.kubekLogo.split("\n")[0];
+kv = kubek_version;
+textpad = (kl_oneline.length / 2) - (kv.length / 2);
+for(i = 0; i < textpad; i++){
+  kv = " " + kv;
+}
+
 console.log(colors.inverse('https://github.com/Seeroy/kubek-minecraft-dashboard'));
+console.log(kv);
 console.log(" ");
 
 updater.getFTPD(function () {
   if (cfg.ftpd == true) {
-    if (process.platform == "linux") {
-      console.log("Currently FTP cannot be used on Linux");
-    } else {
+    if (process.platform == "win32") {
       ftpserver = ftpd.startFTPD();
+    } else {
+      console.log(translator.translateHTML("{{consolemsg-ftpnotsup}", cfg['lang']), process.platform);
     }
   }
 });
 
 updater.checkForUpdates(function (upd) {
   if (upd != 0 && kubek_version != upd) {
-    console.log(additional.getTimeFormatted(), colors.yellow('Updates found! URL:'));
+    console.log(additional.getTimeFormatted(), colors.yellow(translator.translateHTML("{{consolemsg-yesupd}}", cfg['lang'])));
     console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
     updatesByIntArray = {
       found: true,
       url: "https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd
     };
   } else {
-    console.log(additional.getTimeFormatted(), colors.green('Updates not found'));
+    console.log(additional.getTimeFormatted(), colors.green(translator.translateHTML("{{consolemsg-noupd}}", cfg['lang'])));
     updatesByIntArray = {
       found: false
     };
@@ -240,9 +250,9 @@ updater.checkForUpdates(function (upd) {
   });
   app.listen(port, () => {
     link = 'http://localhost:' + port;
-    console.log(additional.getTimeFormatted(), "Webserver listening on", link);
+    console.log(additional.getTimeFormatted(), "Webserver", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), link);
   });
-  console.log(additional.getTimeFormatted(), "Socket.io listening on", 112);
+  console.log(additional.getTimeFormatted(), "Socket.io", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 112);
 });
 
 updater.setCheckingForUpdatesByInterval(updatesInterval);

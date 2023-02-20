@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var additional = require("./../my_modules/additional");
 var path = require('path');
 var fs = require('fs');
 var config = require("./../my_modules/config");
@@ -10,6 +9,7 @@ const {
 } = require('node:child_process');
 var iconvlite = require('iconv-lite');
 var colors = require('colors');
+const translator = require('./../my_modules/translator');
 
 const ACCESS_PERMISSION = "server_settings";
 
@@ -53,16 +53,16 @@ function startForgeInstaller(server, file) {
     startFile = path.resolve("./servers/" + server + "/finstall.sh");
     fi = spawn('sh', [startFile]);
   } else {
-    console.log(colors.red(getTimeFormatted() + " " + process.platform + " not supported"));
+    console.log(colors.red(getTimeFormatted() + " " + process.platform + translator.translateHTML(" {{consolemsg-notsup}}", cfg['lang'])));
   }
 
   fi.on('close', (code) => {
     if (code == 0) {
-      console.log(colors.green("Forge installed successfully on " + server));
+      console.log(colors.green(translator.translateHTML("Forge {{consolemsg-succinst}} ", cfg['lang']) + server));
       forgesIns[server] = "allisok";
       fs.unlinkSync(fp);
     } else {
-      console.log(colors.red("Forge failed on " + server + " with code " + code));
+      console.log(colors.red(translator.translateHTML("Forge {{consolemsg-failinst}} ", cfg['lang']) + server + translator.translateHTML(" {{consolemsg-succinst-2}} ", cfg['lang']) + code));
     }
   });
   fi.stdout.on('data', (data) => {

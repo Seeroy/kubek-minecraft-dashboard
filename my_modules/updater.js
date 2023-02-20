@@ -4,6 +4,7 @@ var colors = require('colors');
 const request = require('request');
 const config = require('./config').readConfig();
 const additional = require('./additional');
+const translator = require('./translator');
 
 exports.checkForUpdates = (cb) => {
   options = {
@@ -42,19 +43,18 @@ function checkForUpdates_fc (cb){
 }
 
 exports.setCheckingForUpdatesByInterval = (updatesInterval) => {
-  console.log(additional.getTimeFormatted(), "Kubek will check updates every 1 hour");
+  console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-update1h}}", cfg['lang']));
   setInterval(function () {
-    console.log(additional.getTimeFormatted(), "Checking for Kubek updates...");
     checkForUpdates_fc(function (upd) {
       if (upd != 0 && kubek_version != upd) {
-        console.log(additional.getTimeFormatted(), colors.yellow('Updates found! URL:'));
+        console.log(additional.getTimeFormatted(), colors.yellow(translator.translateHTML("{{consolemsg-yesupd}}", cfg['lang'])));
         console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
         updatesByIntArray = {
           found: true,
           url: "https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd
         };
       } else {
-        console.log(additional.getTimeFormatted(), colors.green('Updates not found'));
+        console.log(additional.getTimeFormatted(), colors.green(translator.translateHTML("{{consolemsg-noupd}}", cfg['lang'])));
         updatesByIntArray = {
           found: false
         };
@@ -67,13 +67,13 @@ exports.getFTPD = (cb) => {
   var timeout = setTimeout(function () {
     if (config.ftpd == false) {
       clearTimeout(timeout);
-      console.log(additional.getTimeFormatted(), "FTP is disabled in config, stopping download of indiftpd.exe");
+      console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-ftpdisabled}}", cfg['lang']));
       cb();
       return;
     }
-    if (process.platform == "linux") {
+    if (process.platform != "win32") {
       clearTimeout(timeout);
-      console.log(additional.getTimeFormatted(), "Currently FTP is not supported on linux");
+      console.log(translator.translateHTML("{{consolemsg-ftpnotsup}", cfg['lang']), process.platform);
       cb();
       return;
     }
@@ -90,7 +90,7 @@ exports.getFTPD = (cb) => {
 
 const download = (url, filename, callback) => {
   const progressBar = new _cliProgress.SingleBar({
-    format: colors.blue("[+]") + ' Downloading ' + filename + ' : [{bar}] {percentage}%'
+    format: colors.blue("[+]") + translator.translateHTML(" {{consolemsg-downloading-cap}} ", cfg['lang']) + filename + ' : [{bar}] {percentage}%'
   }, _cliProgress.Presets.legacy);
   const file = fs.createWriteStream(filename);
   let receivedBytes = 0

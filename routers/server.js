@@ -11,6 +11,7 @@ const {
 } = require('node:child_process');
 const auth_manager = require("./../my_modules/auth_manager");
 const errors_parser = require("./../my_modules/errors.mc.parser");
+const translator = require('./../my_modules/translator');
 
 var servers_restart_count = {};
 var restart_after_stop = {};
@@ -19,7 +20,7 @@ const ACCESS_PERMISSION = "server_settings";
 const ACCESS_PERMISSION_2 = "console";
 
 router.use(function (req, res, next) {
-  if(req['_parsedUrl']['pathname'] != "/icon"){
+  if (req['_parsedUrl']['pathname'] != "/icon") {
     additional.showRequestInLogs(req, res);
   }
   cfg = config.readConfig();
@@ -268,7 +269,7 @@ function startServer(server) {
       }
       start = true;
     } else {
-      console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.bat"' + " not found! Try to delete, and create new server!"));
+      console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.bat"' + translator.translateHTML(" {{consolemsg-notfound-tr}}", cfg['lang'])));
       start = false;
     }
   } else if (process.platform == "linux") {
@@ -281,17 +282,17 @@ function startServer(server) {
       }
       start = true;
     } else {
-      console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.sh"' + " not found! Try to delete, and create new server!"));
+      console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.sh"' + translator.translateHTML(" {{consolemsg-notfound-tr}}", cfg['lang'])));
       start = false;
     }
   } else {
-    console.log(colors.red(additional.getTimeFormatted() + " " + process.platform + " not supported"));
+    console.log(colors.red(additional.getTimeFormatted() + " " + process.platform + translator.translateHTML(" {{consolemsg-notsup}} ", cfg['lang'])));
     start = false;
   }
 
   if (start == true) {
     configjson = JSON.parse(fs.readFileSync("./servers/servers.json"));
-    console.log(additional.getTimeFormatted(), "STARTING SERVER:", server.green);
+    console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-starting}} ", cfg['lang']) + ":", server.green);
     statuss = "starting";
     servers_instances[server].on('close', (code) => {
       statuss = "stopped";
@@ -306,11 +307,11 @@ function startServer(server) {
       }
       if (code != 0) {
         servers_logs[server] = servers_logs[server] + "§4ERROR: Process finished with exit code " + code;
-        console.log(additional.getTimeFormatted(), "STOPPED SERVER WITH CODE " + code + ":", server.red);
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.red);
         if (configjson[server]['restartOnError'] == true && errors_parser.checkStringForErrors(servers_logs[server]) == false) {
           if (typeof servers_restart_count[server] == "undefined") {
             servers_restart_count[server] = 1;
-            console.log(additional.getTimeFormatted(), "RESTARTING SERVER IN 3 SECONDS, ATTEMPT 1:", server.red);
+            console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1 :", server.red);
             servers_logs[server] = servers_logs[server] + "\nRestarting server in 3 seconds [ATTEMPT 1]";
             setTimeout(function () {
               startServer(server);
@@ -318,7 +319,7 @@ function startServer(server) {
           } else {
             if (servers_restart_count[server] < 3) {
               servers_restart_count[server]++;
-              console.log(additional.getTimeFormatted(), "RESTARTING SERVER IN 3 SECONDS, ATTEMPT " + servers_restart_count[server] + " :", server.red);
+              console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server] + " :", server.red);
               servers_logs[server] = servers_logs[server] + "\nRestarting server in 3 seconds [ATTEMPT " + servers_restart_count[server] + "]";
               setTimeout(function () {
                 startServer(server);
@@ -340,7 +341,7 @@ function startServer(server) {
           });
         }
       } else {
-        console.log(additional.getTimeFormatted(), "STOPPED SERVER:", server.green);
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stop}} ", cfg['lang']) + ":", server.green);
         if (restart_after_stop[server] == true) {
           restart_after_stop[server] = null;
           delete restart_after_stop[server];
@@ -379,18 +380,18 @@ function startServer(server) {
       }
       if (data.indexOf("Done") >= 0) {
         statuss = "started";
-        console.log(additional.getTimeFormatted(), "STARTED SERVER:", server.green);
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
       }
       if (data.match(/\[INFO] Listening on/gm)) {
         statuss = "started";
-        console.log(additional.getTimeFormatted(), "STARTED SERVER:", server.green);
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
       }
       if (data.match(/\[INFO] Done/gm)) {
         statuss = "started";
-        console.log(additional.getTimeFormatted(), "STARTED SERVER:", server.green);
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
       }
       if (data.indexOf("Saving players") >= 0) {
-        console.log(additional.getTimeFormatted(), "STOPPING SERVER:", server.green);
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopping}} ", cfg['lang']) + ":", server.green);
         statuss = "stopping";
       }
       configjson[server].status = statuss;
