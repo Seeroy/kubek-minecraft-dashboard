@@ -4,7 +4,7 @@ mymodal = new mdb.Modal(document.getElementById('userEditModal'));
 admmodal = new mdb.Modal(document.getElementById('adminEditModal'));
 
 var PASSWORD_REGEX = /^[a-zA-Z0-9_.-]{2,}$/g;
-var LOGIN_REGEX = /^[a-zA-Z0-9_.-]{4,16}$/g;
+var LOGIN_REGEX = /^[a-zA-Z0-9_.-]{3,16}$/g;
 var EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
 
 $(document).ready(function () {

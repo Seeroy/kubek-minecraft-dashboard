@@ -103,9 +103,9 @@ router.get('/newUser', function (req, res) {
     password = req.query.password;
     mail = req.query.mail;
     permissions = req.query.permissions;
-    if (typeof login !== "undefined" && typeof password !== "undefined" && login.length > 0 && typeof permissions == "object" && password.length > 0) {
+    if (typeof login !== "undefined" && typeof password !== "undefined" && login.length > 0 && password.length > 0) {
       permissions = permissions.split(",");
-      if (permissions.length <= 5) {
+      if (typeof permissions == "object" && permissions.length <= 5) {
         result = auth_manager.addNewUser(password, login, permissions, mail);
       }
       res.send(result);

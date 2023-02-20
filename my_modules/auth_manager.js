@@ -1,6 +1,7 @@
 var config = require('./config');
+const additional = require('./additional');
 var usersConfig = config.readUsersConfig();
-var crypto = require("crypto");
+var SHA256 = require("crypto-js/sha256");
 
 const PASSWORD_REGEX = /^[a-zA-Z0-9_.-]{2,}$/g;
 const LOGIN_REGEX = /^[a-zA-Z0-9_.-]{4,16}$/g;
@@ -35,7 +36,7 @@ exports.login = (password, login) => {
   } else {
     if (typeof (password) !== "undefined" && password != "") {
       if (typeof users[login] !== "undefined" && users[login].username !== "undefined" && users[login].username.length > 0) {
-        if (users[login].password == crypto.createHash('sha256').update(password).digest('hex')) {
+        if (users[login].password == SHA256(password)) {
           authsucc = true;
         }
       }
@@ -62,13 +63,13 @@ exports.addNewUser = (password, login, permissions, mail) => {
         if (mail == null || typeof mail == "undefined" || mail.match(EMAIL_REGEX)) {
           if (login.match(LOGIN_REGEX) && password.match(PASSWORD_REGEX)) {
             if (typeof users[login] == "undefined") {
-              newUserHash = crypto.randomUUID().toString();
+              newUserHash = additional.uuidv4().toString();
               if (permissions[0] == "") {
                 permissions = [];
               }
               users[login] = {
                 username: login,
-                password: crypto.createHash('sha256').update(password).digest('hex'),
+                password: SHA256(password).toString(),
                 hash: newUserHash,
                 permissions: permissions,
                 mail: mail
@@ -101,7 +102,7 @@ exports.regenUserHash = (login) => {
   } else {
     if (login.match(LOGIN_REGEX)) {
       if (typeof users[login] !== "undefined") {
-        newUserHash = crypto.randomUUID().toString();
+        newUserHash = additional.uuidv4().toString();
         users[login]['hash'] = newUserHash;
         config.writeUsersConfig(users);
         success = true;
@@ -124,11 +125,11 @@ exports.changeAdminPass = (oldPass, newPass) => {
   if (cfg.auth == false) {
     success = "Auth is disabled";
   } else {
-    op_hash = crypto.createHash('sha256').update(oldPass).digest('hex');
-    np_hash = crypto.createHash('sha256').update(newPass).digest('hex');
+    op_hash = SHA256(oldPass).toString();
+    np_hash = SHA256(newPass).toString();
     if (users['kubek']['password'] == op_hash) {
       users['kubek']['password'] = np_hash;
-      newUserHash = crypto.randomUUID().toString();
+      newUserHash = additional.uuidv4().toString();
       users['kubek']['hash'] = newUserHash;
       config.writeUsersConfig(users);
       success = true;
@@ -187,7 +188,7 @@ exports.editUser = (login, permissions, mail) => {
             if (permissions[0] == "") {
               permissions = [];
             }
-            newUserHash = crypto.randomUUID().toString();
+            newUserHash = additional.uuidv4().toString();
             users[login]['permissions'] = permissions;
             users[login]['hash'] = newUserHash;
             config.writeUsersConfig(users);
