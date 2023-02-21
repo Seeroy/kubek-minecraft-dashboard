@@ -1,0 +1,126 @@
+<link rel="stylesheet" href="/pages/backups.css">
+<script src="/pages/backups.js"></script>
+
+<div class="modal bottom" id="restoreBackupModal" tabindex="-1" aria-labelledby="restoreBackupModalLabel"
+  aria-hidden="true" data-mdb-backdrop="static" data-mdb-keyboard="false">
+  <div class="modal-dialog modal-frame modal-bottom">
+    <div class="modal-content">
+      <div class="modal-body"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal top" id="newBackupModal" tabindex="-1" data-mdb-backdrop="true" data-mdb-keyboard="true">
+  <div class="modal-dialog  modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newBackupModalLabel">{{backups-crb-btn}}</h5>
+        <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" placeholder="{{backups-backupname}}" id="bcname-input" />
+        </div>
+        <div class="input-group mb-3">
+          <textarea class="form-control" rows="4" placeholder="{{backups-backupdesc}}" id="bcdesc-input"></textarea>
+        </div>
+
+        <p>{{backups-seltype-capt}}</p>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" value="full" name="backupTypeRadio" id="backupTypeRadio1"
+            checked />
+          <label class="form-check-label" for="backupTypeRadio1"> {{backups-types-full}} </label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="radio" value="selected" name="backupTypeRadio" id="backupTypeRadio2" />
+          <label class="form-check-label" for="backupTypeRadio2"> {{backups-types-selfiles}} </label>
+        </div>
+
+        <div style="height: max-content; max-height: 300px; overflow-y: auto; display: none;" class="flt-parent">
+          <table class="table" id="fl-table">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 32px;"></th>
+                <th scope="col" style="width: 32px;"></th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+          {{cancel}}
+        </button>
+        <button type="button" class="btn btn-primary" data-mdb-dismiss="modal">{{create}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: .3s; padding-right: 24px;">
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span id="server-name" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <div id="status-circle" class="rounded-circle bg-success"></div>
+    <span id="status-text" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">groups</span>
+    <span id="status-text" class="bold-chip">{{players}}:</span>
+    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <img id="server-version-icon" height="24">
+    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+  </div>
+
+  <div class="flex-fill"></div>
+  <button class="btn btn-danger server-control" onclick="stopServer()"><span
+      class="material-symbols-outlined">crop_square</span></button>
+  <button class="btn btn-success server-control" onclick="startServer()"><span
+      class="material-symbols-outlined">play_arrow</span></button>
+  <button class="btn btn-warning server-control" onclick="restartServer()"><span
+      class="material-symbols-outlined">autorenew</span></button>
+</div>
+
+<div class="backups-container">
+  <p class="fs-1 fw-bold">{{backups-capt}}</p>
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center headerr">
+
+    <div class="d-flex flex-row flex-fill">
+      <div class="d-flex flex-row align-items-center" id="progress-box">
+        <div class="percent" id="usage-disk-percent">0%</div>
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" style="width: 0%;" id="usage-disk-pbar"></div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-column" style="margin-left: 2%">
+        <span>{{backups-disk-total}}<span id="disk-total-size">{{unknown}}</span></span>
+        <span>{{backups-disk-used}}<span id="disk-used-size">{{unknown}}</span></span>
+        <span>{{backups-disk-free}}<span id="disk-free-size">{{unknown}}</span></span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-lg d-flex align-items-center" data-mdb-toggle="modal"
+      data-mdb-target="#newBackupModal">
+      <span class="material-symbols-outlined" style="margin-right: 8px">add</span>
+      {{backups-crb-btn}}
+    </button>
+
+  </li>
+
+  <p class="fs-1 fw-bold">{{backups-list-capt}}</p>
+
+  <ul class="list-group" id="backups-list"></ul>
+</div>

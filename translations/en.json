@@ -95,10 +95,10 @@
   "{{summary-sysmon}}": "Summary Information",
   "{{cpu-mem-sysmon}}": "CPU and RAM",
   "{{local-disks-sysmon}}": "Disk devices",
-  
+
   "{{welcome-msg}}": "Kubek is a Minecraft server control panel developed using Node.js and web technologies.",
   "{{first-server-welcome}}": "Create your first server",
-  
+
   "{{dorename-fm}}": "Rename file",
   "{{aredelete-fm}}": "Are you sure you want to delete?",
   "{{yesdelete-fm}}": "Yes, delete",
@@ -146,5 +146,33 @@
   "{{consolemsg-starting}}": "SERVER STARTS",
   "{{consolemsg-start}}": "SERVER IS RUNNING",
   "{{consolemsg-restartatt}}": "SERVER STARTS, ATTEMPT",
-  "{{consolemsg-downloading-cap}}": "Downloading"
+  "{{consolemsg-downloading-cap}}": "Downloading",
+
+  "{{backups-capt}}": "Backups",
+  "{{backups-disk-total}}": "Total: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+  "{{backups-disk-used}}": "Used: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+  "{{backups-disk-free}}": "Free: &nbsp;",
+  "{{backups-crb-btn}}": "Create a backup",
+  "{{backups-list-capt}}": "Created backups",
+  "{{backups-backupname}}": "Enter the name of the backup",
+  "{{backups-backupdesc}}": "Enter a description for the backup (optional)",
+  "{{backups-seltype-capt}}": "Select backup type",
+  "{{backups-types-full}}": "Full server backup",
+  "{{backups-types-selfiles}}": "Select required files and folders",
+  "{{backups-text-type}}": "Backup type",
+  "{{backups-text-status}}": "Backup status",
+
+  "{{backups-type-full}}": "Full backup",
+  "{{backups-type-selected}}": "Selective backup",
+
+  "{{backups-status-started}}": "Begin",
+  "{{backups-status-processing}}": "Performed",
+  "{{backups-status-error}}": "An error has occurred",
+  "{{backups-status-completed}}": "Completed",
+
+  "{{backups-restorproc}}": "The server backup is being restored, do not reload or close the page and Kubek",
+  "{{download}}": "Download",
+  "{{backups-size}}": "Archive size",
+
+  "{{backup-candestroy}}": "Restoring a full backup will delete your server data. When restoring a partial backup, your files may be damaged"
 }

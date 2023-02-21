@@ -1,0 +1,56 @@
+.backups-container {
+  padding: 2%;
+  height: 92vh;
+}
+
+.list-group-item.headerr {
+  padding: 28px;
+}
+
+#progress-box {
+  width: 20%;
+}
+
+#progress-box .progress {
+  width: 100%;
+  margin-left: 16px;
+}
+
+#progress-box .percent {
+  font-size: 18pt;
+  font-weight: 300;
+}
+
+#fl-table td {
+  vertical-align: middle;
+}
+
+#fl-table {
+  border-radius: 8px;
+}
+
+#fl-table * {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#fl-table th,
+#fl-table tr {
+  height: 48px;
+  max-height: 48px;
+  min-height: 48px;
+}
+
+#backups-list .btn {
+  padding: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#backups-list .list-group-item .btn:not(:last-child) {
+  margin-right: 8px;
+}

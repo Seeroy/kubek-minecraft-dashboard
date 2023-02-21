@@ -229,7 +229,8 @@ exports.getUserPermissions = (req) => {
       "plugins",
       "filemanager",
       "server_settings",
-      "kubek_settings"
+      "kubek_settings",
+      "backups"
     ];
     return arr;
   }

@@ -103,7 +103,7 @@
   "{{aredelete-fm}}": "Weet je zeker dat je wilt verwijderen?",
   "{{yesdelete-fm}}": "Ja, verwijderen",
   "{{new-directory-fm}}": "NIEUWE LIJST",
-  
+
   "{{select-core-sw}}": "Selecteer kern",
   "{{ns-name-sw}}": "Voer de naam van de nieuwe server in",
   "{{forge-autoins-msg-sw}}": "Als u het Forge-installatiebestand hier uploadt, wordt de installatie automatisch uitgevoerd wanneer u de server maakt",
@@ -146,5 +146,30 @@
   "{{consolemsg-starting}}": "SERVER START",
   "{{consolemsg-start}}": "SERVER WERKT",
   "{{consolemsg-restartatt}}": "SERVER START, POGING",
-  "{{consolemsg-downloading-cap}}": "downloaden"
+  "{{consolemsg-downloading-cap}}": "downloaden",
+
+  "{{backups-capt}}": "Back-ups",
+  "{{backups-disk-total}}": "Totaal: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+  "{{backups-disk-used}}": "Gebruikt: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+  "{{backups-disk-free}}": "Vrij: &nbsp;",
+  "{{backups-crb-btn}}": "Maak een back-up",
+  "{{backups-list-capt}}": "Back-ups gemaakt",
+  "{{backups-backupname}}": "Voer de naam van de back-up in",
+  "{{backups-backupdesc}}": "Voer een beschrijving in voor de back-up (optioneel)",
+  "{{backups-seltype-capt}}": "Selecteer back-uptype",
+  "{{backups-types-full}}": "Volledige serverback-up",
+  "{{backups-types-selfiles}}": "Selecteer de vereiste bestanden en mappen",
+  "{{backups-text-type}}": "Back-up type",
+  "{{backups-text-status}}": "Back-upstatus",
+  "{{backups-type-full}}": "Volledige back-up",
+  "{{backups-type-selected}}": "Selectieve back-up",
+  "{{backups-status-started}}": "Beginnen",
+  "{{backups-status-processing}}": "Uitgevoerd",
+  "{{backups-status-error}}": "er is een fout opgetreden",
+  "{{backups-status-completed}}": "Voltooid",
+  "{{backups-restorproc}}": "De serverback-up wordt hersteld, laad of sluit de pagina en Kubek niet opnieuw",
+  "{{download}}": "Downloaden",
+  "{{backups-size}}": "Archief grootte",
+
+  "{{backup-candestroy}}": "Als u een volledige back-up herstelt, worden uw servergegevens verwijderd. Bij het terugzetten van een gedeeltelijke back-up kunnen uw bestanden beschadigd raken"
 }

@@ -64,7 +64,8 @@ router.get('/permissions', function (req, res) {
       "plugins",
       "filemanager",
       "server_settings",
-      "kubek_settings"
+      "kubek_settings",
+      "backups"
     ]);
   }
 });

@@ -8,3 +8,4 @@ indiftpd*
 logs/
 old/
 users.json
+backups/

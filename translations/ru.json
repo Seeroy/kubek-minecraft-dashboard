@@ -146,5 +146,33 @@
   "{{consolemsg-starting}}": "СЕРВЕР ЗАПУСКАЕТСЯ",
   "{{consolemsg-start}}": "СЕРВЕР ЗАПУЩЕН",
   "{{consolemsg-restartatt}}": "ЗАПУСК СЕРВЕРА, ПОПЫТКА",
-  "{{consolemsg-downloading-cap}}": "Скачивание"
+  "{{consolemsg-downloading-cap}}": "Скачивание",
+
+  "{{backups-capt}}": "Бэкапы",
+  "{{backups-disk-total}}": "Всего: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+  "{{backups-disk-used}}": "Занято: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+  "{{backups-disk-free}}": "Свободно: &nbsp;",
+  "{{backups-crb-btn}}": "Создать бэкап",
+  "{{backups-list-capt}}": "Созданные бэкапы",
+  "{{backups-backupname}}": "Введите название бэкапа",
+  "{{backups-backupdesc}}": "Введите описание бэкапа (необязательно)",
+  "{{backups-seltype-capt}}": "Выберите тип бэкапа",
+  "{{backups-types-full}}": "Полный бэкап сервера",
+  "{{backups-types-selfiles}}": "Выбрать необходимые файлы и папки",
+  "{{backups-text-type}}": "Тип бэкапа",
+  "{{backups-text-status}}": "Статус бэкапа",
+
+  "{{backups-type-full}}": "Полный бэкап",
+  "{{backups-type-selected}}": "Выборочный бэкап",
+
+  "{{backups-status-started}}": "Начинаем",
+  "{{backups-status-processing}}": "Выполняется",
+  "{{backups-status-error}}": "Произошла ошибка",
+  "{{backups-status-completed}}": "Завершён",
+
+  "{{backups-restorproc}}": "Идёт восстановление бэкапа сервера, не перезагружайте и не закрывайте страницу и Kubek",
+  "{{download}}": "Скачать",
+  "{{backups-size}}": "Размер архива",
+
+  "{{backup-candestroy}}": "При восстановлении полного бэкапа данные вашего сервера будут удалены. При восстановлении частичного бэкапа ваши файлы могут быть повреждены"
 }

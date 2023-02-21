@@ -74,6 +74,11 @@
           <span class="material-symbols-outlined">folder_open</span>
           <span class="ms-2">{{file-manager}}</span>
         </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center backups-menu-item"
+          data-page="backups">
+          <span class="material-symbols-outlined">cloud_circle</span>
+          <span class="ms-2">{{backups-capt}}</span>
+        </li>
         <li class="list-group-item px-4 d-flex flex-row align-items-center serversett-menu-item"
           data-page="server_settings">
           <span class="material-symbols-outlined">tune</span>
@@ -132,6 +137,7 @@
   var socket = "";
   var cs = true;
   var connect_socket_error = false;
+  var old_bl_upd = 10;
 
   $(document).ready(function () {
     $.get("/auth/permissions", function (perms) {
@@ -154,6 +160,10 @@
       if (!perms.includes("kubek_settings")) {
         $(".sidenavLayout .kubeksett-menu-item").removeClass("d-flex");
         $(".sidenavLayout .kubeksett-menu-item").hide();
+      }
+      if (!perms.includes("backups")) {
+        $(".sidenavLayout .backups-menu-item").removeClass("d-flex");
+        $(".sidenavLayout .backups-menu-item").hide();
       }
     });
     if (typeof window.localStorage.currentTheme !== "undefined") {
@@ -248,7 +258,7 @@
     socket = openSocket();
     socket.on("handshake", function () {
       console.log("[WS]", "WebSocket handshake successful");
-      if(connect_socket_error == true){
+      if (connect_socket_error == true) {
         hideLoading();
         connect_socket_error = false;
       }
@@ -323,6 +333,21 @@
             cs = true;
           }
           updateServersStatuses_ui(data);
+          break;
+        case "backups_list":
+          if (data == "progress") {
+            cur = new Date().valueOf();
+            if (cur - 1000 > old_bl_upd) {
+              old_bl_upd = cur;
+              if ($("#backups-list").length > 0) {
+                refreshBackupsList();
+              }
+            }
+          } else {
+            if ($("#backups-list").length > 0) {
+              refreshBackupsList();
+            }
+          }
           break;
         case "query":
           updateServerDataFromQuery_ui(data);

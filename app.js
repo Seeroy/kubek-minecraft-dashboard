@@ -28,6 +28,7 @@ var downloader_router = require("./routers/downloader");
 var upload_router = require("./routers/upload");
 var fmapi_router = require("./routers/fmapi");
 var forgeInstaller_router = require("./routers/forgeInstaller");
+var backups_router = require("./routers/backups");
 
 // Other modules init
 var mime = require('mime');
@@ -147,7 +148,7 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.kubek_version = "v2.0.3";
+global.kubek_version = "v2.0.4";
 
 app.use(fileUpload());
 app.use(cookieParser());
@@ -267,3 +268,4 @@ app.use("/cores", cores_router);
 app.use("/fmapi", fmapi_router);
 app.use("/upload", upload_router);
 app.use("/forgeInstaller", forgeInstaller_router);
+app.use("/backups", backups_router);
