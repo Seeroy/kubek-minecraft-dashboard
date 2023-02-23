@@ -107,7 +107,7 @@
   "{{select-core-sw}}": "Selecteer kern",
   "{{ns-name-sw}}": "Voer de naam van de nieuwe server in",
   "{{forge-autoins-msg-sw}}": "Als u het Forge-installatiebestand hier uploadt, wordt de installatie automatisch uitgevoerd wanneer u de server maakt",
-  "{{upload-core-sw}}": "Download je kernel",
+  "{{upload-core-sw}}": "Eigen kern uploaden",
   "{{papermc-desc-sw}}": "<li>Op basis van Spigot</li><li>Flexibel en resourcebesparend</li><li>Ondersteunt alleen plug-ins</li>",
   "{{spigot-desc-sw}}": "<li>Gebaseerd op CraftBukkit</li><li>eenvoudig en populair</li><li>Ondersteunt alleen plug-ins</li>",
   "{{enter-new-sn-sw}}": "Voer de naam van de nieuwe server in",

@@ -95,7 +95,7 @@
             </div>
           </div>
           <div class="card" data-core="own">
-            <img alt="PaperMC Core" src="/assets/stages_bg/upload.png" width="64" class="card-img-top" />
+            <img alt="Upload my core" src="/assets/stages_bg/upload.png" width="64" class="card-img-top" />
             <div class="card-body">
               <h5 class="card-title">{{upload-core-sw}}</h5>
               <p class="card-text">{{upload-core-sw}}</p>
@@ -460,7 +460,11 @@
 
   function loadThirdStage() {
     $("#third-stage .sn").text($("#first-stage input").val());
-    $("#third-stage .corever").text(selectedCore + " " + selectedCoreVersion);
+    if(selectedCoreVersion != null){
+      $("#third-stage .corever").text(selectedCore + " " + selectedCoreVersion);
+    } else {
+      $("#third-stage .corever").text(selectedCore);
+    }
     $("#serverport").val(25565);
     $.get("/kubek/javaVersions", function (jv) {
       jv.forEach(function (jfile) {

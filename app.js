@@ -148,7 +148,7 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.kubek_version = "v2.0.4";
+global.kubek_version = "v2.0.4-fix";
 
 app.use(fileUpload());
 app.use(cookieParser());

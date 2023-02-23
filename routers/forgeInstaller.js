@@ -10,6 +10,7 @@ const {
 var iconvlite = require('iconv-lite');
 var colors = require('colors');
 const translator = require('./../my_modules/translator');
+const additional = require('./../my_modules/additional');
 
 const ACCESS_PERMISSION = "server_settings";
 
@@ -58,11 +59,11 @@ function startForgeInstaller(server, file) {
 
   fi.on('close', (code) => {
     if (code == 0) {
-      console.log(colors.green(additional.getTimeFormatted() + translator.translateHTML("Forge {{consolemsg-succinst}} ", cfg['lang']) + server));
+      console.log(colors.green(additional.getTimeFormatted() + " " + translator.translateHTML("Forge {{consolemsg-succinst}} ", cfg['lang']) + server));
       forgesIns[server] = "allisok";
       fs.unlinkSync(fp);
     } else {
-      console.log(colors.red(additional.getTimeFormatted() + translator.translateHTML("Forge {{consolemsg-failinst}} ", cfg['lang']) + server + translator.translateHTML(" {{consolemsg-succinst-2}} ", cfg['lang']) + code));
+      console.log(colors.red(additional.getTimeFormatted() + " " + translator.translateHTML("Forge {{consolemsg-failinst}} ", cfg['lang']) + server + translator.translateHTML(" {{consolemsg-succinst-2}} ", cfg['lang']) + code));
     }
   });
   fi.stdout.on('data', (data) => {
