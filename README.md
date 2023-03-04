@@ -44,3 +44,20 @@ Start after installation
 ```
 node app.js
 ```
+
+# Used icons
+Materials Symbols by Google
+
+[Directory icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/directory)
+
+[Files and folders icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/files-and-folders)
+
+[Gallery icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/gallery)
+
+[Modify icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/modify)
+
+[Delete icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/delete)
+
+[Ui icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/ui)
+
+[Log icons created by Arkinasi - Flaticon](ttps://www.flaticon.com/free-icons/log)
