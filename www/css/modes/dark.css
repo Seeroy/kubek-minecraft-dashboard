@@ -117,6 +117,10 @@
   color: var(--mdb-gray-300);
 }
 
+#feModal textarea {
+  color: var(--mdb-white);
+}
+
 /* Server settings styling */
 #speditor-pills input[type="text"] {
   color: var(--mdb-white);

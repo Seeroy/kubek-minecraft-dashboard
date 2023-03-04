@@ -63,3 +63,12 @@
 #fm-table button:not(:first-child) {
   margin-left: 6px;
 }
+
+.buttons-td img:not(:hover) {
+  filter: saturate(0%);
+}
+
+#feModal textarea {
+  font-family: monospace;
+  resize: vertical;
+}

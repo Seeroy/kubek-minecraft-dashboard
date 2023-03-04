@@ -99,10 +99,10 @@
   "{{welcome-msg}}": "Kubek is een Minecraft-serverconfiguratiescherm dat is ontwikkeld met behulp van Node.js en webtechnologieën.",
   "{{first-server-welcome}}": "Maak je eerste server",
 
-  "{{dorename-fm}}": "Hernoem bestand",
+  "{{dorename-fm}}": "Hernoem",
   "{{aredelete-fm}}": "Weet je zeker dat je wilt verwijderen?",
   "{{yesdelete-fm}}": "Ja, verwijderen",
-  "{{new-directory-fm}}": "NIEUWE LIJST",
+  "{{new-directory-fm}}": "Voer een naam in voor de nieuwe directory",
 
   "{{select-core-sw}}": "Selecteer kern",
   "{{ns-name-sw}}": "Voer de naam van de nieuwe server in",

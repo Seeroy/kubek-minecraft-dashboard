@@ -4,7 +4,7 @@ $(document).ready(function () {
   qss = window.location.search;
   params = new URLSearchParams(qss);
   fm_act = params.get('fm_act');
-  if(fm_act == "logs"){
+  if (fm_act == "logs") {
     curDir = "/logs/";
   }
   refreshDir();
@@ -197,7 +197,6 @@ function refreshDir() {
       $("#breadcrumb-fm").append('<li class="breadcrumb-item">' + dir + '</li>');
     });
   }
-
   if (curDir != "/") {
     $("#fm-table").append(
       '<tr ondblclick="upperDir()"><td></td><td class="fn">..</td><td></td><td></td></tr>');
@@ -205,6 +204,7 @@ function refreshDir() {
   $.get("/fmapi/scanDirectory?server=" + window.localStorage.selectedServer + "&directory=" + curDir, function (data) {
     data = JSON.parse(data);
     if (typeof data == "object") {
+      data = sortToDirsAndFiles(data);
       data.forEach(function (file) {
         size = 0;
         if (file.size < 1024 * 1024) {
@@ -221,33 +221,39 @@ function refreshDir() {
         }
         if (file.type == "directory") {
           act =
-            '<button type="button" onclick=renameFM("' +
+            '<button type="button" title="{{rename}}" onclick=renameFM("' +
             curDir + file.name +
-            '")><span style="font-size: 10pt;" class="material-symbols-outlined">border_color</span></button>';
+            '")><img width=24px src="/assets/fm_icons/edit.png"></button>';
         } else {
           act =
-            '<button type="button" onclick=deleteFM("' +
+            '<button type="button" title="{{delete}}" onclick=deleteFM("' +
             curDir + file.name +
-            '")><span style="font-size: 10pt;" class="material-symbols-outlined">delete</span></button><button type="button" onclick=renameFM("' +
+            '")><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
             curDir + file.name +
-            '")><span style="font-size: 10pt;" class="material-symbols-outlined">border_color</span></button><button type="button" onclick=downloadFM("' +
+            '")><img width=24px src="/assets/fm_icons/edit.png"></button><button type="button" title="{{download}}" onclick=downloadFM("' +
             curDir + file.name +
-            '")><span style="font-size: 10pt;" class="material-symbols-outlined">download</span></button>';
+            '")><img width=24px src="/assets/fm_icons/download.png"></button>';
         }
         if (file.type == "directory") {
-          icon = "folder";
+          icon = "folder.png";
         } else if (file.type == "file") {
-          icon = "description";
-        } else {
-          icon = "question_mark";
+          if (file.name.match(/.*\.(jpg|jpeg|png|gif|ico|bmp|psd)/gmi) != null) {
+            icon = "image.png";
+          } else if (file.name.match(/.*\.(tar|zip|rar|gzip|7z|gz|tgz)/gmi) != null) {
+            icon = "archive.png";
+          } else if (file.name.match(/.*\.log/gmi) != null) {
+            icon = "logs.png";
+          } else {
+            icon = "file.png";
+          }
         }
         if (file.type == "directory") {
           size = "";
         }
         $("#fm-table").append(
           '<tr data-type="' + file.type +
-          '"><td style="width: 20px;"><span class="material-symbols-outlined">' + icon +
-          '</span></td><td class="fn">' +
+          '"><td style="width: 20px;"><img height="64px" src="/assets/fm_icons/' + icon +
+          '"></td><td class="fn">' +
           file.name + '</td><td>' + size + '</td><td class="buttons-td">' + act + '</td></tr>');
       });
       $("#fm-table").unbind("click");
@@ -273,4 +279,24 @@ function refreshDir() {
       });
     }
   });
+}
+
+function sortToDirsAndFiles(data) {
+  dirs = [];
+  files = [];
+  data.forEach(function (item) {
+    if (item.type == "directory") {
+      dirs.push(item);
+    } else {
+      files.push(item);
+    }
+  });
+  datanew = [];
+  dirs.forEach(function (item) {
+    datanew.push(item);
+  });
+  files.forEach(function (item) {
+    datanew.push(item);
+  });
+  return datanew;
 }

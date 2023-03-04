@@ -99,10 +99,10 @@
   "{{welcome-msg}}": "Kubek is a Minecraft server control panel developed using Node.js and web technologies.",
   "{{first-server-welcome}}": "Create your first server",
 
-  "{{dorename-fm}}": "Rename file",
+  "{{dorename-fm}}": "Rename",
   "{{aredelete-fm}}": "Are you sure you want to delete?",
   "{{yesdelete-fm}}": "Yes, delete",
-  "{{new-directory-fm}}": "NEW DIRECTORY",
+  "{{new-directory-fm}}": "Enter a name for the new directory",
 
   "{{select-core-sw}}": "Select core",
   "{{ns-name-sw}}": "Enter the name of the new server",

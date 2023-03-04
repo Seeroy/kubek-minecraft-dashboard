@@ -16,20 +16,27 @@ function refreshServerFilesList() {
   $("#fl-table").html("");
   $.get("/fmapi/scanDirectory?server=" + window.localStorage.selectedServer + "&directory=/", function (data) {
     data = JSON.parse(data);
+    data = sortToDirsAndFiles(data);
     if (typeof data == "object") {
       data.forEach(function (file, i) {
         if (file.type == "directory") {
-          icon = "folder";
+          icon = "folder.png";
         } else if (file.type == "file") {
-          icon = "description";
-        } else {
-          icon = "question_mark";
+          if (file.name.match(/.*\.(jpg|jpeg|png|gif|ico|bmp|psd)/gmi) != null) {
+            icon = "image.png";
+          } else if (file.name.match(/.*\.(tar|zip|rar|gzip|7z|gz|tgz)/gmi) != null) {
+            icon = "archive.png";
+          } else if (file.name.match(/.*\.log/gmi) != null) {
+            icon = "logs.png";
+          } else {
+            icon = "file.png";
+          }
         }
         cb = '<div><input class="form-check-input fsboxes" type="checkbox" id="fsbox_' + i + '" value="sel"/></div>';
         $("#fl-table").append(
           '<tr data-type="' + file.type +
-          '"><td style="width: 20px;">' + cb + '</td><td style="width: 20px;"><span class="material-symbols-outlined">' + icon +
-          '</span></td><td class="fn">' +
+          '"><td style="width: 20px;">' + cb + '</td><td style="width: 20px;"><img height="64px" src="/assets/fm_icons/' + icon +
+          '"></td><td class="fn">' +
           file.name + '</td></tr>');
       });
     }
@@ -179,3 +186,23 @@ $(document).ready(function () {
     }
   });
 });
+
+function sortToDirsAndFiles(data) {
+  dirs = [];
+  files = [];
+  data.forEach(function (item) {
+    if (item.type == "directory") {
+      dirs.push(item);
+    } else {
+      files.push(item);
+    }
+  });
+  datanew = [];
+  dirs.forEach(function (item) {
+    datanew.push(item);
+  });
+  files.forEach(function (item) {
+    datanew.push(item);
+  });
+  return datanew;
+}

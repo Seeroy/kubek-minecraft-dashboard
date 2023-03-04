@@ -110,7 +110,7 @@
 
 #fm-table th:hover, 
 #fm-table tr:hover {
-  background: var(--mdb-gray-100);
+  background: var(--mdb-gray-300);
 }
 
 #fm-table button {
@@ -119,6 +119,10 @@
 
 #fm-table button:hover * {
   color: var(--mdb-gray-600);
+}
+
+#feModal textarea {
+  color: var(--mdb-black);
 }
 
 /* Server settings styling */
@@ -133,4 +137,14 @@
 /* Kubek settings styling */
 #users-list .card {
   background: var(--mdb-white);
+}
+
+/* Backups page styling */
+#backups-list .list-group-item>.material-symbols-outlined {
+  color: black !important;
+}
+
+.backups-container .btn *,
+.backups-container .btn {
+  color: white !important;
 }
