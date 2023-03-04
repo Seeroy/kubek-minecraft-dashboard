@@ -6,15 +6,39 @@ function refreshLists() {
   $.get("/plugins/installed?server=" + window.localStorage.selectedServer, function (data) {
     $("#installed-plugins-list").html("");
     data.forEach(function (plugin) {
-      $("#installed-plugins-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><span class="flex-fill">' + plugin + '</span><button class="btn btn-danger" onclick="deletePlugin(' + "'" + plugin + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
+      plugin_displayname = plugin.replaceAll(/\.jar|\.dis/gmi, "").trim();
+      if (plugin.match(/\.dis/gmi) != null) {
+        switchmode = '';
+      } else {
+        switchmode = ' checked ';
+      }
+      $("#installed-plugins-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" onchange=changeAddonStatus(this) data-type="plugin" data-filename="' + plugin_displayname + '" role="switch"' + switchmode + '/></div><span class="flex-fill">' + plugin_displayname + '</span><button class="btn btn-danger" onclick="deletePlugin(' + "'" + plugin + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
     });
     $.get("/plugins/installedMods?server=" + window.localStorage.selectedServer, function (data) {
       $("#installed-mods-list").html("");
-      data.forEach(function (plugin) {
-        $("#installed-mods-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><span class="flex-fill">' + plugin + '</span><button class="btn btn-danger" onclick="deleteMod(' + "'" + plugin + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
+      data.forEach(function (mod) {
+        mod_displayname = mod.replaceAll(/\.jar|\.dis/gmi, "").trim();
+        if (mod.match(/\.dis/gmi) != null) {
+          switchmode = '';
+        } else {
+          switchmode = ' checked ';
+        }
+        $("#installed-mods-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" onchange=changeAddonStatus(this) data-type="mod" data-filename="' + mod_displayname + '" role="switch"' + switchmode + '/></div><span class="flex-fill">' + mod_displayname + '</span><button class="btn btn-danger" onclick="deleteMod(' + "'" + mod + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
       });
       hideLoading();
     });
+  });
+}
+
+function changeAddonStatus(switch_el) {
+  add_type = $(switch_el).data("type");
+  add_filename = $(switch_el).data("filename");
+
+  $(switch_el).is(":checked") ? add_status = "on" : add_status = "off";
+
+  console.log("[UI]", "Toggle", add_type, add_filename, "to", add_status);
+  $.get("/plugins/changeStatus?server=" + window.localStorage.selectedServer + "&type=" + add_type + "&file=" + add_filename + "&status=" + add_status, function (data) {
+    refreshLists();
   });
 }
 
@@ -42,20 +66,16 @@ function uploadPlugin() {
       type: "POST",
       data: formData,
       success: function (data) {
-        Swal.fire(
-          '{{success}}',
-          '{{restart-server-to-see-changes}}',
-          'success'
-        ).then((result) => {
-          refreshLists();
-        });
+        refreshLists();
       },
       error: function (data) {
         Swal.fire(
           '{{error}}',
           '{{error-upload}}',
           'error'
-        );
+        ).then((result) => {
+          refreshLists();
+        });
       },
       cache: false,
       contentType: false,
@@ -74,20 +94,16 @@ function uploadMod() {
       type: "POST",
       data: formData,
       success: function (data) {
-        Swal.fire(
-          '{{success}}',
-          '{{restart-server-to-see-changes}}',
-          'success'
-        ).then((result) => {
-          refreshLists();
-        });
+        refreshLists();
       },
       error: function (data) {
         Swal.fire(
           '{{error}}',
           '{{error-upload}}',
           'error'
-        );
+        ).then((result) => {
+          refreshLists();
+        });
       },
       cache: false,
       contentType: false,

@@ -117,8 +117,8 @@
   color: var(--mdb-black);
 }
 
-#fm-table button:hover {
-  background: var(--mdb-gray-300);
+#fm-table button:hover * {
+  color: var(--mdb-gray-600);
 }
 
 /* Server settings styling */

@@ -147,6 +147,9 @@ function saveKubekSettings() {
   if(kubekCfg['lang'] != checked){
     rl_page = true;
   }
+  if(kubekCfg['auth'] != auth){
+    rl_page = true;
+  }
   kubekCfg["lang"] = checked;
   kubekCfg["ftpd"] = ftpd;
   kubekCfg["auth"] = auth;

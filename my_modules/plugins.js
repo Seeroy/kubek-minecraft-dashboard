@@ -137,7 +137,7 @@ exports.getInstalledMods = (name) => {
 
 exports.deleteInstalledPlugin = (name, filename) => {
   if(typeof filename == "string") {
-    if (fs.existsSync("./servers/" + name + "/plugins/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
+    if (fs.existsSync("./servers/" + name + "/plugins/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar" || filename.substr(filename.lastIndexOf(".")) == ".dis") {
       fs.unlinkSync("./servers/" + name + "/plugins/" + filename);
     }
   }
@@ -145,8 +145,30 @@ exports.deleteInstalledPlugin = (name, filename) => {
 
 exports.deleteInstalledMod = (name, filename) => {
   if(typeof filename == "string") {
-    if (fs.existsSync("./servers/" + name + "/mods/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar") {
+    if (fs.existsSync("./servers/" + name + "/mods/" + filename) && filename.substr(filename.lastIndexOf(".")) == ".jar" || filename.substr(filename.lastIndexOf(".")) == ".dis") {
       fs.unlinkSync("./servers/" + name + "/mods/" + filename);
+    }
+  }
+}
+
+exports.changeStatus = (name, type, filename, status) => {
+  if(typeof filename == "string") {
+    if(type == "plugin"){
+      if (fs.existsSync("./servers/" + name + "/plugins")) {
+        if(fs.existsSync("./servers/" + name + "/plugins/" + filename + ".jar") && status == "off"){
+          fs.renameSync("./servers/" + name + "/plugins/" + filename + ".jar", "./servers/" + name + "/plugins/" + filename + ".jar.dis");
+        } else if(fs.existsSync("./servers/" + name + "/plugins/" + filename + ".jar.dis") && status == "on"){
+          fs.renameSync("./servers/" + name + "/plugins/" + filename + ".jar.dis", "./servers/" + name + "/plugins/" + filename + ".jar");
+        }
+      }
+    } else if(type == "mod"){
+      if (fs.existsSync("./servers/" + name + "/mods")) {
+        if(fs.existsSync("./servers/" + name + "/mods/" + filename + ".jar") && status == "off"){
+          fs.renameSync("./servers/" + name + "/mods/" + filename + ".jar", "./servers/" + name + "/mods/" + filename + ".jar.dis");
+        } else if(fs.existsSync("./servers/" + name + "/mods/" + filename + ".jar.dis") && status == "on"){
+          fs.renameSync("./servers/" + name + "/mods/" + filename + ".jar.dis", "./servers/" + name + "/mods/" + filename + ".jar");
+        }
+      }
     }
   }
 }

@@ -340,7 +340,7 @@
   border: 0;
   border-radius: 0.25em;
   background: initial;
-  background-color: #7066e0;
+  background-color: var(--mdb-primary);
   color: #fff;
   font-size: 1em;
 }
@@ -351,7 +351,7 @@
   border: 0;
   border-radius: 0.25em;
   background: initial;
-  background-color: #dc3741;
+  background-color:  var(--mdb-danger);
   color: #fff;
   font-size: 1em;
 }
@@ -362,7 +362,7 @@
   border: 0;
   border-radius: 0.25em;
   background: initial;
-  background-color: #6e7881;
+  background-color: #424242;
   color: #fff;
   font-size: 1em;
 }

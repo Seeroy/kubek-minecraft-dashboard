@@ -34,7 +34,7 @@ router.get('/javaVersions', function (req, res) {
   res.set('Content-Type', 'application/json');
   if (process.platform == "win32") {
     directories = ["C:/Program Files", "C:/Program Files(x86)", "C:/Program Files (x86)"]
-    tree = ["Java", "JDK", "OpenJDK", "OpenJRE", "Adoptium", "JRE", "AdoptiumJRE", "Temurin"];
+    tree = ["Java", "JDK", "OpenJDK", "OpenJRE", "Adoptium", "JRE", "AdoptiumJRE", "Temurin", "Eclipse Foundation"];
     javas = [];
     directories.forEach(function (mainDir) {
       tree.forEach(function (inner) {

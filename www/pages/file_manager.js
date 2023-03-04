@@ -29,7 +29,7 @@ function deleteFM(path) {
     confirmButtonColor: '#3085d6',
     cancelButtonColor: '#d33',
     confirmButtonText: '{{yesdelete-fm}}',
-    cancelButtonText: '{{cancel}}'
+    cancelButtonText: '{{cancel}}',
   }).then((result) => {
     if (result.isConfirmed) {
       $.get("/fmapi/deleteFile?server=" + window.localStorage.selectedServer + "&path=" + path, function () {

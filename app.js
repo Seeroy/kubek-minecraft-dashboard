@@ -148,7 +148,7 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.kubek_version = "v2.0.4-fix";
+global.kubek_version = "v2.0.5";
 
 app.use(fileUpload());
 app.use(cookieParser());
@@ -156,8 +156,10 @@ app.use('/auth/login', authLimiter);
 app.use('/upload', authLimiter2);
 app.use('/server/completion', authLimiter2);
 app.use('/kubek/saveConfig', authLimiter2);
-app.use('/plugins', authLimiter3);
 app.use('/downloader/download', authLimiter3);
+
+app.use('/plugins/delete', authLimiter3);
+app.use('/plugins/deleteMod', authLimiter3);
 
 global.configjson = config.readServersJSON();
 for (var i in configjson) {

@@ -93,7 +93,7 @@
           <span class="material-symbols-outlined">monitoring</span>
           <span class="ms-2">{{system-monitor}}</span>
         </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center" onclick="logoutUser()">
+        <li class="list-group-item px-4 d-flex flex-row align-items-center logout-account-item" onclick="logoutUser()">
           <span class="material-symbols-outlined">logout</span>
           <span class="ms-2">{{logout-account}}</span>
         </li>
@@ -164,6 +164,12 @@
       if (!perms.includes("backups")) {
         $(".sidenavLayout .backups-menu-item").removeClass("d-flex");
         $(".sidenavLayout .backups-menu-item").hide();
+      }
+    });
+    $.get('/kubek/config', function (data) {
+      if(data.auth == false){
+        $(".sidenavLayout .logout-account-item").removeClass("d-flex");
+        $(".sidenavLayout .logout-account-item").hide();
       }
     });
     if (typeof window.localStorage.currentTheme !== "undefined") {

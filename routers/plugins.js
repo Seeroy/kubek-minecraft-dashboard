@@ -49,6 +49,11 @@ router.get('/deleteMod', function (req, res) {
   res.send("Success");
 });
 
+router.get('/changeStatus', function (req, res) {
+  plugins.changeStatus(req.query.server, req.query.type, req.query.file, req.query.status);
+  res.send("Success");
+});
+
 router.get('/delete', function (req, res) {
   plugins.deleteInstalledPlugin(req.query.server, req.query.file);
   res.send("Success");

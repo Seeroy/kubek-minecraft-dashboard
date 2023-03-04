@@ -119,15 +119,20 @@ router.get('/newUser', function (req, res) {
 });
 
 router.get('/logout', function (req, res) {
-  login = req.cookies['kbk__login'];
-  hash = req.cookies['kbk__hash'];
-  if (typeof login !== "undefined" && typeof hash !== "undefined" && login.length > 0 && hash.length > 0) {
-    res.clearCookie("kbk__login");
-    res.clearCookie("kbk__hash");
-    res.redirect("/login.html");
-    res.end();
+  cfg = config.readConfig();
+  if (cfg['auth'] == true) {
+    login = req.cookies['kbk__login'];
+    hash = req.cookies['kbk__hash'];
+    if (typeof login !== "undefined" && typeof hash !== "undefined" && login.length > 0 && hash.length > 0) {
+      res.clearCookie("kbk__login");
+      res.clearCookie("kbk__hash");
+      res.redirect("/login.html");
+      res.end();
+    } else {
+      res.send(false);
+    }
   } else {
-    res.send(false);
+    res.redirect("/");
   }
 });
 

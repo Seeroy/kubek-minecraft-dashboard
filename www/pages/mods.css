@@ -15,10 +15,27 @@
   background: transparent;
 }
 
+.pl-blocks .contentt {
+  padding: 0;
+}
+
 .pl-blocks .contentt .list-group {
   overflow-y: auto;
+  border-radius: 0 !important;
 }
 
 .pl-blocks .btn.btn-danger * {
   color: white !important
+}
+
+.pl-blocks .contentt .form-switch {
+  margin-right: 6px;
+}
+
+.pl-blocks .btn-danger {
+  padding: 12px;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  box-shadow: none;
 }
