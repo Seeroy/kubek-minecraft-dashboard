@@ -155,3 +155,18 @@ const animateCSS = (element, animation, prefix = 'animate__') =>
       once: true
     });
   });
+
+function convertFileSizeToHuman(size) {
+  if (size < 1024) {
+    size = size + " B";
+  } else if (size < 1024 * 1024) {
+    size = Math.round(size / 1024 * 10) / 10 + " Kb";
+  } else if (size >= 1024 * 1024 && size < 1024 * 1024 * 1024) {
+    size = Math.round(size / 1024 / 1024 * 10) / 10 + " Mb";
+  } else if (size >= 1024 * 1024 * 1024) {
+    size = Math.round(size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
+  } else {
+    size = size + " ?";
+  }
+  return size;
+}

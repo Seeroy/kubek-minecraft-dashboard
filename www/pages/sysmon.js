@@ -17,9 +17,10 @@ $(document).ready(function () {
         used = used * 1024 ;
         free = free * 1024;
       }
-      total = convToHumanReadableSize(total);
-      used = convToHumanReadableSize(used);
-      free = convToHumanReadableSize(free);
+      console.log(total >= 1024 * 1024 * 1024);
+      total = convertFileSizeToHuman(total);
+      used = convertFileSizeToHuman(used);
+      free = convertFileSizeToHuman(free); 
       percent = disk['_capacity'];
       $("#disks-table tbody").append('<tr><td>' + letter + '</td><td>' + used +
         '</td><td>' + free + '</td><td>' + total + '</td><td>' + percent + '</td></tr>');
@@ -32,17 +33,3 @@ $(document).ready(function () {
   });
 });
 
-function convToHumanReadableSize(size) {
-  if (size < 1024) {
-    size = size + " B";
-  } else if (size < 1024 * 1024) {
-    size = Math.round(size / 1024 * 10) / 10 + " Kb";
-  } else if (size >= 1024 * 1024) {
-    size = Math.round(size / 1024 / 1024 * 10) / 10 + " Mb";
-  } else if (size >= 1024 * 1024 * 1024) {
-    size = Math.round(size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
-  } else {
-    size = size + " ?";
-  }
-  return size;
-}

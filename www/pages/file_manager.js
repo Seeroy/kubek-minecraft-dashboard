@@ -361,19 +361,7 @@ function refreshDir() {
     if (typeof data == "object") {
       data = sortToDirsAndFiles(data);
       data.forEach(function (file, i) {
-        size = 0;
-        if (file.size < 1024 * 1024) {
-          size = Math.round(file.size / 1024 * 10) / 10 + " Kb";
-        }
-        if (file.size < 1024) {
-          size = file.size + " B";
-        }
-        if (file.size >= 1024 * 1024) {
-          size = Math.round(file.size / 1024 / 1024 * 10) / 10 + " Mb";
-        }
-        if (file.size >= 1024 * 1024 * 1024) {
-          size = Math.round(file.size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
-        }
+        size = convertFileSizeToHuman(file.size);
         obj_date = new Date(file.modify);
         mdate = formatDateFactory(obj_date);
         if (file.type == "directory") {
