@@ -14,7 +14,8 @@ exports.scanDirectory = (server, directory, cb) => {
           name: elem,
           path: path,
           type: type,
-          size: stat.size
+          size: stat.size,
+          modify: stat.mtime
         };
         rd_res_c.push(file);
       });
@@ -51,6 +52,20 @@ exports.deleteFM = (server, path) => {
     path = path.toString().replaceAll(/\..\//gm, "");
     fs.unlinkSync("./servers/" + server + path);
     return true;
+  } else {
+    return false;
+  }
+}
+
+exports.deleteDirFM = (server, path) => {
+  if (fs.existsSync("./servers/" + server + path)) {
+    path = path.toString().replaceAll(/\..\//gm, "");
+    try {
+      fs.rmdirSync("./servers/" + server + path);
+      return true;
+    } catch (e) {
+      return e.code;
+    }
   } else {
     return false;
   }

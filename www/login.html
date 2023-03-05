@@ -11,6 +11,8 @@
   <!-- Others -->
   <script src="/js/jquery-3.6.0.min.js"></script>
   <link rel="stylesheet" href="/css/animate.min.css" />
+  <link rel="stylesheet" href="/css/toastify.min.css" />
+  <script src="/js/toastify-js.js"></script>
 
   <!-- Own -->
   <link rel="stylesheet" href="/css/globals.css" />
@@ -22,31 +24,47 @@
 </head>
 
 <body class="text-center">
-  <main class="form-signin">
-    <img class="mb-4" src="/assets/icon.png" alt="" width="140px">
-    <h1 class="h3 mb-3 fw-normal">{{signin-msg-login}}</h1><br>
+  <div class="window">
+    <img class="mb-4" style="align-self: start;" src="/assets/icon.png" width="64px">
+    <h3 class="mb-5 w-100" style="text-align: start;">Авторизация</h3>
 
-    <input type="text" id="floatingInput" class="form-control" placeholder="{{user}}" /><br>
-    <input type="password" id="floatingPassword" class="form-control" placeholder="{{password}}" /><br>
+    <input type="text" id="floatingInput" class="kbk-input w-100" placeholder="{{user}}" />
 
-    <span id="autherror" style='display: none; color: red; text-align: center; width: 100%;'></span>
-    <br>
-    <button class="w-100 btn btn-lg btn-primary">{{signinbtn-login}}</button>
-  </main>
+    <input type="password" id="floatingPassword" class="kbk-input w-100 mt-4 mb-5" placeholder="{{password}}" />
+
+    <button class="btn btn-lg btn-primary shadow-0">{{signinbtn-login}}</button>
+  </div>
 </body>
 
 <style>
   html,
   body {
     height: 100%;
+    background: white;
   }
 
-  body {
-    display: flex;
-    align-items: center;
-    padding-top: 40px;
-    padding-bottom: 40px;
+  * {
+    color: black;
+    font-family: 'Inter';
+  }
+
+  .window {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
     background-color: #f5f5f5;
+    width: 24%;
+    height: max-content;
+    min-height: 350px;
+    border-radius: 16px;
+    margin: auto;
+    padding: 64px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
   .form-signin {
@@ -56,24 +74,8 @@
     margin: auto;
   }
 
-  .form-signin .checkbox {
-    font-weight: 400;
-  }
-
-  .form-signin .form-floating:focus-within {
-    z-index: 2;
-  }
-
-  .form-signin input[type="email"] {
-    margin-bottom: -1px;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  .form-signin input[type="password"] {
-    margin-bottom: 10px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+  .kubekLogoText {
+    color: black;
   }
 </style>
 
@@ -88,16 +90,36 @@
         statusCode: {
           200: function (response) {
             if (response == "Wrong credetinals!") {
-              $("#autherror").show();
-              $("#autherror").html("{{wrong-cred-login}}");
+              Toastify({
+                text: "{{wrong-cred-login}}",
+                duration: 2000,
+                newWindow: true,
+                close: false,
+                gravity: "top",
+                position: "center",
+                stopOnFocus: true,
+                style: {
+                  background: "var(--mdb-danger)",
+                }
+              }).showToast();
             } else {
               $("#autherror").hide();
               window.location = "/";
             }
           },
           429: function (response) {
-            $("#autherror").show();
-            $("#autherror").html("{{rate-limit-login}}");
+            Toastify({
+              text: "{{rate-limit-login}}",
+              duration: 1000,
+              newWindow: true,
+              close: false,
+              gravity: "top",
+              position: "center",
+              stopOnFocus: true,
+              style: {
+                background: "var(--mdb-warning)",
+              }
+            }).showToast();
           }
         },
       });

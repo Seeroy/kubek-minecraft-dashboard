@@ -8,9 +8,18 @@ $(document).ready(function () {
     hw.disks.forEach(function (disk) {
       type = disk['_filesystem'];
       letter = disk['_mounted'];
-      total = Math.round(disk['_blocks'] / 1024 / 1024 / 1024) + " GB";
-      used = Math.round(disk['_used'] / 1024 / 1024 / 1024) + " GB";
-      free = Math.round(disk['_available'] / 1024 / 1024 / 1024) + " GB";
+      total = disk['_blocks'];
+      used = disk['_used'];
+      free = disk['_available'];
+
+      if (hw['platform']['name'] == "Linux") {
+        total = total * 1024;
+        used = used * 1024 ;
+        free = free * 1024;
+      }
+      total = convToHumanReadableSize(total);
+      used = convToHumanReadableSize(used);
+      free = convToHumanReadableSize(free);
       percent = disk['_capacity'];
       $("#disks-table tbody").append('<tr><td>' + letter + '</td><td>' + used +
         '</td><td>' + free + '</td><td>' + total + '</td><td>' + percent + '</td></tr>');
@@ -22,3 +31,18 @@ $(document).ready(function () {
     $("#cpu-speed").text(hw.cpu.speed + " MHz");
   });
 });
+
+function convToHumanReadableSize(size) {
+  if (size < 1024) {
+    size = size + " B";
+  } else if (size < 1024 * 1024) {
+    size = Math.round(size / 1024 * 10) / 10 + " Kb";
+  } else if (size >= 1024 * 1024) {
+    size = Math.round(size / 1024 / 1024 * 10) / 10 + " Mb";
+  } else if (size >= 1024 * 1024 * 1024) {
+    size = Math.round(size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
+  } else {
+    size = size + " ?";
+  }
+  return size;
+}

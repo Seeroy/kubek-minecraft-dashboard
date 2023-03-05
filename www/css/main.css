@@ -52,12 +52,6 @@ body {
   border-radius: var(--mdb-list-group-light-active-border-radius);
 }
 
-.menuContainer .kubekLogoText {
-  font-size: 27pt;
-  font-family: 'Montserrat';
-  font-weight: 700;
-}
-
 /* IP Chip style for animation of IP copying */
 .ip-chip-clone {
   position: absolute;
@@ -86,4 +80,9 @@ body {
 
 #servers-list-sidebar .list-group-item {
   border-radius: var(--mdb-list-group-light-active-border-radius);
+}
+
+.btn:not(:hover),
+.btn:focus {
+  box-shadow: none !important;
 }

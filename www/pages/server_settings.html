@@ -67,15 +67,15 @@
       </li>
 
       <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="resOnErrCheckbox" />
-          <label class="form-check-label" for="resOnErrCheckbox">{{resonerr-ss}}</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="resOnErrCheckbox" value="">
+          <label for="resOnErrCheckbox">{{resonerr-ss}}</label>
         </div>
       </li>
 
       <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row">
-        <input type="text" class="form-control" id="delete-sname"
-          placeholder="Введите имя сервера для подтверждения удаления" />
+        <input type="text" class="kbk-input w-100" id="delete-sname"
+          placeholder="{{enter-to-del-ss}}" />
         <button class="btn btn-outline-danger" style="margin-left: 16px;" id="delete-button"
           disabled>{{delete}}</button>
       </li>

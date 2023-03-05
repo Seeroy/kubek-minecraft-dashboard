@@ -2,7 +2,9 @@ const fs = require('fs');
 const archiver = require('archiver');
 const crypto = require('crypto');
 const path = require('path');
+const colors = require('colors');
 const decompress = require("decompress");
+const additional = require('./additional');
 var backups_processing = {};
 var backups_processing_fs = {};
 var backups_processing_status = {};
@@ -97,12 +99,12 @@ exports.createNewBackup = (bname, desc, type, sn, files = null) => {
       data: "started"
     });
   }
-  console.log('started creating of' + archname);
+  console.log(additional.getTimeFormatted(), "[" + colors.yellow("Backups") + "]", "Generating " + archname + " started");
   backups_processing_fs[randuid].on('close', function () {
     backups_processing_status[randuid] = {
       status: "completed"
     }
-    console.log('completed creating of' + archname);
+    console.log(additional.getTimeFormatted(), "[" + colors.yellow("Backups") + "]", "Generating " + archname + " success!");
     fsock = io.sockets.sockets;
     for (const socket of fsock) {
       socket[1].emit("handleUpdate", {
@@ -122,7 +124,7 @@ exports.createNewBackup = (bname, desc, type, sn, files = null) => {
         data: "completed"
       });
     }
-    console.log('completed in creating of' + archname);
+    console.log(additional.getTimeFormatted(), "[" + colors.yellow("Backups") + "]", "Generating " + archname + " success!");
   });
   backups_processing[randuid].on('warning', function (err) {
     backups_processing_status[randuid] = {
@@ -136,7 +138,7 @@ exports.createNewBackup = (bname, desc, type, sn, files = null) => {
         data: "failed"
       });
     }
-    console.log('failed creating of' + archname);
+    console.log(additional.getTimeFormatted(), "[" + colors.yellow("Backups") + "]", "Generating " + archname + " failed. Look above for error:");
     console.log(err);
   });
 

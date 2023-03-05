@@ -5,7 +5,7 @@ var additional = require('./../my_modules/additional');
 var statsCollector = require('./../my_modules/statistics');
 var config = require("./../my_modules/config");
 var kubek = require("./../my_modules/kubek");
-var ftpd = require("./../my_modules/ftpd");
+var ftpd = require("./../my_modules/ftpd_new");
 var translator = require("./../my_modules/translator");
 const nodeDiskInfo = require('node-disk-info');
 const os = require("os");
@@ -59,19 +59,19 @@ router.get('/verToJava', function (req, res) {
   if (typeof ver !== "undefined") {
     sec = ver.split(".")[1];
     ter = ver.split(".")[2];
-    if(sec < 8){
+    if (sec < 8) {
       java = "Java 8 (1.8.0)";
-    } else if(sec >= 8 && sec <= 11){
+    } else if (sec >= 8 && sec <= 11) {
       java = "Java 8";
-    } else if(sec >= 12 && sec <= 15){
+    } else if (sec >= 12 && sec <= 15) {
       java = "Java 11";
-    } else if(sec == 16){
-      if(ter <= 4){
+    } else if (sec == 16) {
+      if (ter <= 4) {
         java = "Java 11";
       } else {
         java = "Java 17";
       }
-    } else if(sec >= 17){
+    } else if (sec >= 17) {
       java = "Java 17+";
     }
     res.send(java);
@@ -91,22 +91,26 @@ router.get('/translate', function (req, res) {
   res.send(trs);
 });
 
+router.get('/shutdown', function (req, res) {
+  process.exit();
+});
+
 router.get('/setFTPDStatus', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
-    ftpd.stopFTPD();
     setTimeout(function () {
       if (req.query.value == "true") {
-        if (process.platform == "linux") {
-          cfg = config.readConfig();
-          cfg.ftpd = false;
-        } else {
-          ftpserver = ftpd.startFTPD();
-          cfg = config.readConfig();
-          cfg.ftpd = true;
+        if (typeof ftpserver !== "undefined") {
+          var options = {
+            host: '127.0.0.1',
+            port: 21,
+            tls: null
+          }
+          ftpserver = ftpd.startFTPD(options, cfg['ftpd-user'], cfg['ftpd-password']);
         }
+        cfg = config.readConfig();
+        cfg.ftpd = true;
       } else {
-        ftpd.stopFTPD();
         cfg = config.readConfig();
         cfg.ftpd = false;
       }

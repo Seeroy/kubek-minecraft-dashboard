@@ -110,7 +110,7 @@
         <p>{{selected-sn-sw}}: <span class="sn"></span></p>
 
         <div class="input-group mb-3" style="height: 40px;">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-mdb-toggle="dropdown" aria-expanded="false"
+          <button class="btn btn-primary shadow-0 dropdown-toggle" type="button" data-mdb-toggle="dropdown" aria-expanded="false"
             id="cur-jv" style="height: 40px;"></button>
           <ul class="dropdown-menu" id="java-vers-dropdown"></ul>
           <input type="text" class="form-control" id="fsc" aria-label="Full start command input"
@@ -146,8 +146,8 @@
       </div>
     </div>
     <div class="buttons">
-      <button type="button" class="btn btn-secondary" style="display: none;" id="backbtn">
-        < {{back}}</button> <button type="button" class="btn btn-secondary" id="nextbtn">{{next}} >
+      <button type="button" class="btn btn-secondary shadow-0" style="display: none;" id="backbtn">
+        < {{back}}</button> <button type="button" class="btn btn-secondary shadow-0" id="nextbtn">{{next}} >
       </button>
     </div>
 </body>
@@ -521,11 +521,6 @@
   #logo-flex {
     width: max-content;
     height: max-content;
-  }
-
-  #logo-flex .kubekLogoText {
-    font-size: 24pt;
-    font-weight: 700;
   }
 
   .progress-bar,

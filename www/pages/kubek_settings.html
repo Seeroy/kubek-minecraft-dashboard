@@ -9,63 +9,57 @@
         <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="input-group mb-3 usrname-group">
-          <span class="input-group-text" id="basic-addon1">@</span>
-          <input type="text" class="form-control usrname-input" placeholder="Username" />
+        <div class="input-group mb-3">
+          <input type="text" class="kbk-input w-100 usrname-input" placeholder="{{user}}" />
         </div>
 
         <div class="input-group mb-3">
-          <input type="email" class="form-control mail-input" placeholder="E-mail" />
+          <input type="email" class="kbk-input w-100 mail-input" placeholder="E-mail" />
         </div>
 
         <div class="input-group mb-3">
-          <input type="password" class="form-control password-input" placeholder="Password" />
+          <input type="password" class="kbk-input w-100 password-input" placeholder="{{password}}" />
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="serverControlCheckedDisabled" checked disabled />
-          <label class="form-check-label" for="serverControlCheckedDisabled">{{server-control-ks}}</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="serverControlCheckedDisabled" value="" checked disabled>
+          <label for="serverControlCheckedDisabled">{{server-control-ks}}</label>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="consolePermCheckedDisabled"
-            data-perm="console" />
-          <label class="form-check-label" for="consolePermCheckedDisabled">{{console-acc-ks}}</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="consolePermCheckedDisabled" value="" data-perm="console">
+          <label for="consolePermCheckedDisabled">{{console-acc-ks}}</label>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="pluginsPermCheckedDisabled"
-            data-perm="plugins" />
-          <label class="form-check-label" for="pluginsPermCheckedDisabled">{{sect-acc-ks}}
-            "{{plugins-and-mods}}"</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="pluginsPermCheckedDisabled" value="" data-perm="plugins">
+          <label for="pluginsPermCheckedDisabled">{{sect-acc-ks}} "{{plugins-and-mods}}"</label>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="filemanPermCheckedDisabled"
-            data-perm="filemanager" />
-          <label class="form-check-label" for="filemanPermCheckedDisabled">{{sect-acc-ks}} "{{file-manager}}"</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="filemanPermCheckedDisabled" value=""
+            data-perm="filemanager">
+          <label for="filemanPermCheckedDisabled">{{sect-acc-ks}} "{{file-manager}}"</label>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="serversettPermCheckedDisabled"
-            data-perm="server_settings" />
-          <label class="form-check-label" for="serversettPermCheckedDisabled">{{sect-acc-ks}}
-            "{{server-settings}}"</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="serversettPermCheckedDisabled" value=""
+            data-perm="server_settings">
+          <label for="serversettPermCheckedDisabled">{{sect-acc-ks}} "{{server-settings}}"</label>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="backupsPermCheckedDisabled"
-            data-perm="backups" />
-          <label class="form-check-label" for="backupsPermCheckedDisabled">{{sect-acc-ks}} "{{backups-capt}}"</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="backupsPermCheckedDisabled" value="" data-perm="backups">
+          <label for="backupsPermCheckedDisabled">{{sect-acc-ks}} "{{backups-capt}}"</label>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="kubeksettPermCheckedDisabled"
-            data-perm="kubek_settings" />
-          <label class="form-check-label" for="kubeksettPermCheckedDisabled">
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="kubeksettPermCheckedDisabled" value=""
+            data-perm="kubek_settings">
+          <label for="kubeksettPermCheckedDisabled">
             <div class="d-flex flex-row">{{sect-acc-ks}} "{{kubek-settings}}"<span data-mdb-toggle="tooltip"
                 data-mdb-placement="right" data-mdb-html="true" title="{{kubek-sett-warn-ks}}" id="tooltip-acc"
-                class="material-symbols-outlined">info</span></div>
+                class="material-symbols-outlined ms-2">info</span></div>
           </label>
         </div>
 
@@ -96,10 +90,10 @@
       </div>
       <div class="modal-body">
         <div class="input-group mb-3">
-          <input type="password" class="form-control opassword-input" placeholder="Old password" />
+          <input type="password" class="kbk-input w-100 opassword-input" placeholder="{{oldpass-ks}}" />
         </div>
         <div class="input-group mb-3">
-          <input type="password" class="form-control npassword-input" placeholder="New password" />
+          <input type="password" class="kbk-input w-100 npassword-input" placeholder="{{newpass-ks}}" />
         </div>
       </div>
       <div class="modal-footer">
@@ -118,17 +112,19 @@
     <span class="material-symbols-outlined">translate</span>
     <span class="caption flex-fill">{{softLang-ks}}</span>
     <div class="element">
-      <div class="form-check">
-        <input class="form-check-input langRadio" type="radio" value="ru" name="lang" id="russianRadio" />
-        <label class="form-check-label" for="russianRadio"> Русский (Russian)</label>
+      <div class="radio">
+        <input class="kbk-radio langRadio" type="radio" id="russianRadio" name="lang" value="ru">
+        <label for="russianRadio"> Русский (Russian) </label>
       </div>
-      <div class="form-check">
-        <input class="form-check-input langRadio" type="radio" value="en" name="lang" id="englishRadio" />
-        <label class="form-check-label" for="englishRadio"> English </label>
+
+      <div class="radio">
+        <input class="kbk-radio langRadio" type="radio" id="englishRadio" name="lang" value="en">
+        <label for="englishRadio"> English </label>
       </div>
-      <div class="form-check">
-        <input class="form-check-input langRadio" type="radio" value="nl" name="lang" id="dutchRadio" />
-        <label class="form-check-label" for="dutchRadio"> Nederlands (Dutch / Netherlands) </label>
+
+      <div class="radio">
+        <input class="kbk-radio langRadio" type="radio" id="dutchRadio" name="lang" value="nl">
+        <label for="dutchRadio"> Nederlands (Dutch / Netherlands) </label>
       </div>
     </div>
   </li>
@@ -174,7 +170,7 @@
     <span class="material-symbols-outlined">person</span>
     <span class="caption flex-fill">FTP {{user}}</span>
     <div class="element">
-      <input type="text" class="form-control ftpuser">
+      <input type="text" class="kbk-input ftpuser">
     </div>
   </li>
 
@@ -183,7 +179,7 @@
     <span class="material-symbols-outlined">password</span>
     <span class="caption flex-fill">FTP {{password}}</span>
     <div class="element">
-      <input type="password" class="form-control ftppass">
+      <input type="password" class="kbk-input ftppass">
     </div>
   </li>
 
@@ -219,5 +215,15 @@
     </div>
   </li>
 
-  <button type="button" class="btn btn-secondary btn-lg" onclick="saveKubekSettings()">{{save}}</button>
+  <div class="d-flex mt-3">
+    <button type="button" class="btn btn-secondary btn-lg" onclick="saveKubekSettings()">{{save}}</button>
+    <button type="button" class="btn btn-danger btn-lg d-flex align-items-center justify-content-center ms-3"
+      onclick="shutdownKubek()"><span
+        class="material-symbols-outlined me-2">power_settings_new</span>{{shutdown-kubek-ks}}</button>
+  </div>
+
+  <p class="mt-3">
+    {{sup-uid-ks}}
+    <span id="supuid"></span>
+  </p>
 </div>

@@ -12,7 +12,7 @@ function refreshLists() {
       } else {
         switchmode = ' checked ';
       }
-      $("#installed-plugins-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" onchange=changeAddonStatus(this) data-type="plugin" data-filename="' + plugin_displayname + '" role="switch"' + switchmode + '/></div><span class="flex-fill">' + plugin_displayname + '</span><button class="btn btn-danger" onclick="deletePlugin(' + "'" + plugin + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
+      $("#installed-plugins-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><label class="switch" style="margin-right: 10px;"><input type="checkbox" onchange=changeAddonStatus(this) data-type="plugin" data-filename="' + plugin_displayname + '" role="switch"' + switchmode + '><span class="slider round"></span></label><span class="flex-fill">' + plugin_displayname + '</span><button class="btn btn-danger" onclick="deletePlugin(' + "'" + plugin + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
     });
     $.get("/plugins/installedMods?server=" + window.localStorage.selectedServer, function (data) {
       $("#installed-mods-list").html("");
@@ -23,7 +23,7 @@ function refreshLists() {
         } else {
           switchmode = ' checked ';
         }
-        $("#installed-mods-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" onchange=changeAddonStatus(this) data-type="mod" data-filename="' + mod_displayname + '" role="switch"' + switchmode + '/></div><span class="flex-fill">' + mod_displayname + '</span><button class="btn btn-danger" onclick="deleteMod(' + "'" + mod + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
+        $("#installed-mods-list").append('<li class="list-group-item px-4 d-flex flex-row align-items-center"><label class="switch" style="margin-right: 10px;"><input type="checkbox" onchange=changeAddonStatus(this) data-type="plugin" data-filename="' + plugin_displayname + '" role="switch"' + switchmode + '><span class="slider round"></span></label><span class="flex-fill">' + mod_displayname + '</span><button class="btn btn-danger" onclick="deleteMod(' + "'" + mod + "'" + ')"><span class="material-symbols-outlined">delete</span></button></li>');
       });
       hideLoading();
     });
@@ -69,13 +69,19 @@ function uploadPlugin() {
         refreshLists();
       },
       error: function (data) {
-        Swal.fire(
-          '{{error}}',
-          '{{error-upload}}',
-          'error'
-        ).then((result) => {
-          refreshLists();
-        });
+        Toastify({
+          text: "{{error-upload}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-danger)",
+          }
+        }).showToast();
+        refreshLists();
       },
       cache: false,
       contentType: false,
@@ -97,13 +103,19 @@ function uploadMod() {
         refreshLists();
       },
       error: function (data) {
-        Swal.fire(
-          '{{error}}',
-          '{{error-upload}}',
-          'error'
-        ).then((result) => {
-          refreshLists();
-        });
+        Toastify({
+          text: "{{error-upload}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-danger)",
+          }
+        }).showToast();
+        refreshLists();
       },
       cache: false,
       contentType: false,

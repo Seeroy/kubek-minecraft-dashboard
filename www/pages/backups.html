@@ -20,22 +20,22 @@
       <div class="modal-body">
 
         <div class="input-group mb-3">
-          <input type="text" class="form-control" placeholder="{{backups-backupname}}" id="bcname-input" />
+          <input type="text" class="kbk-input w-100" placeholder="{{backups-backupname}}" id="bcname-input" />
         </div>
         <div class="input-group mb-3">
-          <textarea class="form-control" rows="4" placeholder="{{backups-backupdesc}}" id="bcdesc-input"></textarea>
+          <textarea class="kbk-input w-100" rows="4" placeholder="{{backups-backupdesc}}" id="bcdesc-input"></textarea>
         </div>
 
         <p>{{backups-seltype-capt}}</p>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" value="full" name="backupTypeRadio" id="backupTypeRadio1"
-            checked />
-          <label class="form-check-label" for="backupTypeRadio1"> {{backups-types-full}} </label>
+
+        <div class="radio">
+          <input class="kbk-radio" type="radio" id="backupTypeRadio1" name="backupTypeRadio" value="full" checked>
+          <label for="backupTypeRadio1"> {{backups-types-full}} </label>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="radio" value="selected" name="backupTypeRadio" id="backupTypeRadio2" />
-          <label class="form-check-label" for="backupTypeRadio2"> {{backups-types-selfiles}} </label>
+        <div class="radio">
+          <input class="kbk-radio" type="radio" id="backupTypeRadio2" name="backupTypeRadio" value="selected">
+          <label for="backupTypeRadio2"> {{backups-types-selfiles}} </label>
         </div>
 
         <div style="height: max-content; max-height: 300px; overflow-y: auto; display: none;" class="flt-parent">

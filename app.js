@@ -1,5 +1,5 @@
 // My modules
-const ftpd = require("./my_modules/ftpd");
+const ftpd = require("./my_modules/ftpd_new");
 const updater = require("./my_modules/updater");
 const statsCollector = require("./my_modules/statistics");
 const config = require("./my_modules/config");
@@ -148,7 +148,7 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.kubek_version = "v2.0.5";
+global.kubek_version = "v2.0.6";
 
 app.use(fileUpload());
 app.use(cookieParser());
@@ -186,24 +186,13 @@ console.log(" ");
 kl_oneline = additional.kubekLogo.split("\n")[0];
 kv = kubek_version;
 textpad = (kl_oneline.length / 2) - (kv.length / 2);
-for(i = 0; i < textpad; i++){
+for (i = 0; i < textpad; i++) {
   kv = " " + kv;
 }
 
 console.log(colors.inverse('https://github.com/Seeroy/kubek-minecraft-dashboard'));
 console.log(kv);
 console.log(" ");
-
-updater.getFTPD(function () {
-  if (cfg.ftpd == true) {
-    if (process.platform == "win32") {
-      ftpserver = ftpd.startFTPD();
-      console.log(additional.getTimeFormatted(), "FTP", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 21);
-    } else {
-      console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-ftpnotsup}}", cfg['lang']), colors.yellow(process.platform));
-    }
-  }
-});
 
 updater.checkForUpdates(function (upd) {
   if (upd != 0 && kubek_version != upd) {
@@ -228,7 +217,7 @@ updater.checkForUpdates(function (upd) {
     } else {
       authsucc = auth_manager.authorize(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
     }
-    if (authsucc == true || path.extname(req["_parsedUrl"].pathname) == ".js" || path.extname(req["_parsedUrl"].pathname) == ".png" || path.extname(req["_parsedUrl"].pathname) == ".css" || path.extname(req["_parsedUrl"].pathname) == ".svg") {
+    if (authsucc == true || path.extname(req["_parsedUrl"].pathname).match(/.*\.(jpg|jpeg|png|js|css|html|eot|ttf|woff|woff2|eot)/gmi) != null) {
       if (req["_parsedUrl"].pathname == "/") {
         req["_parsedUrl"].pathname = "/index.html";
       }
@@ -257,6 +246,14 @@ updater.checkForUpdates(function (upd) {
     console.log(additional.getTimeFormatted(), "Webserver", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), port);
   });
   console.log(additional.getTimeFormatted(), "Socket.io", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 112);
+  if (cfg.ftpd == true) {
+    var options = {
+      host: '127.0.0.1',
+      port: 21,
+      tls: null
+    }
+    ftpserver = ftpd.startFTPD(options, cfg['ftpd-user'], cfg['ftpd-password']);
+  }
 });
 
 updater.setCheckingForUpdatesByInterval(updatesInterval);

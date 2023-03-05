@@ -3,6 +3,7 @@ var router = express.Router();
 var additional = require("./../my_modules/additional");
 var fmapi = require("./../my_modules/fmapi");
 var config = require("./../my_modules/config");
+var fs = require("fs");
 var path = require("path");
 const auth_manager = require("./../my_modules/auth_manager");
 
@@ -36,6 +37,32 @@ router.get('/getFile', function (req, res) {
   res.send(fmapi.readFile(req.query.server, req.query.path));
 });
 
+router.get('/packetRemoving', function (req, res) {
+  server = req.query.server;
+  parse = JSON.parse(req.query.items);
+  list = parse.list;
+  fspath = parse.path;
+  statuses = {};
+  statuses['directory'] = 0;
+  statuses['file'] = 0;
+  if(fs.existsSync("./servers/" + server + "/" + fspath)){
+    list.forEach(element => {
+      if(element.type == "directory"){
+        if(fmapi.deleteDirFM(req.query.server, fspath + "/" + element.name) == true){
+          statuses['directory']++;
+        }
+      } else {
+        if(fmapi.deleteFM(req.query.server, fspath + "/" + element.name) == true){
+          statuses['file']++;
+        }
+      }
+    });
+    res.send(statuses);
+  } else {
+    res.send(false);
+  }
+});
+
 router.get('/saveFile', function (req, res) {
   res.send(fmapi.saveFile(req.query.server, req.query.path, req.query.text));
 });
@@ -47,6 +74,10 @@ router.get('/downloadFile', function (req, res) {
 
 router.get('/deleteFile', function (req, res) {
   res.send(fmapi.deleteFM(req.query.server, req.query.path));
+});
+
+router.get('/deleteDirectory', function (req, res) {
+  res.send(fmapi.deleteDirFM(req.query.server, req.query.path));
 });
 
 router.get('/renameFile', function (req, res) {

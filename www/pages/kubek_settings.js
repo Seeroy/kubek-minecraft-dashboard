@@ -42,7 +42,15 @@ function loadKubekSettings() {
 
     $(".ftppass").val(kubekCfg["ftpd-password"]);
     $(".ftpuser").val(kubekCfg["ftpd-user"]);
+
+    $.get("/kubek/support-uid", function(supuid){
+      $("#supuid").text(supuid);
+    });
   });
+}
+
+function shutdownKubek(){
+  $.get("/kubek/shutdown");
 }
 
 function setNewUserMode(bool) {
@@ -66,7 +74,7 @@ function setModalDefaultValues() {
   $("#userEditModal input[type=checkbox]:not(:disabled)").each(function () {
     $(this).prop("checked", false);
   });
-  $("#userEditModal input[type=text], #userEditModal input[type=password]").each(function () {
+  $("#userEditModal input[type=text], #userEditModal input[type=password], #userEditModal input[type=email]").each(function () {
     $(this).val("");
   });
 }
@@ -149,6 +157,9 @@ function saveKubekSettings() {
   }
   if(kubekCfg['auth'] != auth){
     rl_page = true;
+  }
+  if(kubekCfg['ftpd'] != ftpd && ftpd == false){
+    alert("Для отключения FTPD требуется полный перезапуск Kubek");
   }
   kubekCfg["lang"] = checked;
   kubekCfg["ftpd"] = ftpd;

@@ -8,7 +8,148 @@ $(document).ready(function () {
     curDir = "/logs/";
   }
   refreshDir();
+
+  $("#fileEditArea").keyup(function () {
+    lines = $(this).val().split('\n').length;
+
+    $(".line-numbers").html(Array(lines)
+      .fill('<span></span>')
+      .join(''));
+  });
+
+  $("#fileEditArea").keydown(function (e) {
+    if (e.key === 'Tab') {
+      start = $("#fileEditArea")[0].selectionStart;
+      end = $("#fileEditArea")[0].selectionEnd;
+      val = $("#fileEditArea").val().substring(0, start) + '\t' + $("#fileEditArea").val().substring(end);
+      $("#fileEditArea").val(val);
+      e.preventDefault()
+    }
+  });
+
+  $("#fsbox_all").change(function () {
+    if ($(this).is(":checked")) {
+      selectAllCheckboxes();
+    } else {
+      unselectAllCheckboxes();
+    }
+    syncMultiplyFilesCount()
+  });
 });
+
+function ifAllFilesSelected() {
+  if ($("#fm-table td .fsboxes:checked").length == $("#fm-table td .fsboxes").length) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function syncMultiplyFilesCount() {
+  countSel = $("#fm-table td .fsboxes:checked").length;
+  if (countSel > 0) {
+    $(".multiply-select").show();
+    $(".multiply-select .count").text(countSel + " files");
+  } else {
+    $(".multiply-select").hide();
+  }
+}
+
+function selectAllCheckboxes() {
+  $("#fm-table .fsboxes").each(function () {
+    $(this).prop("checked", true);
+  });
+}
+
+function deleteAllSelected() {
+  syncMultiplyFilesCount();
+  if ($("#fm-table td .fsboxes:checked").length > 0) {
+    hideAllCards();
+    $("#isremoving-card .card-text").text("{{removing-fm}}");
+    $("#isremoving-card .btn-danger").unbind("click");
+    $("#bdf").show();
+    $("#isremoving-card").show();
+    $("#isremoving-card").fadeIn(200);
+    list = [];
+    $("#fm-table td .fsboxes:checked").each(function () {
+      item = $(this).parent().parent();
+      type = $(item).data("type");
+      itemarr = {
+        name: $(item).find(".fn").text(),
+        type: type
+      }
+      list.push(itemarr);
+    });
+    jsn = {
+      path: curDir,
+      list: list
+    }
+    str = encodeURIComponent(JSON.stringify(jsn));
+    $.get("/fmapi/packetRemoving?server=" + window.localStorage.selectedServer + "&items=" + str, function (data) {
+      if (data['file'] == 0 && data['directory'] == 0) {
+        Toastify({
+          text: "{{afterdelno-fm}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-warning)",
+          }
+        }).showToast();
+      } else if (data['file'] != 0 && data['directory'] == 0) {
+        Toastify({
+          text: "{{afterdel-fm}} " + data['file'] + " {{afterdelfiles-fm}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-primary)",
+          }
+        }).showToast();
+      } else if (data['file'] == 0 && data['directory'] != 0) {
+        Toastify({
+          text: "{{afterdel-fm}} " + data['directory'] + " {{afterdeldirs-fm}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-primary)",
+          }
+        }).showToast();
+      } else if (data['file'] != 0 && data['directory'] != 0) {
+        Toastify({
+          text: "{{afterdel-fm}} " + data['file'] + " {{afterdelfiles-fm}}, " + data['directory'] + " {{afterdeldirs-fm}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-primary)",
+          }
+        }).showToast();
+      }
+      $("#bdf").hide();
+      refreshDir();
+    });
+  }
+}
+
+function unselectAllCheckboxes() {
+  $("#fm-table .fsboxes").each(function () {
+    $(this).prop('checked', false);
+  });
+}
 
 function upperDir() {
   curDir = curDir.split("/");
@@ -18,58 +159,74 @@ function upperDir() {
   refreshDir();
 }
 
+function deleteDirFM(path) {
+  fn = path.split("/").slice(-1)[0];
+
+  hideAllCards();
+  $("#delete-card .card-text").text("{{aredelete-fm}} " + fn + "?");
+  $("#delete-card .btn-danger").unbind("click");
+  $("#bdf").show();
+  $("#delete-card").show();
+  $("#delete-card").fadeIn(200);
+  $("#delete-card .btn-danger").click(function () {
+    $.get("/fmapi/deleteDirectory?server=" + window.localStorage.selectedServer + "&path=" + path, function (data) {
+      $("#bdf").hide();
+      refreshDir();
+      $("#delete-card .btn-danger").unbind("click");
+      if (data == "ENOTEMPTY") {
+        Toastify({
+          text: "{{notempty-fm}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-warning)",
+          }
+        }).showToast();
+      }
+    });
+  });
+}
+
 function deleteFM(path) {
   fn = path.split("/").slice(-1)[0];
 
-  Swal.fire({
-    title: '{{aredelete-fm}}',
-    text: fn,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: '{{yesdelete-fm}}',
-    cancelButtonText: '{{cancel}}',
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.get("/fmapi/deleteFile?server=" + window.localStorage.selectedServer + "&path=" + path, function () {
-        refreshDir();
-      });
-    }
-  })
+  hideAllCards();
+  $("#delete-card .card-text").text("{{aredelete-fm}} " + fn + "?");
+  $("#delete-card .btn-danger").unbind("click");
+  $("#bdf").show();
+  $("#delete-card").show();
+  $("#delete-card").fadeIn(200);
+  $("#delete-card .btn-danger").click(function () {
+    $.get("/fmapi/deleteFile?server=" + window.localStorage.selectedServer + "&path=" + path, function () {
+      $("#bdf").hide();
+      refreshDir();
+      $("#delete-card .btn-danger").unbind("click");
+    });
+  });
 }
 
 function newdirFM() {
-  Swal.fire({
-    title: '{{new-directory-fm}}',
-    input: 'text',
-    inputAttributes: {
-      autocapitalize: 'off'
-    },
-    showCancelButton: true,
-    confirmButtonText: '{{create}}',
-    cancelButtonText: '{{cancel}}',
-    showLoaderOnConfirm: false,
-    preConfirm: (login) => {
-      return fetch("/fmapi/newDirectory?server=" + window.localStorage.selectedServer + "&path=" + curDir + "&newdir=" + btoa(login))
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(response.statusText)
-          }
-          return response.json()
-        })
-        .catch(error => {
-          Swal.showValidationMessage(
-            `Request failed: ${error}`
-          )
-        })
-    },
-    allowOutsideClick: () => !Swal.isLoading()
-  }).then((result) => {
-    if (result.isConfirmed) {
-      refreshDir();
+  hideAllCards();
+  $("#newdir-card .card-text").text("{{new-directory-fm}}");
+  $("#newdir-card .btn-primary").unbind("click");
+  $("#bdf").show();
+  $("#newdir-card").show();
+  $("#newdir-card").fadeIn(200);
+  $("#newdir-card .kbk-input").val("");
+  $("#newdir-card .btn-primary").click(function () {
+    new_dname = $("#newdir-card .kbk-input").val();
+    if (new_dname.trim() != "") {
+      $.get("/fmapi/newDirectory?server=" + window.localStorage.selectedServer + "&path=" + curDir + "&newdir=" + btoa(new_dname), function () {
+        $("#bdf").hide();
+        refreshDir();
+        $("#newdir-card .btn-primary").unbind("click");
+      });
     }
-  })
+  });
 }
 
 function uploadFM() {
@@ -82,18 +239,21 @@ function uploadFM() {
       type: "POST",
       data: formData,
       success: function (data) {
-        Swal.fire(
-          '{{success}}',
-          'success'
-        ).then((result) => {
-          refreshDir();
-        });
+        refreshDir();
       },
       error: function (data) {
-        Swal.fire(
-          '{{error}}',
-          'error'
-        );
+        Toastify({
+          text: "{{error}} " + data,
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-warning)",
+          }
+        }).showToast();
       },
       cache: false,
       contentType: false,
@@ -105,37 +265,29 @@ function uploadFM() {
 function renameFM(path) {
   fn = path.split("/").slice(-1)[0];
 
-  Swal.fire({
-    title: '{{dorename-fm}} ' + fn + "?",
-    input: 'text',
-    inputValue: fn,
-    inputAttributes: {
-      autocapitalize: 'off'
-    },
-    showCancelButton: true,
-    confirmButtonText: '{{rename}}',
-    cancelButtonText: '{{cancel}}',
-    showLoaderOnConfirm: false,
-    preConfirm: (new_fname) => {
-      return fetch("/fmapi/renameFile?server=" + window.localStorage.selectedServer + "&path=" + path + "&newname=" + btoa(new_fname))
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(response.statusText)
-          }
-          return response.json()
-        })
-        .catch(error => {
-          Swal.showValidationMessage(
-            `Request failed: ${error}`
-          )
-        })
-    },
-    allowOutsideClick: () => !Swal.isLoading()
-  }).then((result) => {
-    if (result.isConfirmed) {
-      refreshDir();
+  hideAllCards();
+  $("#rename-card .card-text").text('{{dorename-fm}} ' + fn + "?");
+  $("#rename-card .btn-primary").unbind("click");
+  $("#bdf").show();
+  $("#rename-card").show();
+  $("#rename-card").fadeIn(200);
+  $("#rename-card .kbk-input").val(fn);
+  $("#rename-card .btn-primary").click(function () {
+    new_fname = $("#rename-card .kbk-input").val();
+    if (new_fname.trim() != "") {
+      $.get("/fmapi/renameFile?server=" + window.localStorage.selectedServer + "&path=" + path + "&newname=" + btoa(new_fname), function () {
+        $("#bdf").hide();
+        refreshDir();
+        $("#rename-card .btn-primary").unbind("click");
+      });
     }
-  })
+  });
+}
+
+function hideAllCards() {
+  $("#bdf .card").each(function (i, obj) {
+    $(obj).hide();
+  });
 }
 
 function saveFile() {
@@ -151,7 +303,7 @@ function saveFile() {
   });
   console.log("[FM]", "emit startFileWrite");
 
-  textSplit = $("#feModal .modal-body textarea").val().split("\n");
+  textSplit = $("#fileEditArea").val().split("\n");
   console.log("[FM]", "Sending " + textSplit.length + " fragments of file through websockets");
   textSplit.forEach(function (seg) {
     socket.emit("addFileWrite", {
@@ -186,7 +338,10 @@ function downloadFM(path) {
 }
 
 function refreshDir() {
-  $("#fm-table").html("");
+  unselectAllCheckboxes();
+  syncMultiplyFilesCount();
+  saveScroll = $(".fm_container>.sub-block>.contentt").scrollTop();
+  $("#fm-table tbody").html("");
   $("#breadcrumb-fm").html('<li class="breadcrumb-item">' + window.localStorage.selectedServer + '</li>');
   spl = curDir.split("/");
   spl = spl.filter(element => {
@@ -198,14 +353,14 @@ function refreshDir() {
     });
   }
   if (curDir != "/") {
-    $("#fm-table").append(
+    $("#fm-table tbody").append(
       '<tr ondblclick="upperDir()"><td></td><td class="fn">..</td><td></td><td></td></tr>');
   }
   $.get("/fmapi/scanDirectory?server=" + window.localStorage.selectedServer + "&directory=" + curDir, function (data) {
     data = JSON.parse(data);
     if (typeof data == "object") {
       data = sortToDirsAndFiles(data);
-      data.forEach(function (file) {
+      data.forEach(function (file, i) {
         size = 0;
         if (file.size < 1024 * 1024) {
           size = Math.round(file.size / 1024 * 10) / 10 + " Kb";
@@ -219,16 +374,20 @@ function refreshDir() {
         if (file.size >= 1024 * 1024 * 1024) {
           size = Math.round(file.size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
         }
+        obj_date = new Date(file.modify);
+        mdate = formatDateFactory(obj_date);
         if (file.type == "directory") {
           act =
-            '<button type="button" title="{{rename}}" onclick=renameFM("' +
+            '<button type="button" title="{{delete}}" onclick="deleteDirFM(' + "'" +
+            curDir + file.name + "'" +
+            ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
             curDir + file.name +
             '")><img width=24px src="/assets/fm_icons/edit.png"></button>';
         } else {
           act =
-            '<button type="button" title="{{delete}}" onclick=deleteFM("' +
-            curDir + file.name +
-            '")><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
+            '<button type="button" title="{{delete}}" onclick="deleteFM(' + "'" +
+            curDir + file.name + "'" +
+            ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
             curDir + file.name +
             '")><img width=24px src="/assets/fm_icons/edit.png"></button><button type="button" title="{{download}}" onclick=downloadFM("' +
             curDir + file.name +
@@ -250,13 +409,23 @@ function refreshDir() {
         if (file.type == "directory") {
           size = "";
         }
-        $("#fm-table").append(
+        cb = '<input class="fsboxes" type="checkbox" id="fsbox_' + i + '" value="sel"/>';
+        $("#fm-table tbody").append(
           '<tr data-type="' + file.type +
-          '"><td style="width: 20px;"><img height="64px" src="/assets/fm_icons/' + icon +
+          '"><td>' + cb + '</td><td style="width: 20px;"><img height="32px" src="/assets/fm_icons/' + icon +
           '"></td><td class="fn">' +
-          file.name + '</td><td>' + size + '</td><td class="buttons-td">' + act + '</td></tr>');
+          file.name + '</td><td>' + mdate + '</td><td>' + size + '</td><td class="buttons-td">' + act + '</td></tr>');
       });
       $("#fm-table").unbind("click");
+      $("#fm-table td .fsboxes").change(function () {
+        rs = ifAllFilesSelected();
+        if (rs) {
+          $("#fsbox_all").prop("checked", true);
+        } else {
+          $("#fsbox_all").prop("checked", false);
+        }
+        syncMultiplyFilesCount();
+      });
       $("#fm-table tr").dblclick(function () {
         if ($(this).data("type") == "directory") {
           curDir += $(this).find(".fn")[0].innerText + "/";
@@ -270,13 +439,19 @@ function refreshDir() {
             $.get("/fmapi/getFile?server=" + window.localStorage.selectedServer + "&path=" + curDir + $(this).find(".fn")[0]
               .innerText,
               function (data) {
-                $("#feModal .modal-body textarea").val(data);
-                myModal = new mdb.Modal(document.getElementById('feModal'));
-                myModal.show();
+                $("#fileEditArea").val(data);
+                lines = data.split('\n').length;
+
+                $(".line-numbers").html(Array(lines)
+                  .fill('<span></span>')
+                  .join(''));
+                $("#feModal").show();
+                $("#feModal").fadeIn(150);
               });
           }
         }
       });
+      $(".fm_container>.sub-block>.contentt").scrollTop(saveScroll);
     }
   });
 }

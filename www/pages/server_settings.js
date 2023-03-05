@@ -14,7 +14,7 @@ $(document).ready(function () {
         if (jfile == javaPath) {
           active = " checked";
         }
-        $("#java-versions-radios").append('<div class="form-check"><input class="form-check-input" type="radio"' + active + ' name="javaRadios" id="javaRadio-' + i + '" /><label class="form-check-label" for="javaRadio-' + i + '"> ' + jfile + ' </label></div>');
+        $("#java-versions-radios").append('<div class="radio"><input class="kbk-radio" type="radio"' + active + ' name="javaRadios" id="javaRadio-' + i + '" /><label for="javaRadio-' + i + '"> ' + jfile + ' </label></div>');
       });
     });
   });
@@ -61,20 +61,21 @@ function changeServerIcon() {
       type: "POST",
       data: formData,
       success: function (data) {
-        Swal.fire(
-          '{{success}}',
-          '{{restart-server-to-see-changes}}',
-          'success'
-        ).then((result) => {
-          window.location = "";
-        });
+        window.location = "";
       },
       error: function (data) {
-        Swal.fire(
-          '{{error}}',
-          '{{error-upload}}',
-          'error'
-        );
+        Toastify({
+          text: "{{error-upload}}",
+          duration: 3000,
+          newWindow: true,
+          close: false,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "var(--mdb-danger)",
+          }
+        }).showToast();
       },
       cache: false,
       contentType: false,
@@ -109,9 +110,10 @@ function refreshServerProperties() {
     fulls = data;
     keys.forEach(function (key, i) {
       znach = fulls[key];
-      if(typeof znach == "object"){
+      if (typeof znach == "object") {
         znach = JSON.stringify(znach).replace("null", "").trim();;
       }
+
       if (typeof znach == "boolean") {
         if (znach == true) {
           checkd = " checked";
@@ -119,19 +121,45 @@ function refreshServerProperties() {
           checkd = "";
         }
         $("#speditor-pills .container_sp").append(
-          '<div class="ttc"><div class="form-check form-switch cbox"><input type="checkbox" role="switch" id="ct' +
-          i + '" name="ct' + i + '" class="form-check-input"' + checkd +
-          '><label class="stlabel form-check-label" for="ct' + i + '">' + key +
-          '</label></div>');
+          '<div class="ttc ttbb d-flex flex-row align-items-center" data-type="switch"><label class="switch cbox"><input type="checkbox" id="ct' +
+          i + '" name="ct' + i + '"' + checkd +
+          '><span class="slider round"></span></label><span class="ms-2 key">' + key +
+          '</span></div>');
       } else {
-        if (znach != null) {
+        if (key == "difficulty") {
+          r = ['hard', 'medium', 'easy', 'peaceful'];
+          c = "";
+          r.forEach(function (diff) {
+            if (diff == znach) {
+              c = c + "<option selected>" + diff + "</option>";
+            } else {
+              c = c + "<option>" + diff + "</option>";
+            }
+          });
           $("#speditor-pills .container_sp").append(
-            '<div class="ttc ttbb"><div class="ttcc"><input type="text" style="width: 256px" class="form-control" value="' +
-            znach + '"></div><div class="ttcc"><span>' + key + '</span></div></div>');
+            '<div class="ttc ttbb" data-type="text"><div class="ttcc"><select class="kbk-input" style="width: 256px;">' + c + '</select></div><div class="ttcc"><span>' + key + '</span></div></div>');
+        } else if (key == "gamemode") {
+          r = ['adventure', 'survival', 'creative'];
+          c = "";
+          r.forEach(function (diff) {
+            if (diff == znach) {
+              c = c + "<option selected>" + diff + "</option>";
+            } else {
+              c = c + "<option>" + diff + "</option>";
+            }
+          });
+          $("#speditor-pills .container_sp").append(
+            '<div class="ttc ttbb" data-type="text"><div class="ttcc"><select class="kbk-input" style="width: 256px;">' + c + '</select></div><div class="ttcc"><span>' + key + '</span></div></div>');
         } else {
-          $("#speditor-pills .container_sp").append(
-            '<div class="ttc ttbb"><div class="ttcc"><input type="text" style="width: 256px" class="form-control" value=""></div><div class="ttcc"><span>' +
-            key + '</span></div></div>');
+          if (znach != null) {
+            $("#speditor-pills .container_sp").append(
+              '<div class="ttc ttbb" data-type="text"><div class="ttcc"><input type="text" style="width: 256px" class="kbk-input" value="' +
+              znach + '"></div><div class="ttcc"><span>' + key + '</span></div></div>');
+          } else {
+            $("#speditor-pills .container_sp").append(
+              '<div class="ttc ttbb" data-type="text"><div class="ttcc"><input type="text" style="width: 256px" class="kbk-input" value=""></div><div class="ttcc"><span>' +
+              key + '</span></div></div>');
+          }
         }
       }
     });
@@ -140,19 +168,23 @@ function refreshServerProperties() {
 
 function saveProps() {
   var sp = "";
-  $(".ttgrid .cbox").each(function () {
-    chk = $(this).find("input").is(':checked') ? true : false;
-    key = $(this).find("label").html();
-    if (sp !== "") {
-      sp = sp + "\n" + key + "=" + chk;
+  $(".ttbb").each(function(){
+    if($(this).data("type") == "switch"){
+      chk = $(this).find("input").is(':checked') ? true : false;
+      key = $(this).find(".key").html();
+      if (sp !== "") {
+        sp = sp + "\n" + key + "=" + chk;
+      } else {
+        sp = key + "=" + chk;
+      }
     } else {
-      sp = key + "=" + chk;
+      value = $(this).find("input").val();
+      key = $(this).find("span").html();
+      if (key == "difficulty" || key == "gamemode") {
+        value = $(this).find("select option:selected").text();
+      }
+      sp = sp + "\n" + key + "=" + value;
     }
-  });
-  $(".ttbb").each(function () {
-    value = $(this).find("input").val();
-    key = $(this).find("span").html();
-    sp = sp + "\n" + key + "=" + value;
   });
   sp = sp.trim();
   $.get("/server/saveServerPropertiesFile?doc=" + encodeURIComponent(sp) + "&server=" + window.localStorage.selectedServer);
