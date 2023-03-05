@@ -7,7 +7,7 @@ Kubek - Web Minecraft servers dashboard, written on Node.js using MDBootstrap
 - Plugins and mods manager
 - Real-time console
 - Server.properties editor
-- FTP server included (tested only on Windows)
+- FTP server included
 - Web file manager
 - Users and roles system
 
@@ -60,4 +60,4 @@ Materials Symbols by Google
 
 [Ui icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/ui)
 
-[Log icons created by Arkinasi - Flaticon](ttps://www.flaticon.com/free-icons/log)
+[Log icons created by Arkinasi - Flaticon](https://www.flaticon.com/free-icons/log)
