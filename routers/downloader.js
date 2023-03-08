@@ -53,11 +53,15 @@ router.get('/download', function (req, res) {
   res.send("Success");
 });
 
-router.get("/getPathToJava", function(req, res) {
+router.get("/getPathToJava", function (req, res) {
   if (typeof req.query.server !== "undefined") {
-    if(fs.existsSync("./servers/" + req.query.server + "/javabin")){
+    if (fs.existsSync("./servers/" + req.query.server + "/javabin")) {
       rd = fs.readdirSync("./servers/" + req.query.server + "/javabin");
-      pathh = "./javabin/" + rd[0] + "/bin/java.exe";
+      if (process.platform == "win32") {
+        pathh = "./javabin/" + rd[0] + "/bin/java.exe";
+      } else {
+        pathh = "./javabin/" + rd[0] + "/bin/java";
+      }
       res.send(pathh);
     } else {
       res.send(false);
