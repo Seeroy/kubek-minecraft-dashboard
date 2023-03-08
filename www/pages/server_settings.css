@@ -4,18 +4,6 @@
 }
 
 /* Main tab */
-.icon-changer {
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 80px;
-  border-radius: 8px;
-  border: 2px dashed rgb(210, 210, 210);
-  cursor: pointer;
-}
-
 #ex1-content .list-group-item {
   padding: 24px;
 }

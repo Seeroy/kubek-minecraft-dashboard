@@ -94,13 +94,14 @@ router.get('/new', function (req, res) {
   bname = req.query.name;
   desc = req.query.desc;
   type = req.query.type;
+  ratio = req.query.ratio;
   sn = req.query.sn;
-  if (typeof bname !== "undefined" && typeof desc !== "undefined" && type == "full" || type == "selected") {
+  if (typeof bname !== "undefined" && typeof desc !== "undefined" && type == "full" || type == "selected" && typeof ratio !== "undefined") {
     if (type == "full") {
-      ret = backups.createNewBackup(bname, desc, type, sn);
+      ret = backups.createNewBackup(bname, desc, type, sn, ratio);
     } else {
       files = JSON.parse(req.query.files);
-      ret = backups.createNewBackup(bname, desc, type, sn, files);
+      ret = backups.createNewBackup(bname, desc, type, sn, ratio, files);
     }
   } else {
     ret = false;

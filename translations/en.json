@@ -34,6 +34,7 @@
   "{{error-upload}}": "File upload error",
   "{{do-not-reload-page}}": "Don't reload the page",
   "{{settings-saved}}": "Settings have been saved",
+  "{{change-only-sp}}": "Server name only changes in the server.properties 'motd'",
 
   "{{signinbtn-login}}": "Login",
   "{{signin-msg-login}}": "Sign in to use this application",
@@ -117,6 +118,7 @@
   "{{afterdelno-fm}}": "Nothing removed",
   "{{afterdelfiles-fm}}": "files",
   "{{afterdeldirs-fm}}": "folders",
+  "{{newfile-fm}}": "New file",
 
   "{{select-core-sw}}": "Select core",
   "{{ns-name-sw}}": "Enter the name of the new server",
@@ -139,6 +141,7 @@
   "{{unpacking-java-sw}}": "Java unpacking in progress",
   "{{unpacking-java-compl-sw}}": "Unpacking completed, please wait...",
   "{{downloading-compl-java-sw}}": "Java download completed, please wait...",
+  "{{lookslike-ver-sw}}": "It looks like your server version is ",
 
   "{{java-incomp-error}}": "Perhaps you have a version of Java that is incompatible with this version of the server, you can change the version of Java in the server settings",
   "{{java-path-error}}": "Server startup file possible contains outdated information. Try to go to the server settings and select the appropriate Java version / change the current one",
@@ -168,6 +171,8 @@
   "{{consolemsg-ftp-error}}": "An FTP error has occurred:",
   "{{consolemsg-ftp-started}}": "New FTP connection started",
   "{{consolemsg-ftp-connect}}": "logged in successfully",
+  "{{consolemsg-viewurl-start}}": "The web interface is located at",
+  "{{consolemsg-cantbestarted}}" : "Server cannot be started after 3 attempts",
 
   "{{backups-capt}}": "Backups",
   "{{backups-disk-total}}": "Total: ",
@@ -182,6 +187,7 @@
   "{{backups-types-selfiles}}": "Select required files and folders",
   "{{backups-text-type}}": "Backup type",
   "{{backups-text-status}}": "Backup status",
+  "{{backups-compress}}": "Select backup compression ratio (bigger -> smaller archive, longer operations)",
 
   "{{backups-type-full}}": "Full backup",
   "{{backups-type-selected}}": "Selective backup",

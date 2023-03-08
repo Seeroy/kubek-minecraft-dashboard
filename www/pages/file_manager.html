@@ -83,18 +83,30 @@
       class="material-symbols-outlined">autorenew</span></button>
 </div>
 
+<div class="editModalBg" style="display: none;" id="nfeModal">
+  <div class="sub-block console card border border-1 shadow-0">
+    <div class="header d-flex flex-row align-items-center">
+      <input class="kbk-input w-100" id="nfeModalEdit">
+    </div>
+    <div class="contentt p-3" style="overflow: hidden;">
+      <textarea id="newFileEditArea" class="w-100 h-100" spellcheck="false" style="overflow-y: auto;"></textarea>
+    </div>
+    <div class="footer d-flex align-items-center justify-content-end">
+      <button type="button" class="btn btn-secondary" onclick="$('#nfeModal').hide()">
+        {{cancel}}
+      </button>
+      <button type="button" class="btn btn-primary">{{create}}</button>
+    </div>
+  </div>
+</div>
+
 <div class="editModalBg" style="display: none;" id="feModal">
   <div class="sub-block console card border border-1 shadow-0">
     <div class="header d-flex flex-row align-items-center">
       <span class="flex-fill" id="feModalLabel"></span>
     </div>
-    <div class="contentt overflow-y-auto p-0">
-      <div class="editor">
-        <div class="line-numbers">
-          <span></span>
-        </div>
-        <textarea id="fileEditArea" spellcheck="false"></textarea>
-      </div>
+    <div class="contentt p-3" style="overflow: hidden;">
+      <textarea id="fileEditArea" class="w-100 h-100" spellcheck="false" style="overflow-y: auto;"></textarea>
     </div>
     <div class="footer d-flex align-items-center justify-content-end">
       <button type="button" class="btn btn-secondary" onclick="$('#feModal').hide()">
@@ -114,13 +126,16 @@
   <div class="sub-block console card border border-1 shadow-0">
     <div class=" header d-flex flex-row align-items-center">
       <span class="flex-fill">{{file-manager}}</span>
+      <button type="button" class="btn btn-secondary h-100" onclick="newFileFM()" style="margin-right: 10px;">
+        {{newfile-fm}}
+      </button>
       <button type="button" class="btn btn-primary" onclick="refreshDir()" style="margin-right: 10px;">
         <span class="material-symbols-outlined">autorenew</span>
       </button>
       <button type="button" class="btn btn-primary" onclick="newdirFM()" style="margin-right: 10px;">
         <span class="material-symbols-outlined">create_new_folder</span>
       </button>
-      <button type="button" class="btn btn-primary" onclick="uploadFM()">
+      <button type="button" class="btn btn-primary" onclick="uploadFM()" title="{{upload}}">
         <span class="material-symbols-outlined">publish</span>
       </button>
     </div>

@@ -3,7 +3,6 @@ startScript_save = "";
 $(document).ready(function () {
   cs = false;
   refreshServerProperties();
-  $("#main-pills .icon-changer img").attr("src", "/server/icon?server=" + window.localStorage.selectedServer);
   $.get("/server/getStartScript?server=" + window.localStorage.selectedServer, function (data) {
     javaPath = data.toString().substring(1, data.length);
     javaPath = javaPath.substring(0, javaPath.search('"'));
@@ -16,6 +15,15 @@ $(document).ready(function () {
         }
         $("#java-versions-radios").append('<div class="radio"><input class="kbk-radio" type="radio"' + active + ' name="javaRadios" id="javaRadio-' + i + '" /><label for="javaRadio-' + i + '"> ' + jfile + ' </label></div>');
       });
+    });
+    $.get("/downloader/getPathToJava?server=" + window.localStorage.selectedServer, function(ret){
+      if(ret != false){
+        active = "";
+        if (ret == javaPath) {
+          active = " checked";
+        }
+        $("#java-versions-radios").append('<div class="radio"><input class="kbk-radio" type="radio"' + active + ' name="javaRadios" id="javaRadio-' + $("#java-versions-radios .radio").length + '" /><label for="javaRadio-' + $("#java-versions-radios .radio").length + '"> ' + ret + ' </label></div>');
+      }
     });
   });
 
@@ -48,39 +56,6 @@ function deleteServer() {
   $.get("/server/delete?server=" + window.localStorage.selectedServer, function () {
     window.localStorage.removeItem("selectedServer");
     window.location = "/";
-  });
-}
-
-function changeServerIcon() {
-  $("#g-img-input").trigger('click');
-  $("#g-img-input").off("change");
-  $("#g-img-input").change(function () {
-    var formData = new FormData($("#g-img-form")[0]);
-    jQuery.ajax({
-      url: '/upload/icon?server=' + window.localStorage.selectedServer,
-      type: "POST",
-      data: formData,
-      success: function (data) {
-        window.location = "";
-      },
-      error: function (data) {
-        Toastify({
-          text: "{{error-upload}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "var(--mdb-danger)",
-          }
-        }).showToast();
-      },
-      cache: false,
-      contentType: false,
-      processData: false,
-    });
   });
 }
 

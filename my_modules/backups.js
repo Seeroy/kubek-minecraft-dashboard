@@ -67,7 +67,7 @@ exports.restoreBackup = function (fn, sn, cb) {
   }
 };
 
-exports.createNewBackup = (bname, desc, type, sn, files = null) => {
+exports.createNewBackup = (bname, desc, type, sn, ratio, files = null) => {
   date = new Date();
   randuid = crypto.randomUUID().toString();
   date_str = date.getDate().toString().padStart(2, "0") + "_" + (date.getMonth() + 1).toString().padStart(2, "0") + "_" + date.getFullYear().toString().padStart(2, "0") + "-" + date.getHours().toString().padStart(2, "0") + "_" + date.getMinutes().toString().padStart(2, "0") + "_" + date.getSeconds().toString().padStart(2, "0");
@@ -79,14 +79,16 @@ exports.createNewBackup = (bname, desc, type, sn, files = null) => {
     archive_name: archname,
     selected_files: files,
     uid: randuid,
-    server: sn
+    server: sn,
+    compress_ratio: ratio
   }
   cfgname = "backup-" + type + "-" + date_str + ".json";
   fs.writeFileSync("./backups/" + cfgname, JSON.stringify(jsonf, null, "\t"));
   backups_processing_fs[randuid] = fs.createWriteStream('./backups/' + archname);
+  ratio = parseInt(ratio);
   backups_processing[randuid] = archiver('zip', {
     zlib: {
-      level: 5
+      level: ratio
     }
   });
   backups_processing_status[randuid] = {

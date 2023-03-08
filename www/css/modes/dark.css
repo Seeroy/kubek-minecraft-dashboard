@@ -35,6 +35,10 @@
   color: var(--mdb-white);
 }
 
+#langSelectButton {
+  background: #424242;
+}
+
 /* Chip and kub block stylings */
 .chip {
   color: var(--mdb-white);

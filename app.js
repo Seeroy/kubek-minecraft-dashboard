@@ -241,7 +241,6 @@ updater.checkForUpdates(function (upd) {
     next();
   });
   app.listen(port, () => {
-    link = 'http://localhost:' + port;
     console.log(additional.getTimeFormatted(), "Webserver", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), port);
   });
   console.log(additional.getTimeFormatted(), "Socket.io", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 112);
@@ -253,6 +252,7 @@ updater.checkForUpdates(function (upd) {
     }
     ftpserver = ftpd.startFTPD(options, cfg['ftpd-user'], cfg['ftpd-password']);
   }
+  console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-viewurl-start}}", cfg['lang']), 'http://localhost:' + port);
 });
 
 updater.setCheckingForUpdatesByInterval(updatesInterval);

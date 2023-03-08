@@ -22,6 +22,38 @@
   <div class="server-capt-div">
     <img src="/assets/icon.png" height="48" id="server-icon">
     <span id="server-name"></span>
+    <button type="button" class="btn" data-mdb-toggle="modal" data-mdb-target="#editServerModal">
+      <span class="material-symbols-outlined ms-2 text-white" id="edit-button">edit</span>
+    </button>
+  </div>
+</div>
+
+<form id="g-img-form" enctype="multipart/form-data">
+  <input name="g-img-input" id="g-img-input"
+    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file" accept=".png">
+</form>
+
+<div class="modal fade" id="editServerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="d-flex flex-column">
+          <div class="d-flex flex-row align-items-center justify-content-center mb-4">
+            <div class="icon-changer">
+              <img height="48px" onclick="changeServerIcon()">
+            </div>
+            <div style="font-size: 12pt; color: rgb(150,150,150); margin-left: 8px;">{{use-64-for-better-look-ss}}
+            </div>
+          </div>
+          <input class="kbk-input w-100" placeholder="{{selected-sn-sw}}" id="serverNameModalEdit">
+          <p class="mt-2 mb-0" style="font-size: 10pt;">* {{change-only-sp}}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">{{cancel}}</button>
+        <button type="button" class="btn btn-primary" onclick="saveServerEdits()">{{save}}</button>
+      </div>
+    </div>
   </div>
 </div>
 

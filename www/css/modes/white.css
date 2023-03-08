@@ -35,6 +35,10 @@
   color: var(--mdb-black);
 }
 
+#langSelectButton {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
 /* Chip and kub block stylings */
 .chip {
   color: var(--mdb-black);
@@ -164,7 +168,7 @@
 /* Global styles */
 .kbk-input {
   color: black;
-  background: var(--mdb-gray-200);
+  background: #ebebeb;
 }
 
 .kbk-input::placeholder {

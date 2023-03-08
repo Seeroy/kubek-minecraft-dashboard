@@ -26,6 +26,15 @@
           <textarea class="kbk-input w-100" rows="4" placeholder="{{backups-backupdesc}}" id="bcdesc-input"></textarea>
         </div>
 
+        <span>{{backups-compress}}</span>
+        <div class="range">
+          <input type="range" class="form-range" min="0" max="9" id="backupCompressRatio" />
+        </div>
+        <div class="d-flex flex-row mb-3">
+          <span class="flex-fill">0</span>
+          <span>9</span>
+        </div>
+
         <p>{{backups-seltype-capt}}</p>
 
         <div class="radio">

@@ -9,23 +9,23 @@ $(document).ready(function () {
   }
   refreshDir();
 
-  $("#fileEditArea").keyup(function () {
-    lines = $(this).val().split('\n').length;
+  /* $("#fileEditArea").keyup(function () {
+     lines = $(this).val().split('\n').length;
 
-    $(".line-numbers").html(Array(lines)
-      .fill('<span></span>')
-      .join(''));
-  });
+     $(".line-numbers").html(Array(lines)
+       .fill('<span></span>')
+       .join(''));
+   });
 
-  $("#fileEditArea").keydown(function (e) {
-    if (e.key === 'Tab') {
-      start = $("#fileEditArea")[0].selectionStart;
-      end = $("#fileEditArea")[0].selectionEnd;
-      val = $("#fileEditArea").val().substring(0, start) + '\t' + $("#fileEditArea").val().substring(end);
-      $("#fileEditArea").val(val);
-      e.preventDefault()
-    }
-  });
+   $("#fileEditArea").keydown(function (e) {
+     if (e.key === 'Tab') {
+       start = $("#fileEditArea")[0].selectionStart;
+       end = $("#fileEditArea")[0].selectionEnd;
+       val = $("#fileEditArea").val().substring(0, start) + '\t' + $("#fileEditArea").val().substring(end);
+       $("#fileEditArea").val(val);
+       e.preventDefault()
+     }
+   });*/
 
   $("#fsbox_all").change(function () {
     if ($(this).is(":checked")) {
@@ -34,6 +34,42 @@ $(document).ready(function () {
       unselectAllCheckboxes();
     }
     syncMultiplyFilesCount()
+  });
+
+  $("#nfeModal .btn-primary").click(function () {
+    fn = $("#nfeModalEdit").val().trim();
+    text = $("#newFileEditArea").val();
+    if (fn != null) {
+      startTime = performance.now()
+      console.log("[FM]", "Starting file save through websockets");
+      path = window.localStorage.selectedServer + curDir + fn;
+      randCode = genID(20);
+
+      socket.emit("startFileWrite", {
+        path: path,
+        randCode: randCode
+      });
+      console.log("[FM]", "emit startFileWrite");
+
+      textSplit = text.split("\n");
+      console.log("[FM]", "Sending " + textSplit.length + " fragments of file through websockets");
+      textSplit.forEach(function (seg) {
+        socket.emit("addFileWrite", {
+          add: seg,
+          randCode: randCode
+        });
+      });
+
+      socket.emit("finishFileWrite", {
+        randCode: randCode
+      });
+      console.log("[FM]", "emit finishFileWrite");
+      endTime = performance.now()
+      delta_sec = (endTime - startTime) / 1000;
+      console.log("[PERF]", "Saving this file took " + delta_sec + " sec.");
+      refreshDir();
+      $("#nfeModal").hide();
+    }
   });
 });
 
@@ -428,11 +464,11 @@ function refreshDir() {
               .innerText,
               function (data) {
                 $("#fileEditArea").val(data);
-                lines = data.split('\n').length;
+                /*lines = data.split('\n').length;
 
                 $(".line-numbers").html(Array(lines)
                   .fill('<span></span>')
-                  .join(''));
+                  .join(''));*/
                 $("#feModal").show();
                 $("#feModal").fadeIn(150);
               });
@@ -442,6 +478,13 @@ function refreshDir() {
       $(".fm_container>.sub-block>.contentt").scrollTop(saveScroll);
     }
   });
+}
+
+function newFileFM() {
+  $("#fileEditArea").val("");
+  $("#nfeModalEdit").val("");
+  $("#nfeModal").show();
+  $("#nfeModal").fadeIn(150);
 }
 
 function sortToDirsAndFiles(data) {

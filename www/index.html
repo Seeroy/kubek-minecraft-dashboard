@@ -74,8 +74,7 @@
           <span class="material-symbols-outlined">folder_open</span>
           <span class="ms-2">{{file-manager}}</span>
         </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center backups-menu-item"
-          data-page="backups">
+        <li class="list-group-item px-4 d-flex flex-row align-items-center backups-menu-item" data-page="backups">
           <span class="material-symbols-outlined">cloud_circle</span>
           <span class="ms-2">{{backups-capt}}</span>
         </li>
@@ -115,6 +114,17 @@
           <a class="nav-link darktheme-button" data-theme="dark" data-mdb-toggle="pill">DARK</a>
         </li>
       </ul>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle kbk-input" type="button" id="langSelectButton" data-mdb-toggle="dropdown">
+          Dropdown button
+        </button>
+        <ul class="dropdown-menu" id="langSelectMenu">
+          <li><a class="dropdown-item" value="ru" data-lang="ru"><i class="flag flag-ru"></i>Русский</a></li>
+          <li><a class="dropdown-item" value="en" data-lang="en"><i class="flag flag-us"></i>English</a></li>
+          <li><a class="dropdown-item" value="nl" data-lang="nl"><i class="flag flag-nl"></i>Dutch</a></li>
+        </ul>
+      </div>
     </div>
 
     <div class="content flex-fill" style="width: 1vh;"></div>
@@ -140,6 +150,15 @@
   var old_bl_upd = 10;
 
   $(document).ready(function () {
+    $("#langSelectMenu li").click(function () {
+      newlang = $(this).find("a").data("lang");
+      $.get('/kubek/config', function (data) {
+        data['lang'] = newlang;
+        $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(data)), function (data) {
+          location.reload();
+        });
+      });
+    });
     $.get("/auth/permissions", function (perms) {
       if (!perms.includes("console")) {
         $(".sidenavLayout .console-menu-item").removeClass("d-flex");
@@ -167,7 +186,8 @@
       }
     });
     $.get('/kubek/config', function (data) {
-      if(data.auth == false){
+      $("#langSelectButton").html($("#langSelectMenu li a[value=" + data.lang + "]").html());
+      if (data.auth == false) {
         $(".sidenavLayout .logout-account-item").removeClass("d-flex");
         $(".sidenavLayout .logout-account-item").hide();
       }
@@ -203,6 +223,8 @@
 
     $("#sidebar-menu-list .list-group-item").click(function () {
       if ($("#servers-list-sidebar .list-group-item").length < 2) {
+        $("#sidebar-menu-list").hide();
+        $("#servers-list-sidebar").hide();
         gotoPage("welcome");
       } else {
         pg = $(this).data("page");
@@ -249,6 +271,8 @@
       });
 
       if ($("#servers-list-sidebar .list-group-item").length < 2) {
+        $("#sidebar-menu-list").hide();
+        $("#servers-list-sidebar").hide();
         gotoPage("welcome");
       } else {
         if (typeof act !== "undefined" && act !== "undefined") {

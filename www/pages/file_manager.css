@@ -81,33 +81,6 @@
   filter: saturate(0%);
 }
 
-#feModal .editor {
-  display: inline-flex;
-  gap: 10px;
-  font-family: monospace;
-  line-height: 21px;
-  background: #282a3a;
-  border-radius: 2px;
-  padding: 20px 10px;
-  width: 100%;
-}
-
-#feModal .line-numbers {
-  width: 36px;
-  text-align: right;
-}
-
-#feModal .line-numbers span {
-  counter-increment: linenumber;
-  font-family: monospace;
-}
-
-#feModal .line-numbers span::before {
-  content: counter(linenumber);
-  display: block;
-  color: #506882;
-}
-
 #breadcrumb-fm .breadcrumb-item:not(:last-child) {
   color: var(--mdb-gray-500);
 }
@@ -120,7 +93,8 @@
   padding-right: 4px;
 }
 
-#feModal textarea {
+#feModal textarea,
+#nfeModal textarea {
   line-height: 21px;
   font-family: monospace;
   overflow-y: hidden;
@@ -134,11 +108,13 @@
   width: 100%;
 }
 
-#feModal .footer .btn:not(:first-child) {
+#feModal .footer .btn:not(:first-child),
+#nfeModal .footer .btn:not(:first-child) {
   margin-left: 6px;
 }
 
-#feModal .contentt {
+#feModal .contentt,
+#nfeModal .contentt {
   background: #282a3a;
 }
 

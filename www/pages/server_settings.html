@@ -1,11 +1,6 @@
 <link rel="stylesheet" href="/pages/server_settings.css">
 <script src="/pages/server_settings.js"></script>
 
-<form id="g-img-form" enctype="multipart/form-data">
-  <input name="g-img-input" id="g-img-input"
-    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file" accept=".png">
-</form>
-
 <div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
   style="animation-delay: .3s; padding-right: 24px;">
   <div class="chip-nb d-flex flex-row align-items-center">
@@ -51,16 +46,6 @@
 
   <div class="tab-content" id="ex1-content">
     <div class="tab-pane fade show active" id="main-pills" role="tabpanel" aria-labelledby="main-tab">
-      <li
-        class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex justify-content-center align-items-center"
-        id="sicon">
-        <div class="icon-changer">
-          <img height="48px" onclick="changeServerIcon()">
-        </div>
-        <div style="font-size: 12pt; color: rgb(150,150,150); margin-left: 8px;">{{use-64-for-better-look-ss}}
-        </div>
-      </li>
-
       <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex">
         <span>{{java-ver-ss}}</span>
         <div id="java-versions-radios"></div>

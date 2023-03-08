@@ -34,6 +34,7 @@
   "{{error-upload}}": "Fout bij uploaden van bestand",
   "{{do-not-reload-page}}": "Laad de pagina niet opnieuw",
   "{{settings-saved}}": "Instellingen zijn opgeslagen",
+  "{{change-only-sp}}": "Servernaam verandert alleen in de server.properties 'motd'",
 
   "{{signinbtn-login}}": "Binnenkomen",
   "{{signin-msg-login}}": "Log in om dit programma te gebruiken",
@@ -115,6 +116,7 @@
   "{{afterdelno-fm}}": "Niets verwijderd",
   "{{afterdelfiles-fm}}": "bestanden",
   "{{afterdeldirs-fm}}": "mappen",
+  "{{newfile-fm}}": "Nieuw bestand",
 
   "{{select-core-sw}}": "Selecteer kern",
   "{{ns-name-sw}}": "Voer de naam van de nieuwe server in",
@@ -137,6 +139,7 @@
   "{{unpacking-java-sw}}": "Java wordt uitgepakt",
   "{{unpacking-java-compl-sw}}": "Uitpakken voltooid, even geduld...",
   "{{downloading-compl-java-sw}}": "Java-download voltooid, even geduld...",
+  "{{lookslike-ver-sw}}": "Het lijkt erop dat uw serverversie is ",
 
   "{{java-incomp-error}}": "Misschien heeft u een versie van Java die niet compatibel is met deze versie van de server, u kunt de versie van Java wijzigen in de serverinstellingen",
   "{{java-path-error}}": "Het is mogelijk dat verouderde informatie in het opstartbestand van de server is geschreven. Probeer naar de serverinstellingen te gaan en de juiste Java-versie te selecteren / de huidige te wijzigen",
@@ -166,6 +169,9 @@
   "{{consolemsg-ftp-error}}": "Er is een FTP-fout opgetreden:",
   "{{consolemsg-ftp-started}}": "Nieuwe FTP-verbinding gestart",
   "{{consolemsg-ftp-connect}}": "succesvol ingelogd",
+  "{{consolemsg-viewurl-start}}": "De webinterface bevindt zich op",
+  "{{consolemsg-cantbestarted}}" : "Server kan na 3 pogingen niet worden gestart",
+
   "{{oldpass-ks}}": "Oud paswoord",
   "{{newpass-ks}}": "Nieuw paswoord",
 
@@ -191,6 +197,7 @@
   "{{backups-restorproc}}": "De serverback-up wordt hersteld, laad of sluit de pagina en Kubek niet opnieuw",
   "{{download}}": "Downloaden",
   "{{backups-size}}": "Archief grootte",
+  "{{backups-compress}}": "Selecteer back-upcompressieverhouding (groter -> kleiner archief, langere operaties)",
 
   "{{backup-candestroy}}": "Als u een volledige back-up herstelt, worden uw servergegevens verwijderd. Bij het terugzetten van een gedeeltelijke back-up kunnen uw bestanden beschadigd raken"
 }

@@ -168,6 +168,7 @@ $(document).ready(function () {
   $("#newBackupModal .btn-primary").click(function () {
     bname = $("#bcname-input").val();
     desc = $("#bcdesc-input").val();
+    ratio = $("#backupCompressRatio").val();
     type = $("input[name='backupTypeRadio']:checked")[0].value;
     if (type == "selected") {
       files = [];
@@ -180,9 +181,9 @@ $(document).ready(function () {
           files.push(r);
         }
       });
-      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&files=" + encodeURIComponent(JSON.stringify(files)) + "&type=" + type + "&sn=" + window.localStorage.selectedServer);
+      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&files=" + encodeURIComponent(JSON.stringify(files)) + "&type=" + type + "&sn=" + window.localStorage.selectedServer + "&ratio=" + ratio);
     } else {
-      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&type=" + type + "&sn=" + window.localStorage.selectedServer);
+      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&type=" + type + "&sn=" + window.localStorage.selectedServer + "&ratio=" + ratio);
     }
   });
 });

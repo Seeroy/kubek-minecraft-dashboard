@@ -324,7 +324,7 @@
               $("#progress-card p").html("{{unpacking-java-compl-sw}}");
               $.get("/downloader/getPathToJava?server=" + $("#server-name-input").val(), function (path) {
                 startLine = '"' + path + '"' + " " + $("#fsc").val();
-                if (trackDownloadTasks2_type == "forge") {
+                if (trackDownloadTasks2_type == "forge" || trackDownloadTasks2_type == "other_own") {
                   $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) +
                     "&jf=" +
                     selectedCore_filename.replace(/-installer/gm, "") + "&startcmd=" +
@@ -339,7 +339,7 @@
                     });
                 } else {
                   $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) + "&jf=" +
-                    selectedCore_filename + "&startcmd=" +
+                    trackDownloadTasks_filename + "&startcmd=" +
                     btoa(
                       startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
                     function (data) {
@@ -596,7 +596,7 @@
     }
 
     if (selectedCore_version != null) {
-      $("#srv-ver-detected").html("<span style='color: gray;'>Похоже, версия вашего сервера - </span>" +
+      $("#srv-ver-detected").html("<span style='color: gray;'>{{lookslike-ver-sw}}</span>" +
         selectedCore_version);
       $("#srv-ver-detected").data("ver", selectedCore_version);
       $("#srv-ver-detected").show();

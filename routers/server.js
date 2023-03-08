@@ -306,13 +306,13 @@ function startServer(server) {
         });
       }
       if (code != 0) {
-        servers_logs[server] = servers_logs[server] + "§4ERROR: Process finished with exit code " + code;
+        servers_logs[server] = servers_logs[server] + "§4" + translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code;
         console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.red);
         if (configjson[server]['restartOnError'] == true && errors_parser.checkStringForErrors(servers_logs[server]) == false) {
           if (typeof servers_restart_count[server] == "undefined") {
             servers_restart_count[server] = 1;
             console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1 :", server.red);
-            servers_logs[server] = servers_logs[server] + "\nRestarting server in 3 seconds [ATTEMPT 1]";
+            servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1";
             setTimeout(function () {
               startServer(server);
             }, 3000);
@@ -320,12 +320,12 @@ function startServer(server) {
             if (servers_restart_count[server] < 3) {
               servers_restart_count[server]++;
               console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server] + " :", server.red);
-              servers_logs[server] = servers_logs[server] + "\nRestarting server in 3 seconds [ATTEMPT " + servers_restart_count[server] + "]";
+              servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server];
               setTimeout(function () {
                 startServer(server);
               }, 3000);
             } else {
-              servers_logs[server] = servers_logs[server] + "\n§4Server cannot be started after 3 attempts";
+              servers_logs[server] = servers_logs[server] + "\n§4" + translator.translateHTML("{{consolemsg-cantbestarted}}", cfg['lang']);
             }
           }
         }

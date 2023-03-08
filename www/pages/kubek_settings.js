@@ -146,7 +146,6 @@ function setModalDataByUserInfo(userInfo) {
 
 function saveKubekSettings() {
   rl_page = false;
-  checked = $(".langRadio:checked").val();
   ftpd = $("#ftpserver-checkbox").is(":checked");
   auth = $("#auth-checkbox").is(":checked");
   savelogs = $("#savelogs-checkbox").is(":checked");
@@ -161,7 +160,6 @@ function saveKubekSettings() {
   if(kubekCfg['ftpd'] != ftpd && ftpd == false){
     alert("Для отключения FTPD требуется полный перезапуск Kubek");
   }
-  kubekCfg["lang"] = checked;
   kubekCfg["ftpd"] = ftpd;
   kubekCfg["auth"] = auth;
   kubekCfg["internet-access"] = allowint;
