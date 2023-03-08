@@ -135,6 +135,10 @@
   "{{completion-text-sw}}": "Completion",
   "{{forge-ins-text-sw}}": "Installing the Forge Server",
   "{{recomm-java-msg-sw}}": "Recommended Java version for this server -",
+  "{{use-compat-java-auto-sw}}": "Use the compatible Java version automatically",
+  "{{unpacking-java-sw}}": "Java unpacking in progress",
+  "{{unpacking-java-compl-sw}}": "Unpacking completed, please wait...",
+  "{{downloading-compl-java-sw}}": "Java download completed, please wait...",
 
   "{{java-incomp-error}}": "Perhaps you have a version of Java that is incompatible with this version of the server, you can change the version of Java in the server settings",
   "{{java-path-error}}": "Server startup file possible contains outdated information. Try to go to the server settings and select the appropriate Java version / change the current one",

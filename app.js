@@ -45,7 +45,7 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 })
 const authLimiter2 = rateLimit({
-  windowMs: 2000,
+  windowMs: 1000,
   max: 1,
   standardHeaders: true,
   legacyHeaders: false,
@@ -137,7 +137,7 @@ io.on("connection", (socket) => {
 });
 
 // Custom vars initialization
-global.cp = {};
+global.pendingTasks = {};
 global.serDeletes = {};
 global.servers_logs = [];
 global.servers_instances = [];
@@ -148,13 +148,12 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.kubek_version = "v2.0.6";
+global.kubek_version = "v2.0.7";
 
 app.use(fileUpload());
 app.use(cookieParser());
 app.use('/auth/login', authLimiter);
 app.use('/upload', authLimiter2);
-app.use('/server/completion', authLimiter2);
 app.use('/kubek/saveConfig', authLimiter2);
 app.use('/downloader/download', authLimiter3);
 

@@ -133,6 +133,10 @@
   "{{completion-text-sw}}": "Voltooiing",
   "{{forge-ins-text-sw}}": "De Forge-server installeren",
   "{{recomm-java-msg-sw}}": "Aanbevolen Java-versie voor deze serverversie -",
+  "{{use-compat-java-auto-sw}}": "Gebruik automatisch de juiste Java-versie",
+  "{{unpacking-java-sw}}": "Java wordt uitgepakt",
+  "{{unpacking-java-compl-sw}}": "Uitpakken voltooid, even geduld...",
+  "{{downloading-compl-java-sw}}": "Java-download voltooid, even geduld...",
 
   "{{java-incomp-error}}": "Misschien heeft u een versie van Java die niet compatibel is met deze versie van de server, u kunt de versie van Java wijzigen in de serverinstellingen",
   "{{java-path-error}}": "Het is mogelijk dat verouderde informatie in het opstartbestand van de server is geschreven. Probeer naar de serverinstellingen te gaan en de juiste Java-versie te selecteren / de huidige te wijzigen",

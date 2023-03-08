@@ -11,10 +11,12 @@
   <!-- Others -->
   <script src="/js/jquery-3.6.0.min.js"></script>
   <link rel="stylesheet" href="/css/animate.min.css" />
+  <script src="/js/socket.io.min.js"></script>
 
   <!-- Own -->
   <link rel="stylesheet" href="/css/globals.css" />
   <script src="/js/funcs.js"></script>
+  <link rel="stylesheet" href="/css/modes/white.css">
 
   <!-- Icons and font -->
   <link rel="stylesheet" href="/fonts/Inter/stylesheet.css" />
@@ -66,110 +68,157 @@
       <p id="current-stage-text">{{select-core-sw}}</p>
     </div>
     <div class="content">
-      <div id="first-stage">
+      <div id="first-stage" class="stagecard">
         <div class="input-group mb-3" style="margin-top: -10%;">
-          <input type="text" class="form-control" placeholder="{{enter-new-sn-sw}}" />
+          <input type="text" class="kbk-input w-100" id="server-name-input" placeholder="{{enter-new-sn-sw}}" />
         </div>
       </div>
 
-      <div id="second-stage" style="display: none;">
-        <div class="d-flex flex-row justify-content-evenly">
-          <div class="card active" data-core="paper">
-            <img alt="PaperMC Core" src="/assets/stages_bg/paper.png" width="64" class="card-img-top" />
-            <div class="card-body">
-              <h5 class="card-title">PaperMC</h5>
-              <ul>
-                {{papermc-desc-sw}}
-              </ul>
-              <select id="paper-versel"></select>
+      <div id="second-stage" class="stagecard" style="display: none;">
+        <div class="d-flex align-items-center justify-content-center w-100">
+          <div class="d-flex flex-column" style="width: max-content;">
+            <div class="card active w-100" data-core="paper">
+              <div class="row g-0">
+                <div class="col-md-4">
+                  <img alt="PaperMC Core" src="/assets/stages_bg/paper.png" style="height: 210px;" class="img-fluid" />
+                </div>
+                <div class="col-md-8">
+                  <div class="card-body">
+                    <h5 class="card-title">PaperMC</h5>
+                    <ul>
+                      {{papermc-desc-sw}}
+                    </ul>
+                    <select id="paper-versel"></select>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="card" data-core="spigot">
-            <img alt="Spigot Core" src="/assets/stages_bg/spigotmc.png" width="64" class="card-img-top" />
-            <div class="card-body">
-              <h5 class="card-title">Spigot</h5>
-              <ul>
-                {{spigot-desc-sw}}
-              </ul>
-              <select id="spigot-versel"></select>
+
+            <div class="card w-100" data-core="spigot">
+              <div class="row g-0">
+                <div class="col-md-4">
+                  <img alt="Spigot Core" src="/assets/stages_bg/spigotmc.png" style="height: 210px;"
+                    class="img-fluid" />
+                </div>
+                <div class="col-md-8">
+                  <div class="card-body">
+                    <h5 class="card-title">Spigot</h5>
+                    <ul>
+                      {{spigot-desc-sw}}
+                    </ul>
+                    <select id="spigot-versel"></select>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="card" data-core="own">
-            <img alt="Upload my core" src="/assets/stages_bg/upload.png" width="64" class="card-img-top" />
-            <div class="card-body">
-              <h5 class="card-title">{{upload-core-sw}}</h5>
-              <p class="card-text">{{upload-core-sw}}</p>
-              <p style="font-size: 11pt; color: rgb(170,170,170);">{{forge-autoins-msg-sw}}</p>
+
+            <div class="card w-100" data-core="own">
+              <div class="row g-0">
+                <div class="col-md-4">
+                  <img alt="PaperMC Core" src="/assets/stages_bg/upload.png" style="height: 210px;" class="img-fluid" />
+                </div>
+                <div class="col-md-8">
+                  <div class="card-body">
+                    <h5 class="card-title">{{upload-core-sw}}</h5>
+                    <p class="card-text">{{upload-core-sw}}</p>
+                    <p style="font-size: 11pt; color: rgb(170,170,170);">{{forge-autoins-msg-sw}}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="third-stage" style="display: none;">
+      <div id="third-stage" class="stagecard" style="display: none;">
         <p>{{selected-core-sw}}: <span class="corever"></span></p>
         <p>{{selected-sn-sw}}: <span class="sn"></span></p>
 
+        <div class="list-group-item-light w-100 p-3 rounded-2 mb-3 text-black" id="srv-ver-detected"
+          style="display: none;">
+          test
+        </div>
+
         <div class="input-group mb-3" style="height: 40px;">
-          <button class="btn btn-primary shadow-0 dropdown-toggle" type="button" data-mdb-toggle="dropdown" aria-expanded="false"
-            id="cur-jv" style="height: 40px;"></button>
+          <button class="btn btn-primary shadow-0 dropdown-toggle" type="button" data-mdb-toggle="dropdown"
+            aria-expanded="false" id="cur-jv" style="height: 40px;"></button>
           <ul class="dropdown-menu" id="java-vers-dropdown"></ul>
-          <input type="text" class="form-control" id="fsc" aria-label="Full start command input"
+          <input type="text" class="kbk-input w-100" id="fsc" aria-label="Full start command input"
             style="height: 40px;" />
         </div>
         <p class="req-java" style="color: rgb(130,130,130); font-size: 11pt;"></p>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="javaOptiflagsCheckbox"
-            onchange="generateJavaStartup()" />
-          <label class="form-check-label" for="javaOptiflagsCheckbox">{{add-opti-java-flags-sw}}</label>
+
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" value="" id="javaOptiflagsCheckbox"
+            onchange="generateJavaStartup()">
+          <label for="javaOptiflagsCheckbox">{{add-opti-java-flags-sw}}</label>
         </div>
 
-        <div class="w-100 d-inline-flex justify-content-between" style="margin-top: 12px;">
+        <div class="w-100 d-inline-flex flex-column justify-content-between" style="margin-top: 12px;">
           <div class="input-group mb-3" style="width: 48%; height: 40px;">
-            <span class="input-group-text" id="basic-addon1">{{memory}} (-Xmx)</span>
-            <input type="number" class="form-control" placeholder="{{memory}} (-Xmx)" aria-label="{{memory}} (-Xmx)"
+            <span class="input-group-text kbk-input" id="basic-addon1">{{memory}} (-Xmx)</span>
+            <input type="number" class="kbk-input" placeholder="{{memory}} (-Xmx)" aria-label="{{memory}} (-Xmx)"
               aria-describedby="basic-addon1" min=0.5 max=4 step=0.5 id="xmx" onchange="generateJavaStartup()"
               style="height: 40px;" />
-            <span class="input-group-text" id="basic-addon1">GB</span>
+            <span class="input-group-text kbk-input" id="basic-addon1">GB</span>
           </div>
           <div class="input-group mb-3" style="width: 48%; height: 40px;">
-            <span class="input-group-text" id="basic-addon1">{{server-port}}</span>
-            <input type="number" class="form-control" placeholder="Server port" aria-label="Server port"
+            <span class="input-group-text kbk-input" id="basic-addon1">{{server-port}}</span>
+            <input type="number" class="kbk-input" placeholder="Server port" aria-label="Server port"
               aria-describedby="basic-addon1" value=25565 min=20000 max=65000 step=1 id="serverport"
               style="height: 40px;" />
           </div>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="onlinemodeCheckbox" />
-          <label class="form-check-label" for="onlinemodeCheckbox">online-mode</label>
+        <div class="checkbox">
+          <input class="kbk-checkbox" type="checkbox" id="onlinemodeCheckbox" value="">
+          <label for="onlinemodeCheckbox">online-mode</label>
         </div>
       </div>
     </div>
-    <div class="buttons">
-      <button type="button" class="btn btn-secondary shadow-0" style="display: none;" id="backbtn">
-        < {{back}}</button> <button type="button" class="btn btn-secondary shadow-0" id="nextbtn">{{next}} >
-      </button>
-    </div>
+  </div>
+  <div class="buttons d-flex flex-row justify-content-end">
+    <button type="button" class="btn btn-secondary shadow-0" style="display: none;" id="backbtn">
+      < {{back}}</button> <button type="button" class="btn btn-secondary shadow-0" id="nextbtn">{{next}} >
+    </button>
+  </div>
 </body>
 
 <script>
+  var firstStage_capt = "{{ns-name-sw}}";
+  var secondStage_capt = "{{select-core-sw}}";
+  var thirdStage_capt = "{{finalize-new-sn-sw}}";
   var currentStage = "";
+
+  var trackDownloadTasks_enabled = false;
+  var trackDownloadTasks_filename = "";
+
+  var trackDownloadTasks2_enabled = false;
+  var trackDownloadTasks2_filename = "";
+  var trackDownloadTasks2_type = "";
+  var trackDownloadTasks2_completed = false;
+
+  var trackJavaUnpack_enabled = false;
+
   var nameRegex = /^[a-zA-Z0-9_.-]*$/gm;
-  var selectedCore = "";
-  var selectedCoreVersion = "";
+
+  var selectedCore_type = "";
+  var selectedCore_version = "";
+  var selectedCore_filename = "";
+
+  var sv_port = "";
+  var sv_onmode = "";
+
   var javaOptimizeString =
     "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=15";
 
   $(document).ready(function () {
     $("#g-core-input").val("");
     $("#g-core-form").val("");
+    $("#server-name-input").val("");
     console.log('[UI]', 'Document is ready');
-    $("#current-stage-text").text("{{ns-name-sw}}");
-    $("#first-stage").show();
-    $("#second-stage").hide();
-    $(".form-control").val("");
-    currentStage = 1;
-    console.log('[UI]', 'Stage 1 active');
+    gotoStage(1);
+
     $.get("/kubek/usage", function (usage) {
       total = round512(Math.round(usage.totalmem / 1024 / 1024));
       ttl = (total / 1024).toFixed(1) / 2;
@@ -178,92 +227,199 @@
       $("#xmx").attr("max", max);
       generateJavaStartup();
     });
+
     loadCores();
     setTimeout(function () {
       hideLoading();
     }, 500);
+
+    $("#xmx").change(function () {
+      if ($(this).val() > parseInt($(this).attr("max"))) {
+        $(this).val(parseInt($(this).attr("max")));
+        generateJavaStartup();
+      }
+      if ($(this).val() < $(this).attr("min")) {
+        $(this).val($(this).attr("min"));
+        generateJavaStartup();
+      }
+    });
+
+    socket = openSocket();
+    socket.on("handshake", function () {
+      console.log("[WS]", "WebSocket handshake successful");
+    });
+    socket.on("handleUpdate", function (arg) {
+      console.log("[WS]", "Update handled: " + arg.type);
+      type = arg.type;
+      data = arg.data;
+      switch (type) {
+        case "downloadTasks":
+          if (trackDownloadTasks2_enabled) {
+
+            if (typeof data[trackDownloadTasks2_filename] !== "undefined") {
+              $("#progress-card .progress").show();
+              $("#progress-card .progress-bar").css("width", data[trackDownloadTasks2_filename] + "%");
+              $("#progress-card p").html("{{downing-core-sw}} " + trackDownloadTasks2_filename + " (" + data[
+                trackDownloadTasks2_filename] + "%)");
+            } else {
+              $("#progress-card .progress").hide();
+              $("#progress-card p").html("{{downloading-compl-java-sw}}");
+              trackDownloadTasks2_enabled = false;
+              trackDownloadTasks2_completed = true;
+              trackJavaUnpack_enabled = true;
+            }
+
+          }
+
+          if (trackDownloadTasks_enabled) {
+
+            if (typeof data[trackDownloadTasks_filename] !== "undefined") {
+              $("#progress-card .progress").show();
+              $("#progress-card .progress-bar").css("width", data[trackDownloadTasks_filename] + "%");
+              $("#progress-card p").html("{{downing-core-sw}} " + trackDownloadTasks_filename + " (" + data[
+                trackDownloadTasks_filename] + "%)");
+            } else {
+              $("#progress-card .progress").hide();
+              $("#progress-card p").html("{{unpacking-java-sw}}");
+              if ($("#cur-jv").data("selvalue") == "usedetect") {
+                ver = $("#srv-ver-detected").data('ver');
+
+                $.get("http://localhost:3000/downloader/downloadJavaForServer?serverVersion=" +
+                  selectedCore_version + "&server=" + $("#server-name-input").val(),
+                  function (ret) {
+                    trackDownloadTasks2_filename = ret;
+                    trackDownloadTasks2_enabled = true;
+                  });
+                trackDownloadTasks_enabled = false;
+              } else {
+                trackDownloadTasks2_enabled = false;
+                trackDownloadTasks_enabled = false;
+                pathh = $("#cur-jv").text();
+
+                $("#progress-card .progress-bar").css("width", "100%");
+                $("#progress-card p").html("{{unpacking-java-sw}}");
+                startLine = '"' + pathh + '"' + " " + $("#fsc").val();
+                $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) + "&jf=" +
+                  trackDownloadTasks_filename + "&startcmd=" +
+                  btoa(
+                    startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
+                  function (data) {
+                    if (data == "Success") {
+                      window.localStorage.setItem("selectedServer", $("#server-name-input").val());
+                      window.location = "/";
+                    }
+                  });
+              }
+            }
+
+          }
+          break;
+        case "unpackingJavaArchive":
+          if (trackJavaUnpack_enabled) {
+            if (data == "started") {
+              $("#progress-card .progress").hide();
+              $("#progress-card p").html("{{unpacking-java-sw}}");
+            } else if (data == "completed") {
+              $("#progress-card .progress").hide();
+              $("#progress-card p").html("{{unpacking-java-compl-sw}}");
+              $.get("/downloader/getPathToJava?server=" + $("#server-name-input").val(), function (path) {
+                startLine = '"' + path + '"' + " " + $("#fsc").val();
+                if (trackDownloadTasks2_type == "forge") {
+                  $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) +
+                    "&jf=" +
+                    selectedCore_filename.replace(/-installer/gm, "") + "&startcmd=" +
+                    btoa(
+                      startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
+                    function (data) {
+                      if (data == "Success") {
+                        window.localStorage.setItem("selectedServer", $("#server-name-input")
+                          .val());
+                        window.location = "/";
+                      }
+                    });
+                } else {
+                  $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) + "&jf=" +
+                    selectedCore_filename + "&startcmd=" +
+                    btoa(
+                      startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
+                    function (data) {
+                      if (data == "Success") {
+                        window.localStorage.setItem("selectedServer", $("#server-name-input").val());
+                        window.location = "/";
+                      }
+                    });
+                }
+              });
+            } else {
+              $("#progress-card .progress").hide();
+              $("#progress-card p").html(data);
+            }
+          }
+      }
+    });
   });
 
   $("#backbtn").click(function () {
     console.log('[UI]', 'BACK button clicked');
     if (currentStage == 2) {
-      console.log('[UI]', 'Current stage - 2, going to stage 1');
-      $("#backbtn").hide();
-      $("#second-stage").fadeOut(50, function () {
-        $("#second-stage").hide();
-        $("#first-stage").show();
-        $("#first-stage").fadeIn();
-        $(".progress-bar").css("width", "33%");
-        currentStage = 1;
-        $("#current-stage-text").text("{{ns-name-sw}}");
-        console.log('[UI]', 'Stage 1 active');
-      });
+      gotoStage(1);
+    } else if (currentStage == 3) {
+      gotoStage(2);
     }
   });
 
   $("#nextbtn").click(function () {
     console.log('[UI]', 'NEXT button clicked');
     if (currentStage == 1) {
-      console.log('[UI]', 'Current stage - 1, going to stage 2');
-      text = $(".form-control").val();
+      text = $("#server-name-input").val();
       if (text.length >= 2 && text.length <= 32 && text.match(nameRegex) !== "undefined" && text.match(nameRegex) !=
         null) {
-        $("#backbtn").show();
-        $("#first-stage").fadeOut(50, function () {
-          $("#first-stage").hide();
-          $("#second-stage").show();
-          $("#second-stage").fadeIn();
-          $(".progress-bar").css("width", "66%");
-          currentStage = 2;
-          $("#current-stage-text").text("{{select-core-sw}}");
-          console.log('[UI]', 'Stage 2 active');
-        });
+        gotoStage(2);
       }
     } else if (currentStage == 2) {
-      selectedCore = $("#second-stage .card.active").data("core");
-      selectedCore = selectedCore.charAt(0).toUpperCase() +
-        selectedCore.slice(1);
-      selectedCoreVersion = null;
-      if (selectedCore == "Spigot") {
-        selectedCoreVersion = $("#spigot-versel").val();
-      }
-      if (selectedCore == "Paper") {
-        selectedCoreVersion = $("#paper-versel").val();
-      }
-      if (selectedCoreVersion != null) {
-        $.get("/kubek/verToJava?version=" + selectedCoreVersion, function (jv) {
-          $("#third-stage .req-java").text("{{recomm-java-msg-sw}} " + jv);
-        });
+      selectedCore_type = $("#second-stage .card.active").data("core");
+      if (selectedCore_type == "spigot") {
+        selectedCore_filename = null;
+        selectedCore_version = $("#spigot-versel").val().replace(" ", "-");
+      } else if (selectedCore_type == "paper") {
+        selectedCore_filename = null;
+        selectedCore_version = $("#paper-versel").val().replace(" ", "-");
       } else {
-        $("#third-stage .req-java").text("");
+        fn = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
+        selectedCore_filename = fn;
+        det = detectServerVersion(fn)
+        if (det != null) {
+          selectedCore_version = det[0].replace("-", "").trim();
+        } else {
+          selectedCore_version = null;
+        }
       }
+
       if ($("#second-stage .card.active").data("core") == "own") {
         $("#g-core-input").trigger('click');
         $("#g-core-input").off("change");
         $("#g-core-input").change(function () {
-          $("#first-stage").hide();
-          $("#second-stage").hide();
-          $("#third-stage").show();
-          $("#third-stage").fadeIn();
-          $(".progress-bar").css("width", "100%");
-          currentStage = 3;
-          $("#current-stage-text").text("{{finalize-new-sn-sw}}");
-          console.log('[UI]', 'Stage 3 active');
-          loadThirdStage();
+          fn = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
+          selectedCore_filename = fn;
+          det = detectServerVersion(fn)
+          if (det != null) {
+            selectedCore_version = det[0].replace("-", "").trim();
+          } else {
+            selectedCore_version = null;
+          }
+          $.get("/kubek/verToJava?version=" + selectedCore_version, function (jv) {
+            $("#third-stage .req-java").text("{{recomm-java-msg-sw}} " + jv);
+          });
+          gotoStage(3);
         });
       } else {
-        $("#first-stage").hide();
-        $("#second-stage").hide();
-        $("#third-stage").show();
-        $("#third-stage").fadeIn();
-        $(".progress-bar").css("width", "100%");
-        currentStage = 3;
-        $("#current-stage-text").text("{{finalize-new-sn-sw}}");
-        console.log('[UI]', 'Stage 3 active');
-        loadThirdStage();
+        gotoStage(3);
+        $.get("/kubek/verToJava?version=" + selectedCore_version, function (jv) {
+          $("#third-stage .req-java").text("{{recomm-java-msg-sw}} " + jv);
+        });
       }
     } else if (currentStage == 3) {
-      createServer();
+      createServerV2();
     }
   });
 
@@ -277,105 +433,133 @@
     }
     sl += "-jar";
     $("#fsc").val(sl);
-
-    $("#final-mem").html($("#xmx").val() + " GB");
-    fn = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
-    if ($("#second-stage .card.active").data("core") == "own") {
-      if (fn.match(/forge-/gm) && fn.match(/-installer\.jar/gm)) {
-        $(".corever").text("Forge");
-      } else {
-        $(".corever").text("Own");
-      }
-    }
   }
 
-  function createServer() {
+  function createServerV2() {
     if ($("#fsc").val() != "" && $(".sn").text() != "" && $("#xmx").val() != "" && $("#serverport").val() !=
-      "" && $(".corever").html() != "") {
+      "") {
+      serverName = $(".sn").text();
+      onlineMode = $("#onlinemodeCheckbox").is(":checked");
+      port = $("#serverport").val();
+      sv_port = port;
+      sv_onmode = onlineMode;
       $("#progress-card").show();
-      $("#progress-card .progress-bar").css("width", "100%");
+      $("#progress-card .progress").hide();
       $("#progress-card p").html("{{search-core-sw}}");
       showLoading();
-      sname = $(".sn").text();
-      startLine = '"' + $("#cur-jv").html() + '"' + " " + $("#fsc").val();
-      onlineMode = $("#onlinemodeCheckbox").is(":checked");
-      core = $(".corever").html();
-      port = $("#serverport").val();
-      if (core.substring(0, 1) == "P") {
-        $.get("/cores/paper/search?core=" + core, function (data) {
-          if (data != "") {
-            $("#progress-card p").html("{{down-core-sw}}");
-            $.get("/downloader/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
-              .lastIndexOf('/') + 1) + "&type=core");
-            rr = setInterval(function () {
-              getProgress(data.substring(data.lastIndexOf('/') + 1), sname, startLine, port, onlineMode)
-            }, 100);
-          }
-        });
-      } else if (core.substring(0, 1) == "S") {
-        $.get("/cores/spigot/search?core=" + core, function (data) {
-          if (data != "") {
-            $("#progress-card p").html("{{down-core-sw}}");
-            $.get("/downloader/download?url=" + data + "&server=" + sname + "&filename=" + data.substring(data
-              .lastIndexOf('/') + 1) + "&type=core");
-            rr = setInterval(function () {
-              getProgress(data.substring(data.lastIndexOf('/') + 1), sname, startLine, port, onlineMode)
-            }, 100);
-          }
-        });
-      } else if (core.substring(0, 2) == "Ow" || core.substring(0, 2) == "Fo") {
+      if (selectedCore_type == "paper" || selectedCore_type == "spigot") {
+        $.get("/cores/" + selectedCore_type + "/search?core=" + $(".corever").text().replace("PaperMC", "Paper"),
+          function (data) {
+            if (data != "") {
+              $("#progress-card p").html("{{down-core-sw}}");
+              $.get("/downloader/download?url=" + data + "&server=" + serverName + "&filename=" + data.substring(
+                data
+                .lastIndexOf('/') + 1) + "&type=core");
+              trackDownloadTasks_enabled = true;
+              trackDownloadTasks_filename = data.substring(data
+                .lastIndexOf('/') + 1);
+            }
+          });
+      } else if (selectedCore_type == "own") {
         var formData = new FormData($("#g-core-form")[0]);
         jQuery.ajax({
-          url: '/upload/core?server=' + sname,
+          url: '/upload/core?server=' + serverName,
           type: "POST",
           data: formData,
           success: function (data) {
-            jarfile = $("#g-core-input")[0].value.split(/(\\|\/)/g).pop();
-            $("#progress-card .progress-bar").css("width", "100%");
-            $("#progress-card p").html("{{completion-text-sw}}");
-            if (core.substring(0, 2) == "Fo") {
-              $("#progress-card .progress-bar").css("width", "0%");
+            $("#progress-card .progress").hide();
+
+            if (selectedCore_filename.match(/forge.*-installer/gmi) != null) {
+              trackDownloadTasks2_type = "forge";
+              $("#progress-card .progress").hide();
               $("#progress-card p").html("{{forge-ins-text-sw}}");
               $("#progress-card #forgeins").show();
               $("#progress-card #forgeins").text("");
-              $.get("/forgeInstaller/start?server=" + encodeURI(sname) + "&filename=" + jarfile);
+
+              $.get("/forgeInstaller/start?server=" + encodeURI(serverName) + "&filename=" +
+                selectedCore_filename);
+
               iint = setInterval(function () {
-                $.get("/forgeInstaller/progress?server=" + encodeURI(sname), function (get) {
-                  if (get != "allisok") {
-                    get = get.split(/\r?\n/).slice(-100);
-                    get = get.join("<br>");
-                    $("#progress-card #forgeins").html(get);
-                    $("#progress-card #forgeins").scrollTop($("#progress-card #forgeins")[0]
-                      .scrollHeight);
-                  } else {
-                    $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile
-                      .replace(/-installer/gm, "") +
-                      "&startcmd=" + btoa(
-                        startLine) + "&port=" + port + "&onMode=" + onlineMode,
-                      function (data) {
-                        if (data == "Success") {
-                          window.localStorage.setItem("selectedServer", sname);
-                          window.location = "/";
-                        }
-                      });
-                  }
-                });
+                if (!trackDownloadTasks2_completed && !trackDownloadTasks2_enabled) {
+                  $.get("/forgeInstaller/progress?server=" + encodeURI(serverName), function (get) {
+                    if (get != "allisok") {
+                      get = get.split(/\r?\n/).slice(-100);
+                      get = get.join("<br>");
+                      $("#progress-card .progress").hide();
+                      $("#progress-card #forgeins").html(get);
+                      $("#progress-card #forgeins").scrollTop($("#progress-card #forgeins")[0]
+                        .scrollHeight);
+                    } else {
+                      $("#progress-card .progress").hide();
+                      $("#progress-card #forgeins").hide();
+                      $("#progress-card #forgeins").text("");
+
+                      if ($("#cur-jv").data("selvalue") == "usedetect") {
+                        ver = $("#srv-ver-detected").data('ver');
+                        $.get("http://localhost:3000/downloader/downloadJavaForServer?serverVersion=" +
+                          selectedCore_version + "&server=" + $("#server-name-input").val(),
+                          function (ret) {
+                            trackDownloadTasks2_filename = ret;
+                            trackDownloadTasks2_enabled = true;
+                            trackDownloadTasks2_type = "forge";
+                          });
+                      } else {
+                        pathh = $("#cur-jv").text();
+
+                        $("#progress-card .progress").hide();
+                        $("#progress-card p").html("{{unpacking-compl-java-sw}}");
+                        startLine = '"' + pathh + '"' + " " + $("#fsc").val();
+                        $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) +
+                          "&jf=" +
+                          selectedCore_filename.replace(/-installer/gm, "") + "&startcmd=" +
+                          btoa(
+                            startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
+                          function (data) {
+                            if (data == "Success") {
+                              window.localStorage.setItem("selectedServer", $("#server-name-input")
+                                .val());
+                              window.location = "/";
+                            }
+                          });
+                      }
+                    }
+                  });
+                }
               }, 500);
             } else {
-              $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile.replace(
-                  /-installer/gm, "") +
-                "&startcmd=" + btoa(
-                  startLine) + "&port=" + port + "&onMode=" + onlineMode,
-                function (data) {
-                  if (data == "Success") {
-                    window.localStorage.setItem("selectedServer", sname);
-                    window.location = "/";
-                  }
-                });
+              if ($("#cur-jv").data("selvalue") == "usedetect") {
+                ver = $("#srv-ver-detected").data('ver');
+
+                if (!trackDownloadTasks2_enabled) {
+                  $.get("http://localhost:3000/downloader/downloadJavaForServer?serverVersion=" +
+                    selectedCore_version + "&server=" + $("#server-name-input").val(),
+                    function (ret) {
+                      trackDownloadTasks2_filename = ret;
+                      trackDownloadTasks2_enabled = true;
+                      trackDownloadTasks2_type = "other_own";
+                    });
+                }
+              } else {
+                pathh = $("#cur-jv").text();
+
+                $("#progress-card .progress").hide();
+                $("#progress-card p").html("{{unpacking-compl-java-sw}}");
+                startLine = '"' + pathh + '"' + " " + $("#fsc").val();
+                $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) + "&jf=" +
+                  selectedCore_filename +
+                  "&startcmd=" + btoa(
+                    startLine) + "&port=" + port + "&onMode=" + onlineMode,
+                  function (data) {
+                    if (data == "Success") {
+                      window.localStorage.setItem("selectedServer", $("#server-name-input").val());
+                      window.location = "/";
+                    }
+                  });
+              }
             }
           },
           error: function (data) {
-            $("#progress-card .progress-bar").css("width", "0%");
+            $("#progress-card .progress").hide();
             $("#progress-card p").html("Error: " + data.statusText);
           },
           cache: false,
@@ -386,40 +570,91 @@
     }
   }
 
-  function getProgress(jarfile, sname, startcmd, port, onmode) {
-    $.get("/tasks/progress", function (data) {
-      if (typeof (old_rgr) === "undefined" || old_rgr != data) {
-        if (typeof (old_rgr) !== "undefined") {
-          keys1 = Object.keys(data);
-          keys2 = Object.keys(old_rgr);
-          diff = arr_diff(keys1, keys2);
-          diff.forEach(function (diffi) {
-            if (diffi == jarfile) {
-              $("#progress-card .progress-bar").css("width", "100%");
-              clearInterval(rr);
-              $("#progress-card p").html("{{completion-text-sw}}");
-              $.get("/server/completion?server=" + encodeURI(sname) + "&jf=" + jarfile + "&startcmd=" + btoa(
-                startcmd) + "&port=" + port + "&onMode=" + onmode, function (data) {
-                if (data == "Success") {
-                  window.localStorage.setItem("selectedServer", sname);
-                  window.location = "/";
-                }
-              });
-            }
-          });
-        }
-        old_rgr = data;
-      }
-      if (data[jarfile] !== "undefined") {
-        $("#progress-card .progress-bar").css("width", data[jarfile] + "%");
-        $("#progress-card p").html("{{downing-core-sw}} " + jarfile + " (" + data[jarfile] + "%)");
-      } else {
-        $("#progress-card .progress-bar").css("width", "100%");
-        clearInterval(rr);
-        $("#progress-card p").html("{{completion-text-sw}}");
-      }
-
+  function loadCores() {
+    console.log("[UI]", "Loading cores versions");
+    $.get("/cores/list", function (cores) {
+      cores.paper.forEach(ver => {
+        $("#paper-versel").append("<option value='" + ver + "'>Paper " + ver + "</option>");
+      });
+      cores.spigot.forEach(ver => {
+        $("#spigot-versel").append("<option value='" + ver + "'>Spigot " + ver + "</option>");
+      });
+      console.log("[UI]", "Successfully loaded cores list");
     });
+  }
+
+  function loadThirdStage() {
+    $("#third-stage .sn").text($("#first-stage input").val());
+    $("#serverport").val(25565);
+
+    if (selectedCore_type == "own") {
+      $(".corever").text(selectedCore_filename);
+    } else if (selectedCore_type == "spigot") {
+      $(".corever").text("Spigot " + selectedCore_version);
+    } else if (selectedCore_type == "paper") {
+      $(".corever").text("PaperMC " + selectedCore_version);
+    }
+
+    if (selectedCore_version != null) {
+      $("#srv-ver-detected").html("<span style='color: gray;'>Похоже, версия вашего сервера - </span>" +
+        selectedCore_version);
+      $("#srv-ver-detected").data("ver", selectedCore_version);
+      $("#srv-ver-detected").show();
+    }
+
+    $.get("/kubek/javaVersions", function (jv) {
+      if (selectedCore_version != null) {
+        $("#java-vers-dropdown").append(
+          '<li data-selvalue="usedetect"><a class="dropdown-item" href="#">{{use-compat-java-auto-sw}}</a></li>'
+        );
+      }
+      jv.forEach(function (jfile) {
+        $("#java-vers-dropdown").append('<li data-selvalue="' + jfile +
+          '"><a class="dropdown-item" href="#">' +
+          jfile + '</a></li>');
+      });
+      $("#cur-jv").text($("#java-vers-dropdown li a").eq(0).text());
+      $("#cur-jv").data("selvalue", $("#java-vers-dropdown li").eq(0).data("selvalue"));
+      $("#java-vers-dropdown li a").click(function () {
+        $("#cur-jv").text($(this).html());
+        $("#cur-jv").data("selvalue", $(this).val());
+      });
+      generateJavaStartup();
+    });
+  }
+
+  function gotoStage(stNumber) {
+    console.log('[UI]', 'Current stage - ' + currentStage + ', going to stage', stNumber);
+    $(".stagecard").each(function () {
+      $(this).hide();
+    });
+
+    if (stNumber == 1) {
+      $("#first-stage").show();
+      $("#first-stage").fadeIn();
+      $(".progress-bar").css("width", "33%");
+      currentStage = 1;
+      $("#current-stage-text").text(firstStage_capt);
+      console.log('[UI]', 'Stage 1 active');
+      $("#backbtn").hide();
+    } else if (stNumber == 2) {
+      $("#second-stage").show();
+      $("#second-stage").fadeIn();
+      $(".progress-bar").css("width", "66%");
+      currentStage = 2;
+      $("#current-stage-text").text(secondStage_capt);
+      console.log('[UI]', 'Stage 2 active');
+      $("#backbtn").show();
+    } else if (stNumber == 3) {
+      loadThirdStage();
+      $("#third-stage").show();
+      $("#third-stage").fadeIn();
+      $(".progress-bar").css("width", "100%");
+      currentStage = 3;
+      $("#current-stage-text").text(thirdStage_capt);
+      console.log('[UI]', 'Stage 3 active');
+      $("#backbtn").show();
+    }
   }
 
   function arr_diff(a1, a2) {
@@ -445,42 +680,15 @@
     return Math.ceil(x / 512) * 512;
   }
 
-  function loadCores() {
-    console.log("[UI]", "Loading cores versions");
-    $.get("/cores/list", function (cores) {
-      cores.paper.forEach(ver => {
-        $("#paper-versel").append("<option value='" + ver + "'>Paper " + ver + "</option>");
-      });
-      cores.spigot.forEach(ver => {
-        $("#spigot-versel").append("<option value='" + ver + "'>Spigot " + ver + "</option>");
-      });
-      console.log("[UI]", "Successfully loaded");
-    });
-  }
-
-  function loadThirdStage() {
-    $("#third-stage .sn").text($("#first-stage input").val());
-    if(selectedCoreVersion != null){
-      $("#third-stage .corever").text(selectedCore + " " + selectedCoreVersion);
-    } else {
-      $("#third-stage .corever").text(selectedCore);
-    }
-    $("#serverport").val(25565);
-    $.get("/kubek/javaVersions", function (jv) {
-      jv.forEach(function (jfile) {
-        $("#java-vers-dropdown").append('<li><a class="dropdown-item" href="#">' + jfile + '</a></li>');
-      });
-      $("#cur-jv").text(jv[0]);
-      $("#java-vers-dropdown li a").click(function () {
-        $("#cur-jv").text($(this).html());
-      });
-    });
+  function detectServerVersion(name) {
+    return name.match(/-1\.\d{1,2}(\.\d)?/gm);
   }
 </script>
 
 <style>
   body {
-    padding: 3%;
+    padding: 5%;
+    overflow: hidden;
   }
 
   * {
@@ -490,6 +698,7 @@
 
   .layout {
     display: grid;
+    overflow-y: auto;
     grid-template-columns: 1fr;
     grid-template-rows: max-content 1fr max-content;
     grid-auto-columns: 1fr;
@@ -516,6 +725,18 @@
     justify-self: end;
     align-self: center;
     grid-area: buttons;
+  }
+
+  #second-stage .d-flex .card:not(:first-child) {
+    margin-top: 24px;
+  }
+
+  #second-stage .d-flex .card {
+    border-radius: 0;
+  }
+
+  #second-stage .d-flex {
+    margin-bottom: 16px;
   }
 
   #logo-flex {
@@ -567,6 +788,14 @@
 
   #third-stage .input-group-text {
     height: 100%;
+  }
+
+  .buttons .btn:not(:first-child) {
+    margin-left: 8px;
+  }
+
+  .buttons {
+    margin-top: 8px;
   }
 
   /* Loading overlay */

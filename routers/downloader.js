@@ -4,6 +4,8 @@ var fs = require('fs');
 var additional = require('./../my_modules/additional');
 var request = require('request');
 var config = require("./../my_modules/config");
+const decompress = require('decompress');
+const path = require('path');
 const auth_manager = require("./../my_modules/auth_manager");
 const translator = require('./../my_modules/translator');
 
@@ -25,7 +27,7 @@ router.use(function (req, res, next) {
 });
 
 router.get('/download', function (req, res) {
-  cp[req.query.filename] = 0;
+  pendingTasks[req.query.filename] = 0;
   if (!fs.existsSync("./servers")) {
     fs.mkdirSync("./servers");
   }
@@ -45,13 +47,133 @@ router.get('/download', function (req, res) {
   for (const socket of fsock) {
     socket[1].emit("handleUpdate", {
       type: "downloadTasks",
-      data: cp
+      data: pendingTasks
     });
   }
   res.send("Success");
 });
 
+router.get("/getPathToJava", function(req, res) {
+  if (typeof req.query.server !== "undefined") {
+    if(fs.existsSync("./servers/" + req.query.server + "/javabin")){
+      rd = fs.readdirSync("./servers/" + req.query.server + "/javabin");
+      pathh = "./javabin/" + rd[0] + "/bin/java.exe";
+      res.send(pathh);
+    } else {
+      res.send(false);
+    }
+  } else {
+    res.send(false);
+  }
+});
+
+router.get('/downloadJavaForServer', function (req, res) {
+  if (typeof req.query.serverVersion !== "undefined" && typeof req.query.server !== "undefined") {
+    sv = req.query.serverVersion;
+
+    sec = sv.split(".")[1];
+    ter = sv.split(".")[2];
+    if (sec < 8) {
+      java = "8";
+    } else if (sec >= 8 && sec <= 11) {
+      java = "11";
+    } else if (sec >= 12 && sec <= 15) {
+      java = "11";
+    } else if (sec == 16) {
+      if (ter <= 4) {
+        java = "11";
+      } else {
+        java = "18";
+      }
+    } else if (sec >= 17) {
+      java = "18";
+    }
+    prp = "";
+
+    if (process.platform == "win32") {
+      prp = "windows";
+      prext = ".zip";
+    } else if (process.platform == "linux") {
+      prp = "linux";
+      prext = ".tar.gz";
+    } else {
+      prp = "unknown";
+    }
+
+    pra = "";
+    if (process.arch == "x64") {
+      pra = "x64"
+    } else if (process.arch == "x32") {
+      pra = "x86"
+    } else {
+      pra = "unknown";
+    }
+    url = "https://api.adoptium.net/v3/binary/latest/" + java + "/ga/" + prp + "/" + pra + "/jdk/hotspot/normal/eclipse?project=jdk";
+    fn = "java_download_" + req.query.server + "_" + sv + prext;
+    pendingTasks[fn] = 0;
+    console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downstarted}}", cfg['lang']), ":", fn, "server: " + req.query.server);
+    startDownloadByURLAndUnpack(url, "./servers/" + req.query.server + "/" + fn, fn, req.query.server);
+    res.send(fn);
+  } else {
+    res.send(false);
+  }
+});
+
 module.exports = router;
+
+function startDownloadByURLAndUnpack(url, filename, ffn, srv) {
+  var received_bytes = 0;
+  var total_bytes = 0;
+
+  request
+    .get(url)
+    .on('error', function (err) {
+      console.log(err);
+    })
+    .on('response', function (data) {
+      total_bytes = parseInt(data.headers['content-length']);
+      data.pipe(fs.createWriteStream(filename));
+    })
+    .on('data', function (chunk) {
+      received_bytes += chunk.length;
+      showDownloadingProgress(received_bytes, total_bytes, ffn);
+    })
+    .on('end', function () {
+      delete pendingTasks[fn];
+      console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downcompleted}}", cfg['lang']) + ": " + ffn);
+      fsock = io.sockets.sockets;
+      for (const socket of fsock) {
+        socket[1].emit("handleUpdate", {
+          type: "downloadTasks",
+          data: pendingTasks
+        });
+        socket[1].emit("handleUpdate", {
+          type: "unpackingJavaArchive",
+          data: "started"
+        });
+      }
+      decompress(filename, "./servers/" + srv + "/javabin")
+        .then((files) => {
+          fsock = io.sockets.sockets;
+          for (const socket of fsock) {
+            socket[1].emit("handleUpdate", {
+              type: "unpackingJavaArchive",
+              data: "completed"
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          fsock = io.sockets.sockets;
+          for (const socket of fsock) {
+            socket[1].emit("handleUpdate", {
+              type: "unpackingJavaArchive",
+              data: error
+            });
+          }
+        });
+    });
+}
 
 function startDownloadByURL(url, filename, ffn) {
   var received_bytes = 0;
@@ -72,13 +194,13 @@ function startDownloadByURL(url, filename, ffn) {
       showDownloadingProgress(received_bytes, total_bytes, ffn);
     })
     .on('end', function () {
-      delete cp[ffn];
+      delete pendingTasks[ffn];
       console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downcompleted}}", cfg['lang']) + ": " + ffn);
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
           type: "downloadTasks",
-          data: cp
+          data: pendingTasks
         });
       }
     })
@@ -87,12 +209,12 @@ function startDownloadByURL(url, filename, ffn) {
 
 function showDownloadingProgress(received, total, fn) {
   var percentage = ((received * 100) / total).toFixed(2);
-  cp[fn] = Math.round(percentage);
+  pendingTasks[fn] = Math.round(percentage);
   fsock = io.sockets.sockets;
   for (const socket of fsock) {
     socket[1].emit("handleUpdate", {
       type: "downloadTasks",
-      data: cp
+      data: pendingTasks
     });
   }
 }

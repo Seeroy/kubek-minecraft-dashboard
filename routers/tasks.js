@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 const auth_manager = require("./../my_modules/auth_manager");
 var config = require("./../my_modules/config");
-var additional = require("./../my_modules/additional");
 
 router.use(function (req, res, next) {
   cfg = config.readConfig();
@@ -22,7 +21,7 @@ router.use(function (req, res, next) {
 
 router.get('/progress', function (req, res) {
   res.set('Content-Type', 'application/json');
-  res.send(JSON.stringify(cp));
+  res.send(JSON.stringify(pendingTasks));
 });
 
 module.exports = router;
