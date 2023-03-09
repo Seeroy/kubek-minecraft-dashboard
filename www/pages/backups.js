@@ -7,6 +7,40 @@ var bks_tp_sel = '{{backups-type-selected}}';
 
 var rks = {};
 
+$(document).ready(function () {
+  refreshBackupsList();
+  $("input[name='backupTypeRadio']").change(function () {
+    if (this.value == "full") {
+      $(".flt-parent").hide();
+    } else if (this.value == "selected") {
+      refreshServerFilesList();
+      $(".flt-parent").show();
+    }
+  });
+
+  $("#newBackupModal .btn-primary").click(function () {
+    bname = $("#bcname-input").val();
+    desc = $("#bcdesc-input").val();
+    ratio = $("#backupCompressRatio").val();
+    type = $("input[name='backupTypeRadio']:checked")[0].value;
+    if (type == "selected") {
+      files = [];
+      $("#fl-table tr").each(function (i, cb) {
+        if ($(cb).find(".fsboxes").is(":checked")) {
+          r = {
+            name: $(cb).find(".fn").text(),
+            type: $(cb).data('type')
+          }
+          files.push(r);
+        }
+      });
+      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&files=" + encodeURIComponent(JSON.stringify(files)) + "&type=" + type + "&sn=" + window.localStorage.selectedServer + "&ratio=" + ratio);
+    } else {
+      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&type=" + type + "&sn=" + window.localStorage.selectedServer + "&ratio=" + ratio);
+    }
+  });
+});
+
 function setPercentage(percentage) {
   $("#usage-disk-percent").text(percentage + '%');
   $("#usage-disk-pbar").css("width", percentage + '%');
@@ -103,6 +137,7 @@ function showBackupInfo(bname, desc) {
 }
 
 function refreshBackupsList() {
+  refreshDiskStats();
   $("#backups-list").html("");
   $.get("/backups/list", function (data) {
     if (typeof data == "object") {
@@ -150,43 +185,8 @@ function refreshBackupsList() {
         $("#backups-list").append('<li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center text-white"><span class="material-symbols-outlined" style="font-size: 48px; margin-right: 24px;' + clr + '">' + icn + '</span><div class="d-flex flex-column justify-content-center flex-fill"><span style="font-size: 17pt; font-weight: 600;">' + item.name + '</span><div class="d-flex flex-row align-items-center"><span>{{selected-sn-sw}}: ' + item.server + '</span><span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-text-type}}: ' + bkt + '</span>' + rr + '</div></div><button class="btn btn-warning btn-lg" onclick="showBackupInfo(' + "'" + item.name + "'" + ', ' + "'" + item.description + "'" + ')"><span class="material-symbols-outlined">info</span></button><button class="btn btn-danger btn-lg" onclick="$.get(' + "'/backups/delete?filename=" + item.archive_name + "'" + '); refreshBackupsList();"><span class="material-symbols-outlined">delete</span></button><button class="btn btn-primary btn-lg" onclick="window.location=' + "'/backups/download?filename=" + item.archive_name + "'" + '"><span class="material-symbols-outlined">download</span></button><button class="btn btn-info btn-lg" onclick="restoreBackup(' + "'" + item.archive_name + "'" + ')"><span class="material-symbols-outlined">settings_backup_restore</span></button></li>');
       });
     }
-    refreshDiskStats();
   });
 }
-
-$(document).ready(function () {
-  refreshBackupsList();
-  $("input[name='backupTypeRadio']").change(function () {
-    if (this.value == "full") {
-      $(".flt-parent").hide();
-    } else if (this.value == "selected") {
-      refreshServerFilesList();
-      $(".flt-parent").show();
-    }
-  });
-
-  $("#newBackupModal .btn-primary").click(function () {
-    bname = $("#bcname-input").val();
-    desc = $("#bcdesc-input").val();
-    ratio = $("#backupCompressRatio").val();
-    type = $("input[name='backupTypeRadio']:checked")[0].value;
-    if (type == "selected") {
-      files = [];
-      $("#fl-table tr").each(function (i, cb) {
-        if ($(cb).find(".fsboxes").is(":checked")) {
-          r = {
-            name: $(cb).find(".fn").text(),
-            type: $(cb).data('type')
-          }
-          files.push(r);
-        }
-      });
-      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&files=" + encodeURIComponent(JSON.stringify(files)) + "&type=" + type + "&sn=" + window.localStorage.selectedServer + "&ratio=" + ratio);
-    } else {
-      $.get("/backups/new?name=" + bname + "&desc=" + desc + "&type=" + type + "&sn=" + window.localStorage.selectedServer + "&ratio=" + ratio);
-    }
-  });
-});
 
 function sortToDirsAndFiles(data) {
   dirs = [];

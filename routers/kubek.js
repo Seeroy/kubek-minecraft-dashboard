@@ -8,6 +8,7 @@ var kubek = require("./../my_modules/kubek");
 var ftpd = require("./../my_modules/ftpd_new");
 var translator = require("./../my_modules/translator");
 const nodeDiskInfo = require('node-disk-info');
+const path = require('path');
 const os = require("os");
 const auth_manager = require("./../my_modules/auth_manager");
 
@@ -89,6 +90,13 @@ router.get('/translate', function (req, res) {
   lang = cfgg['lang'];
   trs = translator.translateHTML(req.query.text, lang);
   res.send(trs);
+});
+
+router.get('/getSPTranslate', function (req, res) {
+  cfgg = config.readConfig();
+  lang = cfgg['lang'].replace('nl', 'en');
+  rd = JSON.parse(fs.readFileSync(path.join(__dirname, "./../translations/sprop_" + lang + ".json")));
+  res.send(rd);
 });
 
 router.get('/shutdown', function (req, res) {
@@ -177,12 +185,15 @@ router.get('/hardware', function (req, res) {
         cores: cp_unq.length
       }
 
+      net = os.networkInterfaces();
+
       hardware = {
         platform: pform_unq,
         totalmem: Math.round(os.totalmem() / 1024 / 1024),
         cpu: cpu_unq,
         enviroment: process.env,
-        disks: disks
+        disks: disks,
+        networkInterfaces: net
       }
       res.send(hardware);
     })

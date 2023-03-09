@@ -1,5 +1,8 @@
 * {
   font-family: 'Inter', sans-serif;
+}
+
+*:not(.tooltip):not(.modal-console-props) {
   transition: .3s !important;
 }
 

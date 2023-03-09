@@ -36,3 +36,8 @@
   margin-top: 16px;
   margin-bottom: 16px;
 }
+
+.addtooltip {
+  cursor: help;
+  color: rgba(150,150,150);
+}

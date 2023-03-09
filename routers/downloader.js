@@ -165,6 +165,7 @@ function startDownloadByURLAndUnpack(url, filename, ffn, srv) {
               data: "completed"
             });
           }
+          fs.unlinkSync(filename);
         })
         .catch((error) => {
           console.log(error);

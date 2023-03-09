@@ -146,6 +146,10 @@
   color: var(--mdb-white);
 }
 
+.addtooltip:hover {
+  color: var(--mdb-white);
+}
+
 /* Kubek settings styling */
 #users-list .card {
   background: var(--mdb-black);

@@ -4,7 +4,7 @@ var oldIpChipContent = "";
 $(document).ready(function () {
   $(".icon-changer img").attr("src", "/server/icon?server=" + window.localStorage.selectedServer);
 
-  $(".ip-chip").click(function () {
+  /*$(".ip-chip").click(function () {
     if (!disableIpChip) {
       disableIpChip = true;
       oldIpChipContent = $(".ip-chip").html();
@@ -16,7 +16,7 @@ $(document).ready(function () {
       copyIPtoClipboard();
       $(".ip-chip").html("{{copied}}");
     }
-  });
+  });*/
 
   $.get("/server/getServerPropertiesFile?server=" + window.localStorage.selectedServer, function (data) {
     if (typeof data['motd'] !== "undefined") {
@@ -25,7 +25,7 @@ $(document).ready(function () {
   });
 });
 
-copyIPtoClipboard = async () => {
+/*copyIPtoClipboard = async () => {
   try {
     ip = $("#server-ip-addr").text();
     await navigator.clipboard.writeText(ip);
@@ -33,7 +33,7 @@ copyIPtoClipboard = async () => {
   } catch (err) {
     console.log("[UI]", "Failed to copy IP:", err);
   }
-}
+}*/
 
 function saveServerEdits() {
   text = $("#serverNameModalEdit").val();

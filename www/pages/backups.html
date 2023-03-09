@@ -73,6 +73,10 @@
 <div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
   style="animation-delay: .3s; padding-right: 24px;">
   <div class="chip-nb d-flex flex-row align-items-center">
+    <img class="ms-3" height="32" id="server-icon">
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
     <span id="server-name" class="bold-chip"></span>
   </div>
 
@@ -101,7 +105,7 @@
       class="material-symbols-outlined">autorenew</span></button>
 </div>
 
-<div class="backups-container">
+<div class="backups-container animate__animated animate__slideInUp animate__faster">
   <p class="fs-1 fw-bold">{{backups-capt}}</p>
   <li
     class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center headerr">
@@ -115,9 +119,9 @@
       </div>
 
       <div class="d-flex flex-column" style="margin-left: 2%">
-        <span>{{backups-disk-total}}<span id="disk-total-size">{{unknown}}</span></span>
-        <span>{{backups-disk-used}}<span id="disk-used-size">{{unknown}}</span></span>
-        <span>{{backups-disk-free}}<span id="disk-free-size">{{unknown}}</span></span>
+        <span>{{backups-disk-total}}: <span id="disk-total-size">{{unknown}}</span></span>
+        <span>{{backups-disk-used}}: <span id="disk-used-size">{{unknown}}</span></span>
+        <span>{{backups-disk-free}}: <span id="disk-free-size">{{unknown}}</span></span>
       </div>
     </div>
 

@@ -4,6 +4,10 @@
 <div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
   style="animation-delay: .3s; padding-right: 24px;">
   <div class="chip-nb d-flex flex-row align-items-center">
+    <img class="ms-3" height="32" id="server-icon">
+  </div>
+  
+  <div class="chip-nb d-flex flex-row align-items-center">
     <span id="server-name" class="bold-chip"></span>
   </div>
 
@@ -32,7 +36,7 @@
       class="material-symbols-outlined">autorenew</span></button>
 </div>
 
-<div class="sysmon-container">
+<div class="sysmon-container animate__animated animate__slideInUp animate__faster">
   <div id="oldc">
     <p class="fs-1 fw-bold">{{summary-sysmon}}</p>
     <table class="table">
@@ -41,7 +45,7 @@
           <th style="text-align:left;">
             <div class="d-flex align-items-center">
               <span class="material-symbols-outlined">wysiwyg</span>
-              <span style="margin-left: 16px;">OS</span>
+              <span style="margin-left: 16px;">{{os-sysmon}}</span>
             </div>
           </th>
           <td style="text-align:right;" id="os-name">{{unknown}}</td>
@@ -50,13 +54,25 @@
           <th style="text-align:left;">
             <div class="d-flex align-items-center">
               <span class="material-symbols-outlined">wysiwyg</span>
-              <span style="margin-left: 16px;">OS Build</span>
+              <span style="margin-left: 16px;">{{osbuild-sysmon}}</span>
             </div>
           </th>
           <td style="text-align:right;" id="os-build">{{unknown}}</td>
         </tr>
       </tbody>
     </table>
+
+    <p class="fs-1 fw-bold">{{networks-sysmon}}</p>
+    <table class="table" id="networks-table">
+      <thead>
+        <tr>
+          <th>{{adname-sysmon}}</th>
+          <th>{{adips-sysmon}}</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
     <p class="fs-1 fw-bold">{{cpu-mem-sysmon}}</p>
     <table class="table">
       <tbody>
@@ -64,7 +80,7 @@
           <th style="text-align:left;">
             <div class="d-flex align-items-center">
               <span class="material-symbols-outlined">memory</span>
-              <span style="margin-left: 16px;">Total RAM</span>
+              <span style="margin-left: 16px;">{{totalram-sysmon}}</span>
             </div>
           </th>
           <td style="text-align:right;" id="totalmem">{{unknown}}</td>
@@ -73,7 +89,7 @@
           <th style="text-align:left;">
             <div class="d-flex align-items-center">
               <span class="material-symbols-outlined">memory</span>
-              <span style="margin-left: 16px;">CPU Model</span>
+              <span style="margin-left: 16px;">{{cpumodel-sysmon}}</span>
             </div>
           </th>
           <td style="text-align:right;" id="cpu-model">{{unknown}}</td>
@@ -82,7 +98,7 @@
           <th style="text-align:left;">
             <div class="d-flex align-items-center">
               <span class="material-symbols-outlined">memory</span>
-              <span style="margin-left: 16px;">CPU Speed</span>
+              <span style="margin-left: 16px;">{{cpuspeed-sysmon}}</span>
             </div>
           </th>
           <td style="text-align:right;" id="cpu-speed">{{unknown}}</td>
@@ -93,16 +109,16 @@
     <table class="table" id="disks-table">
       <thead>
         <tr>
-          <th>Letter</th>
-          <th>Used</th>
-          <th>Free</th>
-          <th>Total </th>
-          <th>Used %</th>
+          <th>{{mp-sysmon}}</th>
+          <th>{{backups-disk-used}}</th>
+          <th>{{backups-disk-free}}</th>
+          <th>{{backups-disk-total}}</th>
+          <th>{{backups-disk-total}} (%)</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
-    <p class="fs-1 fw-bold">Enviroment values</p>
+    <p class="fs-1 fw-bold">{{env-sysmon}}</p>
     <table class="table" id="env-table">
       <tbody></tbody>
     </table>

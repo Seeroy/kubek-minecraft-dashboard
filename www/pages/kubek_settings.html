@@ -1,6 +1,41 @@
 <link rel="stylesheet" href="/pages/kubek_settings.css">
 <script src="/pages/kubek_settings.js"></script>
 
+<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: .3s; padding-right: 24px;">
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <img class="ms-3" height="32" id="server-icon">
+  </div>
+  
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span id="server-name" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <div id="status-circle" class="rounded-circle bg-success"></div>
+    <span id="status-text" class="bold-chip"></span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <span class="material-symbols-outlined">groups</span>
+    <span id="status-text" class="bold-chip">{{players}}:</span>
+    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+  </div>
+
+  <div class="chip-nb d-flex flex-row align-items-center">
+    <img id="server-version-icon" height="24">
+    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+  </div>
+
+  <div class="flex-fill"></div>
+  <button class="btn btn-danger server-control" onclick="stopServer()"><span
+      class="material-symbols-outlined">crop_square</span></button>
+  <button class="btn btn-success server-control" onclick="startServer()"><span
+      class="material-symbols-outlined">play_arrow</span></button>
+  <button class="btn btn-warning server-control" onclick="restartServer()"><span
+      class="material-symbols-outlined">autorenew</span></button>
+</div>
+
 <div class="modal top fade" id="userEditModal" tabindex="-1" data-mdb-backdrop="true" data-mdb-keyboard="true">
   <div class="modal-dialog   modal-dialog-centered">
     <div class="modal-content">
@@ -105,7 +140,7 @@
   </div>
 </div>
 
-<div class="k-settings-container">
+<div class="k-settings-container animate__animated animate__slideInUp animate__faster">
   <li
     class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
     <span class="material-symbols-outlined">task</span>

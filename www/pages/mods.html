@@ -19,6 +19,10 @@
 <div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
   style="animation-delay: .3s; padding-right: 24px;">
   <div class="chip-nb d-flex flex-row align-items-center">
+    <img class="ms-3" height="32" id="server-icon">
+  </div>
+  
+  <div class="chip-nb d-flex flex-row align-items-center">
     <span id="server-name" class="bold-chip"></span>
   </div>
 
@@ -46,7 +50,8 @@
   <button class="btn btn-warning server-control" onclick="restartServer()"><span
       class="material-symbols-outlined">autorenew</span></button>
 </div>
-<div class="pluginsandmods-container">
+
+<div class="pluginsandmods-container animate__animated animate__slideInUp animate__faster">
   <div class="row gx-5">
     <div class="col-md-6">
       <div class="sub-block pl-blocks card border border-1 shadow-0">

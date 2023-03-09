@@ -5,6 +5,18 @@ $(document).ready(function () {
       $("#env-table tbody").append('<tr><th style="text-align:left;">' + key +
         '</th><td style="text-align:right;">' + value + '</td></tr>');
     }
+    
+    netkeys = Object.keys(hw.networkInterfaces);
+    netkeys.forEach(function (key, i) {
+      value = hw.networkInterfaces[key];
+      html = "<tr><td style='vertical-align: middle;'>" + key + "</td><td><div class='d-flex flex-column justify-content-center'>";
+      value.forEach(function (inner){
+        html = html + "<span>" + inner.address + " (" + inner.family + ")</span>"
+      });
+      html = html + "</div></td></tr>"
+      $("#networks-table").append(html);
+    });
+
     hw.disks.forEach(function (disk) {
       type = disk['_filesystem'];
       letter = disk['_mounted'];

@@ -17,6 +17,10 @@
 <div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
   style="animation-delay: .3s; padding-right: 24px;">
   <div class="chip-nb d-flex flex-row align-items-center">
+    <img class="ms-3" height="32" id="server-icon">
+  </div>
+  
+  <div class="chip-nb d-flex flex-row align-items-center">
     <span id="server-name" class="bold-chip"></span>
   </div>
 
@@ -44,17 +48,19 @@
   <button class="btn btn-warning server-control" onclick="restartServer()"><span
       class="material-symbols-outlined">autorenew</span></button>
 </div>
-<div class="console-container">
+
+<div class="console-container animate__animated animate__slideInUp animate__faster">
   <div class="sub-block console card border border-1">
     <div class="header d-flex flex-row align-items-center">
       <span class="flex-fill">{{console}}</span>
-      <button type="button" class="btn btn-tertiary" id="open-logs-button" style="margin-right: 16px;">{{openlogs-console}}</button>
+      <button type="button" class="btn btn-tertiary" id="open-logs-button"
+        style="margin-right: 16px;">{{openlogs-console}}</button>
       <button type="button" class="btn" id="console-settings-button">{{settings}}</button>
     </div>
     <div class="contentt" id="console-text"></div>
     <div class="footer">
       <input type="text" id="command-input" placeholder="{{enter-command-console}}"
-            onkeyup="if(event.key == 'Enter'){$.get('/server/sendCommand?server=' + window.localStorage.selectedServer + '&cmd=' + this.value); this.value = ''}">
+        onkeyup="if(event.key == 'Enter'){$.get('/server/sendCommand?server=' + window.localStorage.selectedServer + '&cmd=' + this.value); this.value = ''}">
     </div>
   </div>
 </div>

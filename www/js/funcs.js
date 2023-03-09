@@ -65,7 +65,7 @@ function gotoPage(page) {
             type: "servers"
           });
           $("#server-name").text(window.localStorage.selectedServer);
-          $("#server-icon").attr("src", "/server/icon?server=" + window.localStorage.selectedServer)
+          $("#server-icon").attr("src", "/server/icon?server=" + window.localStorage.selectedServer);
           setTimeout(() => {
             hideLoading();
           }, 200);

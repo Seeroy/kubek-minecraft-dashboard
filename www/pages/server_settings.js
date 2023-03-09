@@ -16,8 +16,8 @@ $(document).ready(function () {
         $("#java-versions-radios").append('<div class="radio"><input class="kbk-radio" type="radio"' + active + ' name="javaRadios" id="javaRadio-' + i + '" /><label for="javaRadio-' + i + '"> ' + jfile + ' </label></div>');
       });
     });
-    $.get("/downloader/getPathToJava?server=" + window.localStorage.selectedServer, function(ret){
-      if(ret != false){
+    $.get("/downloader/getPathToJava?server=" + window.localStorage.selectedServer, function (ret) {
+      if (ret != false) {
         active = "";
         if (ret == javaPath) {
           active = " checked";
@@ -59,6 +59,12 @@ function deleteServer() {
   });
 }
 
+function getSPTranslate(cb) {
+  $.get("/kubek/getSPTranslate", function (data) {
+    cb(data);
+  });
+}
+
 function saveServerSettings() {
   script = '"' + $("#java-versions-radios input:checked").next().text().trim().replace('"', "") + startScript_save;
   $.get("/server/saveStartScript?server=" + window.localStorage.selectedServer + "&script=" + btoa(script) + "&resonerr=" + $(
@@ -80,71 +86,81 @@ function saveServerSettings() {
 }
 
 function refreshServerProperties() {
-  $.get("/server/getServerPropertiesFile?server=" + window.localStorage.selectedServer, function (data) {
-    keys = Object.keys(data);
-    fulls = data;
-    keys.forEach(function (key, i) {
-      znach = fulls[key];
-      if (typeof znach == "object") {
-        znach = JSON.stringify(znach).replace("null", "").trim();;
-      }
-
-      if (typeof znach == "boolean") {
-        if (znach == true) {
-          checkd = " checked";
+  getSPTranslate(function (spt) {
+    $.get("/server/getServerPropertiesFile?server=" + window.localStorage.selectedServer, function (data) {
+      keys = Object.keys(data);
+      fulls = data;
+      keys.forEach(function (key, i) {
+        if (typeof spt[key] !== "undefined") {
+          tooltip = '<span class="material-symbols-outlined addtooltip ms-3" data-mdb-toggle="tooltip" data-mdb-placement="right" data-mdb-html="true" title="' + spt[key] + '">info</span>';
         } else {
-          checkd = "";
+          tooltip = '';
         }
-        $("#speditor-pills .container_sp").append(
-          '<div class="ttc ttbb d-flex flex-row align-items-center" data-type="switch"><label class="switch cbox"><input type="checkbox" id="ct' +
-          i + '" name="ct' + i + '"' + checkd +
-          '><span class="slider round"></span></label><span class="ms-2 key">' + key +
-          '</span></div>');
-      } else {
-        if (key == "difficulty") {
-          r = ['hard', 'medium', 'easy', 'peaceful'];
-          c = "";
-          r.forEach(function (diff) {
-            if (diff == znach) {
-              c = c + "<option selected>" + diff + "</option>";
-            } else {
-              c = c + "<option>" + diff + "</option>";
-            }
-          });
-          $("#speditor-pills .container_sp").append(
-            '<div class="ttc ttbb" data-type="text"><div class="ttcc"><select class="kbk-input" style="width: 256px;">' + c + '</select></div><div class="ttcc"><span>' + key + '</span></div></div>');
-        } else if (key == "gamemode") {
-          r = ['adventure', 'survival', 'creative'];
-          c = "";
-          r.forEach(function (diff) {
-            if (diff == znach) {
-              c = c + "<option selected>" + diff + "</option>";
-            } else {
-              c = c + "<option>" + diff + "</option>";
-            }
-          });
-          $("#speditor-pills .container_sp").append(
-            '<div class="ttc ttbb" data-type="text"><div class="ttcc"><select class="kbk-input" style="width: 256px;">' + c + '</select></div><div class="ttcc"><span>' + key + '</span></div></div>');
-        } else {
-          if (znach != null) {
-            $("#speditor-pills .container_sp").append(
-              '<div class="ttc ttbb" data-type="text"><div class="ttcc"><input type="text" style="width: 256px" class="kbk-input" value="' +
-              znach + '"></div><div class="ttcc"><span>' + key + '</span></div></div>');
+        znach = fulls[key];
+        if (typeof znach == "object") {
+          znach = JSON.stringify(znach).replace("null", "").trim();;
+        }
+
+        if (typeof znach == "boolean") {
+          if (znach == true) {
+            checkd = " checked";
           } else {
+            checkd = "";
+          }
+          $("#speditor-pills .container_sp").append(
+            '<div class="ttc ttbb d-flex flex-row align-items-center" data-type="switch"><label class="switch cbox"><input type="checkbox" id="ct' +
+            i + '" name="ct' + i + '"' + checkd +
+            '><span class="slider round"></span></label><span class="ms-2 key">' + key +
+            '</span>' + tooltip + '</div>');
+        } else {
+          if (key == "difficulty") {
+            r = ['hard', 'medium', 'easy', 'peaceful'];
+            c = "";
+            r.forEach(function (diff) {
+              if (diff == znach) {
+                c = c + "<option selected>" + diff + "</option>";
+              } else {
+                c = c + "<option>" + diff + "</option>";
+              }
+            });
             $("#speditor-pills .container_sp").append(
-              '<div class="ttc ttbb" data-type="text"><div class="ttcc"><input type="text" style="width: 256px" class="kbk-input" value=""></div><div class="ttcc"><span>' +
-              key + '</span></div></div>');
+              '<div class="ttc ttbb" data-type="text"><div class="ttcc"><select class="kbk-input" style="width: 256px;">' + c + '</select></div><div class="ttcc"><span>' + key + '</span></div>' + tooltip + '</div>');
+          } else if (key == "gamemode") {
+            r = ['adventure', 'survival', 'creative'];
+            c = "";
+            r.forEach(function (diff) {
+              if (diff == znach) {
+                c = c + "<option selected>" + diff + "</option>";
+              } else {
+                c = c + "<option>" + diff + "</option>";
+              }
+            });
+            $("#speditor-pills .container_sp").append(
+              '<div class="ttc ttbb" data-type="text"><div class="ttcc"><select class="kbk-input" style="width: 256px;">' + c + '</select></div><div class="ttcc"><span>' + key + '</span></div>' + tooltip + '</div>');
+          } else {
+            if (znach != null) {
+              $("#speditor-pills .container_sp").append(
+                '<div class="ttc ttbb" data-type="text"><div class="ttcc"><input type="text" style="width: 256px" class="kbk-input" value="' +
+                znach + '"></div><div class="ttcc"><span>' + key + '</span></div>' + tooltip + '</div>');
+            } else {
+              $("#speditor-pills .container_sp").append(
+                '<div class="ttc ttbb" data-type="text"><div class="ttcc"><input type="text" style="width: 256px" class="kbk-input" value=""></div><div class="ttcc"><span>' +
+                key + '</span></div>' + tooltip + '</div>');
+            }
           }
         }
-      }
+      });
+      $(".addtooltip").each(function () {
+        new mdb.Tooltip(this);
+      });
     });
   });
 }
 
 function saveProps() {
   var sp = "";
-  $(".ttbb").each(function(){
-    if($(this).data("type") == "switch"){
+  $(".ttbb").each(function () {
+    if ($(this).data("type") == "switch") {
       chk = $(this).find("input").is(':checked') ? true : false;
       key = $(this).find(".key").html();
       if (sp !== "") {
