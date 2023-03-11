@@ -72,6 +72,7 @@ socket_options = {
     origin: origin
   }
 };
+
 global.io = require("socket.io")(3001, socket_options);
 
 io.on("connection", (socket) => {
@@ -204,7 +205,7 @@ updater.checkForUpdates(function (upd, body) {
       platform = process.platform.replace(/32/gm, "");
       if (asset.name.match(platform) != null) {
         url = asset.browser_download_url;
-        if(fs.existsSync(url.split("/").pop())) {
+        if (fs.existsSync(url.split("/").pop())) {
           downloaded = true;
         }
       }

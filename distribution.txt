@@ -1,7 +1,0 @@
-<a href="https://www.flaticon.com/free-icons/directory" title="directory icons">Directory icons created by Arkinasi - Flaticon</a>
-<a href="https://www.flaticon.com/free-icons/files-and-folders" title="files and folders icons">Files and folders icons created by Arkinasi - Flaticon</a>
-<a href="https://www.flaticon.com/free-icons/gallery" title="gallery icons">Gallery icons created by Arkinasi - Flaticon</a>
-<a href="https://www.flaticon.com/free-icons/modify" title="modify icons">Modify icons created by Arkinasi - Flaticon</a>
-<a href="https://www.flaticon.com/free-icons/delete" title="delete icons">Delete icons created by Arkinasi - Flaticon</a>
-<a href="https://www.flaticon.com/free-icons/ui" title="ui icons">Ui icons created by Arkinasi - Flaticon</a>
-<a href="https://www.flaticon.com/free-icons/log" title="log icons">Log icons created by Arkinasi - Flaticon</a>
