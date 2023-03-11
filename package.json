@@ -4,6 +4,9 @@
   "description": "",
   "main": "app.js",
   "author": "",
+  "scripts": {
+    "start": "node app.js"
+  },
   "license": "ISC",
   "dependencies": {
     "archiver": "^4.0.2",
