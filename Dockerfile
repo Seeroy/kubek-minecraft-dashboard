@@ -8,8 +8,8 @@ COPY package*.json ./
 RUN npm install
 
 # Copy app sources
-COPY . .
+COPY ./ ./
 
 # Add using ports
-EXPOSE 3000
-CMD [ "node", "server.js" ]
+EXPOSE 3000 3001
+CMD "node app.js"
