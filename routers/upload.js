@@ -5,6 +5,7 @@ var path = require('path');
 var fs = require('fs');
 const auth_manager = require("./../my_modules/auth_manager");
 var config = require("./../my_modules/config");
+var iconv = require('iconv-lite');
 
 const ACCESS_PERMISSION = "server_settings";
 const ACCESS_PERMISSION_2 = "plugins";
@@ -144,24 +145,26 @@ router.post('/mod', function (req, res) {
   }
 });
 
-router.post('/file', (request, response) => {
+router.post('/file', (req, res) => {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_3)) {
     let sampleFile;
     let uploadPath;
 
-    if (!request.files || Object.keys(request.files).length === 0) {
-      return response.status(400).send('No files were uploaded.');
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).send('No files were uploaded.');
     }
 
-    sampleFile = request.files['g-file-input'];
-    uploadPath = "./servers/" + request.query["server"] + request.query["path"] + sampleFile.name;
+    sampleFile = req.files['g-file-input'];
+    filename = iconv.decode(sampleFile.name, 'utf-8');
+
+    uploadPath = "./servers/" + req.query["server"] + req.query["path"] + filename;
 
     sampleFile.mv(uploadPath, function (err) {
       if (err)
-        return response.status(400).send(err);
+        return res.status(400).send(err);
 
-      response.send("uploaded");
+      res.send("uploaded");
     });
   } else {
     res.status(403).send();

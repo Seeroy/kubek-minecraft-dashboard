@@ -425,6 +425,7 @@
 
   function generateJavaStartup() {
     sl = "";
+    sl += "-Dfile.encoding=UTF-8 ";
     sl += "-Xmx" + Math.round($("#xmx").val() * 1024) + "M";
     sl += " ";
     if ($("#javaOptiflagsCheckbox").is(":checked")) {

@@ -25,6 +25,13 @@ $(document).ready(function () {
         $("#java-versions-radios").append('<div class="radio"><input class="kbk-radio" type="radio"' + active + ' name="javaRadios" id="javaRadio-' + $("#java-versions-radios .radio").length + '" /><label for="javaRadio-' + $("#java-versions-radios .radio").length + '"> ' + ret + ' </label></div>');
       }
     });
+    $.get("/server/statuses", function (sstat) {
+      if(typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined"){
+        $("#stopcmd-input").val(sstat[window.localStorage.selectedServer]['stopCommand']);
+      } else {
+        $("#stopcmd-input").val("stop");
+      }
+    });
   });
 
   $("#delete-sname").val("");
@@ -39,6 +46,17 @@ $(document).ready(function () {
     } else {
       $("#delete-button").attr("disabled", true);
     }
+  });
+
+  $("#stopcmd-input").keyup(function () {
+    if ($(this).val().trim() != "") {
+      $("#stopcmd-save-button").removeAttr("disabled");
+    } else {
+      $("#stopcmd-save-button").attr("disabled", true);
+    }
+  });
+  $("#stopcmd-save-button").click(function () {
+    $.get("/server/saveStopCommand?server=" + window.localStorage.selectedServer + "&cmd=" + encodeURI($("#stopcmd-input").val()));
   });
 });
 

@@ -97,6 +97,7 @@
   "{{use-64-for-better-look-ss}}": "Use a 64x64 image",
   "{{resonerr-ss}}": "Restart server on crash (checked by exit code)",
   "{{enter-to-del-ss}}": "Enter the server name to confirm the deletion",
+  "{{stopcmd-ss}}": "You can enter a custom shutdown command here",
 
   "{{summary-sysmon}}": "Summary Information",
   "{{cpu-mem-sysmon}}": "CPU and RAM",
@@ -114,6 +115,10 @@
 
   "{{welcome-msg}}": "Kubek is a Minecraft server control panel developed using Node.js and web technologies.",
   "{{first-server-welcome}}": "Create your first server",
+
+  "{{newupdate-found-1}}": "Found a new update - ",
+  "{{newupdate-found-2}}": "Click here to download",
+  "{{newupdate-installed}}": "The update downloaded successfully, you need to manually restart Kubek from the new update file",
 
   "{{dorename-fm}}": "Rename",
   "{{aredelete-fm}}": "Are you sure you want to delete",

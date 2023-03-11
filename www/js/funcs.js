@@ -10,7 +10,7 @@ function hideLoading() {
 }
 
 function openSocket() {
-  return io("ws://" + window.location.hostname + ":112");
+  return io("ws://" + window.location.hostname + ":3001");
 }
 
 function updateURLParameter(url, param, paramVal) {
@@ -131,7 +131,13 @@ function startServer() {
 }
 
 function stopServer() {
-  $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=stop");
+  $.get("/server/statuses", function (sstat) {
+    if(typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined"){
+      $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=" + sstat[window.localStorage.selectedServer]['stopCommand']);
+    } else {
+      $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=stop");
+    }
+  });
 }
 
 function restartServer() {

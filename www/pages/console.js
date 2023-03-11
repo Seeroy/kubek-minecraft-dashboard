@@ -28,12 +28,8 @@ $(document).ready(function () {
     $("#console-text").html("");
 
     split.forEach(function (line) {
-      ln = "";
-      $(line.replaceColorCodes()).children().each(function () {
-        ln = ln + this.outerHTML;
-      });
-      line = ln;
-      $("#console-text").append(line + "<br>");
+      html_text = "<span>" + line.replaceAll("<", "&lt;") + "</span><br>";
+      $("#console-text").append(html_text);
     });
     if ($("#autoscrollConsoleCheckbox").is(":checked")) {
       $("#console-text").scrollTop($("#console-text")[0].scrollHeight);

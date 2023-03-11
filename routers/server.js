@@ -121,7 +121,8 @@ router.get('/completion', function (req, res) {
   servers_instances[req.query.server] = "";
   sss = {
     status: "stopped",
-    restartOnError: true
+    restartOnError: true,
+    stopCommand: "stop"
   };
   cge[req.query.server] = sss;
   configjson = cge;
@@ -132,6 +133,13 @@ router.get('/completion', function (req, res) {
 router.get('/statuses', function (req, res) {
   res.set('Content-Type', 'application/json');
   res.send(serverController.getStatuses());
+});
+
+router.get('/saveStopCommand', function (req, res) {
+  rd = config.readServersJSON();
+  rd[req.query.server]['stopCommand'] = req.query.cmd;
+  config.writeServersJSON(rd);
+  res.send("true");
 });
 
 router.get('/getStartScript', function (req, res) {
@@ -352,7 +360,7 @@ function startServer(server) {
       }
     });
     servers_instances[server].stdout.on('data', (data) => {
-      data = iconvlite.decode(data, "win1251");
+      data = iconvlite.decode(data, "utf-8"); 
       err = errors_parser.checkStringForErrors(data.toString());
       if (err != false) {
         fsock = io.sockets.sockets;
@@ -405,7 +413,7 @@ function startServer(server) {
       }
     });
     servers_instances[server].stderr.on('data', (data) => {
-      data = iconvlite.decode(data, "win1251");
+      data = iconvlite.decode(data, "utf-8");
       err = errors_parser.checkStringForErrors(data.toString());
       if (err != false) {
         fsock = io.sockets.sockets;

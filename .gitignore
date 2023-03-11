@@ -10,3 +10,4 @@ old/
 users.json
 backups/
 distribution.txt
+*.exe

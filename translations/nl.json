@@ -95,6 +95,7 @@
   "{{use-64-for-better-look-ss}}": "Gebruik een afbeelding van 64x64",
   "{{resonerr-ss}}": "Herstart server bij crash (gecontroleerd door afsluitcode)",
   "{{enter-to-del-ss}}": "Voer de servernaam in om de verwijdering te bevestigen",
+  "{{stopcmd-ss}}": "U kunt hier een aangepast afsluitcommando invoeren",
 
   "{{summary-sysmon}}": "Samenvattende informatie",
   "{{cpu-mem-sysmon}}": "CPU en RAM",
@@ -112,6 +113,10 @@
 
   "{{welcome-msg}}": "Kubek is een Minecraft-serverconfiguratiescherm dat is ontwikkeld met behulp van Node.js en webtechnologieën.",
   "{{first-server-welcome}}": "Maak je eerste server",
+
+  "{{newupdate-found-1}}": "Een nieuwe update gevonden - ",
+  "{{newupdate-found-2}}": "Klik om te downloaden",
+  "{{newupdate-installed}}": "De update is succesvol gedownload, u moet Kubek handmatig opnieuw opstarten vanuit het nieuwe updatebestand",
 
   "{{dorename-fm}}": "Hernoem",
   "{{aredelete-fm}}": "Weet je zeker dat je wilt verwijderen",

@@ -72,7 +72,7 @@ socket_options = {
     origin: origin
   }
 };
-global.io = require("socket.io")(112, socket_options);
+global.io = require("socket.io")(3001, socket_options);
 
 io.on("connection", (socket) => {
   socket.emit("handshake", socket.id);
@@ -148,7 +148,7 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.kubek_version = "v2.0.9";
+global.kubek_version = "v2.0.10";
 
 app.use(fileUpload());
 app.use(cookieParser());
@@ -193,13 +193,27 @@ console.log(colors.inverse('https://github.com/Seeroy/kubek-minecraft-dashboard'
 console.log(kv);
 console.log(" ");
 
-updater.checkForUpdates(function (upd) {
+updater.checkForUpdates(function (upd, body) {
   if (upd != 0 && kubek_version != upd) {
     console.log(additional.getTimeFormatted(), colors.yellow(translator.translateHTML("{{consolemsg-yesupd}}", cfg['lang'])));
     console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
+
+    assets = body[0].assets;
+    downloaded = false;
+    assets.forEach(function (asset) {
+      platform = process.platform.replace(/32/gm, "");
+      if (asset.name.match(platform) != null) {
+        url = asset.browser_download_url;
+        if(fs.existsSync(url.split("/").pop())) {
+          downloaded = true;
+        }
+      }
+    });
+
     updatesByIntArray = {
       found: true,
-      url: "https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd
+      url: "https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd,
+      downloaded: downloaded
     };
   } else {
     console.log(additional.getTimeFormatted(), colors.green(translator.translateHTML("{{consolemsg-noupd}}", cfg['lang'])));
@@ -243,7 +257,7 @@ updater.checkForUpdates(function (upd) {
   app.listen(port, () => {
     console.log(additional.getTimeFormatted(), "Webserver", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), port);
   });
-  console.log(additional.getTimeFormatted(), "Socket.io", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 112);
+  console.log(additional.getTimeFormatted(), "Socket.io", translator.translateHTML("{{consolemsg-usingport}}", cfg['lang']), 3001);
   if (cfg.ftpd == true) {
     var options = {
       host: '127.0.0.1',

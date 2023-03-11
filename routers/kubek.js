@@ -7,6 +7,7 @@ var config = require("./../my_modules/config");
 var kubek = require("./../my_modules/kubek");
 var ftpd = require("./../my_modules/ftpd_new");
 var translator = require("./../my_modules/translator");
+var updater = require("./../my_modules/updater");
 const nodeDiskInfo = require('node-disk-info');
 const path = require('path');
 const os = require("os");
@@ -101,6 +102,16 @@ router.get('/getSPTranslate', function (req, res) {
 
 router.get('/shutdown', function (req, res) {
   process.exit();
+});
+
+router.get('/updates/downloadLatest', function (req, res) {
+  updater.downloadLatestUpdate(function (response) {
+    res.send(response);
+  });
+});
+
+router.get('/updates/check', function (req, res) {
+  res.send(updatesByIntArray);
 });
 
 router.get('/setFTPDStatus', function (req, res) {

@@ -45,6 +45,19 @@
   -->
 </head>
 
+<div class="card" id="update-process"
+  style="display: none; margin: auto; position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: max-content; height: max-content; z-index: 999999999; min-width: 30%;">
+  <div class="card-body">
+    <p class="card-text">
+      Loading
+    </p>
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+        aria-valuemax="100"></div>
+    </div>
+  </div>
+</div>
+
 <body>
   <div class="d-flex flex-row w-100 h-100">
     <div class="menuContainer text-body d-flex flex-column animate__animated animate__slideInLeft animate__fast">
@@ -149,6 +162,21 @@
   var connect_socket_error = false;
   var old_bl_upd = 10;
 
+  function updateIsReady() {
+    Toastify({
+      text: "{{newupdate-installed}}",
+      duration: 5000,
+      close: false,
+      gravity: "top",
+      position: "left",
+      stopOnFocus: true,
+      className: "upd-toast",
+      style: {
+        background: "var(--mdb-success)",
+      }
+    }).showToast();
+  }
+
   $(document).ready(function () {
     $("#langSelectMenu li").click(function () {
       newlang = $(this).find("a").data("lang");
@@ -219,6 +247,43 @@
     }
     $("#new-server-button").click(function () {
       window.location = "/new.server.html";
+    });
+
+    $.get("/kubek/updates/check", function (upd) {
+      if (upd.found == true) {
+        downloaded = upd.downloaded;
+        $.get("/tasks/progress", function (tasks) {
+          keys = Object.keys(tasks);
+          keys.forEach(function (key) {
+            value = tasks[key];
+            if (key == "update.tmp" && value == "ready" && downloaded == false) {
+              downloaded = true;
+            }
+          });
+          version = upd.url.split("/").pop();
+
+          if (downloaded == false) {
+            Toastify({
+              text: "{{newupdate-found-1}}" + version + "\n" + "{{newupdate-found-2}}",
+              duration: 5000,
+              close: false,
+              gravity: "top",
+              position: "left",
+              stopOnFocus: true,
+              className: "upd-toast",
+              style: {
+                background: "var(--mdb-primary)",
+              },
+              onClick: function () {
+                $(".upd-toast").remove();
+                $.get("/kubek/updates/downloadLatest");
+              }
+            }).showToast();
+          } else {
+            updateIsReady();
+          }
+        });
+      }
     });
 
     $("#sidebar-menu-list .list-group-item").click(function () {
@@ -336,12 +401,8 @@
             $("#console-text").html("");
 
             split.forEach(function (line) {
-              ln = "";
-              $(line.replaceColorCodes()).children().each(function () {
-                ln = ln + this.outerHTML;
-              });
-              line = ln;
-              $("#console-text").append(line + "<br>");
+              html_text = "<span>" + line.replaceAll("<", "&lt;") + "</span><br>";
+              $("#console-text").append(html_text);
             });
             if ($("#autoscrollConsoleCheckbox").is(":checked")) {
               $("#console-text").scrollTop($("#console-text")[0].scrollHeight);
@@ -381,6 +442,22 @@
           break;
         case "query":
           updateServerDataFromQuery_ui(data);
+          break;
+        case "downloadTasks":
+          keys = Object.keys(data);
+          keys.forEach(function (key) {
+            value = data[key];
+            if (key == "update.tmp" && value != "ready") {
+              $("#update-process").show();
+              showLoading();
+              $("#update-process .card-text").text("{{downing-core-sw}} update.tmp (" + value + "%)");
+              $("#update-process .progress-bar").css("width", value + "%");
+            } else if (key == "update.tmp" && value == "ready") {
+              $("#update-process").hide();
+              hideLoading();
+              updateIsReady();
+            }
+          });
           break;
       }
     });
