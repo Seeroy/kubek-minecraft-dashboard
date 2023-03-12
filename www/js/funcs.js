@@ -72,7 +72,7 @@ function gotoPage(page) {
         },
         error: function (error) {
           console.error("[UI]", "Error happend when loading page:", error.status, error.statusText);
-          gotoPage('home');
+          gotoPage('console');
           setTimeout(() => {
             hideLoading();
           }, 200);
@@ -102,7 +102,7 @@ function gotoPageWithAttr(page, skipcheck, attr) {
       }, 200);
     },
     error: function () {
-      gotoPage('404');
+      gotoPage('console');
       setTimeout(() => {
         hideLoading();
       }, 200);

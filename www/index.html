@@ -21,12 +21,15 @@
   <script src="/js/socket.io.min.js"></script>
   <script src="/js/popper.min.js"></script>
   <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/mineParse.js"></script>
 
   <script src="js/sweetalert2.all.min.js"></script>
   <link rel="stylesheet" href="/css/sweetalert.dark.css">
 
   <script src="js/toastify-js.js"></script>
   <link rel="stylesheet" href="css/toastify.min.css" />
+
+  <script src="/js/chart.umd.min.js"></script>
 
   <!-- Own -->
   <link rel="stylesheet" href="/css/globals.css" />
@@ -36,6 +39,7 @@
   <!-- Icons and font -->
   <link rel="stylesheet" href="/fonts/Inter/stylesheet.css" />
   <link rel="stylesheet" href="/fonts/MaterialSymbols/stylesheet.css" />
+  <link rel="stylesheet" href="/fonts/RobotoMono/stylesheet.css" />
 
   <!-- 
     sidebar items:
@@ -71,10 +75,6 @@
 
       <ul class="sidenavLayout list-group list-group-light flex-fill" id="sidebar-menu-list"
         style="overflow-y: auto; margin-bottom: 12px;">
-        <li class="list-group-item px-4 active d-flex flex-row align-items-center" data-page="home" aria-current="true">
-          <span class="material-symbols-outlined">home</span>
-          <span class="ms-2">{{dashboard}}</span>
-        </li>
         <li class="list-group-item px-4 d-flex flex-row align-items-center console-menu-item" data-page="console">
           <span class="material-symbols-outlined">terminal</span>
           <span class="ms-2">{{console}}</span>
@@ -344,8 +344,8 @@
           console.log("[UI]", "act is not null, trying to load", act);
           gotoPage(act, true);
         } else {
-          console.log("[UI]", "act is null, loading home");
-          gotoPage("home", true);
+          console.log("[UI]", "act is null, loading console");
+          gotoPage("console", true);
         }
       }
     });
@@ -401,8 +401,15 @@
             $("#console-text").html("");
 
             split.forEach(function (line) {
-              html_text = "<span>" + line.replaceAll("<", "&lt;") + "</span><br>";
-              $("#console-text").append(html_text);
+              line = mineParse(line.replaceAll("<", "&lt;")).parsed.innerHTML;
+
+              htmlObject = document.createElement('div');
+              htmlObject.innerHTML = line;
+              if (htmlObject.firstChild.firstChild != null) {
+                html_text = htmlObject.firstChild.firstChild.wholeText.replaceAll("<", "&lt;") + "<br>";
+
+                $("#console-text").html($("#console-text").html() + html_text);
+              }
             });
             if ($("#autoscrollConsoleCheckbox").is(":checked")) {
               $("#console-text").scrollTop($("#console-text")[0].scrollHeight);

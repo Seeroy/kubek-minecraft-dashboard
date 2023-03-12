@@ -65,6 +65,9 @@
   "{{autoscroll-console}}": "Автоматическое прокручивание",
   "{{autoupdate-console}}": "Обновлять текст в консоли",
   "{{enter-command-console}}": "Введите команду",
+  "{{settings-console}}": "Настройки консоли",
+  "{{monofont-console}}": "Моноширинный шрифт",
+  "{{buildchart-console}}": "Строить график ЦП",
 
   "{{players-on-server}}": "Игроки на сервере",
   "{{resource-usage}}": "Использование ресурсов",

@@ -65,6 +65,9 @@
   "{{autoscroll-console}}": "Auto Scroll",
   "{{autoupdate-console}}": "Update text in console",
   "{{enter-command-console}}": "Enter command",
+  "{{settings-console}}": "Console settings",
+  "{{monofont-console}}": "Use monospace font",
+  "{{buildchart-console}}": "Build a CPU chart",
 
   "{{players-on-server}}": "Players on the server",
   "{{resource-usage}}": "Resource usage",

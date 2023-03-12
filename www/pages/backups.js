@@ -157,21 +157,29 @@ function refreshBackupsList() {
         }
         clr = "";
         if (typeof item.processing_status == "undefined" || item.processing_status.status == "completed") {
-          rr = '<span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-size}}: ' + size + '</span>';
+          name_badge = "";
+          name_size = "<span class='ms-2 gray-addon' style='font-family: monospace;'>" + size + "</span>";
+          rr = '';
           clr = " color: white;";
           icn = "cloud_done";
         } else {
           if (item.processing_status.status == "processing") {
-            rr = '<span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-text-status}}: ' + bks_st_proc + ', ' + item.processing_status.percent + '%</span>';
+            name_badge = '<span class="badge rounded-pill badge-primary text-primary ms-2">' + bks_st_proc + ' (' + item.processing_status.percent + '%)</span>';
+            name_size = "";
+            rr = '';
             prcc = 100 - item.processing_status.percent;
             clr = ' background: -webkit-linear-gradient(var(--mdb-gray-400) ' + prcc + '%, var(--mdb-primary) ' + prcc + '%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;';
             icn = "backup"
           } else if (item.processing_status.status == "error") {
+            name_badge = '<span class="badge rounded-pill badge-primary text-danger ms-2">' + bks_st_error + '</span>';
+            name_size = "";
             rr = '<span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-text-status}}: ' + bks_st_error + ' ' + item.processing_status.error.code + '</span>';
             clr = " color: red;";
             icn = "cloud_off";
           } else {
-            rr = '<span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-text-status}}: ' + bks_st_start + '</span><span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-size}}: ' + size + '</span>';
+            name_badge = '<span class="badge rounded-pill badge-primary text-primary ms-2">' + bks_st_start + '</span>';
+            name_size = "";
+            rr = '<span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-text-status}}: ' + bks_st_start + '</span><span style="margin: 0 8px; color: rgb(200,200,200)">|</span>';
             clr = " color: white;";
             icn = "cloud_done";
           }
@@ -182,7 +190,7 @@ function refreshBackupsList() {
           bkt = bks_tp_sel;
         }
         rks[item.name] = item.selected_files;
-        $("#backups-list").append('<li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center text-white"><span class="material-symbols-outlined" style="font-size: 48px; margin-right: 24px;' + clr + '">' + icn + '</span><div class="d-flex flex-column justify-content-center flex-fill"><span style="font-size: 17pt; font-weight: 600;">' + item.name + '</span><div class="d-flex flex-row align-items-center"><span>{{selected-sn-sw}}: ' + item.server + '</span><span style="margin: 0 8px; color: rgb(200,200,200)">|</span><span>{{backups-text-type}}: ' + bkt + '</span>' + rr + '</div></div><button class="btn btn-warning btn-lg" onclick="showBackupInfo(' + "'" + item.name + "'" + ', ' + "'" + item.description + "'" + ')"><span class="material-symbols-outlined">info</span></button><button class="btn btn-danger btn-lg" onclick="$.get(' + "'/backups/delete?filename=" + item.archive_name + "'" + '); refreshBackupsList();"><span class="material-symbols-outlined">delete</span></button><button class="btn btn-primary btn-lg" onclick="window.location=' + "'/backups/download?filename=" + item.archive_name + "'" + '"><span class="material-symbols-outlined">download</span></button><button class="btn btn-info btn-lg" onclick="restoreBackup(' + "'" + item.archive_name + "'" + ')"><span class="material-symbols-outlined">settings_backup_restore</span></button></li>');
+        $("#backups-list").append('<li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center text-white"><span class="material-symbols-outlined" style="font-size: 48px; margin-right: 24px;' + clr + '">' + icn + '</span><div class="d-flex flex-column justify-content-center flex-fill"><span style="font-size: 17pt; font-weight: 600;">' + item.name + name_badge + name_size + '</span><div class="d-flex flex-row align-items-center gray-addon"><span>{{selected-sn-sw}}: ' + item.server + '</span>' + rr + '</div></div><button class="btn btn-warning btn-lg" onclick="showBackupInfo(' + "'" + item.name + "'" + ', ' + "'" + item.description + "'" + ')"><span class="material-symbols-outlined">info</span></button><button class="btn btn-danger btn-lg" onclick="$.get(' + "'/backups/delete?filename=" + item.archive_name + "'" + '); refreshBackupsList();"><span class="material-symbols-outlined">delete</span></button><button class="btn btn-primary btn-lg" onclick="window.location=' + "'/backups/download?filename=" + item.archive_name + "'" + '"><span class="material-symbols-outlined">download</span></button><button class="btn btn-info btn-lg" onclick="restoreBackup(' + "'" + item.archive_name + "'" + ')"><span class="material-symbols-outlined">settings_backup_restore</span></button></li>');
       });
     }
   });

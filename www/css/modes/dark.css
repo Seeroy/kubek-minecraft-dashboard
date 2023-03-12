@@ -1,7 +1,10 @@
 /* GLOBALS */
-.sub-block .header {
-  background: var(--mdb-gray-800);
+.sub-block * {
   color: white;
+}
+
+.sub-block .header {
+  background: #3b3b3b;
 }
 
 .sub-block .contentt {
@@ -9,7 +12,7 @@
 }
 
 .sub-block .footer {
-  background: var(--mdb-gray-800);
+  background: #3b3b3b;
 }
 
 /* GLOBALS END */
@@ -153,6 +156,12 @@
 /* Kubek settings styling */
 #users-list .card {
   background: var(--mdb-black);
+}
+
+/* Backups page styling */
+.backups-container .gray-addon,
+.backups-container .gray-addon *  {
+  color: var(--mdb-gray-400);
 }
 
 /* Global styles */

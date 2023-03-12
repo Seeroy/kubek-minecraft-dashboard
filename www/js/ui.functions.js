@@ -1,17 +1,75 @@
+var cpu_saves = [];
+var cpu_chart;
+
 function updateMemoryAndCPUUsage_ui(data) {
-  if ($("#usage-cpu-pbar").length > 0 && $("#usage-memory-pbar").length > 0) {
-    if (data.cpu != NaN && data.cpu != "undefined" && data.totalmem != NaN && data.totalmem != "undefined") {
-      $("#usage-cpu-pbar").css("width", data.cpu + "%");
-      $("#usage-cpu-pbar").prop("aria-valuenow", data.cpu);
-      $("#usage-cpu-percent").text(data.cpu + "%");
-      memUsage = (data.usedmem / 1024 / 1024 / 1024).toFixed(1) + " GB / " + (data.totalmem / 1024 / 1024 /
-        1024).toFixed(1) + " GB";
-      memPercent = Math.round(data.usedmem / data.totalmem * 100);
-      $("#usage-memory-count").text(memUsage);
-      $("#usage-memory-pbar").css("width", memPercent + "%");
-      $("#usage-memory-pbar").prop("aria-valuenow", memPercent);
-      $("#usage-memory-percent").text(memPercent + "%");
+  if (data.cpu != NaN && data.cpu != "undefined" && data.totalmem != NaN && data.totalmem != "undefined" && $("#usage-cpu-percent").length > 0) {
+    memUsage = (data.usedmem / 1024 / 1024 / 1024).toFixed(1) + " GB / " + (data.totalmem / 1024 / 1024 /
+      1024).toFixed(1) + " GB";
+    memPercent = Math.round(data.usedmem / data.totalmem * 100);
+    $("#usage-cpu-percent").text(data.cpu + "%");
+    $("#usage-memory-text").text(memUsage + " (" + memPercent + "%)");
+    setColorBySelector_ui(genColorFromPercent(data.cpu), "#usage-cpu-percent");
+    setColorBySelector_ui(genColorFromPercent(memPercent), "#usage-memory-text");
+    if (cpu_saves.length >= 100) {
+      cpu_saves = [];
     }
+    cpu_saves.push(data.cpu);
+    createCPUChart();
+  }
+}
+
+function createCPUChart() {
+  if (window.localStorage.ct__cpuchart == 'true') {
+    if (typeof cpu_chart !== "undefined") {
+      cpu_chart.destroy();
+      cpu_chart = undefined;
+    }
+    genlabels = [];
+    for (i = 1; i < cpu_saves.length; i++) {
+      genlabels.push(i);
+    }
+    cpu_chart = new Chart(document.getElementById("cpu-chart"), {
+      type: 'line',
+      data: {
+        labels: genlabels,
+        datasets: [{
+          data: cpu_saves,
+          label: "CPU",
+          borderColor: "#3b71ca",
+          borderCapStyle: "round",
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        tooltips: {
+          enabled: false,
+        },
+        legend: {
+          display: false
+        },
+        animation: {
+          duration: 0
+        },
+      }
+    });
+  }
+}
+
+function setColorBySelector_ui(colorClass, selector) {
+  $(selector).removeClass("text-warning");
+  $(selector).removeClass("text-danger");
+  $(selector).removeClass("text-success");
+  $(selector).addClass("text-" + colorClass);
+}
+
+function genColorFromPercent(percent) {
+  if (percent < 60) {
+    return "success";
+  } else if (percent >= 60 && percent < 80) {
+    return "warning";
+  } else {
+    return "danger";
   }
 }
 
@@ -23,6 +81,9 @@ function updateServersStatuses_ui(data) {
     $(".server-control.btn-success").show();
     $(".server-control.btn-danger").hide();
     $(".server-control.btn-warning").hide();
+    if ($(".server-control.btn-light").length > 0) {
+      $(".server-control.btn-light").hide();
+    }
     $("#servers-list-sidebar .list-group-item.active .server-status").attr("src", "/assets/statuses/stopped.png");
   } else if (data[window.localStorage.selectedServer].status == "started") {
     $("#status-circle").removeClass("bg-success bg-danger bg-warning");
@@ -31,6 +92,9 @@ function updateServersStatuses_ui(data) {
     $(".server-control.btn-success").hide();
     $(".server-control.btn-danger").show();
     $(".server-control.btn-warning").show();
+    if ($(".server-control.btn-light").length > 0) {
+      $(".server-control.btn-light").hide();
+    }
     $("#servers-list-sidebar .list-group-item.active .server-status").attr("src", "/assets/statuses/started.png");
   } else if (data[window.localStorage.selectedServer].status == "starting") {
     $("#status-circle").removeClass("bg-success bg-danger bg-warning");
@@ -39,6 +103,9 @@ function updateServersStatuses_ui(data) {
     $(".server-control.btn-success").hide();
     $(".server-control.btn-danger").hide();
     $(".server-control.btn-warning").hide();
+    if ($(".server-control.btn-light").length > 0) {
+      $(".server-control.btn-light").show();
+    }
     $("#servers-list-sidebar .list-group-item.active .server-status").attr("src", "/assets/statuses/starting.png");
   } else if (data[window.localStorage.selectedServer].status == "stopping") {
     $("#status-circle").removeClass("bg-success bg-danger bg-warning");
@@ -47,6 +114,9 @@ function updateServersStatuses_ui(data) {
     $(".server-control.btn-success").hide();
     $(".server-control.btn-danger").hide();
     $(".server-control.btn-warning").hide();
+    if ($(".server-control.btn-light").length > 0) {
+      $(".server-control.btn-light").show();
+    }
     $("#servers-list-sidebar .list-group-item.active .server-status").attr("src", "/assets/statuses/starting.png");
   }
 }
@@ -62,12 +132,15 @@ function updateServerDataFromQuery_ui(data) {
   } else {
     $("#server-version-icon").attr("src", "");
   }
+  $("#server-version-item").addClass("d-flex");
+  $("#server-version-item").show();
   $("#server-players-count").text(data.players.online + "/" + data.players.max);
-  $("#players-list").html("");
+  $("#players-heads-list").html("");
   if (data.players.sample.length > 0) {
-    data.players.sample.forEach(function (player) {
-      console.log(player);
-      $("#players-list").append('<li><img class="rounded-3" src="https://minotar.net/avatar/' + player + '" height="24"><span>' + player + '</span></li>');
+    data.players.sample.forEach(function (player, ii) {
+      if (ii < 15) {
+        $("#players-heads-list").append('<img src="https://minotar.net/avatar/' + player + '/20" title="' + player + '">');
+      }
     });
   }
 }
@@ -104,5 +177,7 @@ function updateQuery_socket() {
     $("#server-version").text("{{unknown}}");
     $("#server-players-count").text("{{unknown}}");
     $("#server-version-icon").attr("src", "");
+    $("#server-version-item").removeClass("d-flex");
+    $("#server-version-item").hide();
   }
 }

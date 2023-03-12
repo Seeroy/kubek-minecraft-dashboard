@@ -65,6 +65,9 @@
   "{{autoscroll-console}}": "Automatisch scrollen",
   "{{autoupdate-console}}": "Update tekst in console",
   "{{enter-command-console}}": "Voer de opdracht in",
+  "{{settings-console}}": "Console-instellingen",
+  "{{monofont-console}}": "Monospace-lettertype",
+  "{{buildchart-console}}": "Bouw een CPU-diagram",
 
   "{{players-on-server}}": "Spelers op de server",
   "{{resource-usage}}": "Grondstof gebruik",

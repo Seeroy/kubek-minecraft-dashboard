@@ -1,31 +1,7 @@
 var curDir = "/";
 
 $(document).ready(function () {
-  qss = window.location.search;
-  params = new URLSearchParams(qss);
-  fm_act = params.get('fm_act');
-  if (fm_act == "logs") {
-    curDir = "/logs/";
-  }
   refreshDir();
-
-  /* $("#fileEditArea").keyup(function () {
-     lines = $(this).val().split('\n').length;
-
-     $(".line-numbers").html(Array(lines)
-       .fill('<span></span>')
-       .join(''));
-   });
-
-   $("#fileEditArea").keydown(function (e) {
-     if (e.key === 'Tab') {
-       start = $("#fileEditArea")[0].selectionStart;
-       end = $("#fileEditArea")[0].selectionEnd;
-       val = $("#fileEditArea").val().substring(0, start) + '\t' + $("#fileEditArea").val().substring(end);
-       $("#fileEditArea").val(val);
-       e.preventDefault()
-     }
-   });*/
 
   $("#fsbox_all").change(function () {
     if ($(this).is(":checked")) {

@@ -89,6 +89,14 @@
   box-shadow: none;
 }
 
+.console-container #console-text {
+  background: var(--mdb-gray-200);
+}
+
+.console-container .footer {
+  background: var(--mdb-gray-300);
+}
+
 /* Mods page styling */
 .pl-blocks .contentt .list-group-item:hover {
   background: var(--mdb-gray-100);
@@ -167,6 +175,11 @@
 .backups-container .btn *,
 .backups-container .btn {
   color: white !important;
+}
+
+.backups-container .gray-addon,
+.backups-container .gray-addon * {
+  color: var(--mdb-gray-600);
 }
 
 /* Global styles */

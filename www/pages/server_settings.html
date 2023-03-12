@@ -6,7 +6,7 @@
   <div class="chip-nb d-flex flex-row align-items-center">
     <img class="ms-3" height="32" id="server-icon">
   </div>
-  
+
   <div class="chip-nb d-flex flex-row align-items-center">
     <span id="server-name" class="bold-chip"></span>
   </div>
@@ -28,12 +28,21 @@
   </div>
 
   <div class="flex-fill"></div>
-  <button class="btn btn-danger server-control" onclick="stopServer()"><span
-      class="material-symbols-outlined">crop_square</span></button>
-  <button class="btn btn-success server-control" onclick="startServer()"><span
-      class="material-symbols-outlined">play_arrow</span></button>
-  <button class="btn btn-warning server-control" onclick="restartServer()"><span
-      class="material-symbols-outlined">autorenew</span></button>
+  <div class="d-flex flex-row server-control-flex">
+    <button class="btn btn-danger server-control" onclick="stopServer()"><span
+        class="material-symbols-outlined">crop_square</span></button>
+    <button class="btn btn-success server-control" onclick="startServer()"><span
+        class="material-symbols-outlined">play_arrow</span></button>
+    <button class="btn btn-warning server-control" onclick="restartServer()"><span
+        class="material-symbols-outlined">autorenew</span></button>
+    <button class="btn btn-light server-control" disabled>
+      <div class="mat-spinner">
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="20" />
+        </svg>
+      </div>
+    </button>
+  </div>
 </div>
 
 <div class="settings-container animate__animated animate__slideInUp animate__faster">
@@ -50,9 +59,15 @@
 
   <div class="tab-content" id="ex1-content">
     <div class="tab-pane fade show active" id="main-pills" role="tabpanel" aria-labelledby="main-tab">
-      <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex">
-        <input type="text" class="kbk-input w-100" id="stopcmd-input" placeholder="{{stopcmd-ss}}"/>
-        <button class="btn btn-outline-primary" style="margin-left: 16px;" id="stopcmd-save-button">{{save}}</button>
+      <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2">
+        <div class="d-flex flex-column w-100">
+          <p>{{stopcmd-ss}}</p>
+          <div class="d-flex">
+            <input type="text" class="kbk-input w-100" id="stopcmd-input" placeholder="{{stopcmd-ss}}" />
+            <button class="btn btn-outline-primary" style="margin-left: 16px;"
+              id="stopcmd-save-button">{{save}}</button>
+          </div>
+        </div>
       </li>
 
       <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex">
@@ -68,8 +83,7 @@
       </li>
 
       <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row">
-        <input type="text" class="kbk-input w-100" id="delete-sname"
-          placeholder="{{enter-to-del-ss}}" />
+        <input type="text" class="kbk-input w-100" id="delete-sname" placeholder="{{enter-to-del-ss}}" />
         <button class="btn btn-outline-danger" style="margin-left: 16px;" id="delete-button"
           disabled>{{delete}}</button>
       </li>

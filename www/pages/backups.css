@@ -54,3 +54,9 @@
 #backups-list .list-group-item .btn:not(:last-child) {
   margin-right: 8px;
 }
+
+.gray-addon,
+.gray-addon * {
+  font-size: 11pt;
+  font-weight: 500;
+}
