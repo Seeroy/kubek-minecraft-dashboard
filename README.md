@@ -12,7 +12,7 @@ Kubek - Web Minecraft servers dashboard, written on Node.js using MDBootstrap
 - Users and roles system
 
 **Tested and working cores**:
-- All popular PaperMC versions
+- All popular PaperMC versions (all PaperMC forks (Tuinity, Airplane, Purpur, etc.) more likely will be work too)
 - Spigot 1.8 - 1.18.2 (not included all versions)
 - Forge 1.12.2 - 1.19.2 (not included all versions)
 - Velocity 1.19.3

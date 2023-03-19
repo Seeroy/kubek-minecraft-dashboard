@@ -132,7 +132,7 @@ function startServer() {
 
 function stopServer() {
   $.get("/server/statuses", function (sstat) {
-    if(typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined"){
+    if (typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined") {
       $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=" + sstat[window.localStorage.selectedServer]['stopCommand']);
     } else {
       $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=stop");
@@ -142,6 +142,10 @@ function stopServer() {
 
 function restartServer() {
   $.get("/server/restart?server=" + window.localStorage.selectedServer);
+}
+
+function killServer() {
+  $.get("/server/kill?server=" + window.localStorage.selectedServer);
 }
 
 const animateCSS = (element, animation, prefix = 'animate__') =>

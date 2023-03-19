@@ -9,6 +9,7 @@ var path = require('path');
 const {
   spawn
 } = require('node:child_process');
+var treekill = require('tree-kill');
 const auth_manager = require("./../my_modules/auth_manager");
 const errors_parser = require("./../my_modules/errors.mc.parser");
 const translator = require('./../my_modules/translator');
@@ -240,6 +241,15 @@ router.get('/start', function (req, res) {
   }
 });
 
+router.get('/kill', function (req, res) {
+  if (typeof (servers_instances[req.query.server]) == 'object') {
+    treekill(servers_instances[req.query.server].pid);
+    res.send("true");
+  } else {
+    res.send("false");
+  }
+});
+
 router.get('/restart', function (req, res) {
   if (typeof (configjson[req.query.server]) !== 'undefined' && configjson[req.query.server].status == "started" && typeof restart_after_stop[req.query.server] == "undefined") {
     restart_after_stop[req.query.server] = true;
@@ -313,54 +323,59 @@ function startServer(server) {
           data: serverController.getStatuses()
         });
       }
-      if (code != 0) {
-        servers_logs[server] = servers_logs[server] + "§4" + translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code;
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.red);
-        if (configjson[server]['restartOnError'] == true && errors_parser.checkStringForErrors(servers_logs[server]) == false) {
-          if (typeof servers_restart_count[server] == "undefined") {
-            servers_restart_count[server] = 1;
-            console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1 :", server.red);
-            servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1";
-            setTimeout(function () {
-              startServer(server);
-            }, 3000);
-          } else {
-            if (servers_restart_count[server] < 3) {
-              servers_restart_count[server]++;
-              console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server] + " :", server.red);
-              servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server];
+      if (code != 1) {
+        if (code != 0) {
+          servers_logs[server] = servers_logs[server] + "§4" + translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code;
+          console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.red);
+          if (configjson[server]['restartOnError'] == true && errors_parser.checkStringForErrors(servers_logs[server]) == false) {
+            if (typeof servers_restart_count[server] == "undefined") {
+              servers_restart_count[server] = 1;
+              console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1 :", server.red);
+              servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1";
               setTimeout(function () {
                 startServer(server);
               }, 3000);
             } else {
-              servers_logs[server] = servers_logs[server] + "\n§4" + translator.translateHTML("{{consolemsg-cantbestarted}}", cfg['lang']);
+              if (servers_restart_count[server] < 3) {
+                servers_restart_count[server]++;
+                console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server] + " :", server.red);
+                servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server];
+                setTimeout(function () {
+                  startServer(server);
+                }, 3000);
+              } else {
+                servers_logs[server] = servers_logs[server] + "\n§4" + translator.translateHTML("{{consolemsg-cantbestarted}}", cfg['lang']);
+              }
             }
           }
-        }
-        fsock = io.sockets.sockets;
-        for (const socket of fsock) {
-          spl = servers_logs[server].split(/\r?\n/).slice(-100);
-          socket[1].emit("handleUpdate", {
-            type: "console",
-            data: {
-              server: server,
-              data: spl.join("\r\n")
-            }
-          });
+        } else {
+          console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stop}} ", cfg['lang']) + ":", server.green);
+          if (restart_after_stop[server] == true) {
+            restart_after_stop[server] = null;
+            delete restart_after_stop[server];
+            setTimeout(function () {
+              startServer(server);
+            }, 500);
+          }
         }
       } else {
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stop}} ", cfg['lang']) + ":", server.green);
-        if (restart_after_stop[server] == true) {
-          restart_after_stop[server] = null;
-          delete restart_after_stop[server];
-          setTimeout(function () {
-            startServer(server);
-          }, 500);
-        }
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.yellow);
+        servers_logs[server] = servers_logs[server] + "\n§bKilled";
+      }
+      fsock = io.sockets.sockets;
+      for (const socket of fsock) {
+        spl = servers_logs[server].split(/\r?\n/).slice(-100);
+        socket[1].emit("handleUpdate", {
+          type: "console",
+          data: {
+            server: server,
+            data: spl.join("\r\n")
+          }
+        });
       }
     });
     servers_instances[server].stdout.on('data', (data) => {
-      data = iconvlite.decode(data, "utf-8"); 
+      data = iconvlite.decode(data, "utf-8");
       err = errors_parser.checkStringForErrors(data.toString());
       if (err != false) {
         fsock = io.sockets.sockets;
@@ -387,6 +402,10 @@ function startServer(server) {
         statuss = "starting";
       }
       if (data.indexOf("Done") >= 0) {
+        statuss = "started";
+        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
+      }
+      if (data.indexOf("Listening on /") >= 0) {
         statuss = "started";
         console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
       }

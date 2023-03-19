@@ -11,6 +11,14 @@
   box-shadow: none !important;
 }
 
+.btn-udanger {
+  background: red;
+}
+
+.btn-udanger:hover {
+  background: rgb(219, 0, 0);
+}
+
 .sub-block {
   display: grid;
   grid-template-columns: 1fr;

@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 exports.scanDirectory = (server, directory, cb) => {
-  if (fs.existsSync("./servers/" + server + "/" + directory)) {
+  if (fs.existsSync("./servers/" + server + "/" + directory) && fs.lstatSync("./servers/" + server + "/" + directory).isDirectory()) {
     directory = directory.toString().replaceAll(/\..\//gm, "");
     rd = "./servers/" + server + "/" + directory;
     fs.readdir(rd, function (err, rd_res) {

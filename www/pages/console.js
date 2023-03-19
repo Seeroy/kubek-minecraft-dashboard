@@ -18,6 +18,12 @@ $(document).ready(function () {
       htmlObject.innerHTML = line;
       if (htmlObject.firstChild.firstChild != null) {
         html_text = htmlObject.firstChild.firstChild.wholeText.replaceAll("<", "&lt;") + "<br>";
+        if(htmlObject.firstChild.style.color != ""){
+          stl = "color:" + htmlObject.firstChild.style.color + ";";
+        } else {
+          stl = "";
+        }
+        html_text = "<span style='" + stl + "'>" + html_text + "</span>";
 
         $("#console-text").html($("#console-text").html() + html_text);
       }

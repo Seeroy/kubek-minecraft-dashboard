@@ -167,7 +167,7 @@
 /* Global styles */
 .kbk-input {
   color: white;
-  background: var(--mdb-gray-900);
+  background: #464646;
 }
 
 .kbk-input::placeholder {

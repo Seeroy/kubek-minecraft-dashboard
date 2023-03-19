@@ -79,7 +79,8 @@ function updateServersStatuses_ui(data) {
     $("#status-circle").addClass("bg-danger");
     $("#status-text").html("{{status-stopped}}");
     $(".server-control.btn-success").show();
-    $(".server-control.btn-danger").hide();
+    $(".server-control.killsrv").hide();
+    $(".server-control.stopsrv").hide();
     $(".server-control.btn-warning").hide();
     if ($(".server-control.btn-light").length > 0) {
       $(".server-control.btn-light").hide();
@@ -90,7 +91,8 @@ function updateServersStatuses_ui(data) {
     $("#status-circle").addClass("bg-success");
     $("#status-text").html("{{status-started}}");
     $(".server-control.btn-success").hide();
-    $(".server-control.btn-danger").show();
+    $(".server-control.killsrv").show();
+    $(".server-control.stopsrv").show();
     $(".server-control.btn-warning").show();
     if ($(".server-control.btn-light").length > 0) {
       $(".server-control.btn-light").hide();
@@ -101,7 +103,8 @@ function updateServersStatuses_ui(data) {
     $("#status-circle").addClass("bg-warning");
     $("#status-text").html("{{status-starting}}");
     $(".server-control.btn-success").hide();
-    $(".server-control.btn-danger").hide();
+    $(".server-control.killsrv").show();
+    $(".server-control.stopsrv").hide();
     $(".server-control.btn-warning").hide();
     if ($(".server-control.btn-light").length > 0) {
       $(".server-control.btn-light").show();
@@ -112,7 +115,8 @@ function updateServersStatuses_ui(data) {
     $("#status-circle").addClass("bg-warning");
     $("#status-text").html("{{status-stopping}}");
     $(".server-control.btn-success").hide();
-    $(".server-control.btn-danger").hide();
+    $(".server-control.killsrv").show();
+    $(".server-control.stopsrv").hide();
     $(".server-control.btn-warning").hide();
     if ($(".server-control.btn-light").length > 0) {
       $(".server-control.btn-light").show();

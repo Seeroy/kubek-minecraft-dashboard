@@ -59,7 +59,10 @@ exports.writeServersJSON = (config) => {
 }
 
 exports.writeDefaultConfig = () => {
-  fs.writeFileSync("config.json", defaultConfig);
+  parse = JSON.parse(defaultConfig);
+  userLang = detectUserLocale();
+  parse["lang"] = userLang;
+  fs.writeFileSync("config.json", JSON.stringify(parse));
 }
 
 exports.writeDefaultUsersConfig = () => {
@@ -76,4 +79,12 @@ exports.readServersJSON = () => {
   } else {
     return false;
   }
+}
+
+function detectUserLocale() {
+  locale = Intl.DateTimeFormat().resolvedOptions().locale.toString().split('-')[0];
+  if(locale != 'ru' && locale != 'nl'){
+    locale = 'en';
+  }
+  return locale.toLowerCase();
 }

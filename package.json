@@ -37,6 +37,7 @@
     "pidusage": "^3.0.0",
     "request": "^2.88.2",
     "socket.io": "^4.4.1",
+    "tree-kill": "^1.2.2",
     "xml2js": "^0.4.23",
     "yauzl": "^2.10.0"
   }
