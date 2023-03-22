@@ -151,9 +151,6 @@ function saveKubekSettings() {
   savelogs = $("#savelogs-checkbox").is(":checked");
   allowint = $("#allowintacc-checkbox").is(":checked");
 
-  if(kubekCfg['lang'] != checked){
-    rl_page = true;
-  }
   if(kubekCfg['auth'] != auth){
     rl_page = true;
   }
