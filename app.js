@@ -149,7 +149,7 @@ global.currentFileWritingsText = [];
 global.ftpserver;
 
 // Kubek version
-global.kubek_version = "v2.0.13";
+global.kubek_version = "v2.0.13-fix";
 
 app.use(fileUpload());
 app.use(cookieParser());
@@ -195,7 +195,7 @@ console.log(kv);
 console.log(" ");
 
 updater.checkForUpdates(function (upd, body) {
-  if (upd != 0 && kubek_version != upd) {
+  if (upd != 0 && kubek_version != upd && typeof body !== 'undefined') {
     console.log(additional.getTimeFormatted(), colors.yellow(translator.translateHTML("{{consolemsg-yesupd}}", cfg['lang'])));
     console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
 
