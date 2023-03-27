@@ -185,7 +185,7 @@ function saveKubekSettings() {
   kubekCfg["ftpd-password"] = $(".ftppass").val();
   kubekCfg["ftpd-user"] = $(".ftpuser").val();
   kubekCfg["tgbot-token"] = $(".tgbot-token").val();
-  kubekCfg['tgbot-chatid'] = null;
+  kubekCfg['tgbot-chatid'] = [];
   $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function (data) {
     $.get("/kubek/setFTPDStatus?value=" + ftpd, function (data) {
       if (rl_page == false) {

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const CONFIG_VERSION = 1;
-const defaultConfig = '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"internet-access":true,"save-logs":true,"config-version":1}';
+const defaultConfig = '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"internet-access":true,"save-logs":true,"config-version":1,"tgbot-enabled":false,"tgbot-token":null,"tgbot-chatid":[]}';
 const defaultUsersConfig = '{"kubek": {"username": "kubek","password": "72ba608dbfac8d46d4aaf40f428badf85af1f929fece7480e56602b4452a71fe","mail": "","hash": "","permissions": ["console", "plugins", "filemanager", "server_settings", "kubek_settings"]}}';
 var SHA256 = require("crypto-js/sha256");
 var crypto = require("crypto");
@@ -21,6 +21,9 @@ exports.readConfig = () => {
     }
     if (typeof parse['tgbot-token'] === "undefined") {
       parse['tgbot-token'] = "";
+    }
+    if (typeof parse['tgbot-chatid'] === "undefined") {
+      parse['tgbot-chatid'] = [];
     }
     if (typeof parse['config-version'] === "undefined") {
       parse['config-version'] = CONFIG_VERSION;

@@ -45,7 +45,7 @@ $(document).ready(function () {
     $("#ctfontsizeRadio_" + window.localStorage.ct__fontsize).prop("checked", true);
   }
 
-  if (typeof window.localStorage.ct__cpuchart !== "undefined") {
+  if (typeof window.localStorage.ct__cpuchart !== "undefined" && window.localStorage.ct__cpuchart == 'true') {
     $("#ctcpuchartCheck").prop("checked", true);
   }
 

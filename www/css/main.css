@@ -60,10 +60,12 @@ body {
 .menuContainer .sidenavLayout li {
   border: 0;
   cursor: pointer;
+  padding-top: 14px;
+  padding-bottom: 14px;
 }
 
 .menuContainer .sidenavLayout li:not(:first-child) {
-  margin-top: 10px;
+  margin-top: 6px;
   border-radius: var(--mdb-list-group-light-active-border-radius);
 }
 

@@ -140,6 +140,10 @@
   background: #424242;
 }
 
+.fm_container .btn-secondary {
+  color: black;
+}
+
 /* Server settings styling */
 #speditor-pills input[type="text"] {
   color: var(--mdb-white);
