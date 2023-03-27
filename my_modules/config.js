@@ -16,6 +16,12 @@ exports.readConfig = () => {
     if (typeof parse['internet-access'] === "undefined") {
       parse['internet-access'] = false;
     }
+    if (typeof parse['tgbot-enabled'] === "undefined") {
+      parse['tgbot-enabled'] = false;
+    }
+    if (typeof parse['tgbot-token'] === "undefined") {
+      parse['tgbot-token'] = "";
+    }
     if (typeof parse['config-version'] === "undefined") {
       parse['config-version'] = CONFIG_VERSION;
     }

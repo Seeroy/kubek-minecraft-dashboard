@@ -32,6 +32,28 @@ exports.showRequestInLogs = (req, res) => {
   }
 }
 
+exports.showTGBotMessage = (msg, username = "", chatId) => {
+  if(username != ""){
+    console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green("@" + username) + " (" + colors.cyan(chatId) + ") - " + colors.white(msg));
+  } else {
+    console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green(chatId) + " - " + colors.white(msg));
+  }
+  if (cfg['save-logs'] == true) {
+    if (!fs.existsSync("./logs/")) {
+      fs.mkdirSync("./logs");
+    }
+    date = new Date();
+    fname = date.getDate().toString().padStart(2, "0") + "-" + date.getMonth().toString().padStart(2, "0") + "-" + date.getFullYear().toString().padStart(2, "0") + ".log";
+    if (fs.existsSync("./logs/" + fname)) {
+      rf = fs.readFileSync("./logs/" + fname);
+      rf = rf + "\n" + this.getTimeFormatted() + " [TGBOT] " + "@" + username + " (" + chatId + ")" + " - " + msg;
+    } else {
+      rf = this.getTimeFormatted() + " [TGBOT] " + "@" + username + " (" + chatId + ")" + " - " + msg;
+    }
+    fs.writeFileSync("./logs/" + fname, rf);
+  }
+}
+
 exports.showMyMessageInLogs = (req, res, msg) => {
   method = req.method.toString().toUpperCase();
   ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;

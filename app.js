@@ -8,6 +8,7 @@ const kubek = require("./my_modules/kubek");
 const additional = require("./my_modules/additional");
 const serverController = require("./my_modules/servers");
 const auth_manager = require("./my_modules/auth_manager");
+const tgbot_manager = require("./my_modules/tgbot");
 
 // Express initialization
 const express = require('express');
@@ -147,9 +148,11 @@ global.forgesIns = [];
 global.currentFileWritings = [];
 global.currentFileWritingsText = [];
 global.ftpserver;
+global.servers_restart_count = {};
+global.restart_after_stop = {};
 
 // Kubek version
-global.kubek_version = "v2.0.13-fix";
+global.kubek_version = "v2.0.14";
 
 app.use(fileUpload());
 app.use(cookieParser());
@@ -266,6 +269,9 @@ updater.checkForUpdates(function (upd, body) {
       tls: null
     }
     ftpserver = ftpd.startFTPD(options, cfg['ftpd-user'], cfg['ftpd-password']);
+  }
+  if (cfg['tgbot-enabled'] == true) {
+    tgbot_manager.startBot(cfg['tgbot-token']);
   }
   console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-viewurl-start}}", cfg['lang']), 'http://localhost:' + port);
 });

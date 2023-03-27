@@ -3,6 +3,7 @@ var router = express.Router();
 var additional = require("./../my_modules/additional");
 var config = require("./../my_modules/config");
 const auth_manager = require("./../my_modules/auth_manager");
+var tgbot = require("./../my_modules/tgbot");
 
 const ACCESS_PERMISSION = "kubek_settings";
 
@@ -34,6 +35,9 @@ router.get('/login', function (req, res) {
   mainConfig = config.readConfig();
   if (mainConfig.auth == true) {
     authsucc = auth_manager.login(password, login);
+    ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
+    tgbot.sendNewAuth(authsucc, login, ip);
     if (authsucc == true) {
       let options = {
         maxAge: 120 * 24 * 60 * 60 * 1000,

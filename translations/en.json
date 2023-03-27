@@ -94,6 +94,7 @@
   "{{sup-uid-ks}}": "ID for technical support:",
   "{{oldpass-ks}}": "Old password",
   "{{newpass-ks}}": "New password",
+  "{{tgbot-ks}}": "Telegram bot is used to manage servers, and will also notify you about server status changes and new account logins",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",
@@ -190,7 +191,7 @@
   "{{consolemsg-ftp-started}}": "New FTP connection started",
   "{{consolemsg-ftp-connect}}": "logged in successfully",
   "{{consolemsg-viewurl-start}}": "The web interface is located at",
-  "{{consolemsg-cantbestarted}}" : "Server cannot be started after 3 attempts",
+  "{{consolemsg-cantbestarted}}": "Server cannot be started after 3 attempts",
 
   "{{backups-capt}}": "Backups",
   "{{backups-disk-total}}": "Total",
@@ -219,5 +220,22 @@
   "{{download}}": "Download",
   "{{backups-size}}": "Archive size",
 
-  "{{backup-candestroy}}": "Restoring a full backup will delete your server data. When restoring a partial backup, your files may be damaged"
+  "{{backup-candestroy}}": "Restoring a full backup will delete your server data. When restoring a partial backup, your files may be damaged",
+
+  "{{tgbot-savedchatid}}": "We successfully saved the ChatID, now Kubek will work with this chat",
+  "{{tgbot-serverstatuses}}": "Server statuses",
+  "{{tgbot-commands}}": "Commands",
+  "{{tgbot-helpmsg}}": "<b>Server management</b>\n/startServer [server name] - <i>Start server</i>\n/stopServer [server name] - <i>Stop server</i>\n/restartServer [server name] - <i>Restart server</i>\n/statuses - <i>Server statuses</i>\n/help - <i>This message with commands :)</i>\n/serverLog [server name] - <i>Send latest.log file from server folder</i>\n\n<code>Kubek ",
+  "{{tgbot-usage}}": "❌ Wrong command usage",
+  "{{tgbot-starting}}": "✅ We start the server ",
+  "{{tgbot-stopping}}": "⏹️ Stop the server ",
+  "{{tgbot-restarting}}": "🔃 Restart the server ",
+  "{{tgbot-cantdo}}": "❗ This action cannot be performed now",
+  "{{tgbot-changedstatus-1}}": "🔔 Server Status ",
+  "{{tgbot-changedstatus-2}}": " changed to: ",
+  "{{tgbot-sendinglog}}": "Please wait, the log file is being sent (latest.log)",
+  "{{tgbot-nologs}}": "latest.log file not found",
+  "{{tgbot-newlogin-failed-1}}": "🔒❌ Unsuccessful login attempt ",
+  "{{tgbot-newlogin-failed-2}}": "Be careful. ",
+  "{{tgbot-newlogin-success}}": "🔒✅ Successful login attempt "
 }

@@ -92,6 +92,7 @@
   "{{users-limited-count-ks}}": "Kan gebruiker niet aanmaken, maximum aantal gebruikers is 5",
   "{{shutdown-kubek-ks}}": "Schakel Kubek uit",
   "{{sup-uid-ks}}": "ID voor steun:",
+  "{{tgbot-ks}}": "Telegram-bot wordt gebruikt om servers te beheren en zal u ook op de hoogte stellen van wijzigingen in de serverstatus en nieuwe accountaanmeldingen",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",
@@ -188,7 +189,7 @@
   "{{consolemsg-ftp-started}}": "Nieuwe FTP-verbinding gestart",
   "{{consolemsg-ftp-connect}}": "succesvol ingelogd",
   "{{consolemsg-viewurl-start}}": "De webinterface bevindt zich op",
-  "{{consolemsg-cantbestarted}}" : "Server kan na 3 pogingen niet worden gestart",
+  "{{consolemsg-cantbestarted}}": "Server kan na 3 pogingen niet worden gestart",
 
   "{{oldpass-ks}}": "Oud paswoord",
   "{{newpass-ks}}": "Nieuw paswoord",
@@ -217,5 +218,22 @@
   "{{backups-size}}": "Archief grootte",
   "{{backups-compress}}": "Selecteer back-upcompressieverhouding (groter -> kleiner archief, langere operaties)",
 
-  "{{backup-candestroy}}": "Als u een volledige back-up herstelt, worden uw servergegevens verwijderd. Bij het terugzetten van een gedeeltelijke back-up kunnen uw bestanden beschadigd raken"
+  "{{backup-candestroy}}": "Als u een volledige back-up herstelt, worden uw servergegevens verwijderd. Bij het terugzetten van een gedeeltelijke back-up kunnen uw bestanden beschadigd raken",
+
+  "{{tgbot-savedchatid}}": "We hebben de ChatID succesvol opgeslagen, nu werkt Kubek met deze chat",
+  "{{tgbot-serverstatuses}}": "Serverstatussen",
+  "{{tgbot-commands}}": "Teams",
+  "{{tgbot-helpmsg}}": "<b>Serverbeheer</b>\n/startServer [servernaam] - <i>Server starten</i>\n/stopServer [servernaam] - <i>Server stoppen</i>\n/restartServer [servernaam] - <i>Start de server opnieuw op</i>\n/statuses - <i>Serverstatussen</i>\n/help - <i>Dit bericht met opdrachten :)</i>\n/serverLog [servernaam] - <i>Stuur het nieuwste.log-bestand vanuit de servermap</i>\n\n<code>Kubek ",
+  "{{tgbot-usage}}": "❌ Verkeerd commandogebruik",
+  "{{tgbot-starting}}": "✅ We starten de server op ",
+  "{{tgbot-stopping}}": "⏹️ Stop de server ",
+  "{{tgbot-restarting}}": "🔃 Start de server opnieuw op ",
+  "{{tgbot-cantdo}}": "❗ Deze actie kan nu niet worden uitgevoerd",
+  "{{tgbot-changedstatus-1}}": "🔔 Serverstatus ",
+  "{{tgbot-changedstatus-2}}": " veranderd in: ",
+  "{{tgbot-sendinglog}}": "Even geduld, het logbestand wordt verzonden (latest.log)",
+  "{{tgbot-nologs}}": "nieuwste.log-bestand niet gevonden",
+  "{{tgbot-newlogin-failed-1}}": "🔒❌ Mislukte inlogpoging ",
+  "{{tgbot-newlogin-failed-2}}": "Wees voorzichtig. ",
+  "{{tgbot-newlogin-success}}": "🔒✅ Succesvolle inlogpoging "
 }

@@ -11,6 +11,16 @@ $(document).ready(function () {
   loadUsersList();
   loadKubekSettings();
   new mdb.Tooltip(document.getElementById('tooltip-acc'));
+  $("#tgbot-checkbox").change(function () {
+    if ($(this).is(":checked")) {
+      $("#tgbot-token-item").show();
+    } else {
+      $("#tgbot-token-item").hide();
+    }
+  });
+  $(".addtooltip").each(function () {
+    new mdb.Tooltip(this);
+  });
 });
 
 function loadKubekSettings() {
@@ -28,6 +38,12 @@ function loadKubekSettings() {
       $("#ftpserver-checkbox").attr("checked", true);
     }
 
+    if (kubekCfg['tgbot-enabled'] == true) {
+      $("#tgbot-checkbox").attr("checked", true);
+      $("#tgbot-token-item").show();
+      $(".tgbot-token").val(kubekCfg['tgbot-token']);
+    }
+
     if (kubekCfg['auth'] == true) {
       $("#auth-checkbox").attr("checked", true);
     }
@@ -43,13 +59,13 @@ function loadKubekSettings() {
     $(".ftppass").val(kubekCfg["ftpd-password"]);
     $(".ftpuser").val(kubekCfg["ftpd-user"]);
 
-    $.get("/kubek/support-uid", function(supuid){
+    $.get("/kubek/support-uid", function (supuid) {
       $("#supuid").text(supuid);
     });
   });
 }
 
-function shutdownKubek(){
+function shutdownKubek() {
   $.get("/kubek/shutdown");
 }
 
@@ -150,22 +166,29 @@ function saveKubekSettings() {
   auth = $("#auth-checkbox").is(":checked");
   savelogs = $("#savelogs-checkbox").is(":checked");
   allowint = $("#allowintacc-checkbox").is(":checked");
+  tgbot = $("#tgbot-checkbox").is(":checked");
 
-  if(kubekCfg['auth'] != auth){
+  if (kubekCfg['auth'] != auth) {
     rl_page = true;
   }
-  if(kubekCfg['ftpd'] != ftpd && ftpd == false){
+  if (tgbot == true) {
+    alert("Для начала работы бота напишите ему /start, только тогда он будет работать");
+  }
+  if (kubekCfg['ftpd'] != ftpd && ftpd == false) {
     alert("Для отключения FTPD требуется полный перезапуск Kubek");
   }
   kubekCfg["ftpd"] = ftpd;
   kubekCfg["auth"] = auth;
+  kubekCfg["tgbot-enabled"] = tgbot;
   kubekCfg["internet-access"] = allowint;
   kubekCfg["save-logs"] = savelogs;
   kubekCfg["ftpd-password"] = $(".ftppass").val();
   kubekCfg["ftpd-user"] = $(".ftpuser").val();
+  kubekCfg["tgbot-token"] = $(".tgbot-token").val();
+  kubekCfg['tgbot-chatid'] = null;
   $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function (data) {
     $.get("/kubek/setFTPDStatus?value=" + ftpd, function (data) {
-      if(rl_page == false){
+      if (rl_page == false) {
         loadKubekSettings();
         Toastify({
           text: "{{settings-saved}}",

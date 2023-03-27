@@ -8,6 +8,7 @@ var kubek = require("./../my_modules/kubek");
 var ftpd = require("./../my_modules/ftpd_new");
 var translator = require("./../my_modules/translator");
 var updater = require("./../my_modules/updater");
+var tgbot = require("./../my_modules/tgbot");
 const nodeDiskInfo = require('node-disk-info');
 const path = require('path');
 const os = require("os");
@@ -168,7 +169,14 @@ router.get('/saveConfig', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (req.query.data != null && typeof req.query.data !== "undefined") {
+      cfg_old = config.readConfig();
       fs.writeFileSync("./config.json", req.query.data);
+      cfg_new = JSON.parse(req.query.data);
+      if (cfg_new['tgbot-enabled'] != cfg_old['tgbot-enabled'] && cfg_new['tgbot-enabled'] == true) {
+        tgbot.startBot(cfg_new['tgbot-token']);
+      } else if (cfg_new['tgbot-enabled'] != cfg_old['tgbot-enabled'] && cfg_new['tgbot-enabled'] == false) {
+        tgbot.stopBot();
+      }
       res.send("true");
     } else {
       res.send("false");

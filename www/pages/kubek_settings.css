@@ -23,3 +23,12 @@
 #users-list .card .card-body {
   display: flex;
 }
+
+.addtooltip {
+  cursor: help;
+  color: rgba(150, 150, 150);
+}
+
+#tgbot-token-item {
+  display: flex;
+}
