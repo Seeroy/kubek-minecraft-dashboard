@@ -23,12 +23,12 @@ exports.startBot = (token) => {
 };
 
 exports.stopBot = () => {
-  if (typeof bot !== "undefined" && bot != null && this.botStarted == true) {
+  if (this.botStarted == true) {
+    this.botStarted = false;
     this.bot.stopPolling();
     this.bot.clearTextListeners();
     this.bot.close();
     this.bot = null;
-    this.botStarted = false;
     return true;
   } else {
     return false;
