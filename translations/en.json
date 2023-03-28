@@ -29,6 +29,8 @@
   "{{back}}": "Back",
   "{{memory}}": "Memory",
   "{{server-port}}": "Server Port",
+  "{{version}}": "Version",
+  "{{status}}": "Status",
 
   "{{restart-server-to-see-changes}}": "Restart the server to see the changes",
   "{{error-upload}}": "File upload error",
@@ -94,8 +96,11 @@
   "{{sup-uid-ks}}": "ID for technical support:",
   "{{oldpass-ks}}": "Old password",
   "{{newpass-ks}}": "New password",
-  "{{tgbot-ks}}": "Telegram bot is used to manage servers, and will also notify you about server status changes and new account logins",
-  "{{passwd-err-ks}}": "Password must be between 6 and 64 characters long (must be numbers and letters)",
+  "{{tgbot-ks}}": "Telegram bot is used to manage servers, and will also notify you of important events happening with servers and Kubek",
+  "{{passwd-err-ks}}": "Password must be between 6 and 64 characters long (must be numbers, uppercase and letters)",
+  "{{tgbot-otp-ks}}": "Telegram Bot One Time Password (updates every 15 seconds) (write /start [this code])",
+  "{{copying-succ-ks}}": "Code successfully copied (together with /start command)",
+  "{{fullres-need-ks}}": "Disabling FTPD requires a full restart of Kubek",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",
@@ -225,7 +230,7 @@
 
   "{{backup-candestroy}}": "Restoring a full backup will delete your server data. When restoring a partial backup, your files may be damaged",
 
-  "{{tgbot-savedchatid}}": "We successfully saved the ChatID, now Kubek will work with this chat",
+  "{{tgbot-savedchatid}}": "🔒 OTP-сode is correct! Now you can work with this bot in any chat",
   "{{tgbot-serverstatuses}}": "Server statuses",
   "{{tgbot-commands}}": "Commands",
   "{{tgbot-helpmsg}}": "<b>Server management</b>\n/startServer [server name] - <i>Start server</i>\n/stopServer [server name] - <i>Stop server</i>\n/restartServer [server name] - <i>Restart server</i>\n/statuses - <i>Server statuses</i>\n/help - <i>This message with commands :)</i>\n/serverLog [server name] - <i>Send latest.log file from server folder</i>\n\n<code>Kubek ",
@@ -242,5 +247,8 @@
   "{{tgbot-newlogin-failed-2}}": "Be careful. ",
   "{{tgbot-newlogin-success}}": "🔒✅ Successful login attempt ",
   "{{tgbot-running-sched-succ}}": "🔔🟢 Server restart task successfully completed: ",
-  "{{tgbot-running-sched-failed}}": "🔔🟡 Server restart task failed: "
+  "{{tgbot-running-sched-failed}}": "🔔🟡 Server restart task failed: ",
+  "{{tgbot-wait2sec}}": "❗ Wait 2 seconds before performing an action",
+  "{{tgbot-plsstart}}": "To start working with the bot, you need to write /start",
+  "{{tgbot-wrongotp}}": "Invalid OTP code (you can get it in the Kubek settings)"
 }

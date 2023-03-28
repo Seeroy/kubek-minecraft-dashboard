@@ -278,10 +278,24 @@
   <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 flex-row align-items-center"
     id="tgbot-token-item" style="display: none;">
     <img src="assets/telegram-icon.png">
-    <span class="caption flex-fill">Telegram Bot Token (<a href="https://t.me/BotFather"
-        target="_blank">@BotFather</a>)</span>
+    <span class="caption">Telegram Bot Token (<a href="https://t.me/BotFather" target="_blank">@BotFather</a>)</span>
+    <div class="element flex-fill ms-5">
+      <input type="text" class="kbk-input tgbot-token w-100">
+    </div>
+  </li>
+
+  <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 flex-row align-items-center"
+    id="tgbot-otp-item" style="display: none;">
+    <img src="assets/telegram-icon.png">
+    <span class="caption flex-fill">{{tgbot-otp-ks}}</span>
     <div class="element">
-      <input type="text" class="kbk-input tgbot-token">
+      <div class="kbk-input input-bg align-items-center">
+        <input type="text" class="kbk-input tgbot-otp" readonly>
+        <div style="width: 2px; height: 24px; background: gray;"></div>
+        <div class="d-flex align-items-center justify-content-center ms-2 me-2">
+          <span class="material-symbols-outlined copyotp">content_copy</span>
+        </div>
+      </div>
     </div>
   </li>
 

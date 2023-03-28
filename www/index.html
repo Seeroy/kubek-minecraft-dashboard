@@ -456,6 +456,11 @@
         case "query":
           updateServerDataFromQuery_ui(data);
           break;
+        case "newOTP":
+          if ($(".tgbot-otp").length > 0) {
+            $(".tgbot-otp").val(data);
+          }
+          break;
         case "downloadTasks":
           keys = Object.keys(data);
           keys.forEach(function (key) {

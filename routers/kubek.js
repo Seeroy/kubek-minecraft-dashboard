@@ -102,17 +102,36 @@ router.get('/getSPTranslate', function (req, res) {
 });
 
 router.get('/shutdown', function (req, res) {
-  process.exit();
+  perms = auth_manager.getUserPermissions(req);
+  if (perms.includes(ACCESS_PERMISSION)) {
+    process.exit();
+  } else {
+    res.status(403).send();
+  }
 });
 
 router.get('/updates/downloadLatest', function (req, res) {
-  updater.downloadLatestUpdate(function (response) {
-    res.send(response);
-  });
+  perms = auth_manager.getUserPermissions(req);
+  if (perms.includes(ACCESS_PERMISSION)) {
+    updater.downloadLatestUpdate(function (response) {
+      res.send(response);
+    });
+  } else {
+    res.status(403).send();
+  }
 });
 
 router.get('/updates/check', function (req, res) {
   res.send(updatesByIntArray);
+});
+
+router.get('/tgOTP', function (req, res) {
+  perms = auth_manager.getUserPermissions(req);
+  if (perms.includes(ACCESS_PERMISSION)) {
+    res.send(otp_tg.toString());
+  } else {
+    res.status(403).send();
+  }
 });
 
 router.get('/setFTPDStatus', function (req, res) {

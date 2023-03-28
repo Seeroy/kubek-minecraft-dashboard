@@ -10,16 +10,42 @@ var EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
 $(document).ready(function () {
   loadUsersList();
   loadKubekSettings();
+  $.get("/kubek/tgOTP", function (otp){
+    $(".tgbot-otp").val(otp);
+  });
   new mdb.Tooltip(document.getElementById('tooltip-acc'));
   $("#tgbot-checkbox").change(function () {
     if ($(this).is(":checked")) {
       $("#tgbot-token-item").show();
+      $("#tgbot-otp-item").show();
     } else {
       $("#tgbot-token-item").hide();
+      $("#tgbot-otp-item").hide();
     }
   });
   $(".addtooltip").each(function () {
     new mdb.Tooltip(this);
+  });
+  $(".copyotp").click(function () {
+    navigator.clipboard.writeText("/start " + $(".tgbot-otp").val()).then(function() {
+      console.log('[UI] Copying success!');
+      Toastify({
+        text: "{{copying-succ-ks}}",
+        duration: 1500,
+        newWindow: true,
+        close: false,
+        gravity: "bottom",
+        position: "right",
+        stopOnFocus: false,
+        style: {
+          background: "#14A44D",
+          color: "white",
+        },
+        onClick: function () {}
+      }).showToast();
+    }, function(err) {
+      console.log('[UI] Copying error', err);
+    });
   });
 });
 
@@ -41,6 +67,7 @@ function loadKubekSettings() {
     if (kubekCfg['tgbot-enabled'] == true) {
       $("#tgbot-checkbox").attr("checked", true);
       $("#tgbot-token-item").show();
+      $("#tgbot-otp-item").show();
       $(".tgbot-token").val(kubekCfg['tgbot-token']);
     }
 
@@ -253,11 +280,8 @@ function saveKubekSettings() {
   if (kubekCfg['auth'] != auth) {
     rl_page = true;
   }
-  if (tgbot == true) {
-    alert("Для начала работы бота напишите ему /start, только тогда он будет работать");
-  }
   if (kubekCfg['ftpd'] != ftpd && ftpd == false) {
-    alert("Для отключения FTPD требуется полный перезапуск Kubek");
+    alert("{{fullres-need-ks}}");
   }
   kubekCfg["ftpd"] = ftpd;
   kubekCfg["auth"] = auth;

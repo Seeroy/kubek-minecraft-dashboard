@@ -29,7 +29,8 @@
   color: rgba(150, 150, 150);
 }
 
-#tgbot-token-item {
+#tgbot-token-item,
+#tgbot-otp-item {
   display: flex;
 }
 

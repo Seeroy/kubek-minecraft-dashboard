@@ -143,7 +143,7 @@ function updateServerDataFromQuery_ui(data) {
   if (data.players.sample != null && data.players.sample.length > 0) {
     data.players.sample.forEach(function (player, ii) {
       if (ii < 15) {
-        $("#players-heads-list").append('<img src="https://minotar.net/avatar/' + player + '/20" title="' + player + '">');
+        $("#players-heads-list").append('<img src="https://minotar.net/avatar/' + player.name + '/20" title="' + player.name + '">');
       }
     });
   }

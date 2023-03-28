@@ -50,11 +50,19 @@ exports.showAnyCustomMessage = (msg, category) => {
   }
 }
 
-exports.showTGBotMessage = (msg, username = "", chatId) => {
-  if (username != "") {
-    console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green("@" + username) + " (" + colors.cyan(chatId) + ") - " + colors.white(msg));
+exports.showTGBotMessage = (msg, username = "", userId, chatType, chatId) => {
+  if (chatType == "private") {
+    if (username != "") {
+      console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green("@" + username) + " (" + colors.cyan(userId) + ") - " + colors.white(msg));
+    } else {
+      console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green(userId) + " - " + colors.white(msg));
+    }
   } else {
-    console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green(chatId) + " - " + colors.white(msg));
+    if (username != "") {
+      console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green("@" + username) + " (" + colors.cyan(userId) + ") (CHAT " + chatId + ") - " + colors.white(msg));
+    } else {
+      console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", "(CHAT " + chatId + ")", colors.green(userId) + " - " + colors.white(msg));
+    }
   }
   if (cfg['save-logs'] == true) {
     if (!fs.existsSync("./logs/")) {
@@ -64,9 +72,9 @@ exports.showTGBotMessage = (msg, username = "", chatId) => {
     fname = date.getDate().toString().padStart(2, "0") + "-" + date.getMonth().toString().padStart(2, "0") + "-" + date.getFullYear().toString().padStart(2, "0") + ".log";
     if (fs.existsSync("./logs/" + fname)) {
       rf = fs.readFileSync("./logs/" + fname);
-      rf = rf + "\n" + this.getTimeFormatted() + " [TGBOT] " + "@" + username + " (" + chatId + ")" + " - " + msg;
+      rf = rf + "\n" + this.getTimeFormatted() + " [TGBOT] " + "@" + username + " (" + userId + ")" + " (CHAT " + chatId + ")" + " - " + msg;
     } else {
-      rf = this.getTimeFormatted() + " [TGBOT] " + "@" + username + " (" + chatId + ")" + " - " + msg;
+      rf = this.getTimeFormatted() + " [TGBOT] " + "@" + username + " (" + userId + ")" + " (CHAT " + chatId + ")" + " - " + msg;
     }
     fs.writeFileSync("./logs/" + fname, rf);
   }

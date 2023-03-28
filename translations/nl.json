@@ -29,6 +29,8 @@
   "{{back}}": "Rug",
   "{{memory}}": "Geheugen",
   "{{server-port}}": "Server poort",
+  "{{version}}": "Versie",
+  "{{status}}": "Toestand",
 
   "{{restart-server-to-see-changes}}": "Start de server opnieuw op om de wijzigingen te zien",
   "{{error-upload}}": "Fout bij uploaden van bestand",
@@ -92,8 +94,11 @@
   "{{users-limited-count-ks}}": "Kan gebruiker niet aanmaken, maximum aantal gebruikers is 5",
   "{{shutdown-kubek-ks}}": "Schakel Kubek uit",
   "{{sup-uid-ks}}": "ID voor steun:",
-  "{{tgbot-ks}}": "Telegram-bot wordt gebruikt om servers te beheren en zal u ook op de hoogte stellen van wijzigingen in de serverstatus en nieuwe accountaanmeldingen",
-  "{{passwd-err-ks}}": "Wachtwoord moet tussen de 6 en 64 tekens lang zijn (moet cijfers en letters zijn)",
+  "{{tgbot-ks}}": "Telegram-bot wordt gebruikt om servers te beheren en zal u ook op de hoogte stellen van belangrijke gebeurtenissen die plaatsvinden met servers en Kubek",
+  "{{passwd-err-ks}}": "Wachtwoord moet tussen de 6 en 64 tekens lang zijn (moet cijfers, hoofdletters en letters zijn)",
+  "{{tgbot-otp-ks}}": "Telegram Bot eenmalig wachtwoord (wordt elke 15 seconden bijgewerkt) (schrijf /start [deze code])",
+  "{{copying-succ-ks}}": "Code succesvol gekopieerd (samen met /start commando)",
+  "{{fullres-need-ks}}": "Het uitschakelen van FTPD vereist een volledige herstart van Kubek",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",
@@ -223,7 +228,7 @@
 
   "{{backup-candestroy}}": "Als u een volledige back-up herstelt, worden uw servergegevens verwijderd. Bij het terugzetten van een gedeeltelijke back-up kunnen uw bestanden beschadigd raken",
 
-  "{{tgbot-savedchatid}}": "We hebben de ChatID succesvol opgeslagen, nu werkt Kubek met deze chat",
+  "{{tgbot-savedchatid}}": "🔒 OTP-code is correct! Nu kun je in elke chat met deze bot werken",
   "{{tgbot-serverstatuses}}": "Serverstatussen",
   "{{tgbot-commands}}": "Teams",
   "{{tgbot-helpmsg}}": "<b>Serverbeheer</b>\n/startServer [servernaam] - <i>Server starten</i>\n/stopServer [servernaam] - <i>Server stoppen</i>\n/restartServer [servernaam] - <i>Start de server opnieuw op</i>\n/statuses - <i>Serverstatussen</i>\n/help - <i>Dit bericht met opdrachten :)</i>\n/serverLog [servernaam] - <i>Stuur het nieuwste.log-bestand vanuit de servermap</i>\n\n<code>Kubek ",
@@ -240,5 +245,8 @@
   "{{tgbot-newlogin-failed-2}}": "Wees voorzichtig. ",
   "{{tgbot-newlogin-success}}": "🔒✅ Succesvolle inlogpoging ",
   "{{tgbot-running-sched-succ}}": "🔔🟢 Server herstart taak succesvol afgerond: ",
-  "{{tgbot-running-sched-failed}}": "🔔🟡 Server herstart taak mislukt: "
+  "{{tgbot-running-sched-failed}}": "🔔🟡 Server herstart taak mislukt: ",
+  "{{tgbot-wait2sec}}": "❗ Wacht 2 seconden voordat u een actie uitvoert",
+  "{{tgbot-plsstart}}": "Um mit dem Bot zu arbeiten, müssen Sie sich registrieren /start",
+  "{{tgbot-wrongotp}}": "Ongeldige OTP-code (u kunt deze ophalen in de Kubek-instellingen)"
 }
