@@ -93,6 +93,7 @@
   "{{shutdown-kubek-ks}}": "Schakel Kubek uit",
   "{{sup-uid-ks}}": "ID voor steun:",
   "{{tgbot-ks}}": "Telegram-bot wordt gebruikt om servers te beheren en zal u ook op de hoogte stellen van wijzigingen in de serverstatus en nieuwe accountaanmeldingen",
+  "{{passwd-err-ks}}": "Wachtwoord moet tussen de 6 en 64 tekens lang zijn (moet cijfers en letters zijn)",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",
@@ -100,6 +101,8 @@
   "{{resonerr-ss}}": "Herstart server bij crash (gecontroleerd door afsluitcode)",
   "{{enter-to-del-ss}}": "Voer de servernaam in om de verwijdering te bevestigen",
   "{{stopcmd-ss}}": "U kunt hier een aangepast afsluitcommando invoeren",
+  "{{resschd-desc-ss}}": "Start de server volgens schema opnieuw op (voer de taak hieronder in <a href='http://www.crontabgenerator.com/'>in crontab-formaat<a/>)",
+  "{{resschd-crontab-input-ss}}": "Voer de tijd in crontab-indeling in",
 
   "{{summary-sysmon}}": "Samenvattende informatie",
   "{{cpu-mem-sysmon}}": "CPU en RAM",
@@ -235,5 +238,7 @@
   "{{tgbot-nologs}}": "nieuwste.log-bestand niet gevonden",
   "{{tgbot-newlogin-failed-1}}": "🔒❌ Mislukte inlogpoging ",
   "{{tgbot-newlogin-failed-2}}": "Wees voorzichtig. ",
-  "{{tgbot-newlogin-success}}": "🔒✅ Succesvolle inlogpoging "
+  "{{tgbot-newlogin-success}}": "🔒✅ Succesvolle inlogpoging ",
+  "{{tgbot-running-sched-succ}}": "🔔🟢 Server herstart taak succesvol afgerond: ",
+  "{{tgbot-running-sched-failed}}": "🔔🟡 Server herstart taak mislukt: "
 }

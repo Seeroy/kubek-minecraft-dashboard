@@ -32,8 +32,26 @@ exports.showRequestInLogs = (req, res) => {
   }
 }
 
+exports.showAnyCustomMessage = (msg, category) => {
+  console.log(this.getTimeFormatted(), "[" + colors.yellow(category) + "]", msg);
+  if (cfg['save-logs'] == true) {
+    if (!fs.existsSync("./logs/")) {
+      fs.mkdirSync("./logs");
+    }
+    date = new Date();
+    fname = date.getDate().toString().padStart(2, "0") + "-" + date.getMonth().toString().padStart(2, "0") + "-" + date.getFullYear().toString().padStart(2, "0") + ".log";
+    if (fs.existsSync("./logs/" + fname)) {
+      rf = fs.readFileSync("./logs/" + fname);
+      rf = rf + "\n" + this.getTimeFormatted() + " [" + category + "] " + msg;
+    } else {
+      rf = this.getTimeFormatted() + " [" + category + "] " + msg;
+    }
+    fs.writeFileSync("./logs/" + fname, rf);
+  }
+}
+
 exports.showTGBotMessage = (msg, username = "", chatId) => {
-  if(username != ""){
+  if (username != "") {
     console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green("@" + username) + " (" + colors.cyan(chatId) + ") - " + colors.white(msg));
   } else {
     console.log(this.getTimeFormatted(), "[" + colors.yellow("TGBOT") + "]", colors.green(chatId) + " - " + colors.white(msg));

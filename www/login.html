@@ -6,7 +6,12 @@
 
   <!-- MDB -->
   <script src="/js/mdb.min.js"></script>
-  <link rel="stylesheet" href="/css/mdb.min.css">
+  <link rel="stylesheet" id="mdbLight" href="/css/mdb.min.css">
+  <link rel="stylesheet" media="none" id="mdbDark" href="/css/mdb.dark.min.css">
+
+  <!-- Theme modes -->
+  <link rel="stylesheet" id="linkLight" href="/css/modes/white.css">
+  <link rel="stylesheet" media="none" id="linkDark" href="/css/modes/dark.css">
 
   <!-- Others -->
   <script src="/js/jquery-3.6.0.min.js"></script>
@@ -23,7 +28,7 @@
   <link rel="stylesheet" href="/fonts/MaterialSymbols/stylesheet.css" />
 </head>
 
-<body class="text-center">
+<body class="text-center login-window">
   <div class="window">
     <img class="mb-4" style="align-self: start;" src="/assets/icon.png" width="64px">
     <h3 class="mb-5 w-100" style="text-align: start;">Авторизация</h3>
@@ -54,7 +59,7 @@
     right: 0;
     bottom: 0;
     top: 0;
-    background-color: #f5f5f5;
+    background-color: #f7f7f7;
     width: 24%;
     height: max-content;
     min-height: 350px;
@@ -81,6 +86,29 @@
 
 <script>
   $(document).ready(function () {
+    if (typeof window.localStorage.currentTheme !== "undefined") {
+      if (window.localStorage.currentTheme == "dark") {
+        $("body").addClass("dark");
+        $("#linkDark")[0].media = '';
+        $("#mdbDark")[0].media = '';
+        $("#linkLight")[0].media = 'none';
+        $("#mdbLight")[0].media = 'none';
+      } else if (window.localStorage.currentTheme == "light") {
+        $("body").removeClass("dark");
+        $("#linkDark")[0].media = 'none';
+        $("#mdbDark")[0].media = 'none';
+        $("#linkLight")[0].media = '';
+        $("#mdbLight")[0].media = '';
+      }
+    } else {
+      window.localStorage.setItem("currentTheme", "light");
+      $("body").removeClass("dark");
+      $("#linkDark")[0].media = 'none';
+      $("#mdbDark")[0].media = 'none';
+      $("#linkLight")[0].media = '';
+      $("#mdbLight")[0].media = '';
+    }
+
     $(".btn").click(function () {
       login = $("#floatingInput").val();
       password = $("#floatingPassword").val();

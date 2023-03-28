@@ -167,6 +167,14 @@
   background: var(--mdb-white);
 }
 
+.input-bg .material-symbols-outlined {
+  color: var(--mdb-gray-600);
+}
+
+.input-bg .material-symbols-outlined:hover {
+  color: black;
+}
+
 /* Backups page styling */
 #backups-list .list-group-item>.material-symbols-outlined {
   color: black !important;

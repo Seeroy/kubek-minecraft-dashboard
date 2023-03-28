@@ -95,6 +95,7 @@
   "{{oldpass-ks}}": "Old password",
   "{{newpass-ks}}": "New password",
   "{{tgbot-ks}}": "Telegram bot is used to manage servers, and will also notify you about server status changes and new account logins",
+  "{{passwd-err-ks}}": "Password must be between 6 and 64 characters long (must be numbers and letters)",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",
@@ -102,6 +103,8 @@
   "{{resonerr-ss}}": "Restart server on crash (checked by exit code)",
   "{{enter-to-del-ss}}": "Enter the server name to confirm the deletion",
   "{{stopcmd-ss}}": "You can enter a custom shutdown command here",
+  "{{resschd-desc-ss}}": "Restart the server on schedule (enter the task below <a href='http://www.crontabgenerator.com/'>in crontab format<a/>)",
+  "{{resschd-crontab-input-ss}}": "Enter time in crontab format",
 
   "{{summary-sysmon}}": "Summary Information",
   "{{cpu-mem-sysmon}}": "CPU and RAM",
@@ -237,5 +240,7 @@
   "{{tgbot-nologs}}": "latest.log file not found",
   "{{tgbot-newlogin-failed-1}}": "🔒❌ Unsuccessful login attempt ",
   "{{tgbot-newlogin-failed-2}}": "Be careful. ",
-  "{{tgbot-newlogin-success}}": "🔒✅ Successful login attempt "
+  "{{tgbot-newlogin-success}}": "🔒✅ Successful login attempt ",
+  "{{tgbot-running-sched-succ}}": "🔔🟢 Server restart task successfully completed: ",
+  "{{tgbot-running-sched-failed}}": "🔔🟡 Server restart task failed: "
 }

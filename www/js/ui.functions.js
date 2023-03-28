@@ -126,12 +126,12 @@ function updateServersStatuses_ui(data) {
 }
 
 function updateServerDataFromQuery_ui(data) {
-  $("#server-version").text(data.server_modification.name);
-  if (data.server_modification.name.split(" ")[0] == "Paper") {
+  $("#server-version").text(data.version.name);
+  if (data.version.name.split(" ")[0] == "Paper") {
     $("#server-version-icon").attr("src", "/assets/cores/paper.png");
-  } else if (data.server_modification.name.split(" ")[0] == "Spigot") {
+  } else if (data.version.name.split(" ")[0] == "Spigot") {
     $("#server-version-icon").attr("src", "/assets/cores/spigot.png");
-  } else if (data.server_modification.name.split(" ")[0] == "Forge") {
+  } else if (data.version.name.split(" ")[0] == "Forge") {
     $("#server-version-icon").attr("src", "/assets/cores/forge.png");
   } else {
     $("#server-version-icon").attr("src", "");
@@ -140,7 +140,7 @@ function updateServerDataFromQuery_ui(data) {
   $("#server-version-item").show();
   $("#server-players-count").text(data.players.online + "/" + data.players.max);
   $("#players-heads-list").html("");
-  if (data.players.sample.length > 0) {
+  if (data.players.sample != null && data.players.sample.length > 0) {
     data.players.sample.forEach(function (player, ii) {
       if (ii < 15) {
         $("#players-heads-list").append('<img src="https://minotar.net/avatar/' + player + '/20" title="' + player + '">');

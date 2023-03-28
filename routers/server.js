@@ -114,10 +114,14 @@ router.get('/completion', function (req, res) {
   sss = {
     status: "stopped",
     restartOnError: true,
-    stopCommand: "stop"
+    stopCommand: "stop",
+    scheludedRestart: {
+      enabled: false,
+      crontab: "* * * * * *"
+    }
   };
   cge[req.query.server] = sss;
-  configjson = cge;
+  serverjson_cfg = cge;
   config.writeServersJSON(cge);
   res.send("Success");
 });
@@ -128,16 +132,27 @@ router.get('/statuses', function (req, res) {
 });
 
 router.get('/saveStopCommand', function (req, res) {
-  rd = config.readServersJSON();
-  rd[req.query.server]['stopCommand'] = req.query.cmd;
-  config.writeServersJSON(rd);
+  serverjson_cfg[req.query.server]['stopCommand'] = req.query.cmd;
+  config.writeServersJSON(serverjson_cfg);
+  res.send("true");
+});
+
+router.get('/saveRestartScheduler', function (req, res) {
+  serverjson_cfg = config.readServersJSON();
+  rr = {
+    enabled: req.query.enabled,
+    crontab: req.query.crontab
+  }
+  serverjson_cfg[req.query.server]['restartScheduler'] = rr;
+  config.writeServersJSON(serverjson_cfg);
+  serverController.rescheduleAllServers();
   res.send("true");
 });
 
 router.get('/getStartScript', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
-    if (typeof (configjson[req.query.server]) !== 'undefined') {
+    if (typeof (serverjson_cfg[req.query.server]) !== 'undefined') {
       res.send(serverController.getStartScript(req.query.server));
     } else {
       res.send("false");
@@ -150,7 +165,7 @@ router.get('/getStartScript', function (req, res) {
 router.get('/saveStartScript', (req, res) => {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
-    if (typeof (configjson[req.query.server]) !== 'undefined') {
+    if (typeof (serverjson_cfg[req.query.server]) !== 'undefined') {
       res.send(serverController.saveStartScript(req.query.server, req.query.script, req.query.resonerr));
     } else {
       res.send("false");
@@ -163,7 +178,7 @@ router.get('/saveStartScript', (req, res) => {
 router.get('/getServerPropertiesFile', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
-    if (typeof (configjson[req.query.server]) !== 'undefined') {
+    if (typeof (serverjson_cfg[req.query.server]) !== 'undefined') {
       res.set('Content-Type', 'application/json');
       res.send(serverController.getServerProperties(req.query.server));
     } else {
@@ -177,7 +192,7 @@ router.get('/getServerPropertiesFile', function (req, res) {
 router.get('/saveServerPropertiesFile', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
-    if (typeof (configjson[req.query.server]) !== 'undefined') {
+    if (typeof (serverjson_cfg[req.query.server]) !== 'undefined') {
       res.send(serverController.saveServerProperties(req.query.server, req.query.doc));
     } else {
       res.send("false");
@@ -190,7 +205,7 @@ router.get('/saveServerPropertiesFile', function (req, res) {
 router.get('/log', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
-    if (typeof (configjson[req.query.server]) !== 'undefined') {
+    if (typeof (serverjson_cfg[req.query.server]) !== 'undefined') {
       spl = servers_logs[req.query.server].split(/\r?\n/).slice(-100);
       res.send(spl.join("\r\n"));
     } else {
@@ -204,9 +219,9 @@ router.get('/log', function (req, res) {
 router.get('/delete', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
-    if (typeof (configjson[req.query.server]) !== 'undefined') {
-      delete configjson[req.query.server];
-      config.writeServersJSON(configjson);
+    if (typeof (serverjson_cfg[req.query.server]) !== 'undefined') {
+      delete serverjson_cfg[req.query.server];
+      config.writeServersJSON(serverjson_cfg);
       setTimeout(function () {
         fs.rm("./servers/" + req.query.server, {
           recursive: true,
@@ -224,7 +239,7 @@ router.get('/delete', function (req, res) {
 });
 
 router.get('/start', function (req, res) {
-  if (typeof (configjson[req.query.server]) !== 'undefined' && configjson[req.query.server].status == "stopped") {
+  if (typeof (serverjson_cfg[req.query.server]) !== 'undefined' && serverjson_cfg[req.query.server].status == "stopped") {
     serverController.startServer(req.query.server);
     res.send("true");
   } else {
@@ -242,7 +257,7 @@ router.get('/kill', function (req, res) {
 });
 
 router.get('/restart', function (req, res) {
-  if (typeof (configjson[req.query.server]) !== 'undefined' && configjson[req.query.server].status == "started" && typeof restart_after_stop[req.query.server] == "undefined") {
+  if (typeof (serverjson_cfg[req.query.server]) !== 'undefined' && serverjson_cfg[req.query.server].status == "started" && typeof restart_after_stop[req.query.server] == "undefined") {
     restart_after_stop[req.query.server] = true;
     command = "stop";
     command = Buffer.from(command, 'utf-8').toString();
@@ -255,7 +270,7 @@ router.get('/restart', function (req, res) {
 });
 
 router.get('/sendCommand', function (req, res) {
-  if (typeof (configjson[req.query.server]) !== 'undefined') {
+  if (typeof (serverjson_cfg[req.query.server]) !== 'undefined') {
     command = req.query.cmd;
     command = Buffer.from(command, 'utf-8').toString();
     servers_logs[req.query.server] = servers_logs[req.query.server] + command + "\n";

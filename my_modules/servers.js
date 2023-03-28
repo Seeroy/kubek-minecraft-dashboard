@@ -1,7 +1,8 @@
 const config = require("./config");
 var spParser = require("minecraft-server-properties");
 const fs = require('fs');
-const mcutil = require("minecraft-status").MinecraftQuery;
+const jobscheduler = require('node-schedule');
+const mcutil = require('minecraft-server-util');
 const osutils = require('os-utils');
 const os = require('os');
 const errors_parser = require("./../my_modules/errors.mc.parser");
@@ -76,18 +77,13 @@ exports.saveServerProperties = (name, doc) => {
 
 exports.queryServer = (name, cb) => {
   data = this.getServerProperties(name);
-  if (process.platform == "linux") { // mcutil is not crossplatform
-    osutils.cpuUsage(function (value) {
-      data["cpu"] = Math.round(value * 100);
-      totalmem = os.totalmem();
-      usedmem = totalmem - os.freemem();
-      data["usedmem"] = usedmem;
-      data["totalmem"] = totalmem;
-      cb(data);
-    });
-  } else {
-    mcutil.fullQuery("127.0.0.1", data["server-port"], 3000)
-      .then((data) => {
+  if (data['enable-query'] == true) {
+    mcu_options = {
+      timeout: 1000 * 5,
+      enableSRV: false
+    };
+    mcutil.status('localhost', data["query.port"], mcu_options)
+      .then(function (data) {
         osutils.cpuUsage(function (value) {
           data["cpu"] = Math.round(value * 100);
           totalmem = os.totalmem();
@@ -97,12 +93,52 @@ exports.queryServer = (name, cb) => {
           cb(data);
         });
       })
-      .catch((error) => {
-        console.error(error);
-        cb(error);
-      });
+      .catch((error) => console.error(error));
+  } else if (data['enable-query'] == false) {
+    data = {};
+    osutils.cpuUsage(function (value) {
+      data["cpu"] = Math.round(value * 100);
+      totalmem = os.totalmem();
+      usedmem = totalmem - os.freemem();
+      data["usedmem"] = usedmem;
+      data["totalmem"] = totalmem;
+      cb(data);
+    });
   }
+}
 
+exports.disableAllScheduled = () => {
+  jobscheduler.gracefulShutdown();
+}
+
+exports.scheduleServerRestart = (crontab_text, server) => {
+  jobscheduler.scheduleJob(crontab_text, function () {
+    if (serverjson_cfg[server]['status'] == 'started') {
+      restart_after_stop[server] = true;
+      command = Buffer.from("stop", 'utf-8').toString();
+      servers_logs[server] = servers_logs[server] + command + "\n";
+      servers_instances[server].stdin.write(command + '\n');
+      additional.showAnyCustomMessage("Running restart job for " + server + " is " + colors.green("success"), "JOBS");
+      tgbot.runningSchedNotification(server, true);
+    } else {
+      additional.showAnyCustomMessage("Running restart job for " + server + " " + colors.yellow("can`t be done"), "JOBS");
+      tgbot.runningSchedNotification(server, false);
+    }
+  });
+}
+
+exports.rescheduleAllServers = () => {
+  jobscheduler.gracefulShutdown()
+    .then(function () {
+      jobscount = 0;
+      for (const [key, value] of Object.entries(serverjson_cfg)) {
+        if (typeof serverjson_cfg[key]['restartScheduler'] !== "undefined" && serverjson_cfg[key]['restartScheduler']['enabled'] == 'true') {
+          module.exports.scheduleServerRestart(serverjson_cfg[key]['restartScheduler']['crontab'], key);
+          jobscount++;
+        }
+      }
+      additional.showAnyCustomMessage("Scheduled " + jobscount + " jobs", "JOBS");
+    })
 }
 
 exports.listServers = () => {
@@ -149,14 +185,14 @@ exports.startServer = (server) => {
   }
 
   if (start == true) {
-    configjson = JSON.parse(fs.readFileSync("./servers/servers.json"));
+    serverjson_cfg = JSON.parse(fs.readFileSync("./servers/servers.json"));
     console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-starting}} ", cfg['lang']) + ":", server.green);
     statuss = "starting";
     servers_instances[server].on('close', (code) => {
       statuss = "stopped";
-      configjson[server].status = statuss;
+      serverjson_cfg[server].status = statuss;
       tgbot.changedServerStatus(server, statuss);
-      config.writeServersJSON(configjson);
+      config.writeServersJSON(serverjson_cfg);
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
@@ -168,7 +204,7 @@ exports.startServer = (server) => {
         if (code != 0) {
           servers_logs[server] = servers_logs[server] + "§4" + translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code;
           console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.red);
-          if (configjson[server]['restartOnError'] == true && errors_parser.checkStringForErrors(servers_logs[server]) == false) {
+          if (serverjson_cfg[server]['restartOnError'] == true && errors_parser.checkStringForErrors(servers_logs[server]) == false) {
             if (typeof servers_restart_count[server] == "undefined") {
               servers_restart_count[server] = 1;
               console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1 :", server.red);
@@ -268,8 +304,8 @@ exports.startServer = (server) => {
         statuss = "stopping";
         tgbot.changedServerStatus(server, statuss);
       }
-      configjson[server].status = statuss;
-      config.writeServersJSON(configjson);
+      serverjson_cfg[server].status = statuss;
+      config.writeServersJSON(serverjson_cfg);
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
@@ -302,9 +338,9 @@ exports.startServer = (server) => {
           }
         });
       }
-      configjson[server].status = statuss;
+      serverjson_cfg[server].status = statuss;
       tgbot.changedServerStatus(server, statuss);
-      config.writeServersJSON(configjson);
+      config.writeServersJSON(serverjson_cfg);
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
@@ -313,7 +349,7 @@ exports.startServer = (server) => {
         });
       }
     });
-    config.writeServersJSON(configjson);
+    config.writeServersJSON(serverjson_cfg);
     fsock = io.sockets.sockets;
     for (const socket of fsock) {
       socket[1].emit("handleUpdate", {
@@ -324,6 +360,6 @@ exports.startServer = (server) => {
   }
 }
 
-function startServer(server){
+function startServer(server) {
   module.exports.startServer(server);
 }

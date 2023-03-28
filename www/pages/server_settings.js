@@ -26,10 +26,18 @@ $(document).ready(function () {
       }
     });
     $.get("/server/statuses", function (sstat) {
-      if(typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined"){
+      if (typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined") {
         $("#stopcmd-input").val(sstat[window.localStorage.selectedServer]['stopCommand']);
       } else {
         $("#stopcmd-input").val("stop");
+      }
+      if (typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['restartScheduler'] !== "undefined") {
+        if (sstat[window.localStorage.selectedServer]['restartScheduler']['enabled'] == 'true') {
+          $("#resschd-enabled-switch").attr("checked", true);
+        }
+        $("#resschd-crontab-input").val(sstat[window.localStorage.selectedServer]['restartScheduler']['crontab']);
+      } else {
+        $("#resschd-crontab-input").val("* * * * * *");
       }
     });
   });
@@ -56,7 +64,14 @@ $(document).ready(function () {
     }
   });
   $("#stopcmd-save-button").click(function () {
-    $.get("/server/saveStopCommand?server=" + window.localStorage.selectedServer + "&cmd=" + encodeURI($("#stopcmd-input").val()));
+    if ($("#stopcmd-input").val() != null) {
+      $.get("/server/saveStopCommand?server=" + window.localStorage.selectedServer + "&cmd=" + encodeURI($("#stopcmd-input").val()));
+    }
+  });
+  $("#resschd-save-button").click(function () {
+    if ($("#resschd-crontab-input").val() != null) {
+      $.get("/server/saveRestartScheduler?server=" + window.localStorage.selectedServer + "&enabled=" + $("#resschd-enabled-switch").is(":checked") + "&crontab=" + encodeURI($("#resschd-crontab-input").val()));
+    }
   });
 });
 

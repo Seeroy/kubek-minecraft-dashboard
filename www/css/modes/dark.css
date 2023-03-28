@@ -159,12 +159,20 @@
 
 /* Kubek settings styling */
 #users-list .card {
-  background: var(--mdb-black);
+  background: var(--mdb-gray-900);
+}
+
+.input-bg .material-symbols-outlined {
+  color: var(--mdb-gray-400);
+}
+
+.input-bg .material-symbols-outlined:hover {
+  color: white;
 }
 
 /* Backups page styling */
 .backups-container .gray-addon,
-.backups-container .gray-addon *  {
+.backups-container .gray-addon * {
   color: var(--mdb-gray-400);
 }
 
@@ -180,4 +188,17 @@
 
 .slider {
   background: var(--mdb-gray-700);
+}
+
+/* Login window styling */
+.login-window .window {
+  background: var(--mdb-gray-800);
+}
+
+.login-window {
+  background: var(--mdb-gray-900);
+}
+
+.login-window * {
+  color: white;
 }

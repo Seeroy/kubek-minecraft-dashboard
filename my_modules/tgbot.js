@@ -206,6 +206,24 @@ exports.changedServerStatus = (server, status) => {
   }
 };
 
+exports.runningSchedNotification = (server, isSuccess) => {
+  if (this.bot != null && this.chatIdSave != null && this.chatIdSave.length > 0 && this.botStarted == true) {
+    if (isSuccess == true) {
+      this.chatIdSave.forEach(chatId => {
+        this.bot.sendMessage(chatId, translator.translateHTML("{{tgbot-running-sched-succ}}<b>" + server + "</b>", cfg['lang']), {
+          parse_mode: "html"
+        });
+      });
+    } else {
+      this.chatIdSave.forEach(chatId => {
+        this.bot.sendMessage(chatId, translator.translateHTML("{{tgbot-running-sched-failed}}<b>" + server + "</b>", cfg['lang']), {
+          parse_mode: "html"
+        });
+      });
+    }
+  }
+};
+
 exports.sendNewAuth = (isSuccess, login, ip) => {
   if (this.bot != null && this.chatIdSave != null && this.chatIdSave.length > 0 && this.botStarted == true) {
     if (isSuccess == true) {

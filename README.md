@@ -10,6 +10,7 @@ Kubek - Web Minecraft servers dashboard, written on Node.js using MDBootstrap
 - FTP server included
 - Web file manager
 - Users and roles system
+- Integration with Telegram bots
 
 **Tested and working cores**:
 - All popular PaperMC versions (all PaperMC forks (Tuinity, Airplane, Purpur, etc.) more likely will be work too)

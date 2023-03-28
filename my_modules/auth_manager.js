@@ -3,9 +3,9 @@ var usersConfig = config.readUsersConfig();
 var SHA256 = require("crypto-js/sha256");
 var crypto = require("crypto");
 
-const PASSWORD_REGEX = /^[a-zA-Z0-9_.-]{2,}$/g;
-const LOGIN_REGEX = /^[a-zA-Z0-9_.-]{4,16}$/g;
-const EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
+var PASSWORD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{6,64}$/g;
+var LOGIN_REGEX = /^[a-zA-Z0-9_.-]{3,16}$/g;
+var EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
 
 exports.authorize = (hash, login) => {
   var authsucc = false;

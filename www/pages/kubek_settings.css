@@ -32,3 +32,17 @@
 #tgbot-token-item {
   display: flex;
 }
+
+.input-bg.showing-pass .material-symbols-outlined.showpass {
+  color: var(--mdb-primary);
+}
+
+.input-bg .material-symbols-outlined {
+  cursor: pointer;
+  user-select: none;
+}
+
+.input-bg {
+  padding: 0 !important;
+  display: flex;
+}
