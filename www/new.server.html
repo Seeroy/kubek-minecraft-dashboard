@@ -271,7 +271,7 @@
               if ($("#cur-jv").data("selvalue") == "usedetect") {
                 ver = $("#srv-ver-detected").data('ver');
 
-                $.get("http://localhost:3000/downloader/downloadJavaForServer?serverVersion=" +
+                $.get("/downloader/downloadJavaForServer?serverVersion=" +
                   selectedCore_version + "&server=" + $("#server-name-input").val(),
                   function (ret) {
                     trackDownloadTasks2_filename = ret;
@@ -480,7 +480,7 @@
 
                       if ($("#cur-jv").data("selvalue") == "usedetect") {
                         ver = $("#srv-ver-detected").data('ver');
-                        $.get("http://localhost:3000/downloader/downloadJavaForServer?serverVersion=" +
+                        $.get("/downloader/downloadJavaForServer?serverVersion=" +
                           selectedCore_version + "&server=" + $("#server-name-input").val(),
                           function (ret) {
                             trackDownloadTasks2_filename = ret;
@@ -515,7 +515,7 @@
                 ver = $("#srv-ver-detected").data('ver');
 
                 if (!trackDownloadTasks2_enabled) {
-                  $.get("http://localhost:3000/downloader/downloadJavaForServer?serverVersion=" +
+                  $.get("/downloader/downloadJavaForServer?serverVersion=" +
                     selectedCore_version + "&server=" + $("#server-name-input").val(),
                     function (ret) {
                       trackDownloadTasks2_filename = ret;

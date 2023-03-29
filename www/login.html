@@ -31,7 +31,7 @@
 <body class="text-center login-window">
   <div class="window">
     <img class="mb-4" style="align-self: start;" src="/assets/icon.png" width="64px">
-    <h3 class="mb-5 w-100" style="text-align: start;">Авторизация</h3>
+    <h3 class="mb-5 w-100" style="text-align: start;">{{auth}}</h3>
 
     <input type="text" id="floatingInput" class="kbk-input w-100" placeholder="{{user}}" />
 
@@ -81,6 +81,20 @@
 
   .kubekLogoText {
     color: black;
+  }
+
+  @media (min-width: 320px) and (max-width: 480px) {
+    .window {
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .window {
+      width: 80%;
+    }
   }
 </style>
 

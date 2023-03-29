@@ -31,12 +31,15 @@
   "{{server-port}}": "Server Port",
   "{{version}}": "Version",
   "{{status}}": "Status",
+  "{{description}}": "Description",
+  "{{no-description}}": "There is no description",
 
   "{{restart-server-to-see-changes}}": "Restart the server to see the changes",
   "{{error-upload}}": "File upload error",
   "{{do-not-reload-page}}": "Don't reload the page",
   "{{settings-saved}}": "Settings have been saved",
   "{{change-only-sp}}": "Server name only changes in the server.properties 'motd'",
+  "{{really-kill-srv}}": "Are you sure you want to exclude the server? You can lose the server map!",
 
   "{{signinbtn-login}}": "Login",
   "{{signin-msg-login}}": "Sign in to use this application",
@@ -100,7 +103,9 @@
   "{{passwd-err-ks}}": "Password must be between 6 and 64 characters long (must be numbers, uppercase and letters)",
   "{{tgbot-otp-ks}}": "Telegram Bot One Time Password (updates every 15 seconds) (write /start [this code])",
   "{{copying-succ-ks}}": "Code successfully copied (together with /start command)",
-  "{{fullres-need-ks}}": "Disabling FTPD requires a full restart of Kubek",
+  "{{fullres-need-ks}}": "Full restart of Kubek required to change FTPD mode",
+  "{{tgbot-otp-desc-ks}}": "To start the bot, you need to go down in Kubek Settings, copy the OTP code and send to the bot",
+  "{{tgbot-otp-capt-ks}}": "OTP code for Telegram",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",
@@ -146,6 +151,7 @@
   "{{afterdelfiles-fm}}": "files",
   "{{afterdeldirs-fm}}": "folders",
   "{{newfile-fm}}": "New file",
+  "{{newfile-name-fm}}": "Enter a name for the new file",
 
   "{{select-core-sw}}": "Select core",
   "{{ns-name-sw}}": "Enter the name of the new server",

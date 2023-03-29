@@ -130,6 +130,10 @@
   z-index: 4;
 }
 
+.editModalBg .btn-teritary {
+  box-shadow: none !important;
+}
+
 .editModalBg .sub-block {
   position: absolute;
   left: 0;
@@ -171,7 +175,7 @@
 }
 
 /* Custom select checkbox */
-.kbk-checkbox + label::before {
+.kbk-checkbox+label::before {
   width: 1.5em;
   height: 1.5em;
   margin-top: 8px;

@@ -202,3 +202,7 @@
 .login-window * {
   color: white;
 }
+
+.modal-layout {
+  background: var(--mdb-gray-900);
+}

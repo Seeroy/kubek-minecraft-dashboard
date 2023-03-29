@@ -9,45 +9,69 @@
 <script src="/pages/file_manager.js"></script>
 <script src="/js/datefactory.js"></script>
 
-<div id="bdf" style="display: none;">
-  <div class="card" id="delete-card" style="display: none;">
-    <div class="card-body">
-      <p class="card-text"></p>
-      <div class="d-flex align-items-center justify-content-center w-100">
-        <button type="button" class="btn btn-danger">{{delete}}</button>
-        <button type="button" class="btn btn-secondary ms-3"
-          onclick="$('#bdf').hide(); $('#delete-card .btn-danger').unbind('click');">{{cancel}}</button>
+<div class="modal-black-bg" id="delete-fm-modal" style="display: none;">
+  <div class="modal-layout">
+    <div class="modal-icon">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-danger);">
+        <span class="material-symbols-outlined text-white" style="font-size: 32px;">delete</span>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-center"></p>
+
+      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
+        <button type="button" class="btn btn-danger clsbtn">{{delete}}</button>
+        <button type="button" class="btn btn-secondary ms-3" onclick="hideModal('delete-fm-modal')">{{cancel}}</button>
       </div>
     </div>
   </div>
+</div>
 
+<div class="modal-black-bg" id="rename-fm-modal" style="display: none;">
+  <div class="modal-layout">
+    <div class="modal-icon">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-primary);">
+        <span class="material-symbols-outlined text-white" style="font-size: 32px;">edit_square</span>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-center"></p>
+      <input type="text" placeholder="" class="kbk-input w-100 mb-3">
+
+      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
+        <button type="button" class="btn btn-primary clsbtn">{{rename}}</button>
+        <button type="button" class="btn btn-secondary ms-3" onclick="hideModal('rename-fm-modal')">{{cancel}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-black-bg" id="newdir-fm-modal" style="display: none;">
+  <div class="modal-layout">
+    <div class="modal-icon">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-primary);">
+        <span class="material-symbols-outlined text-white" style="font-size: 32px;">create_new_folder</span>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-center"></p>
+      <input type="text" placeholder="" class="kbk-input w-100 mb-3">
+
+      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
+        <button type="button" class="btn btn-primary clsbtn">{{create}}</button>
+        <button type="button" class="btn btn-secondary ms-3" onclick="hideModal('newdir-fm-modal')">{{cancel}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="bdf" style="display: none;">
   <div class="card" id="isremoving-card" style="display: none;">
     <div class="card-body">
       <p class="card-text"></p>
-    </div>
-  </div>
-
-  <div class="card" id="rename-card" style="display: none;">
-    <div class="card-body">
-      <p class="card-text"></p>
-      <input type="text" placeholder="" class="kbk-input w-100 mb-3">
-      <div class="d-flex align-items-center justify-content-center w-100">
-        <button type="button" class="btn btn-primary">{{rename}}</button>
-        <button type="button" class="btn btn-secondary ms-3"
-          onclick="$('#bdf').hide(); $('#rename-card .btn-danger').unbind('click');">{{cancel}}</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="card" id="newdir-card" style="display: none;">
-    <div class="card-body">
-      <p class="card-text"></p>
-      <input type="text" placeholder="" class="kbk-input w-100 mb-3">
-      <div class="d-flex align-items-center justify-content-center w-100">
-        <button type="button" class="btn btn-primary">{{create}}</button>
-        <button type="button" class="btn btn-secondary ms-3"
-          onclick="$('#bdf').hide(); $('#newdir-card .btn-danger').unbind('click');">{{cancel}}</button>
-      </div>
     </div>
   </div>
 </div>
@@ -102,13 +126,13 @@
 <div class="editModalBg" style="display: none;" id="nfeModal">
   <div class="sub-block console card border border-1 shadow-0">
     <div class="header d-flex flex-row align-items-center">
-      <input class="kbk-input w-100" id="nfeModalEdit">
+      <input class="kbk-input w-100" id="nfeModalEdit" autocomplete="off" placeholder="{{newfile-name-fm}}">
     </div>
     <div class="contentt p-3" style="overflow: hidden;">
       <textarea id="newFileEditArea" class="w-100 h-100" spellcheck="false" style="overflow-y: auto;"></textarea>
     </div>
     <div class="footer d-flex align-items-center justify-content-end">
-      <button type="button" class="btn btn-secondary" onclick="$('#nfeModal').hide()">
+      <button type="button" class="btn btn-teritary" onclick="$('#nfeModal').hide()">
         {{cancel}}
       </button>
       <button type="button" class="btn btn-primary">{{create}}</button>
@@ -125,7 +149,7 @@
       <textarea id="fileEditArea" class="w-100 h-100" spellcheck="false" style="overflow-y: auto;"></textarea>
     </div>
     <div class="footer d-flex align-items-center justify-content-end">
-      <button type="button" class="btn btn-secondary" onclick="$('#feModal').hide()">
+      <button type="button" class="btn btn-teritary" onclick="$('#feModal').hide()">
         {{cancel}}
       </button>
       <button type="button" class="btn btn-primary" onclick="saveFile(); $('#feModal').hide()">{{save}}</button>

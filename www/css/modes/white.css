@@ -207,3 +207,11 @@
 .slider {
   background: var(--mdb-gray-300);
 }
+
+.modal-layout {
+  background: var(--mdb-gray-200);
+}
+
+.modal-layout *:not(.btn) {
+  color: black;
+}

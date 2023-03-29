@@ -120,20 +120,22 @@ function restoreBackup(fn) {
 
 function showBackupInfo(bname, desc) {
   if(rks[bname] != null){
-    text = "<br><br>Files: ";
+    text = "<ol>";
     rks[bname].forEach(function (file) {
-      text = text + "<br>" + file.name;
+      text = text + "<li>" + file.name + "</li>";
     });
+    text = text + "</ol>"
   } else {
     text = "";
   }
-  Swal.fire({
-    title: '<strong>' + bname + '</strong>',
-    html: 'Description:<br>' + desc + text,
-    showCloseButton: true,
-    showCancelButton: false,
-    focusConfirm: false,
-  })
+  if(desc != ""){
+    text_html = "<p>{{description}}: " + desc + "</p>" + text;
+  } else {
+    text_html = "<p>{{no-description}}</p>" + text;
+  }
+  $("#backup-info-modal .caption").text(bname);
+  $("#backup-info-modal .inner-content").html(text_html);
+  showModal("backup-info-modal", "fadeIn", refreshBackupsList);
 }
 
 function refreshBackupsList() {

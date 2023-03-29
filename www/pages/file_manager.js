@@ -174,17 +174,10 @@ function upperDir() {
 function deleteDirFM(path) {
   fn = path.split("/").slice(-1)[0];
 
-  hideAllCards();
-  $("#delete-card .card-text").text("{{aredelete-fm}} " + fn + "?");
-  $("#delete-card .btn-danger").unbind("click");
-  $("#bdf").show();
-  $("#delete-card").show();
-  $("#delete-card").fadeIn(200);
-  $("#delete-card .btn-danger").click(function () {
+  $("#delete-fm-modal .caption").text("{{aredelete-fm}} " + fn + "?");
+  showModal("delete-fm-modal", "fadeIn", function () {
     $.get("/fmapi/deleteDirectory?server=" + window.localStorage.selectedServer + "&path=" + path, function (data) {
-      $("#bdf").hide();
       refreshDir();
-      $("#delete-card .btn-danger").unbind("click");
       if (data == "ENOTEMPTY") {
         Toastify({
           text: "{{notempty-fm}}",
@@ -206,37 +199,19 @@ function deleteDirFM(path) {
 function deleteFM(path) {
   fn = path.split("/").slice(-1)[0];
 
-  hideAllCards();
-  $("#delete-card .card-text").text("{{aredelete-fm}} " + fn + "?");
-  $("#delete-card .btn-danger").unbind("click");
-  $("#bdf").show();
-  $("#delete-card").show();
-  $("#delete-card").fadeIn(200);
-  $("#delete-card .btn-danger").click(function () {
-    $.get("/fmapi/deleteFile?server=" + window.localStorage.selectedServer + "&path=" + path, function () {
-      $("#bdf").hide();
-      refreshDir();
-      $("#delete-card .btn-danger").unbind("click");
-    });
+  $("#delete-fm-modal .caption").text("{{aredelete-fm}} " + fn + "?");
+  showModal("delete-fm-modal", "fadeIn", function () {
+    $.get("/fmapi/deleteFile?server=" + window.localStorage.selectedServer + "&path=" + path, refreshDir);
   });
 }
 
 function newdirFM() {
-  hideAllCards();
-  $("#newdir-card .card-text").text("{{new-directory-fm}}");
-  $("#newdir-card .btn-primary").unbind("click");
-  $("#bdf").show();
-  $("#newdir-card").show();
-  $("#newdir-card").fadeIn(200);
-  $("#newdir-card .kbk-input").val("");
-  $("#newdir-card .btn-primary").click(function () {
-    new_dname = $("#newdir-card .kbk-input").val();
+  $("#newdir-fm-modal .caption").text("{{new-directory-fm}}");
+  $("#newdir-fm-modal .kbk-input").val("");
+  showModal("newdir-fm-modal", "fadeIn", function () {
+    new_dname = $("#newdir-fm-modal .kbk-input").val();
     if (new_dname.trim() != "") {
-      $.get("/fmapi/newDirectory?server=" + window.localStorage.selectedServer + "&path=" + curDir + "&newdir=" + btoa(new_dname), function () {
-        $("#bdf").hide();
-        refreshDir();
-        $("#newdir-card .btn-primary").unbind("click");
-      });
+      $.get("/fmapi/newDirectory?server=" + window.localStorage.selectedServer + "&path=" + curDir + "&newdir=" + btoa(new_dname), refreshDir);
     }
   });
 }
@@ -277,28 +252,13 @@ function uploadFM() {
 function renameFM(path) {
   fn = path.split("/").slice(-1)[0];
 
-  hideAllCards();
-  $("#rename-card .card-text").text('{{dorename-fm}} ' + fn + "?");
-  $("#rename-card .btn-primary").unbind("click");
-  $("#bdf").show();
-  $("#rename-card").show();
-  $("#rename-card").fadeIn(200);
-  $("#rename-card .kbk-input").val(fn);
-  $("#rename-card .btn-primary").click(function () {
-    new_fname = $("#rename-card .kbk-input").val();
+  $("#rename-fm-modal .kbk-input").val(fn);
+  $("#rename-fm-modal .caption").text('{{dorename-fm}} ' + fn + "?");
+  showModal("rename-fm-modal", "fadeIn", function () {
+    new_fname = $("#rename-fm-modal .kbk-input").val();
     if (new_fname.trim() != "") {
-      $.get("/fmapi/renameFile?server=" + window.localStorage.selectedServer + "&path=" + path + "&newname=" + btoa(new_fname), function () {
-        $("#bdf").hide();
-        refreshDir();
-        $("#rename-card .btn-primary").unbind("click");
-      });
+      $.get("/fmapi/renameFile?server=" + window.localStorage.selectedServer + "&path=" + path + "&newname=" + btoa(new_fname), refreshDir);
     }
-  });
-}
-
-function hideAllCards() {
-  $("#bdf .card").each(function (i, obj) {
-    $(obj).hide();
   });
 }
 
@@ -352,6 +312,11 @@ function downloadFM(path) {
 function refreshDir() {
   unselectAllCheckboxes();
   syncMultiplyFilesCount();
+  if(window.matchMedia("(min-width: 320px)").matches && window.matchMedia("(max-width: 480px)").matches){
+    bindev = "click";
+  } else {
+    bindev = "dblclick";
+  }
   saveScroll = $(".fm_container>.sub-block>.contentt").scrollTop();
   $("#fm-table tbody").html("");
   $("#breadcrumb-fm").html('<li class="breadcrumb-item">' + window.localStorage.selectedServer + '</li>');
@@ -366,7 +331,7 @@ function refreshDir() {
   }
   if (curDir != "/") {
     $("#fm-table tbody").append(
-      '<tr ondblclick="upperDir()"><td></td><td class="fn">..</td><td></td><td></td></tr>');
+      '<tr on' + bindev + '="upperDir()"><td></td><td class="fn">..</td><td></td><td></td></tr>');
   }
   $.get("/fmapi/scanDirectory?server=" + window.localStorage.selectedServer + "&directory=" + curDir, function (data) {
     data = JSON.parse(data);
@@ -416,7 +381,7 @@ function refreshDir() {
           '"></td><td class="fn">' +
           file.name + '</td><td>' + mdate + '</td><td>' + size + '</td><td class="buttons-td">' + act + '</td></tr>');
       });
-      $("#fm-table").unbind("click");
+      $("#fm-table tr").unbind("click");
       $("#fm-table td .fsboxes").change(function () {
         rs = ifAllFilesSelected();
         if (rs) {
@@ -426,7 +391,7 @@ function refreshDir() {
         }
         syncMultiplyFilesCount();
       });
-      $("#fm-table tr").dblclick(function () {
+      $("#fm-table tr").bind(bindev, function () {
         if ($(this).data("type") == "directory") {
           curDir += $(this).find(".fn")[0].innerText + "/";
           refreshDir();
@@ -440,11 +405,6 @@ function refreshDir() {
               .innerText,
               function (data) {
                 $("#fileEditArea").val(data);
-                /*lines = data.split('\n').length;
-
-                $(".line-numbers").html(Array(lines)
-                  .fill('<span></span>')
-                  .join(''));*/
                 $("#feModal").show();
                 $("#feModal").fadeIn(150);
               });

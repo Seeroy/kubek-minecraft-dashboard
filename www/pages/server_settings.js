@@ -37,7 +37,7 @@ $(document).ready(function () {
         }
         $("#resschd-crontab-input").val(sstat[window.localStorage.selectedServer]['restartScheduler']['crontab']);
       } else {
-        $("#resschd-crontab-input").val("* * * * * *");
+        $("#resschd-crontab-input").val("* * * * *");
       }
     });
   });
@@ -65,12 +65,12 @@ $(document).ready(function () {
   });
   $("#stopcmd-save-button").click(function () {
     if ($("#stopcmd-input").val() != null) {
-      $.get("/server/saveStopCommand?server=" + window.localStorage.selectedServer + "&cmd=" + encodeURI($("#stopcmd-input").val()));
+      $.get("/server/saveStopCommand?server=" + window.localStorage.selectedServer + "&cmd=" + encodeURI($("#stopcmd-input").val()), location.reload);
     }
   });
   $("#resschd-save-button").click(function () {
     if ($("#resschd-crontab-input").val() != null) {
-      $.get("/server/saveRestartScheduler?server=" + window.localStorage.selectedServer + "&enabled=" + $("#resschd-enabled-switch").is(":checked") + "&crontab=" + encodeURI($("#resschd-crontab-input").val()));
+      $.get("/server/saveRestartScheduler?server=" + window.localStorage.selectedServer + "&enabled=" + $("#resschd-enabled-switch").is(":checked") + "&crontab=" + encodeURI($("#resschd-crontab-input").val()), location.reload);
     }
   });
 });
@@ -101,21 +101,7 @@ function getSPTranslate(cb) {
 function saveServerSettings() {
   script = '"' + $("#java-versions-radios input:checked").next().text().trim().replace('"', "") + startScript_save;
   $.get("/server/saveStartScript?server=" + window.localStorage.selectedServer + "&script=" + btoa(script) + "&resonerr=" + $(
-    "#resOnErrCheckbox").is(":checked"));
-  Toastify({
-    text: "{{settings-saved}}",
-    duration: 3000,
-    newWindow: true,
-    close: false,
-    gravity: "bottom",
-    position: "left",
-    stopOnFocus: true,
-    style: {
-      background: "#0067f4",
-      color: "white",
-    },
-    onClick: function () {}
-  }).showToast();
+    "#resOnErrCheckbox").is(":checked"), location.reload);
 }
 
 function refreshServerProperties() {

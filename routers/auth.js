@@ -147,7 +147,7 @@ router.get('/editUser', function (req, res) {
     login = req.query.login;
     mail = req.query.mail;
     permissions = req.query.permissions;
-    if (typeof login !== "undefined" && login.length > 0 && typeof permissions == "object") {
+    if (typeof login !== "undefined" && login.length > 0) {
       permissions = permissions.split(",");
       result = auth_manager.editUser(login, permissions, mail);
       res.send(result);

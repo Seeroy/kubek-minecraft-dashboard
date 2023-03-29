@@ -82,7 +82,7 @@ exports.queryServer = (name, cb) => {
       timeout: 1000 * 5,
       enableSRV: false
     };
-    mcutil.status('localhost', data["query.port"], mcu_options)
+    mcutil.status('127.0.0.1', data["query.port"], mcu_options)
       .then(function (data) {
         osutils.cpuUsage(function (value) {
           data["cpu"] = Math.round(value * 100);
@@ -200,7 +200,7 @@ exports.startServer = (server) => {
           data: this.getStatuses()
         });
       }
-      if (code != 1) {
+      if (code != 1 && code != null) {
         if (code != 0) {
           servers_logs[server] = servers_logs[server] + "§4" + translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code;
           console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.red);

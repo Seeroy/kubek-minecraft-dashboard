@@ -31,12 +31,15 @@
   "{{server-port}}": "Server poort",
   "{{version}}": "Versie",
   "{{status}}": "Toestand",
+  "{{description}}": "Beschrijving",
+  "{{no-description}}": "Geen beschrijving",
 
   "{{restart-server-to-see-changes}}": "Start de server opnieuw op om de wijzigingen te zien",
   "{{error-upload}}": "Fout bij uploaden van bestand",
   "{{do-not-reload-page}}": "Laad de pagina niet opnieuw",
   "{{settings-saved}}": "Instellingen zijn opgeslagen",
   "{{change-only-sp}}": "Servernaam verandert alleen in de server.properties 'motd'",
+  "{{really-kill-srv}}": "Weet u zeker dat u de server wilt uitsluiten? U kunt de serverkaart kwijtraken!",
 
   "{{signinbtn-login}}": "Binnenkomen",
   "{{signin-msg-login}}": "Log in om dit programma te gebruiken",
@@ -98,7 +101,9 @@
   "{{passwd-err-ks}}": "Wachtwoord moet tussen de 6 en 64 tekens lang zijn (moet cijfers, hoofdletters en letters zijn)",
   "{{tgbot-otp-ks}}": "Telegram Bot eenmalig wachtwoord (wordt elke 15 seconden bijgewerkt) (schrijf /start [deze code])",
   "{{copying-succ-ks}}": "Code succesvol gekopieerd (samen met /start commando)",
-  "{{fullres-need-ks}}": "Het uitschakelen van FTPD vereist een volledige herstart van Kubek",
+  "{{fullres-need-ks}}": "Volledige herstart van Kubek vereist om de FTPD-modus te wijzigen",
+  "{{tgbot-otp-desc-ks}}": "Om de bot te starten, moet je naar Kubek-instellingen gaan, de OTP-code kopiëren en naar de bot sturen",
+  "{{tgbot-otp-capt-ks}}": "OTP-code voor Telegram",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",
@@ -144,6 +149,7 @@
   "{{afterdelfiles-fm}}": "bestanden",
   "{{afterdeldirs-fm}}": "mappen",
   "{{newfile-fm}}": "Nieuw bestand",
+  "{{newfile-name-fm}}": "Voer een naam in voor het nieuwe bestand",
 
   "{{select-core-sw}}": "Selecteer kern",
   "{{ns-name-sw}}": "Voer de naam van de nieuwe server in",

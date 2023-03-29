@@ -62,6 +62,26 @@
   </div>
 </div>
 
+<div class="modal-black-bg" id="kill-server-modal" style="display: none;">
+  <div class="modal-layout">
+    <div class="modal-icon">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-danger);">
+        <span class="material-symbols-outlined text-white" style="font-size: 32px;">dangerous</span>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="text-center">{{really-kill-srv}}</p>
+
+      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
+        <button type="button" class="btn btn-danger clsbtn">{{ok}}</button>
+        <button type="button" class="btn btn-secondary ms-3"
+          onclick="hideModal('kill-server-modal')">{{cancel}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <body>
   <div class="d-flex flex-row w-100 h-100">
     <div class="menuContainer text-body d-flex flex-column animate__animated animate__slideInLeft animate__fast">
@@ -121,21 +141,25 @@
 
       <ul class="nav nav-pills nav-justified mb-3" id="theme-mode-selector">
         <li class="nav-item">
-          <a class="nav-link lighttheme-button" data-theme="light" data-mdb-toggle="pill">LIGHT</a>
+          <a class="nav-link lighttheme-button" data-theme="light" data-mdb-toggle="pill"><span
+              class="txt">LIGHT</span><span class="material-symbols-outlined" style="display: none;">sunny</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link darktheme-button" data-theme="dark" data-mdb-toggle="pill">DARK</a>
+          <a class="nav-link darktheme-button" data-theme="dark" data-mdb-toggle="pill"><span
+              class="txt">DARK</span><span class="material-symbols-outlined" style="display: none;">dark_mode</span></a>
         </li>
       </ul>
 
       <div class="dropdown">
-        <button class="dropdown-toggle kbk-input" type="button" id="langSelectButton" data-mdb-toggle="dropdown">
-          Dropdown button
-        </button>
+        <button class="dropdown-toggle kbk-input" type="button" id="langSelectButton"
+          data-mdb-toggle="dropdown"></button>
         <ul class="dropdown-menu" id="langSelectMenu">
-          <li><a class="dropdown-item" value="ru" data-lang="ru"><i class="flag flag-ru"></i>Русский</a></li>
-          <li><a class="dropdown-item" value="en" data-lang="en"><i class="flag flag-us"></i>English</a></li>
-          <li><a class="dropdown-item" value="nl" data-lang="nl"><i class="flag flag-nl"></i>Dutch</a></li>
+          <li><a class="dropdown-item" value="ru" data-lang="ru"><i class="flag flag-ru"></i><span
+                class="langName">Русский</span></a></li>
+          <li><a class="dropdown-item" value="en" data-lang="en"><i class="flag flag-us"></i><span
+                class="langName">English</span></a></li>
+          <li><a class="dropdown-item" value="nl" data-lang="nl"><i class="flag flag-nl"></i><span
+                class="langName">Dutch</span></a></li>
         </ul>
       </div>
     </div>
@@ -178,6 +202,12 @@
   }
 
   $(document).ready(function () {
+    const appHeight = () => {
+      const doc = document.documentElement;
+      doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+    }
+    window.addEventListener('resize', appHeight);
+    appHeight();
     $("#langSelectMenu li").click(function () {
       newlang = $(this).find("a").data("lang");
       $.get('/kubek/config', function (data) {

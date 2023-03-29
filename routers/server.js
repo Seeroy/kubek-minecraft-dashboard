@@ -117,7 +117,7 @@ router.get('/completion', function (req, res) {
     stopCommand: "stop",
     scheludedRestart: {
       enabled: false,
-      crontab: "* * * * * *"
+      crontab: "* * * * *"
     }
   };
   cge[req.query.server] = sss;
@@ -249,7 +249,9 @@ router.get('/start', function (req, res) {
 
 router.get('/kill', function (req, res) {
   if (typeof (servers_instances[req.query.server]) == 'object') {
-    treekill(servers_instances[req.query.server].pid);
+    treekill(servers_instances[req.query.server].pid, function () {
+      //nothing
+    });
     res.send("true");
   } else {
     res.send("false");

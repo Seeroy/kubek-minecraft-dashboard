@@ -128,7 +128,11 @@ router.get('/updates/check', function (req, res) {
 router.get('/tgOTP', function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
-    res.send(otp_tg.toString());
+    if(typeof otp_tg !== "undefined" && otp_tg != null){
+      res.send(otp_tg.toString());    
+    } else {
+      res.send(null);
+    }
   } else {
     res.status(403).send();
   }

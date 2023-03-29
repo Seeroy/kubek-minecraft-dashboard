@@ -267,14 +267,12 @@ exports.sendNewAuth = (isSuccess, login, ip) => {
 };
 
 exports.regenerateOTP = () => {
-  if (this.bot != null && this.botStarted == true) {
-    otp_tg = Math.floor(Math.random() * (999999 - 100000) + 100000);
-    fsock = io.sockets.sockets;
-    for (const socket of fsock) {
-      socket[1].emit("handleUpdate", {
-        type: "newOTP",
-        data: otp_tg
-      });
-    }
+  otp_tg = Math.floor(Math.random() * (999999 - 100000) + 100000);
+  fsock = io.sockets.sockets;
+  for (const socket of fsock) {
+    socket[1].emit("handleUpdate", {
+      type: "newOTP",
+      data: otp_tg
+    });
   }
 };

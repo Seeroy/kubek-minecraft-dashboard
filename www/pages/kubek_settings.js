@@ -10,7 +10,7 @@ var EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
 $(document).ready(function () {
   loadUsersList();
   loadKubekSettings();
-  $.get("/kubek/tgOTP", function (otp){
+  $.get("/kubek/tgOTP", function (otp) {
     $(".tgbot-otp").val(otp);
   });
   new mdb.Tooltip(document.getElementById('tooltip-acc'));
@@ -27,7 +27,7 @@ $(document).ready(function () {
     new mdb.Tooltip(this);
   });
   $(".copyotp").click(function () {
-    navigator.clipboard.writeText("/start " + $(".tgbot-otp").val()).then(function() {
+    navigator.clipboard.writeText("/start " + $(".tgbot-otp").val()).then(function () {
       console.log('[UI] Copying success!');
       Toastify({
         text: "{{copying-succ-ks}}",
@@ -43,7 +43,7 @@ $(document).ready(function () {
         },
         onClick: function () {}
       }).showToast();
-    }, function(err) {
+    }, function (err) {
       console.log('[UI] Copying error', err);
     });
   });
@@ -270,19 +270,33 @@ function setModalDataByUserInfo(userInfo) {
 }
 
 function saveKubekSettings() {
-  rl_page = false;
   ftpd = $("#ftpserver-checkbox").is(":checked");
   auth = $("#auth-checkbox").is(":checked");
   savelogs = $("#savelogs-checkbox").is(":checked");
   allowint = $("#allowintacc-checkbox").is(":checked");
   tgbot = $("#tgbot-checkbox").is(":checked");
+  if (tgbot == false || $(".tgbot-token").val() != "") {
+    if (kubekCfg['tgbot-enabled'] != tgbot && tgbot == true) {
+      showModal("about-otp-modal", "fadeIn", function () {
+        saveSettingsStage2();
+      });
+    } else {
+      saveSettingsStage2();
+    }
+  }
+}
 
-  if (kubekCfg['auth'] != auth) {
-    rl_page = true;
+function saveSettingsStage2() {
+  if (kubekCfg['ftpd'] != ftpd) {
+    showModal("ftp-need-res-modal", "fadeIn", function () {
+      saveSettingsStage3();
+    });
+  } else {
+    saveSettingsStage3();
   }
-  if (kubekCfg['ftpd'] != ftpd && ftpd == false) {
-    alert("{{fullres-need-ks}}");
-  }
+}
+
+function saveSettingsStage3() {
   kubekCfg["ftpd"] = ftpd;
   kubekCfg["auth"] = auth;
   kubekCfg["tgbot-enabled"] = tgbot;
@@ -294,25 +308,7 @@ function saveKubekSettings() {
   kubekCfg['tgbot-chatid'] = [];
   $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function (data) {
     $.get("/kubek/setFTPDStatus?value=" + ftpd, function (data) {
-      if (rl_page == false) {
-        loadKubekSettings();
-        Toastify({
-          text: "{{settings-saved}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "bottom",
-          position: "left",
-          stopOnFocus: true,
-          style: {
-            background: "#0067f4",
-            color: "white",
-          },
-          onClick: function () {}
-        }).showToast();
-      } else {
-        location.reload();
-      }
+      location.reload();
     });
   });
 }
