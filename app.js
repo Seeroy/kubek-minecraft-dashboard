@@ -153,7 +153,10 @@ global.otp_tg = null;
 // Kubek version
 global.kubek_version = "v2.0.16";
 
-app.use(fileUpload());
+app.use(fileUpload({
+  useTempFiles: true,
+  tempFileDir: "/tmp/"
+}));
 app.use(cookieParser());
 app.use('/auth/login', authLimiter);
 app.use('/upload', authLimiter2);

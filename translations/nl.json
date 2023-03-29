@@ -241,7 +241,7 @@
   "{{tgbot-savedchatid}}": "🔒 OTP-code is correct! Nu kun je in elke chat met deze bot werken",
   "{{tgbot-serverstatuses}}": "Serverstatussen",
   "{{tgbot-commands}}": "Teams",
-  "{{tgbot-helpmsg}}": "<b>Serverbeheer</b>\n/startServer [servernaam] - <i>Server starten</i>\n/stopServer [servernaam] - <i>Server stoppen</i>\n/restartServer [servernaam] - <i>Start de server opnieuw op</i>\n/statuses - <i>Serverstatussen</i>\n/help - <i>Dit bericht met opdrachten :)</i>\n/serverLog [servernaam] - <i>Stuur het nieuwste.log-bestand vanuit de servermap</i>\n\n<code>Kubek ",
+  "{{tgbot-helpmsg}}": "<b>Beheer servers</b>\n/startServer [servernaam] - <i>Start server</i>\n/stopServer [servernaam] - <i>Stop server</i>\n/restartServer [servernaam] - <i>Herstart server</i>\n/statuses - <i>Serverstatussen</i>\n/help - <i>Dit opdrachtbericht :)</i>\n/serverLog [server name] - <i>Upload nieuwste.log-bestand vanuit servermap</i>\n/execCommand [servernaam] [commando] [argument 1]... - <i>Voer commando uit op server en krijg antwoord< /i >\n\n<code>Kubek",
   "{{tgbot-usage}}": "❌ Verkeerd commandogebruik",
   "{{tgbot-starting}}": "✅ We starten de server op ",
   "{{tgbot-stopping}}": "⏹️ Stop de server ",

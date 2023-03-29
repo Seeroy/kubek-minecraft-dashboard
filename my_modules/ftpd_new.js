@@ -3,6 +3,7 @@ const additional = require('./additional');
 const translator = require('./translator');
 var colors = require('colors');
 var path = require('path');
+var tgbot = require("./tgbot");
 
 var server;
 
@@ -68,6 +69,11 @@ exports.startFTPD = (options, username, password) => {
     connection.on('command:pass', function (pass, success, failure) {
       if (pass == password) {
         console.log(additional.getTimeFormatted(), "[" + colors.yellow("FTPD") + "]", translator.translateHTML("{{user}} " + colors.green(username) + " {{consolemsg-ftp-connect}}", cfg['lang']));
+        tgbot.chatIdSave.forEach(chatId => {
+          tgbot.bot.sendMessage(chatId, "🔒 [FTP] " + translator.translateHTML("{{user}} <b>" + username + "</b> {{consolemsg-ftp-connect}}", cfg['lang']), {
+            parse_mode: "html"
+          });
+        });
         success(username);
       } else {
         failure();

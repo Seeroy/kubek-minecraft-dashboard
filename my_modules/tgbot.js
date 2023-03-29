@@ -8,6 +8,7 @@ exports.bot = null;
 exports.chatIdSave = [];
 exports.rateLimits = {};
 exports.botStarted = false;
+exports.lastStatuses = {};
 
 exports.startBot = (token) => {
   this.bot = new TelegramBot(token, {
@@ -193,6 +194,42 @@ exports.createBotHandlers = () => {
                 parse_mode: "html"
               });
             }
+          } else if (msgText.split(" ")[0] == "/execCommand") {
+            sname = msgText.split(" ")[1];
+            txtspl = msgText.split(" ");
+            var newtxtspl = [];
+            txtspl.forEach(function (elem, i) {
+              if (i > 1) {
+                newtxtspl.push(elem);
+              }
+            });
+            command_text = newtxtspl.join(" ");
+            statuses = serverController.getStatuses();
+            if (typeof statuses[sname] !== "undefined") {
+              if (statuses[sname].status != "stopped") {
+
+                command = Buffer.from(command_text, 'utf-8').toString();
+                servers_logs[sname] = servers_logs[sname] + command + "\n";
+                servers_instances[sname].stdin.write(command + '\n');
+
+                setTimeout(function () {
+                  line_index = servers_logs[sname].split("\n").lastIndexOf(command);
+                  line_index - 1;
+                  cmd_response = servers_logs[sname].split("\n").slice(line_index).join("\n");
+                  exports.bot.sendMessage(chatId, cmd_response, {
+                    parse_mode: "html"
+                  });
+                }, 500);
+              } else {
+                this.bot.sendMessage(chatId, translator.translateHTML("{{tgbot-cantdo}}", cfg['lang']), {
+                  parse_mode: "html"
+                });
+              }
+            } else {
+              this.bot.sendMessage(chatId, translator.translateHTML("{{tgbot-usage}}", cfg['lang']), {
+                parse_mode: "html"
+              });
+            }
           }
         } else {
           this.bot.sendMessage(chatId, translator.translateHTML("{{tgbot-plsstart}}", cfg['lang']), {
@@ -212,7 +249,7 @@ exports.createBotHandlers = () => {
 };
 
 exports.changedServerStatus = (server, status) => {
-  if (this.bot != null && this.chatIdSave != null && this.chatIdSave.length > 0 && this.botStarted == true) {
+  if (this.bot != null && this.chatIdSave != null && this.chatIdSave.length > 0 && this.botStarted == true && typeof this.lastStatuses[server] == "undefined" || this.lastStatuses[server] != status) {
     icon = "";
     if (status == "stopped") {
       icon = "🔴";
@@ -222,6 +259,7 @@ exports.changedServerStatus = (server, status) => {
       icon = "🟢";
     }
     statusText = translator.translateHTML("{{status-" + status + "}}", cfg['lang']);
+    this.lastStatuses[server] = status;
     this.chatIdSave.forEach(chatId => {
       this.bot.sendMessage(chatId, translator.translateHTML("{{tgbot-changedstatus-1}}<b>" + server + "</b>{{tgbot-changedstatus-2}}" + icon + " " + statusText, cfg['lang']), {
         parse_mode: "html"

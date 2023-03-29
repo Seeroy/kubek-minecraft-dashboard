@@ -188,6 +188,7 @@ exports.startServer = (server) => {
     serverjson_cfg = JSON.parse(fs.readFileSync("./servers/servers.json"));
     console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-starting}} ", cfg['lang']) + ":", server.green);
     statuss = "starting";
+    serverjson_cfg[server].status = statuss;
     servers_instances[server].on('close', (code) => {
       statuss = "stopped";
       serverjson_cfg[server].status = statuss;
@@ -275,7 +276,7 @@ exports.startServer = (server) => {
           }
         });
       }
-      if (data.indexOf("Loading libraries, please wait...") >= 0) {
+      if (data.indexOf("Loading libraries, please wait...") >= 0 || data.match(/Advanced terminal features are/gmi) || data.match(/Enabled Waterfall version/gmi)) {
         statuss = "starting";
         tgbot.changedServerStatus(server, statuss);
       }
@@ -289,12 +290,12 @@ exports.startServer = (server) => {
         tgbot.changedServerStatus(server, statuss);
         console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
       }
-      if (data.match(/\[INFO] Listening on/gm)) {
+      if (data.match(/\[INFO] Listening on/gmi)) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
         console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
       }
-      if (data.match(/\[INFO] Done/gm)) {
+      if (data.match(/\[INFO] Done/gmi)) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
         console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);

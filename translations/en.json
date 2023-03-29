@@ -243,7 +243,7 @@
   "{{tgbot-savedchatid}}": "🔒 OTP-сode is correct! Now you can work with this bot in any chat",
   "{{tgbot-serverstatuses}}": "Server statuses",
   "{{tgbot-commands}}": "Commands",
-  "{{tgbot-helpmsg}}": "<b>Server management</b>\n/startServer [server name] - <i>Start server</i>\n/stopServer [server name] - <i>Stop server</i>\n/restartServer [server name] - <i>Restart server</i>\n/statuses - <i>Server statuses</i>\n/help - <i>This message with commands :)</i>\n/serverLog [server name] - <i>Send latest.log file from server folder</i>\n\n<code>Kubek ",
+  "{{tgbot-helpmsg}}": "<b>Manage Servers</b>\n/startServer [server name] - <i>Start Server</i>\n/stopServer [server name] - <i> Stop server</i>\n/restartServer [server name] - <i>Restart server</i>\n/statuses - <i>Server statuses</i>\n/help - <i>This command message :)</i>\n/serverLog [server name] - <i>Upload the latest.log file from the server folder</i>\n/execCommand [server name] [command] [argument 1]... - <i>Run a command on the server and get a response</i>\n\n<code>Kubek ",
   "{{tgbot-usage}}": "❌ Wrong command usage",
   "{{tgbot-starting}}": "✅ We start the server ",
   "{{tgbot-stopping}}": "⏹️ Stop the server ",

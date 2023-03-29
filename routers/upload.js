@@ -6,6 +6,7 @@ var fs = require('fs');
 const auth_manager = require("./../my_modules/auth_manager");
 var config = require("./../my_modules/config");
 var iconv = require('iconv-lite');
+var upl_status = 0;
 
 const ACCESS_PERMISSION = "server_settings";
 const ACCESS_PERMISSION_2 = "plugins";
@@ -171,4 +172,26 @@ router.post('/file', (req, res) => {
   }
 });
 
+/*router.post('/with_progress', (req, res) => {
+  let sampleFile;
+  let uploadPath;
+
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  sampleFile = req.files['g-sbrk-input'];
+  filename = iconv.decode(sampleFile.name, 'utf-8');
+
+  uploadPath = "./servers/" + filename;
+
+  sampleFile.mv(uploadPath, function (err) {
+    if (err)
+      return res.status(400).send(err);
+
+    res.send("uploaded");
+    serverName = filename.replace(".zip", "");
+    fs.mkdirSync("./servers/" + serverName);
+  });
+});*/
 module.exports = router;

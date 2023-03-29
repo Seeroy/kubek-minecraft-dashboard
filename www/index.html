@@ -49,6 +49,11 @@
   -->
 </head>
 
+<!--<form id="g-sbrk-form" enctype="multipart/form-data">
+  <input name="g-sbrk-input" id="g-sbrk-input"
+    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file">
+</form>-->
+
 <div class="card" id="update-process"
   style="display: none; margin: auto; position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: max-content; height: max-content; z-index: 999999999; min-width: 30%;">
   <div class="card-body">
@@ -61,6 +66,25 @@
     </div>
   </div>
 </div>
+
+<!--<div class="modal-black-bg" id="upload-sbrk-modal" style="display: none;">
+  <div class="modal-layout">
+    <div class="modal-icon">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-primary);">
+        <span class="material-symbols-outlined text-white" style="font-size: 32px;">upload_file</span>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-center">{{uploading-sbrk-capt}}</p>
+      <p>{{uploading-sbrk-desc}}</p>
+
+      <div class="progress w-100">
+        <div class="progress-bar" role="progressbar" style="width: 75%;" id="upload-sbrk-progress"></div>
+      </div>
+    </div>
+  </div>
+</div>-->
 
 <div class="modal-black-bg" id="restart-server-modal" style="display: none;">
   <div class="modal-layout">
@@ -139,7 +163,8 @@
         <div class="p-2 ms-3 kubekLogoText">Kubek</div>
         <span class="kbk-ver"></span>
         <div class="flex-fill" style="display: none;"></div>
-        <button type="button" class="btn-close" aria-label="Close" onclick="hideMobileMenu()" style="display: none;"></button>
+        <button type="button" class="btn-close" aria-label="Close" onclick="hideMobileMenu()"
+          style="display: none;"></button>
       </div>
 
       <ul class="sidenavLayout list-group list-group-light flex-fill" id="sidebar-menu-list"
@@ -441,6 +466,7 @@
     });
     socket.on("reconnect", () => {
       hideLoading();
+      afterSocketHandshake();
     });
     socket.on("connect_error", () => {
       showLoading();
@@ -589,4 +615,32 @@
     });
     return r;
   }
+
+  /*function uploadSbrk() {
+    $("#g-sbrk-input").trigger('click');
+    $("#g-sbrk-input").off("change");
+    $("#g-sbrk-input").change(function () {
+      showModal("upload-sbrk-modal", "zoomIn");
+      var formData = new FormData($("#g-sbrk-form")[0]);
+      var request = new XMLHttpRequest();
+
+      request.upload.addEventListener('progress', function (e) {
+        var fileSize = document.getElementById('g-sbrk-input').files[0].size;
+
+        if (e.loaded <= fileSize) {
+          var percent = Math.round(e.loaded / fileSize * 100);
+          document.getElementById('upload-sbrk-progress').style.width = percent + '%';
+        }
+
+        if (e.loaded == e.total) {
+          document.getElementById('upload-sbrk-progress').style.width = '100%';
+          console.log("Sborka upload finished");
+        }
+      });
+
+      request.open('post', '/upload/with_progress?server=' + window.localStorage.selectedServer);
+      request.timeout = 450000;
+      request.send(formData);
+    });
+  }*/
 </script>
