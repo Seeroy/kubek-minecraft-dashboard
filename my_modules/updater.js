@@ -46,7 +46,7 @@ exports.setCheckingForUpdatesByInterval = (updatesInterval) => {
   console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-update1h}}", cfg['lang']));
   setInterval(function () {
     checkForUpdates_fc(function (upd) {
-      if (upd != 0 && kubek_version != upd) {
+      if (upd != 0 && kubek_version != upd && typeof body !== 'undefined' && typeof body[0] !== "undefined" && typeof body[0].assets !== "undefined") {
         console.log(additional.getTimeFormatted(), colors.yellow(translator.translateHTML("{{consolemsg-yesupd}}", cfg['lang'])));
         console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
 
@@ -56,7 +56,7 @@ exports.setCheckingForUpdatesByInterval = (updatesInterval) => {
           platform = process.platform.replace(/32/gm, "");
           if (asset.name.match(platform) != null) {
             url = asset.browser_download_url;
-            if(fs.existsSync(url.split("/").pop())) {
+            if (fs.existsSync(url.split("/").pop())) {
               downloaded = true;
             }
           }
@@ -89,7 +89,7 @@ exports.downloadLatestUpdate = function (cb) {
       return console.error(error);
     }
 
-    if (!error && res.statusCode == 200) {
+    if (!error && res.statusCode == 200 && typeof body !== 'undefined' && typeof body[0] !== "undefined" && typeof body[0].assets !== "undefined") {
       assets = body[0].assets;
       url = "";
       assets.forEach(function (asset) {

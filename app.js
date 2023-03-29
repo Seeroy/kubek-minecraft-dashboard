@@ -77,7 +77,6 @@ socket_options = {
 global.io = require("socket.io")(3001, socket_options);
 
 io.on("connection", (socket) => {
-  socket.emit("handshake", socket.id);
   socket.on("update", (arg) => {
     switch (arg.type) {
       case "usage":
@@ -125,7 +124,6 @@ io.on("connection", (socket) => {
       } else {
         currentFileWritingsText[arg.randCode] = currentFileWritingsText[arg.randCode] + "\n" + arg.add;
       }
-
     }
   });
   socket.on("finishFileWrite", (arg) => { // Finish write to file (FM)
@@ -204,7 +202,7 @@ setInterval(function () {
 tgbot_manager.regenerateOTP();
 
 updater.checkForUpdates(function (upd, body) {
-  if (upd != 0 && kubek_version != upd && typeof body !== 'undefined') {
+  if (upd != 0 && kubek_version != upd && typeof body !== 'undefined' && typeof body[0] !== "undefined" && typeof body[0].assets !== "undefined") {
     console.log(additional.getTimeFormatted(), colors.yellow(translator.translateHTML("{{consolemsg-yesupd}}", cfg['lang'])));
     console.log(additional.getTimeFormatted(), colors.yellow("https://github.com/Seeroy/kubek-minecraft-dashboard/releases/tag/" + upd));
 
@@ -254,7 +252,7 @@ updater.checkForUpdates(function (upd, body) {
         ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
         ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
         if (cfg['internet-access'] == false && ip != "127.0.0.1") {
-          res.send("Cannot be accessed from the internet");
+          // send nothing for better confidence
         } else {
           res.send(translator.translateHTML(file, cfg.lang));
         }

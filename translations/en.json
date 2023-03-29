@@ -40,6 +40,8 @@
   "{{settings-saved}}": "Settings have been saved",
   "{{change-only-sp}}": "Server name only changes in the server.properties 'motd'",
   "{{really-kill-srv}}": "Are you sure you want to exclude the server? You can lose the server map!",
+  "{{really-stop-srv}}": "Are you sure you want to shut down the server?",
+  "{{really-restart-srv}}": "Are you sure you want to restart the server?",
 
   "{{signinbtn-login}}": "Login",
   "{{signin-msg-login}}": "Sign in to use this application",
@@ -91,7 +93,7 @@
   "{{softLang-ks}}": "Kubek language",
   "{{ftpserver-ks}}": "FTP server",
   "{{savelogs-ks}}": "Save logs",
-  "{{allowintacc-ks}}": "Allow access from other IPs (needs a restart to work properly)",
+  "{{allowintacc-ks}}": "Allow access from other IPs",
   "{{new-usr-ks}}": "Create a new user",
   "{{new-usr-muted-ks}}": "Click to add",
   "{{users-limited-count-ks}}": "Unable to create user, maximum number of users is 5",
@@ -104,8 +106,10 @@
   "{{tgbot-otp-ks}}": "Telegram Bot One Time Password (updates every 15 seconds) (write /start [this code])",
   "{{copying-succ-ks}}": "Code successfully copied (together with /start command)",
   "{{fullres-need-ks}}": "Full restart of Kubek required to change FTPD mode",
+  "{{fullres-othip-need-ks}}": "Switching the `Allow access from other IPs` setting requires a full restart of Kubek",
   "{{tgbot-otp-desc-ks}}": "To start the bot, you need to go down in Kubek Settings, copy the OTP code and send to the bot",
   "{{tgbot-otp-capt-ks}}": "OTP code for Telegram",
+  "{{turnoff-warn-ks}}": "Are you sure you want to turn off Kubek? You can't launch it back through the web interface",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",

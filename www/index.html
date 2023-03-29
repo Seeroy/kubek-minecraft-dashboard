@@ -43,7 +43,7 @@
 
   <!-- 
     sidebar items:
-    #kubek-version-sidebar
+    .kbk-ver
     #servers-list-sidebar
     #new-server-button
   -->
@@ -58,6 +58,46 @@
     <div class="progress">
       <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
         aria-valuemax="100"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-black-bg" id="restart-server-modal" style="display: none;">
+  <div class="modal-layout">
+    <div class="modal-icon">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-warning);">
+        <span class="material-symbols-outlined text-white" style="font-size: 32px;">restart_alt</span>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="text-center">{{really-restart-srv}}</p>
+
+      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
+        <button type="button" class="btn btn-warning clsbtn">{{ok}}</button>
+        <button type="button" class="btn btn-secondary ms-3"
+          onclick="hideModal('restart-server-modal')">{{cancel}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-black-bg" id="stop-server-modal" style="display: none;">
+  <div class="modal-layout">
+    <div class="modal-icon">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-warning);">
+        <span class="material-symbols-outlined text-white" style="font-size: 32px;">power_settings_new</span>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="text-center">{{really-stop-srv}}</p>
+
+      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
+        <button type="button" class="btn btn-warning clsbtn">{{ok}}</button>
+        <button type="button" class="btn btn-secondary ms-3"
+          onclick="hideModal('stop-server-modal')">{{cancel}}</button>
+      </div>
     </div>
   </div>
 </div>
@@ -83,14 +123,23 @@
 </div>
 
 <body>
+  <div class="mobile-header" style="display: none;">
+    <img src="assets/icon.png" height="32">
+    <div class="ms-3 kubekLogoText">Kubek</div>
+    <span class="kbk-ver"></span>
+    <div class="flex-fill"></div>
+    <span class="material-symbols-outlined" onclick="toggleMobileMenu()">menu</span>
+  </div>
   <div class="d-flex flex-row w-100 h-100">
-    <div class="menuContainer text-body d-flex flex-column animate__animated animate__slideInLeft animate__fast">
+    <div class="menuContainer text-body d-flex flex-column">
       <div class="d-flex flex-row mb-3 align-items-center justify-content-center">
         <div class="p-2">
           <img src="assets/icon.png" height="56">
         </div>
         <div class="p-2 ms-3 kubekLogoText">Kubek</div>
-        <span id="kubek-version-sidebar"></span>
+        <span class="kbk-ver"></span>
+        <div class="flex-fill" style="display: none;"></div>
+        <button type="button" class="btn-close" aria-label="Close" onclick="hideMobileMenu()" style="display: none;"></button>
       </div>
 
       <ul class="sidenavLayout list-group list-group-light flex-fill" id="sidebar-menu-list"
@@ -99,13 +148,13 @@
           <span class="material-symbols-outlined">terminal</span>
           <span class="ms-2">{{console}}</span>
         </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center plugins-menu-item" data-page="mods">
-          <span class="material-symbols-outlined">extension</span>
-          <span class="ms-2">{{plugins-and-mods}}</span>
-        </li>
         <li class="list-group-item px-4 d-flex flex-row align-items-center fm-menu-item" data-page="file_manager">
           <span class="material-symbols-outlined">folder_open</span>
           <span class="ms-2">{{file-manager}}</span>
+        </li>
+        <li class="list-group-item px-4 d-flex flex-row align-items-center plugins-menu-item" data-page="mods">
+          <span class="material-symbols-outlined">extension</span>
+          <span class="ms-2">{{plugins-and-mods}}</span>
         </li>
         <li class="list-group-item px-4 d-flex flex-row align-items-center backups-menu-item" data-page="backups">
           <span class="material-symbols-outlined">cloud_circle</span>
@@ -202,9 +251,13 @@
   }
 
   $(document).ready(function () {
+    animateCSS(".menuContainer", "slideInLeft");
+    $(".menuContainer .list-group-item").click(function () {
+      hideMobileMenu();
+    });
     const appHeight = () => {
       const doc = document.documentElement;
-      doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+      doc.style.setProperty('--app-height', `${window.innerHeight - 48}px`);
     }
     window.addEventListener('resize', appHeight);
     appHeight();
@@ -328,7 +381,7 @@
     });
 
     $.get('/kubek/version', function (data) {
-      $("#kubek-version-sidebar").html(data.replace("v", "").trim());
+      $(".kbk-ver").html(data.replace("v", "").trim());
     });
 
     $.get("/server/statuses", function (data) {
@@ -381,14 +434,7 @@
     });
 
     socket = openSocket();
-    socket.on("handshake", function () {
-      console.log("[WS]", "WebSocket handshake successful");
-      if (connect_socket_error == true) {
-        hideLoading();
-        connect_socket_error = false;
-      }
-      afterSocketHandshake();
-    });
+    afterSocketHandshake();
     socket.on("disconnect", () => {
       showLoading();
       connect_socket_error = true;

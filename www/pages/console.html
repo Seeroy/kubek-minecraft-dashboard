@@ -105,14 +105,16 @@
   style="animation-delay: .3s; padding-right: 24px;">
   <div class="flex-fill"></div>
   <div class="d-flex flex-row server-control-flex">
-    <button class="btn btn-danger server-control stopsrv" onclick="stopServer()"><span
-        class="material-symbols-outlined">crop_square</span></button>
-    <button class="btn btn-success server-control" onclick="startServer()"><span
-        class="material-symbols-outlined">play_arrow</span></button>
-    <button class="btn btn-warning server-control" onclick="restartServer()"><span
-        class="material-symbols-outlined">autorenew</span></button>
-    <button class="btn btn-udanger btn-danger server-control killsrv" onclick="killServer()"><span
-        class="material-symbols-outlined">dangerous</span>
+    <button class="btn btn-danger server-control stopsrv" onclick="stopServer()">
+      <img src="assets/buttons/stop.png" width="24" height="24">
+    </button>
+    <button class="btn btn-success server-control" onclick="startServer()">
+      <img src="assets/buttons/start.png" width="24" height="24"></button>
+    <button class="btn btn-warning server-control" onclick="restartServer()">
+      <img src="assets/buttons/restart.png" width="24" height="24">
+    </button>
+    <button class="btn btn-udanger btn-danger server-control killsrv" onclick="killServer()">
+      <img src="assets/buttons/kill.png" width="24" height="24">
     </button>
     <button class="btn btn-light server-control" disabled>
       <div class="mat-spinner">

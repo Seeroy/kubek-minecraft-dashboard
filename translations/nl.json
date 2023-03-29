@@ -40,6 +40,8 @@
   "{{settings-saved}}": "Instellingen zijn opgeslagen",
   "{{change-only-sp}}": "Servernaam verandert alleen in de server.properties 'motd'",
   "{{really-kill-srv}}": "Weet u zeker dat u de server wilt uitsluiten? U kunt de serverkaart kwijtraken!",
+  "{{really-stop-srv}}": "Weet u zeker dat u de server wilt afsluiten?",
+  "{{really-restart-srv}}": "Weet u zeker dat u de server opnieuw wilt opstarten?",
 
   "{{signinbtn-login}}": "Binnenkomen",
   "{{signin-msg-login}}": "Log in om dit programma te gebruiken",
@@ -91,7 +93,7 @@
   "{{softLang-ks}}": "Kubek-taal",
   "{{ftpserver-ks}}": "FTP-server",
   "{{savelogs-ks}}": "Sla logboeken op",
-  "{{allowintacc-ks}}": "Sta toegang toe vanaf andere IP's (moet opnieuw worden opgestart om correct te werken)",
+  "{{allowintacc-ks}}": "Sta toegang toe vanaf andere IP's",
   "{{new-usr-ks}}": "Maak een nieuwe gebruiker aan",
   "{{new-usr-muted-ks}}": "Klik om toe te voegen",
   "{{users-limited-count-ks}}": "Kan gebruiker niet aanmaken, maximum aantal gebruikers is 5",
@@ -102,8 +104,10 @@
   "{{tgbot-otp-ks}}": "Telegram Bot eenmalig wachtwoord (wordt elke 15 seconden bijgewerkt) (schrijf /start [deze code])",
   "{{copying-succ-ks}}": "Code succesvol gekopieerd (samen met /start commando)",
   "{{fullres-need-ks}}": "Volledige herstart van Kubek vereist om de FTPD-modus te wijzigen",
+  "{{fullres-othip-need-ks}}": "Om de instelling 'Toegang vanaf andere IP's toestaan' om te schakelen, moet Kubek volledig opnieuw worden opgestart",
   "{{tgbot-otp-desc-ks}}": "Om de bot te starten, moet je naar Kubek-instellingen gaan, de OTP-code kopiëren en naar de bot sturen",
   "{{tgbot-otp-capt-ks}}": "OTP-code voor Telegram",
+  "{{turnoff-warn-ks}}": "Weet u zeker dat u Kubek wilt uitschakelen? U kunt het niet terug starten via de webinterface",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",

@@ -1,7 +1,7 @@
 /* GLOBALS */
 .sub-block .header {
   background: var(--mdb-gray-100);
-  color: black;
+  color: var(--mdb-black);
 }
 
 .sub-block .contentt {
@@ -54,12 +54,12 @@
 }
 
 .kub-card * {
-  color: black;
+  color: var(--mdb-black);
 }
 
 /* Home page styling */
 #players-list li span {
-  color: black;
+  color: var(--mdb-black);
 }
 
 /* SERVER INFO HEADER */
@@ -142,7 +142,7 @@
 }
 
 #delete-card .card-text {
-  color: black;
+  color: var(--mdb-black);
 }
 
 .multiply-select {
@@ -172,7 +172,7 @@
 }
 
 .input-bg .material-symbols-outlined:hover {
-  color: black;
+  color: var(--mdb-black);
 }
 
 /* Backups page styling */
@@ -192,7 +192,7 @@
 
 /* Global styles */
 .kbk-input {
-  color: black;
+  color: var(--mdb-black);
   background: #ebebeb;
 }
 
@@ -209,9 +209,21 @@
 }
 
 .modal-layout {
-  background: var(--mdb-gray-200);
+  background: var(--mdb-gray-100);
 }
 
 .modal-layout *:not(.btn) {
-  color: black;
+  color: var(--mdb-black);
+}
+
+.sysmon-container * {
+  color: var(--mdb-black);
+}
+
+.mobile-header * {
+  color: var(--mdb-black);
+}
+
+.k-settings-container > * {
+  color: var(--mdb-black);
 }

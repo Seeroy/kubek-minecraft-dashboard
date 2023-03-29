@@ -168,7 +168,9 @@ function generatePassword(length) {
 }
 
 function shutdownKubek() {
-  $.get("/kubek/shutdown");
+  showModal("turnoff-warn-modal", "fadeIn", function () {
+    $.get("/kubek/shutdown");
+  });
 }
 
 function setNewUserMode(bool) {
@@ -297,6 +299,16 @@ function saveSettingsStage2() {
 }
 
 function saveSettingsStage3() {
+  if (kubekCfg['internet-access'] != allowint) {
+    showModal("othip-need-res-modal", "fadeIn", function () {
+      saveSettingsStage4();
+    });
+  } else {
+    saveSettingsStage4();
+  }
+}
+
+function saveSettingsStage4() {
   kubekCfg["ftpd"] = ftpd;
   kubekCfg["auth"] = auth;
   kubekCfg["tgbot-enabled"] = tgbot;

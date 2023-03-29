@@ -14,7 +14,7 @@ function showModal(id, anim, cb) {
   $("#" + id).show();
   animateCSS("#" + id + " .modal-layout", anim);
   $("#" + id + " .modal-layout .clsbtn").unbind("click");
-  $("#" + id + " .modal-layout .clsbtn").click(function(e){
+  $("#" + id + " .modal-layout .clsbtn").click(function (e) {
     hideModal(id);
     cb(e);
   });
@@ -29,6 +29,25 @@ function hideModal(id) {
 
 function openSocket() {
   return io("ws://" + window.location.hostname + ":3001");
+}
+
+function toggleMobileMenu() {
+  if ($(".menuContainer").hasClass("opened")) {
+    animateCSS(".menuContainer", "fadeOutLeft").then((message) => {
+      $(".menuContainer").removeClass("opened");
+    });
+  } else {
+    animateCSS(".menuContainer", "slideInLeft");
+    $(".menuContainer").addClass("opened");
+  }
+}
+
+function hideMobileMenu() {
+  if ($(".menuContainer").hasClass("opened")) {
+    animateCSS(".menuContainer", "fadeOutLeft").then((message) => {
+      $(".menuContainer").removeClass("opened");
+    });
+  }
 }
 
 function updateURLParameter(url, param, paramVal) {
@@ -149,21 +168,25 @@ function startServer() {
 }
 
 function stopServer() {
-  $.get("/server/statuses", function (sstat) {
-    if (typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined") {
-      $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=" + sstat[window.localStorage.selectedServer]['stopCommand']);
-    } else {
-      $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=stop");
-    }
+  showModal("stop-server-modal", "zoomIn", function () {
+    $.get("/server/statuses", function (sstat) {
+      if (typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined") {
+        $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=" + sstat[window.localStorage.selectedServer]['stopCommand']);
+      } else {
+        $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=stop");
+      }
+    });
   });
 }
 
 function restartServer() {
-  $.get("/server/restart?server=" + window.localStorage.selectedServer);
+  showModal("restart-server-modal", "zoomIn", function () {
+    $.get("/server/restart?server=" + window.localStorage.selectedServer);
+  });
 }
 
 function killServer() {
-  showModal("kill-server-modal", "zoomIn", function(){
+  showModal("kill-server-modal", "zoomIn", function () {
     $.get("/server/kill?server=" + window.localStorage.selectedServer);
   });
 }

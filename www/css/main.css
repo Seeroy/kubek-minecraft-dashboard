@@ -10,6 +10,13 @@ body {
   overflow: auto;
 }
 
+.mobile-header {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 16px;
+}
+
 /* Theme mode selector in sidebar */
 #theme-mode-selector .nav-link:hover:not(.active) {
   cursor: pointer;
@@ -109,38 +116,44 @@ body {
     height: var(--app-height) !important;
   }
 
-  .menuContainer .list-group-item span.ms-2 {
-    display: none;
+  .menuContainer.opened {
+    display: flex !important;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 5;
   }
 
-  .menuContainer #theme-mode-selector {
-    display: flex;
-    flex-direction: column;
+  .menuContainer {
+    display: none !important;
+    padding: 0 20px !important;
   }
 
-  .menuContainer #theme-mode-selector .nav-link {
-    padding: 8px 0 !important;
+  .menuContainer>.d-flex.flex-row.mb-3 {
+    margin-top: 16px;
+    padding: 6px 24px;
   }
 
-  .menuContainer #theme-mode-selector .nav-link .txt {
-    display: none;
+  .menuContainer>.d-flex.flex-row.mb-3 .flex-fill,
+  .menuContainer>.d-flex.flex-row.mb-3 .btn-close {
+    display: block !important;
   }
 
-  .menuContainer #theme-mode-selector .nav-link .material-symbols-outlined {
-    display: inline !important;
+  .mobile-header {
+    display: flex !important;
   }
 
-  .menuContainer .kubekLogoText {
-    display: none;
+  .mobile-header .kubekLogoText {
+    font-size: 18pt !important;
+    padding-right: 8px;
   }
 
-  .menuContainer #langSelectButton::after,
-  .menuContainer #langSelectButton .langName {
-    display: none;
-  }
-
-  .menuContainer #langSelectButton i {
-    margin: 0;
+  .mobile-header .kbk-ver {
+    font-size: 8pt;
   }
 
   .main-layout {
@@ -169,9 +182,14 @@ body {
   }
 
   .server-capt-div #server-name {
-    font-size: 16pt !important;
+    font-size: 24pt !important;
     word-wrap: break-word;
     margin-left: 8px !important;
+  }
+
+  .server-capt-div #server-icon {
+    width: 36px;
+    height: 36px;
   }
 
   .server-capt-div {
@@ -183,17 +201,12 @@ body {
     padding: 0 !important;
   }
 
-  .server-capt-div #server-icon {
-    width: 30px;
-    height: 30px;
-  }
-
   #console-settings-button {
     display: none;
   }
 
-  #kubek-version-sidebar {
-    display: none;
+  #console-text {
+    font-size: 11pt;
   }
 
   .server-control-flex {
@@ -206,6 +219,9 @@ body {
     width: 100%;
     justify-content: center !important;
     align-items: center !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    height: 54px;
   }
 
   .server-info-header .chip-nb {
@@ -247,12 +263,12 @@ body {
 
   .server-info-header .server-control-flex .btn {
     margin: 0 5px !important;
-    height: 32px;
-    width: 32px;
+    height: 38px;
+    width: 38px;
   }
 
-  .server-info-header {
-    padding-right: 0 !important;
+  .server-info-header .server-control-flex .btn .material-symbols-outlined {
+    font-size: 14pt !important;
   }
 
   .server-info-header .chip-nb:first-child img {
@@ -270,6 +286,11 @@ body {
 
   .pluginsandmods-container .col-md-6:first-child {
     margin-bottom: 16px;
+  }
+
+  .pluginsandmods-container .row.gx-5 {
+    width: 100%;
+    margin: 0 !important;
   }
 
   .pluginsandmods-container .btn {
@@ -359,7 +380,8 @@ body {
   }
 
   .k-settings-container #tgbot-token-item .element {
-    margin: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .k-settings-container .list-group-item:nth-child(8) .material-symbols-outlined {
@@ -379,22 +401,49 @@ body {
     display: none;
   }
 
+  .fm_container {
+    height: 92% !important;
+  }
+
   .fm_container table {
+    display: flex !important;
     table-layout: fixed;
     width: max-content;
     border-spacing: 0;
     border-collapse: separate;
+    width: 100%;
+    margin-bottom: 0 !important;
+  }
+
+  .fm_container thead {
+    display: none;
+  }
+
+  .fm_container tbody {
+    width: 100%;
   }
 
   .fm_container table th,
   .fm_container table tr,
   .fm_container table td {
-    padding: 0 10px !important
+    padding: 0 10px !important;
   }
 
   .fm_container table tr td:not(:first-child):not(:nth-child(2)):not(:nth-child(3)) {
     padding: 0 4px !important;
     font-size: 8pt;
+  }
+
+  .fm_container table tr td:not(:nth-child(2)):not(:nth-child(3)):not(:last-child) {
+    display: none;
+  }
+
+  .fm_container .contentt {
+    padding: 0 !important;
+  }
+
+  .fm_container #breadcrumb-fm {
+    margin: 8px 6px !important;
   }
 
   .fm_container table tr td:nth-child(3) {
