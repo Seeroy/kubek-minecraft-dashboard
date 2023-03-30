@@ -117,7 +117,7 @@
   "{{resonerr-ss}}": "Restart server on crash (checked by exit code)",
   "{{enter-to-del-ss}}": "Enter the server name to confirm the deletion",
   "{{stopcmd-ss}}": "You can enter a custom shutdown command here",
-  "{{resschd-desc-ss}}": "Restart the server on schedule (enter the task below <a href='http://www.crontabgenerator.com/'>in crontab format<a/>)",
+  "{{resschd-desc-ss}}": "Restart the server on schedule (enter the task below <a href='https://github.com/Seeroy/kubek-minecraft-dashboard/blob/main/SCHEDULER_GUIDE.md'>in crontab format<a/>)",
   "{{resschd-crontab-input-ss}}": "Enter time in crontab format",
 
   "{{summary-sysmon}}": "Summary Information",

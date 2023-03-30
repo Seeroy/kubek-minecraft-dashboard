@@ -115,7 +115,7 @@
   "{{resonerr-ss}}": "Herstart server bij crash (gecontroleerd door afsluitcode)",
   "{{enter-to-del-ss}}": "Voer de servernaam in om de verwijdering te bevestigen",
   "{{stopcmd-ss}}": "U kunt hier een aangepast afsluitcommando invoeren",
-  "{{resschd-desc-ss}}": "Start de server volgens schema opnieuw op (voer de taak hieronder in <a href='http://www.crontabgenerator.com/'>in crontab-formaat<a/>)",
+  "{{resschd-desc-ss}}": "Start de server volgens schema opnieuw op (voer de taak hieronder in <a href='https://github.com/Seeroy/kubek-minecraft-dashboard/blob/main/SCHEDULER_GUIDE.md'>in crontab-formaat<a/>)",
   "{{resschd-crontab-input-ss}}": "Voer de tijd in crontab-indeling in",
 
   "{{summary-sysmon}}": "Samenvattende informatie",

@@ -119,7 +119,7 @@
   "{{resonerr-ss}}": "Перезапускать сервер при краше (проверяется по коду выхода)",
   "{{enter-to-del-ss}}": "Введите имя сервера для подтверждения удаления",
   "{{stopcmd-ss}}": "Вы можете ввести сюда нестандартную команду выключения сервера",
-  "{{resschd-desc-ss}}": "Перезапускать сервер по расписанию (введите ниже задачу <a href='http://www.crontabgenerator.com/'>в формате crontab<a/>)",
+  "{{resschd-desc-ss}}": "Перезапускать сервер по расписанию (введите ниже задачу <a href='https://github.com/Seeroy/kubek-minecraft-dashboard/blob/main/SCHEDULER_GUIDE.md'>в формате crontab<a/>)",
   "{{resschd-crontab-input-ss}}": "Введите время в формате crontab",
 
   "{{summary-sysmon}}": "Суммарная информация",
