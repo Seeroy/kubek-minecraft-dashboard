@@ -35,8 +35,8 @@ Download and launch [latest release](https://github.com/Seeroy/kubek-minecraft-d
 **OR**
 
 Clone repository and install modules
-```
 **Node.js >= 16 required!**
+```
 git clone https://github.com/Seeroy/kubek-minecraft-dashboard.git
 cd kubek-minecraft-dashboard
 npm install
