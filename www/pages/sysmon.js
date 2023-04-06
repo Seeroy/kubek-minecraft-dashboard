@@ -40,6 +40,7 @@ $(document).ready(function () {
     $("#os-name").text(hw.platform.version + " (" + hw.platform.arch + ")");
     $("#os-build").text(hw.platform.release);
     $("#totalmem").text(hw.totalmem + " Mb");
+    $("#kubek-uptime").text(formatUptime(hw.kubekUptime));
     $("#cpu-model").text(hw.cpu.model + " (" + hw.cpu.cores + " cores)");
     $("#cpu-speed").text(hw.cpu.speed + " MHz");
   });

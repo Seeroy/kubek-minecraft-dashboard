@@ -230,6 +230,7 @@ router.get('/hardware', function (req, res) {
       net = os.networkInterfaces();
 
       hardware = {
+        kubekUptime: Math.round(process.uptime()),
         platform: pform_unq,
         totalmem: Math.round(os.totalmem() / 1024 / 1024),
         cpu: cpu_unq,
