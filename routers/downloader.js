@@ -1,23 +1,26 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-var fs = require('fs');
-var additional = require('./../my_modules/additional');
-var request = require('request');
+var fs = require("fs");
+var additional = require("./../my_modules/additional");
+var request = require("request");
 var config = require("./../my_modules/config");
-const decompress = require('decompress');
-const path = require('path');
+const decompress = require("decompress");
+const path = require("path");
 const auth_manager = require("./../my_modules/auth_manager");
-const translator = require('./../my_modules/translator');
+const translator = require("./../my_modules/translator");
 
 router.use(function (req, res, next) {
   additional.showRequestInLogs(req, res);
   cfg = config.readConfig();
-  ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
-  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+  if (cfg["internet-access"] == false && ip != "127.0.0.1") {
     res.send("Cannot be accessed from the internet");
   } else {
-    authsucc = auth_manager.authorize(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+    authsucc = auth_manager.authorize(
+      req.cookies["kbk__hash"],
+      req.cookies["kbk__login"]
+    );
     if (authsucc == true) {
       next();
     } else {
@@ -26,7 +29,7 @@ router.use(function (req, res, next) {
   }
 });
 
-router.get('/download', function (req, res) {
+router.get("/download", function (req, res) {
   pendingTasks[req.query.filename] = 0;
   if (!fs.existsSync("./servers")) {
     fs.mkdirSync("./servers");
@@ -37,17 +40,30 @@ router.get('/download', function (req, res) {
   if (!fs.existsSync("./servers/" + req.query.server + "/plugins")) {
     fs.mkdirSync("./servers/" + req.query.server + "/plugins");
   }
-  console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downstarted}}", cfg['lang']) + ": ", req.query.filename, "server: " + req.query.server);
+  console.log(
+    additional.getTimeFormatted(),
+    translator.translateHTML("{{consolemsg-downstarted}}", cfg["lang"]) + ": ",
+    req.query.filename,
+    "server: " + req.query.server
+  );
   if (req.query.type != "plugin") {
-    startDownloadByURL(req.query.url, "./servers/" + req.query.server + "/" + req.query.filename, req.query.filename);
+    startDownloadByURL(
+      req.query.url,
+      "./servers/" + req.query.server + "/" + req.query.filename,
+      req.query.filename
+    );
   } else {
-    startDownloadByURL(req.query.url, "./servers/" + req.query.server + "/plugins/" + req.query.filename, req.query.filename);
+    startDownloadByURL(
+      req.query.url,
+      "./servers/" + req.query.server + "/plugins/" + req.query.filename,
+      req.query.filename
+    );
   }
   fsock = io.sockets.sockets;
   for (const socket of fsock) {
     socket[1].emit("handleUpdate", {
       type: "downloadTasks",
-      data: pendingTasks
+      data: pendingTasks,
     });
   }
   res.send("Success");
@@ -71,8 +87,11 @@ router.get("/getPathToJava", function (req, res) {
   }
 });
 
-router.get('/downloadJavaForServer', function (req, res) {
-  if (typeof req.query.serverVersion !== "undefined" && typeof req.query.server !== "undefined") {
+router.get("/downloadJavaForServer", function (req, res) {
+  if (
+    typeof req.query.serverVersion !== "undefined" &&
+    typeof req.query.server !== "undefined"
+  ) {
     sv = req.query.serverVersion;
 
     sec = sv.split(".")[1];
@@ -106,17 +125,35 @@ router.get('/downloadJavaForServer', function (req, res) {
 
     pra = "";
     if (process.arch == "x64") {
-      pra = "x64"
+      pra = "x64";
     } else if (process.arch == "x32") {
-      pra = "x86"
+      pra = "x86";
     } else {
       pra = "unknown";
     }
-    url = "https://api.adoptium.net/v3/binary/latest/" + java + "/ga/" + prp + "/" + pra + "/jdk/hotspot/normal/eclipse?project=jdk";
+    url =
+      "https://api.adoptium.net/v3/binary/latest/" +
+      java +
+      "/ga/" +
+      prp +
+      "/" +
+      pra +
+      "/jdk/hotspot/normal/eclipse?project=jdk";
     fn = "java_download_" + req.query.server + "_" + sv + prext;
     pendingTasks[fn] = 0;
-    console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downstarted}}", cfg['lang']), ":", fn, "server: " + req.query.server);
-    startDownloadByURLAndUnpack(url, "./servers/" + req.query.server + "/" + fn, fn, req.query.server);
+    console.log(
+      additional.getTimeFormatted(),
+      translator.translateHTML("{{consolemsg-downstarted}}", cfg["lang"]),
+      ":",
+      fn,
+      "server: " + req.query.server
+    );
+    startDownloadByURLAndUnpack(
+      url,
+      "./servers/" + req.query.server + "/" + fn,
+      fn,
+      req.query.server
+    );
     res.send(fn);
   } else {
     res.send(false);
@@ -131,29 +168,34 @@ function startDownloadByURLAndUnpack(url, filename, ffn, srv) {
 
   request
     .get(url)
-    .on('error', function (err) {
+    .on("error", function (err) {
       console.log(err);
     })
-    .on('response', function (data) {
-      total_bytes = parseInt(data.headers['content-length']);
+    .on("response", function (data) {
+      total_bytes = parseInt(data.headers["content-length"]);
       data.pipe(fs.createWriteStream(filename));
     })
-    .on('data', function (chunk) {
+    .on("data", function (chunk) {
       received_bytes += chunk.length;
       showDownloadingProgress(received_bytes, total_bytes, ffn);
     })
-    .on('end', function () {
+    .on("end", function () {
       delete pendingTasks[fn];
-      console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downcompleted}}", cfg['lang']) + ": " + ffn);
+      console.log(
+        additional.getTimeFormatted(),
+        translator.translateHTML("{{consolemsg-downcompleted}}", cfg["lang"]) +
+          ": " +
+          ffn
+      );
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
           type: "downloadTasks",
-          data: pendingTasks
+          data: pendingTasks,
         });
         socket[1].emit("handleUpdate", {
           type: "unpackingJavaArchive",
-          data: "started"
+          data: "started",
         });
       }
       decompress(filename, "./servers/" + srv + "/javabin")
@@ -162,7 +204,7 @@ function startDownloadByURLAndUnpack(url, filename, ffn, srv) {
           for (const socket of fsock) {
             socket[1].emit("handleUpdate", {
               type: "unpackingJavaArchive",
-              data: "completed"
+              data: "completed",
             });
           }
           fs.unlinkSync(filename);
@@ -173,7 +215,7 @@ function startDownloadByURLAndUnpack(url, filename, ffn, srv) {
           for (const socket of fsock) {
             socket[1].emit("handleUpdate", {
               type: "unpackingJavaArchive",
-              data: error
+              data: error,
             });
           }
         });
@@ -188,24 +230,29 @@ function startDownloadByURL(url, filename, ffn) {
 
   request
     .get(url)
-    .on('error', function (err) {
+    .on("error", function (err) {
       console.log(err);
     })
-    .on('response', function (data) {
-      total_bytes = parseInt(data.headers['content-length']);
+    .on("response", function (data) {
+      total_bytes = parseInt(data.headers["content-length"]);
     })
-    .on('data', function (chunk) {
+    .on("data", function (chunk) {
       received_bytes += chunk.length;
       showDownloadingProgress(received_bytes, total_bytes, ffn);
     })
-    .on('end', function () {
+    .on("end", function () {
       delete pendingTasks[ffn];
-      console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-downcompleted}}", cfg['lang']) + ": " + ffn);
+      console.log(
+        additional.getTimeFormatted(),
+        translator.translateHTML("{{consolemsg-downcompleted}}", cfg["lang"]) +
+          ": " +
+          ffn
+      );
       fsock = io.sockets.sockets;
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
           type: "downloadTasks",
-          data: pendingTasks
+          data: pendingTasks,
         });
       }
     })
@@ -219,7 +266,7 @@ function showDownloadingProgress(received, total, fn) {
   for (const socket of fsock) {
     socket[1].emit("handleUpdate", {
       type: "downloadTasks",
-      data: pendingTasks
+      data: pendingTasks,
     });
   }
 }

@@ -15,106 +15,212 @@
   #usage-cpu-percent (50%)
 -->
 
-<link rel="stylesheet" href="/pages/console.css">
+<link rel="stylesheet" href="/pages/console.css" />
 <script src="/pages/console.js"></script>
 
-<div class="background-image d-flex flex-row animate__animated animate__fadeIn animate__faster">
+<div
+  class="background-image d-flex flex-row animate__animated animate__fadeIn animate__faster"
+>
   <div class="server-capt-div">
-    <img src="/assets/icon.png" height="48" id="server-icon">
+    <img src="/assets/icon.png" height="48" id="server-icon" />
     <span id="server-name"></span>
-    <button type="button" class="btn" onclick="showModal('edit-server-modal', 'fadeIn', function(){})">
-      <span class="material-symbols-outlined ms-2 text-white" id="edit-button">edit</span>
+    <button
+      type="button"
+      class="btn"
+      onclick="showModal('edit-server-modal', 'fadeIn', function(){})"
+    >
+      <span class="material-symbols-outlined ms-2 text-white" id="edit-button"
+        >edit</span
+      >
     </button>
   </div>
 </div>
 
 <form id="g-img-form" enctype="multipart/form-data">
-  <input name="g-img-input" id="g-img-input"
-    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file" accept=".png">
+  <input
+    name="g-img-input"
+    id="g-img-input"
+    style="
+      position: absolute;
+      left: -2582px;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: -285;
+    "
+    type="file"
+    accept=".png"
+  />
 </form>
 
-<div class="modal-black-bg" id="edit-server-modal" style="display: none;">
+<div class="modal-black-bg" id="edit-server-modal" style="display: none">
   <div class="modal-layout">
     <div class="modal-contentt">
       <div class="d-flex flex-column">
-        <div class="d-flex flex-row align-items-center justify-content-center mb-4">
+        <div
+          class="d-flex flex-row align-items-center justify-content-center mb-4"
+        >
           <div class="icon-changer">
-            <img height="48px" onclick="changeServerIcon()">
+            <img height="48px" onclick="changeServerIcon()" />
           </div>
-          <div style="font-size: 12pt; color: rgb(150,150,150); margin-left: 8px;">{{use-64-for-better-look-ss}}
+          <div
+            style="font-size: 12pt; color: rgb(150, 150, 150); margin-left: 8px"
+          >
+            {{use-64-for-better-look-ss}}
           </div>
         </div>
-        <input class="kbk-input w-100" placeholder="{{selected-sn-sw}}" id="serverNameModalEdit">
-        <p class="mt-2 mb-0" style="font-size: 10pt;">* {{change-only-sp}}</p>
+        <input
+          class="kbk-input w-100"
+          placeholder="{{selected-sn-sw}}"
+          id="serverNameModalEdit"
+        />
+        <p class="mt-2 mb-0" style="font-size: 10pt">* {{change-only-sp}}</p>
       </div>
 
-      <div class="d-flex flex-row align-items-center w-100 justify-content-center mt-3">
-        <button type="button" class="btn btn-primary clsbtn" onclick="saveServerEdits()">{{create}}</button>
-        <button type="button" class="btn btn-secondary ms-3"
-          onclick="hideModal('edit-server-modal')">{{cancel}}</button>
+      <div
+        class="d-flex flex-row align-items-center w-100 justify-content-center mt-3"
+      >
+        <button
+          type="button"
+          class="btn btn-primary clsbtn"
+          onclick="saveServerEdits()"
+        >
+          {{save}}
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary ms-3"
+          onclick="hideModal('edit-server-modal')"
+        >
+          {{cancel}}
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal-console-props rounded-3" style="display: none;">
+<div class="modal-console-props rounded-3" style="display: none">
   <div class="d-flex flex-row justify-content-center align-items-center">
     <span class="flex-fill">{{settings}}</span>
-    <button type="button" class="btn-close" aria-label="Close" onclick='$(".modal-console-props").hide();'></button>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      onclick='$(".modal-console-props").hide();'
+    ></button>
   </div>
   <div class="form-check">
-    <input class="form-check-input" checked type="checkbox" value="" id="autoupdateConsoleCheckbox" />
-    <label class="form-check-label" for="autoupdateConsoleCheckbox">{{autoupdate-console}}</label>
+    <input
+      class="form-check-input"
+      checked
+      type="checkbox"
+      value=""
+      id="autoupdateConsoleCheckbox"
+    />
+    <label class="form-check-label" for="autoupdateConsoleCheckbox"
+      >{{autoupdate-console}}</label
+    >
   </div>
   <div class="form-check">
-    <input class="form-check-input" checked type="checkbox" value="" id="autoscrollConsoleCheckbox" />
-    <label class="form-check-label" for="autoscrollConsoleCheckbox">{{autoscroll-console}}</label>
+    <input
+      class="form-check-input"
+      checked
+      type="checkbox"
+      value=""
+      id="autoscrollConsoleCheckbox"
+    />
+    <label class="form-check-label" for="autoscrollConsoleCheckbox"
+      >{{autoscroll-console}}</label
+    >
   </div>
 
   <p>Размер шрифта</p>
 
   <div class="form-check">
-    <input class="form-check-input" type="radio" name="ctfontsizeRadio" value="small" id="ctfontsizeRadio_small" />
+    <input
+      class="form-check-input"
+      type="radio"
+      name="ctfontsizeRadio"
+      value="small"
+      id="ctfontsizeRadio_small"
+    />
     <label class="form-check-label" for="ctfontsizeRadio_small"> small </label>
   </div>
   <div class="form-check">
-    <input class="form-check-input" type="radio" name="ctfontsizeRadio" value="medium" id="ctfontsizeRadio_medium" />
-    <label class="form-check-label" for="ctfontsizeRadio_medium"> medium </label>
+    <input
+      class="form-check-input"
+      type="radio"
+      name="ctfontsizeRadio"
+      value="medium"
+      id="ctfontsizeRadio_medium"
+    />
+    <label class="form-check-label" for="ctfontsizeRadio_medium">
+      medium
+    </label>
   </div>
   <div class="form-check">
-    <input class="form-check-input" type="radio" name="ctfontsizeRadio" value="large" id="ctfontsizeRadio_large" />
+    <input
+      class="form-check-input"
+      type="radio"
+      name="ctfontsizeRadio"
+      value="large"
+      id="ctfontsizeRadio_large"
+    />
     <label class="form-check-label" for="ctfontsizeRadio_large"> large </label>
   </div>
 
-  <p> </p>
+  <p></p>
 
   <div class="form-check">
-    <input class="form-check-input" type="checkbox" value="" id="ctmonofontCheck" />
-    <label class="form-check-label" for="ctmonofontCheck">{{monofont-console}}</label>
+    <input
+      class="form-check-input"
+      type="checkbox"
+      value=""
+      id="ctmonofontCheck"
+    />
+    <label class="form-check-label" for="ctmonofontCheck"
+      >{{monofont-console}}</label
+    >
   </div>
 
-  <p> </p>
+  <p></p>
 
   <div class="form-check">
-    <input class="form-check-input" type="checkbox" value="" id="ctcpuchartCheck" />
-    <label class="form-check-label" for="ctcpuchartCheck">{{buildchart-console}}</label>
+    <input
+      class="form-check-input"
+      type="checkbox"
+      value=""
+      id="ctcpuchartCheck"
+    />
+    <label class="form-check-label" for="ctcpuchartCheck"
+      >{{buildchart-console}}</label
+    >
   </div>
 </div>
 
-<div class="d-flex flex-row server-info-flex animate__animated animate__fadeInRight animate__faster"
-  style="animation-delay: .3s; padding-right: 24px;">
+<div
+  class="d-flex flex-row server-info-flex animate__animated animate__fadeInRight animate__faster"
+  style="animation-delay: 0.3s; padding-right: 24px"
+>
   <div class="flex-fill"></div>
   <div class="d-flex flex-row server-control-flex">
-    <button class="btn btn-danger server-control stopsrv" onclick="stopServer()">
-      <img src="assets/buttons/stop.png" width="24" height="24">
+    <button
+      class="btn btn-danger server-control stopsrv"
+      onclick="stopServer()"
+    >
+      <img src="assets/buttons/stop.png" width="24" height="24" />
     </button>
     <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width="24" height="24"></button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width="24" height="24">
+      <img src="assets/buttons/start.png" width="24" height="24" />
     </button>
-    <button class="btn btn-udanger btn-danger server-control killsrv" onclick="killServer()">
-      <img src="assets/buttons/kill.png" width="24" height="24">
+    <button class="btn btn-warning server-control" onclick="restartServer()">
+      <img src="assets/buttons/restart.png" width="24" height="24" />
+    </button>
+    <button
+      class="btn btn-udanger btn-danger server-control killsrv"
+      onclick="killServer()"
+    >
+      <img src="assets/buttons/kill.png" width="24" height="24" />
     </button>
     <button class="btn btn-light server-control" disabled>
       <div class="mat-spinner">
@@ -126,21 +232,31 @@
   </div>
 </div>
 
-<div class="d-flex flex-row h-100 align-items-center justify-content-center main-layout">
-  <div class="console-container animate__animated animate__slideInUp animate__faster h-100">
+<div
+  class="d-flex flex-row h-100 align-items-center justify-content-center main-layout"
+>
+  <div
+    class="console-container animate__animated animate__slideInUp animate__faster h-100"
+  >
     <div class="sub-block console card border border-1">
       <div class="contentt" id="console-text"></div>
       <div class="footer">
         <div class="d-flex flex-row align-items-center justify-content-center">
           <span class="me-3 console-icon"> > </span>
-          <input type="text" id="command-input" class="w-100" placeholder="{{enter-command-console}}"
-            onkeyup="if(event.key == 'Enter'){$.get('/server/sendCommand?server=' + window.localStorage.selectedServer + '&cmd=' + this.value); this.value = ''}">
+          <input
+            type="text"
+            id="command-input"
+            class="w-100"
+            placeholder="{{enter-command-console}}"
+          />
         </div>
       </div>
     </div>
   </div>
 
-  <div class="sub-block additional-block animate__animated animate__fadeInRight animate__fast">
+  <div
+    class="sub-block additional-block animate__animated animate__fadeInRight animate__fast"
+  >
     <div class="header d-flex align-items-center justify-content-center">
       <div class="d-flex flex-row align-items-center">
         <div id="status-circle" class="rounded-circle bg-success me-3"></div>
@@ -148,22 +264,50 @@
       </div>
     </div>
     <div class="contentt d-flex flex-column">
-      <p class="d-flex flex-row align-items-center list-item" style="margin-bottom: 0 !important;"><span
-          class="material-symbols-outlined me-2">person</span>{{players}}:<span style="margin-left: 4px;"
-          id="server-players-count">{{unknown}}</span></p>
-      <div class="d-flex flex-wrap align-items-center" id="players-heads-list" style="margin: 10px 0;"></div>
-      <p class="flex-row align-items-center list-item" id="server-version-item" style="display: none;"><img
-          id="server-version-icon" height="24" style="margin-right: 8px;"><span id="server-version">{{unknown}}</span>
+      <p
+        class="d-flex flex-row align-items-center list-item"
+        style="margin-bottom: 0 !important"
+      >
+        <span class="material-symbols-outlined me-2">person</span
+        >{{players}}:<span style="margin-left: 4px" id="server-players-count"
+          >{{unknown}}</span
+        >
       </p>
-      <p class="d-flex flex-row align-items-center list-item"><span
-          class="material-symbols-outlined me-2">memory</span>CPU:<span style="margin-left: 4px;"
-          id="usage-cpu-percent">{{unknown}}</span></p>
-      <p class="d-flex flex-row align-items-center list-item"><span
-          class="material-symbols-outlined me-2">memory</span>RAM:<span style="margin-left: 4px;"
-          id="usage-memory-text">{{unknown}}</span></p>
+      <div
+        class="d-flex flex-wrap align-items-center"
+        id="players-heads-list"
+        style="margin: 10px 0"
+      ></div>
+      <p
+        class="flex-row align-items-center list-item"
+        id="server-version-item"
+        style="display: none"
+      >
+        <img
+          id="server-version-icon"
+          height="24"
+          style="margin-right: 8px"
+        /><span id="server-version">{{unknown}}</span>
+      </p>
+      <p class="d-flex flex-row align-items-center list-item">
+        <span class="material-symbols-outlined me-2">memory</span>CPU:<span
+          style="margin-left: 4px"
+          id="usage-cpu-percent"
+          >{{unknown}}</span
+        >
+      </p>
+      <p class="d-flex flex-row align-items-center list-item">
+        <span class="material-symbols-outlined me-2">memory</span>RAM:<span
+          style="margin-left: 4px"
+          id="usage-memory-text"
+          >{{unknown}}</span
+        >
+      </p>
       <canvas id="cpu-chart" height="256"></canvas>
       <div class="flex-fill"></div>
-      <a href="#console-settings" id="console-settings-button">{{settings-console}}</a>
+      <a href="#console-settings" id="console-settings-button"
+        >{{settings-console}}</a
+      >
     </div>
   </div>
 </div>

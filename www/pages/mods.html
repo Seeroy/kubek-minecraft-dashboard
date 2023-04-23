@@ -3,23 +3,49 @@
   #installed-mods-list
 -->
 
-<link rel="stylesheet" href="/pages/mods.css">
+<link rel="stylesheet" href="/pages/mods.css" />
 <script src="/pages/mods.js"></script>
 
 <form id="g-plugin-form" enctype="multipart/form-data">
-  <input name="g-plugin-input" id="g-plugin-input"
-    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file" accept=".jar">
+  <input
+    name="g-plugin-input"
+    id="g-plugin-input"
+    style="
+      position: absolute;
+      left: -2582px;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: -285;
+    "
+    type="file"
+    accept=".jar"
+  />
 </form>
 
 <form id="g-mod-form" enctype="multipart/form-data">
-  <input name="g-mod-input" id="g-mod-input"
-    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file" accept=".jar">
+  <input
+    name="g-mod-input"
+    id="g-mod-input"
+    style="
+      position: absolute;
+      left: -2582px;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: -285;
+    "
+    type="file"
+    accept=".jar"
+  />
 </form>
 
-<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
-  style="animation-delay: .3s; padding-right: 24px;">
+<div
+  class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: 0.3s; padding-right: 24px"
+>
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img class="ms-3" height="32" id="server-icon">
+    <img class="ms-3" height="32" id="server-icon" />
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
@@ -34,26 +60,37 @@
   <div class="chip-nb d-flex flex-row align-items-center">
     <span class="material-symbols-outlined">groups</span>
     <span id="status-text" class="bold-chip">{{players}}:</span>
-    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+    <span class="bold-chip" style="margin-left: 4px" id="server-players-count"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img id="server-version-icon" height="24">
-    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+    <img id="server-version-icon" height="24" />
+    <span class="bold-chip" style="margin-left: 0" id="server-version"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="flex-fill"></div>
   <div class="d-flex flex-row server-control-flex">
-    <button class="btn btn-danger server-control stopsrv" onclick="stopServer()">
-      <img src="assets/buttons/stop.png" width=20 height=20>
+    <button
+      class="btn btn-danger server-control stopsrv"
+      onclick="stopServer()"
+    >
+      <img src="assets/buttons/stop.png" width="20" height="20" />
     </button>
     <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width=20 height=20></button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width=20 height=20>
+      <img src="assets/buttons/start.png" width="20" height="20" />
     </button>
-    <button class="btn btn-udanger btn-danger server-control killsrv" onclick="killServer()">
-      <img src="assets/buttons/kill.png" width=20 height=20>
+    <button class="btn btn-warning server-control" onclick="restartServer()">
+      <img src="assets/buttons/restart.png" width="20" height="20" />
+    </button>
+    <button
+      class="btn btn-udanger btn-danger server-control killsrv"
+      onclick="killServer()"
+    >
+      <img src="assets/buttons/kill.png" width="20" height="20" />
     </button>
     <button class="btn btn-light server-control" disabled>
       <div class="mat-spinner">
@@ -65,16 +102,24 @@
   </div>
 </div>
 
-<div class="pluginsandmods-container animate__animated animate__slideInUp animate__faster">
+<div
+  class="pluginsandmods-container animate__animated animate__slideInUp animate__faster"
+>
   <div class="row gx-5">
     <div class="col-md-6">
       <div class="sub-block pl-blocks card border border-1 shadow-0">
         <div class="header d-flex flex-row align-items-center">
           <span class="flex-fill">{{plugins}}</span>
-          <button type="button" class="btn" onclick="uploadPlugin()">{{upload}}</button>
+          <button type="button" class="btn" onclick="uploadPlugin()">
+            {{upload}}
+          </button>
         </div>
         <div class="contentt">
-          <ul class="list-group list-group-light flex-fill" id="installed-plugins-list" style="overflow-y: auto;"></ul>
+          <ul
+            class="list-group list-group-light flex-fill"
+            id="installed-plugins-list"
+            style="overflow-y: auto"
+          ></ul>
         </div>
       </div>
     </div>
@@ -82,10 +127,16 @@
       <div class="sub-block pl-blocks card border border-1 shadow-0">
         <div class="header d-flex flex-row align-items-center">
           <span class="flex-fill">{{mods}}</span>
-          <button type="button" class="btn" onclick="uploadMod()">{{upload}}</button>
+          <button type="button" class="btn" onclick="uploadMod()">
+            {{upload}}
+          </button>
         </div>
         <div class="contentt">
-          <ul class="list-group list-group-light flex-fill" id="installed-mods-list" style="overflow-y: auto;"></ul>
+          <ul
+            class="list-group list-group-light flex-fill"
+            id="installed-mods-list"
+            style="overflow-y: auto"
+          ></ul>
         </div>
       </div>
     </div>

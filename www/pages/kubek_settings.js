@@ -1,7 +1,7 @@
 var modalModeNewUser = false;
 var currEdit = "";
-mymodal = new mdb.Modal(document.getElementById('userEditModal'));
-admmodal = new mdb.Modal(document.getElementById('adminEditModal'));
+mymodal = new mdb.Modal(document.getElementById("userEditModal"));
+admmodal = new mdb.Modal(document.getElementById("adminEditModal"));
 
 var PASSWORD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{6,64}$/g;
 var LOGIN_REGEX = /^[a-zA-Z0-9_.-]{3,16}$/g;
@@ -13,7 +13,7 @@ $(document).ready(function () {
   $.get("/kubek/tgOTP", function (otp) {
     $(".tgbot-otp").val(otp);
   });
-  new mdb.Tooltip(document.getElementById('tooltip-acc'));
+  new mdb.Tooltip(document.getElementById("tooltip-acc"));
   $("#tgbot-checkbox").change(function () {
     if ($(this).is(":checked")) {
       $("#tgbot-token-item").show();
@@ -27,59 +27,62 @@ $(document).ready(function () {
     new mdb.Tooltip(this);
   });
   $(".copyotp").click(function () {
-    navigator.clipboard.writeText("/start " + $(".tgbot-otp").val()).then(function () {
-      console.log('[UI] Copying success!');
-      Toastify({
-        text: "{{copying-succ-ks}}",
-        duration: 1500,
-        newWindow: true,
-        close: false,
-        gravity: "bottom",
-        position: "right",
-        stopOnFocus: false,
-        style: {
-          background: "#14A44D",
-          color: "white",
-        },
-        onClick: function () {}
-      }).showToast();
-    }, function (err) {
-      console.log('[UI] Copying error', err);
-    });
+    navigator.clipboard.writeText("/start " + $(".tgbot-otp").val()).then(
+      function () {
+        console.log("[UI] Copying success!");
+        Toastify({
+          text: "{{copying-succ-ks}}",
+          duration: 1500,
+          newWindow: true,
+          close: false,
+          gravity: "bottom",
+          position: "right",
+          stopOnFocus: false,
+          style: {
+            background: "#14A44D",
+            color: "white",
+          },
+          onClick: function () {},
+        }).showToast();
+      },
+      function (err) {
+        console.log("[UI] Copying error", err);
+      }
+    );
   });
 });
 
 function loadKubekSettings() {
   $.get("/kubek/config", function (data) {
     kubekCfg = data;
-    if (kubekCfg['lang'] == "en") {
+    if (kubekCfg["lang"] == "en") {
       $("#englishRadio").attr("checked", true);
-    } else if (kubekCfg['lang'] == "ru") {
+    } else if (kubekCfg["lang"] == "ru") {
       $("#russianRadio").attr("checked", true);
-    } else if (kubekCfg['lang'] == "nl") {
+    } else if (kubekCfg["lang"] == "nl") {
       $("#dutchRadio").attr("checked", true);
     }
 
-    if (kubekCfg['ftpd'] == true) {
+    if (kubekCfg["ftpd"] == true) {
       $("#ftpserver-checkbox").attr("checked", true);
     }
 
-    if (kubekCfg['tgbot-enabled'] == true) {
+    if (kubekCfg["tgbot-enabled"] == true) {
       $("#tgbot-checkbox").attr("checked", true);
       $("#tgbot-token-item").show();
       $("#tgbot-otp-item").show();
-      $(".tgbot-token").val(kubekCfg['tgbot-token']);
+      $(".tgbot-token").val(kubekCfg["tgbot-token"]);
     }
 
-    if (kubekCfg['auth'] == true) {
+    if (kubekCfg["auth"] == true) {
       $("#auth-checkbox").attr("checked", true);
     }
 
-    if (kubekCfg['save-logs'] == true) {
+    if (kubekCfg["save-logs"] == true) {
       $("#savelogs-checkbox").attr("checked", true);
     }
 
-    if (kubekCfg['internet-access'] == true) {
+    if (kubekCfg["internet-access"] == true) {
       $("#allowintacc-checkbox").attr("checked", true);
     }
 
@@ -109,59 +112,88 @@ function loadKubekSettings() {
     }
   });
 
-  $("#userEditModal .input-bg .material-symbols-outlined.showpass").click(function () {
-    if ($(this).parent().parent().hasClass("showing-pass")) {
-      $(this).parent().parent().removeClass("showing-pass");
-      $(this).parent().parent().children(".password-input").attr("type", "password");
-    } else {
-      $(this).parent().parent().addClass("showing-pass");
-      $(this).parent().parent().children(".password-input").attr("type", "text");
+  $("#userEditModal .input-bg .material-symbols-outlined.showpass").click(
+    function () {
+      if ($(this).parent().parent().hasClass("showing-pass")) {
+        $(this).parent().parent().removeClass("showing-pass");
+        $(this)
+          .parent()
+          .parent()
+          .children(".password-input")
+          .attr("type", "password");
+      } else {
+        $(this).parent().parent().addClass("showing-pass");
+        $(this)
+          .parent()
+          .parent()
+          .children(".password-input")
+          .attr("type", "text");
+      }
     }
-  });
+  );
 
-  $(".element .input-bg .material-symbols-outlined.showpass").click(function () {
-    if ($(this).parent().parent().hasClass("showing-pass")) {
-      $(this).parent().parent().removeClass("showing-pass");
-      $(this).parent().parent().children(".kbk-input").attr("type", "password");
-    } else {
-      $(this).parent().parent().addClass("showing-pass");
-      $(this).parent().parent().children(".kbk-input").attr("type", "text");
+  $(".element .input-bg .material-symbols-outlined.showpass").click(
+    function () {
+      if ($(this).parent().parent().hasClass("showing-pass")) {
+        $(this).parent().parent().removeClass("showing-pass");
+        $(this)
+          .parent()
+          .parent()
+          .children(".kbk-input")
+          .attr("type", "password");
+      } else {
+        $(this).parent().parent().addClass("showing-pass");
+        $(this).parent().parent().children(".kbk-input").attr("type", "text");
+      }
     }
-  });
+  );
 
-  $("#userEditModal .input-bg .material-symbols-outlined.genpass").click(function () {
-    genp = generatePassword(24);
-    $(this).parent().parent().children(".password-input").val(genp);
-    $(this).parent().parent().children(".password-input").keyup();
-  });
-
-  $("#adminEditModal .input-bg .material-symbols-outlined.genpass").click(function () {
-    genp = generatePassword(24);
-    $(this).parent().parent().children(".npassword-input").val(genp);
-    $(this).parent().parent().children(".npassword-input").keyup();
-  });
-
-  $("#adminEditModal .input-bg .material-symbols-outlined.showpass").click(function () {
-    if ($(this).parent().parent().hasClass("showing-pass")) {
-      $(this).parent().parent().removeClass("showing-pass");
-      $(this).parent().parent().children(".npassword-input").attr("type", "password");
-    } else {
-      $(this).parent().parent().addClass("showing-pass");
-      $(this).parent().parent().children(".npassword-input").attr("type", "text");
+  $("#userEditModal .input-bg .material-symbols-outlined.genpass").click(
+    function () {
+      genp = generatePassword(24);
+      $(this).parent().parent().children(".password-input").val(genp);
+      $(this).parent().parent().children(".password-input").keyup();
     }
-  });
+  );
+
+  $("#adminEditModal .input-bg .material-symbols-outlined.genpass").click(
+    function () {
+      genp = generatePassword(24);
+      $(this).parent().parent().children(".npassword-input").val(genp);
+      $(this).parent().parent().children(".npassword-input").keyup();
+    }
+  );
+
+  $("#adminEditModal .input-bg .material-symbols-outlined.showpass").click(
+    function () {
+      if ($(this).parent().parent().hasClass("showing-pass")) {
+        $(this).parent().parent().removeClass("showing-pass");
+        $(this)
+          .parent()
+          .parent()
+          .children(".npassword-input")
+          .attr("type", "password");
+      } else {
+        $(this).parent().parent().addClass("showing-pass");
+        $(this)
+          .parent()
+          .parent()
+          .children(".npassword-input")
+          .attr("type", "text");
+      }
+    }
+  );
 }
 
 function generatePassword(length) {
-  var pass = '';
-  var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
-    'abcdefghijklmnopqrstuvwxyz0123456789@#$';
+  var pass = "";
+  var str =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz0123456789@#$";
 
   for (let i = 1; i <= length; i++) {
-    var char = Math.floor(Math.random() *
-      str.length + 1);
+    var char = Math.floor(Math.random() * str.length + 1);
 
-    pass += str.charAt(char)
+    pass += str.charAt(char);
   }
 
   return pass;
@@ -196,7 +228,9 @@ function setModalDefaultValues() {
   $("#userEditModal input[type=checkbox]:not(:disabled)").each(function () {
     $(this).prop("checked", false);
   });
-  $("#userEditModal input[type=text], #userEditModal input[type=password], #userEditModal input[type=email]").each(function () {
+  $(
+    "#userEditModal input[type=text], #userEditModal input[type=password], #userEditModal input[type=email]"
+  ).each(function () {
     $(this).val("");
   });
 }
@@ -213,18 +247,34 @@ function saveUser() {
   if (mail == "" || mail.match(EMAIL_REGEX)) {
     if (usrname.match(LOGIN_REGEX)) {
       perms = [];
-      $("#userEditModal input[type=checkbox]:checked:not(:disabled)").each(function () {
-        perm = $(this).data("perm");
-        perms.push(perm);
-      });
+      $("#userEditModal input[type=checkbox]:checked:not(:disabled)").each(
+        function () {
+          perm = $(this).data("perm");
+          perms.push(perm);
+        }
+      );
       perms = perms.join(",");
       if (modalModeNewUser == true) {
         passwd = $("#userEditModal .password-input").val();
         if (passwd.match(PASSWORD_REGEX)) {
           if (mail == "") {
-            reqUrl = "/auth/newUser?login=" + usrname + "&permissions=" + perms + "&password=" + passwd;
+            reqUrl =
+              "/auth/newUser?login=" +
+              usrname +
+              "&permissions=" +
+              perms +
+              "&password=" +
+              passwd;
           } else {
-            reqUrl = "/auth/newUser?login=" + usrname + "&mail=" + mail + "&permissions=" + perms + "&password=" + passwd;
+            reqUrl =
+              "/auth/newUser?login=" +
+              usrname +
+              "&mail=" +
+              mail +
+              "&permissions=" +
+              perms +
+              "&password=" +
+              passwd;
           }
           $.get(reqUrl, function (res) {
             if (res == "Users count is limited to 5 users") {
@@ -240,7 +290,7 @@ function saveUser() {
                   background: "#dc4c64",
                   color: "white",
                 },
-                onClick: function () {}
+                onClick: function () {},
               }).showToast();
             }
             mymodal.hide();
@@ -248,10 +298,18 @@ function saveUser() {
           });
         }
       } else {
-        $.get("/auth/editUser?login=" + usrname + "&mail=" + mail + "&permissions=" + perms, function () {
-          mymodal.hide();
-          loadUsersList();
-        });
+        $.get(
+          "/auth/editUser?login=" +
+            usrname +
+            "&mail=" +
+            mail +
+            "&permissions=" +
+            perms,
+          function () {
+            mymodal.hide();
+            loadUsersList();
+          }
+        );
       }
     }
   }
@@ -278,7 +336,7 @@ function saveKubekSettings() {
   allowint = $("#allowintacc-checkbox").is(":checked");
   tgbot = $("#tgbot-checkbox").is(":checked");
   if (tgbot == false || $(".tgbot-token").val() != "") {
-    if (kubekCfg['tgbot-enabled'] != tgbot && tgbot == true) {
+    if (kubekCfg["tgbot-enabled"] != tgbot && tgbot == true) {
       showModal("about-otp-modal", "fadeIn", function () {
         saveSettingsStage2();
       });
@@ -289,7 +347,7 @@ function saveKubekSettings() {
 }
 
 function saveSettingsStage2() {
-  if (kubekCfg['ftpd'] != ftpd) {
+  if (kubekCfg["ftpd"] != ftpd) {
     showModal("ftp-need-res-modal", "fadeIn", function () {
       saveSettingsStage3();
     });
@@ -299,7 +357,7 @@ function saveSettingsStage2() {
 }
 
 function saveSettingsStage3() {
-  if (kubekCfg['internet-access'] != allowint) {
+  if (kubekCfg["internet-access"] != allowint) {
     showModal("othip-need-res-modal", "fadeIn", function () {
       saveSettingsStage4();
     });
@@ -317,26 +375,32 @@ function saveSettingsStage4() {
   kubekCfg["ftpd-password"] = $(".ftppass").val();
   kubekCfg["ftpd-user"] = $(".ftpuser").val();
   kubekCfg["tgbot-token"] = $(".tgbot-token").val();
-  kubekCfg['tgbot-chatid'] = [];
-  $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)), function (data) {
-    $.get("/kubek/setFTPDStatus?value=" + ftpd, function (data) {
-      location.reload();
-    });
-  });
+  kubekCfg["tgbot-chatid"] = [];
+  $.get(
+    "/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)),
+    function (data) {
+      $.get("/kubek/setFTPDStatus?value=" + ftpd, function (data) {
+        location.reload();
+      });
+    }
+  );
 }
 
 function changeAdminPass() {
   oldPass = $("#adminEditModal .opassword-input").val();
   newPass = $("#adminEditModal .npassword-input").val();
-  $.get("/auth/changeAdminPass?oldPass=" + oldPass + "&newPass=" + newPass, function (ret) {
-    if (ret == true) {
-      admmodal.hide();
-      window.location = "/";
-    } else {
-      $("#adminEditModal .opassword-input").val("");
-      $("#adminEditModal .npassword-input").val("");
+  $.get(
+    "/auth/changeAdminPass?oldPass=" + oldPass + "&newPass=" + newPass,
+    function (ret) {
+      if (ret == true) {
+        admmodal.hide();
+        window.location = "/";
+      } else {
+        $("#adminEditModal .opassword-input").val("");
+        $("#adminEditModal .npassword-input").val("");
+      }
     }
-  });
+  );
 }
 
 function deleteCurrUserAccount() {
@@ -370,15 +434,26 @@ function loadUsersList() {
     $(this).remove();
   });
   $.get("/auth/listUsers", function (users) {
-    $("#users-list").append('<div class="col-xl-4 col-lg-6 ucard"><div class="card" onclick="openEditAdminModal()"><div class="card-body"><div class="d-flex align-items-center"><span class="material-symbols-outlined">admin_panel_settings</span><div class="ms-3"><p class="fw-bold mb-1">kubek</p><p class="text-muted mb-0">{{admin-acc-ks}}</p></div></div></div></div></div>');
+    $("#users-list").append(
+      '<div class="col-xl-4 col-lg-6 ucard"><div class="card" onclick="openEditAdminModal()"><div class="card-body"><div class="d-flex align-items-center"><span class="material-symbols-outlined">admin_panel_settings</span><div class="ms-3"><p class="fw-bold mb-1">kubek</p><p class="text-muted mb-0">{{admin-acc-ks}}</p></div></div></div></div></div>'
+    );
     for (const [key, value] of Object.entries(users)) {
       usr = value;
       if (usr.mail == "undefined" || usr.mail == null || usr.mail == "") {
         usr.mail = "{{mail-no-ks}}";
       }
       if (usr.username != "kubek") {
-        $("#users-list").append('<div class="col-xl-4 col-lg-6 ucard"><div class="card" onclick="openEditUserModal(' + "'" + usr.username + "'" +
-          ')"><div class="card-body"><div class="d-flex align-items-center"><span class="material-symbols-outlined">account_circle</span><div class="ms-3"><p class="fw-bold mb-1">' + usr.username + '</p><p class="text-muted mb-0">' + usr.mail + '</p></div></div></div></div></div>');
+        $("#users-list").append(
+          '<div class="col-xl-4 col-lg-6 ucard"><div class="card" onclick="openEditUserModal(' +
+            "'" +
+            usr.username +
+            "'" +
+            ')"><div class="card-body"><div class="d-flex align-items-center"><span class="material-symbols-outlined">account_circle</span><div class="ms-3"><p class="fw-bold mb-1">' +
+            usr.username +
+            '</p><p class="text-muted mb-0">' +
+            usr.mail +
+            "</p></div></div></div></div></div>"
+        );
       }
     }
   });

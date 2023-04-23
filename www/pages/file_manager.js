@@ -403,13 +403,16 @@ function refreshDir() {
     } else {
       path = "";
       index = $(this).index();
-      $("#breadcrumb-fm .breadcrumb-item:not(:last-child)").each(
-        function (ind) {
-          if ($(this).text() != window.localStorage.selectedServer && ind <= index) {
-            path = path + $(this).text() + "/";
-          }
+      $("#breadcrumb-fm .breadcrumb-item:not(:last-child)").each(function (
+        ind
+      ) {
+        if (
+          $(this).text() != window.localStorage.selectedServer &&
+          ind <= index
+        ) {
+          path = path + $(this).text() + "/";
         }
-      );
+      });
       curDir = path;
       refreshDir();
     }

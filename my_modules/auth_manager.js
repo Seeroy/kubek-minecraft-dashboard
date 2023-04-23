@@ -1,4 +1,4 @@
-var config = require('./config');
+var config = require("./config");
 var usersConfig = config.readUsersConfig();
 var SHA256 = require("crypto-js/sha256");
 var crypto = require("crypto");
@@ -15,8 +15,12 @@ exports.authorize = (hash, login) => {
   if (cfg.auth == false) {
     authsucc = true;
   } else {
-    if (typeof (hash) !== "undefined" && hash != "") {
-      if (typeof users[login] !== "undefined" && users[login].username !== "undefined" && users[login].username.length > 0) {
+    if (typeof hash !== "undefined" && hash != "") {
+      if (
+        typeof users[login] !== "undefined" &&
+        users[login].username !== "undefined" &&
+        users[login].username.length > 0
+      ) {
         if (users[login].hash == hash) {
           authsucc = true;
         }
@@ -24,7 +28,7 @@ exports.authorize = (hash, login) => {
     }
   }
   return authsucc;
-}
+};
 
 exports.login = (password, login) => {
   var authsucc = false;
@@ -34,8 +38,12 @@ exports.login = (password, login) => {
   if (cfg.auth == false) {
     authsucc = true;
   } else {
-    if (typeof (password) !== "undefined" && password != "") {
-      if (typeof users[login] !== "undefined" && users[login].username !== "undefined" && users[login].username.length > 0) {
+    if (typeof password !== "undefined" && password != "") {
+      if (
+        typeof users[login] !== "undefined" &&
+        users[login].username !== "undefined" &&
+        users[login].username.length > 0
+      ) {
         if (users[login].password == SHA256(password)) {
           authsucc = true;
         }
@@ -43,7 +51,7 @@ exports.login = (password, login) => {
     }
   }
   return authsucc;
-}
+};
 
 exports.addNewUser = (password, login, permissions, mail) => {
   success = false;
@@ -60,7 +68,11 @@ exports.addNewUser = (password, login, permissions, mail) => {
       if (Object.keys(users).length >= 6) {
         success = "Users count is limited to 5 users";
       } else {
-        if (mail == null || typeof mail == "undefined" || mail.match(EMAIL_REGEX)) {
+        if (
+          mail == null ||
+          typeof mail == "undefined" ||
+          mail.match(EMAIL_REGEX)
+        ) {
           if (login.match(LOGIN_REGEX) && password.match(PASSWORD_REGEX)) {
             if (typeof users[login] == "undefined") {
               newUserHash = crypto.randomUUID().toString();
@@ -72,8 +84,8 @@ exports.addNewUser = (password, login, permissions, mail) => {
                 password: SHA256(password).toString(),
                 hash: newUserHash,
                 permissions: permissions,
-                mail: mail
-              }
+                mail: mail,
+              };
               config.writeUsersConfig(users);
               success = true;
             } else {
@@ -89,7 +101,7 @@ exports.addNewUser = (password, login, permissions, mail) => {
     }
   }
   return success;
-}
+};
 
 exports.regenUserHash = (login) => {
   success = false;
@@ -103,7 +115,7 @@ exports.regenUserHash = (login) => {
     if (login.match(LOGIN_REGEX)) {
       if (typeof users[login] !== "undefined") {
         newUserHash = crypto.randomUUID().toString();
-        users[login]['hash'] = newUserHash;
+        users[login]["hash"] = newUserHash;
         config.writeUsersConfig(users);
         success = true;
       } else {
@@ -114,7 +126,7 @@ exports.regenUserHash = (login) => {
     }
   }
   return success;
-}
+};
 
 exports.changeAdminPass = (oldPass, newPass) => {
   success = false;
@@ -127,10 +139,10 @@ exports.changeAdminPass = (oldPass, newPass) => {
   } else {
     op_hash = SHA256(oldPass).toString();
     np_hash = SHA256(newPass).toString();
-    if (users['kubek']['password'] == op_hash) {
-      users['kubek']['password'] = np_hash;
+    if (users["kubek"]["password"] == op_hash) {
+      users["kubek"]["password"] = np_hash;
       newUserHash = crypto.randomUUID().toString();
-      users['kubek']['hash'] = newUserHash;
+      users["kubek"]["hash"] = newUserHash;
       config.writeUsersConfig(users);
       success = true;
     } else {
@@ -138,7 +150,7 @@ exports.changeAdminPass = (oldPass, newPass) => {
     }
   }
   return success;
-}
+};
 
 exports.deleteUser = (login) => {
   success = false;
@@ -167,7 +179,7 @@ exports.deleteUser = (login) => {
     }
   }
   return success;
-}
+};
 
 exports.editUser = (login, permissions, mail) => {
   success = false;
@@ -181,16 +193,21 @@ exports.editUser = (login, permissions, mail) => {
     if (cfg.auth == false) {
       success = "Auth is disabled";
     } else {
-      if (mail == null || mail == "" || typeof mail == "undefined" || mail.match(EMAIL_REGEX)) {
+      if (
+        mail == null ||
+        mail == "" ||
+        typeof mail == "undefined" ||
+        mail.match(EMAIL_REGEX)
+      ) {
         if (login.match(LOGIN_REGEX)) {
           if (typeof users[login] !== "undefined") {
-            users[login]['mail'] = mail;
+            users[login]["mail"] = mail;
             if (permissions[0] == "") {
               permissions = [];
             }
             newUserHash = crypto.randomUUID().toString();
-            users[login]['permissions'] = permissions;
-            users[login]['hash'] = newUserHash;
+            users[login]["permissions"] = permissions;
+            users[login]["hash"] = newUserHash;
             config.writeUsersConfig(users);
             success = true;
           } else {
@@ -205,7 +222,7 @@ exports.editUser = (login, permissions, mail) => {
     }
   }
   return success;
-}
+};
 
 exports.getUserPermissions = (req) => {
   cfggg = config.readConfig();
@@ -214,8 +231,17 @@ exports.getUserPermissions = (req) => {
     login = req.cookies["kbk__login"];
 
     auth = this.authorize(hash, login);
-    if (auth == true && typeof login !== "undefined" && typeof hash !== "undefined" && login.length > 0 && hash.length > 0) {
-      if (typeof usersConfig[login] !== "undefined" && typeof usersConfig[login].permissions !== "undefined") {
+    if (
+      auth == true &&
+      typeof login !== "undefined" &&
+      typeof hash !== "undefined" &&
+      login.length > 0 &&
+      hash.length > 0
+    ) {
+      if (
+        typeof usersConfig[login] !== "undefined" &&
+        typeof usersConfig[login].permissions !== "undefined"
+      ) {
         return usersConfig[login].permissions;
       } else {
         return false;
@@ -230,12 +256,12 @@ exports.getUserPermissions = (req) => {
       "filemanager",
       "server_settings",
       "kubek_settings",
-      "backups"
+      "backups",
     ];
     return arr;
   }
-}
+};
 
 exports.reloadUsersConfig = () => {
   usersConfig = config.readUsersConfig();
-}
+};

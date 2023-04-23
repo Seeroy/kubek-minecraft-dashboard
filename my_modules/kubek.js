@@ -1,5 +1,5 @@
-var osutils = require('os-utils');
-var os = require('os');
+var osutils = require("os-utils");
+var os = require("os");
 
 exports.getUsage = (cb) => {
   var data = {};
@@ -11,4 +11,4 @@ exports.getUsage = (cb) => {
     data["totalmem"] = totalmem;
     cb(data);
   });
-}
+};

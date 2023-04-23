@@ -1,10 +1,12 @@
-<link rel="stylesheet" href="/pages/kubek_settings.css">
+<link rel="stylesheet" href="/pages/kubek_settings.css" />
 <script src="/pages/kubek_settings.js"></script>
 
-<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
-  style="animation-delay: .3s; padding-right: 24px;">
+<div
+  class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: 0.3s; padding-right: 24px"
+>
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img class="ms-3" height="32" id="server-icon">
+    <img class="ms-3" height="32" id="server-icon" />
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
@@ -19,26 +21,37 @@
   <div class="chip-nb d-flex flex-row align-items-center">
     <span class="material-symbols-outlined">groups</span>
     <span id="status-text" class="bold-chip">{{players}}:</span>
-    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+    <span class="bold-chip" style="margin-left: 4px" id="server-players-count"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img id="server-version-icon" height="24">
-    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+    <img id="server-version-icon" height="24" />
+    <span class="bold-chip" style="margin-left: 0" id="server-version"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="flex-fill"></div>
   <div class="d-flex flex-row server-control-flex">
-    <button class="btn btn-danger server-control stopsrv" onclick="stopServer()">
-      <img src="assets/buttons/stop.png" width=20 height=20>
+    <button
+      class="btn btn-danger server-control stopsrv"
+      onclick="stopServer()"
+    >
+      <img src="assets/buttons/stop.png" width="20" height="20" />
     </button>
     <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width=20 height=20></button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width=20 height=20>
+      <img src="assets/buttons/start.png" width="20" height="20" />
     </button>
-    <button class="btn btn-udanger btn-danger server-control killsrv" onclick="killServer()">
-      <img src="assets/buttons/kill.png" width=20 height=20>
+    <button class="btn btn-warning server-control" onclick="restartServer()">
+      <img src="assets/buttons/restart.png" width="20" height="20" />
+    </button>
+    <button
+      class="btn btn-udanger btn-danger server-control killsrv"
+      onclick="killServer()"
+    >
+      <img src="assets/buttons/kill.png" width="20" height="20" />
     </button>
     <button class="btn btn-light server-control" disabled>
       <div class="mat-spinner">
@@ -50,98 +63,162 @@
   </div>
 </div>
 
-<div class="modal-black-bg" id="about-otp-modal" style="display: none;">
+<div class="modal-black-bg" id="about-otp-modal" style="display: none">
   <div class="modal-layout">
     <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-primary);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">password</span>
+      <div
+        class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-primary)"
+      >
+        <span
+          class="material-symbols-outlined text-white"
+          style="font-size: 32px"
+          >password</span
+        >
       </div>
     </div>
     <div class="modal-contentt">
       <p class="caption">{{tgbot-otp-capt-ks}}</p>
       <p>{{tgbot-otp-desc-ks}}</p>
 
-      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">{{ok}}</button>
+      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">
+        {{ok}}
+      </button>
     </div>
   </div>
 </div>
 
-<div class="modal-black-bg" id="turnoff-warn-modal" style="display: none;">
+<div class="modal-black-bg" id="turnoff-warn-modal" style="display: none">
   <div class="modal-layout">
     <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-danger);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">power</span>
+      <div
+        class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-danger)"
+      >
+        <span
+          class="material-symbols-outlined text-white"
+          style="font-size: 32px"
+          >power</span
+        >
       </div>
     </div>
     <div class="modal-contentt">
       <p class="caption">{{shutdown-kubek-ks}}</p>
       <p>{{turnoff-warn-ks}}</p>
 
-      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
-        <button type="button" class="btn btn-danger clsbtn">{{shutdown-kubek-ks}}</button>
-        <button type="button" class="btn btn-primary ms-3" onclick="hideModal('turnoff-warn-modal')">{{cancel}}</button>
+      <div
+        class="d-flex flex-row align-items-center w-100 justify-content-center"
+      >
+        <button type="button" class="btn btn-danger clsbtn">
+          {{shutdown-kubek-ks}}
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary ms-3"
+          onclick="hideModal('turnoff-warn-modal')"
+        >
+          {{cancel}}
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal-black-bg" id="othip-need-res-modal" style="display: none;">
+<div class="modal-black-bg" id="othip-need-res-modal" style="display: none">
   <div class="modal-layout">
     <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-warning);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">cloud</span>
+      <div
+        class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-warning)"
+      >
+        <span
+          class="material-symbols-outlined text-white"
+          style="font-size: 32px"
+          >cloud</span
+        >
       </div>
     </div>
     <div class="modal-contentt">
       <p class="caption">{{allowintacc-ks}}</p>
       <p>{{fullres-othip-need-ks}}</p>
 
-      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">{{ok}}</button>
+      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">
+        {{ok}}
+      </button>
     </div>
   </div>
 </div>
 
-<div class="modal-black-bg" id="ftp-need-res-modal" style="display: none;">
+<div class="modal-black-bg" id="ftp-need-res-modal" style="display: none">
   <div class="modal-layout">
     <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-warning);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">filter_drama</span>
+      <div
+        class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-warning)"
+      >
+        <span
+          class="material-symbols-outlined text-white"
+          style="font-size: 32px"
+          >filter_drama</span
+        >
       </div>
     </div>
     <div class="modal-contentt">
       <p class="caption">{{ftpserver-ks}}</p>
       <p>{{fullres-need-ks}}</p>
 
-      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">{{ok}}</button>
+      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">
+        {{ok}}
+      </button>
     </div>
   </div>
 </div>
 
-<div class="modal top fade" id="userEditModal" tabindex="-1" data-mdb-backdrop="true" data-mdb-keyboard="true">
-  <div class="modal-dialog   modal-dialog-centered">
+<div
+  class="modal top fade"
+  id="userEditModal"
+  tabindex="-1"
+  data-mdb-backdrop="true"
+  data-mdb-keyboard="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="userEditModalLabel">Modal title</h5>
-        <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-mdb-dismiss="modal"
+        ></button>
       </div>
       <div class="modal-body">
         <div class="input-group mb-3">
-          <input type="text" class="kbk-input w-100 usrname-input" placeholder="{{user}}" />
+          <input
+            type="text"
+            class="kbk-input w-100 usrname-input"
+            placeholder="{{user}}"
+          />
         </div>
 
         <div class="input-group mb-3">
-          <input type="email" class="kbk-input w-100 mail-input" placeholder="E-mail" />
+          <input
+            type="email"
+            class="kbk-input w-100 mail-input"
+            placeholder="E-mail"
+          />
         </div>
 
         <div class="kbk-input input-bg align-items-center mb-2">
-          <input type="password" class="kbk-input w-100 password-input" style="background: transparent;"
-            placeholder="{{password}}" />
-          <div style="width: 2px; height: 24px; background: gray;"></div>
-          <div class="d-flex align-items-center justify-content-center ms-2 me-2">
+          <input
+            type="password"
+            class="kbk-input w-100 password-input"
+            style="background: transparent"
+            placeholder="{{password}}"
+          />
+          <div style="width: 2px; height: 24px; background: gray"></div>
+          <div
+            class="d-flex align-items-center justify-content-center ms-2 me-2"
+          >
             <span class="material-symbols-outlined showpass">visibility</span>
             <span class="material-symbols-outlined genpass ms-2">casino</span>
           </div>
@@ -150,79 +227,181 @@
         <p class="passwd-err text-danger mb-1">{{passwd-err-ks}}</p>
 
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="serverControlCheckedDisabled" value="" checked disabled>
-          <label for="serverControlCheckedDisabled">{{server-control-ks}}</label>
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="serverControlCheckedDisabled"
+            value=""
+            checked
+            disabled
+          />
+          <label for="serverControlCheckedDisabled"
+            >{{server-control-ks}}</label
+          >
         </div>
 
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="consolePermCheckedDisabled" value="" data-perm="console">
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="consolePermCheckedDisabled"
+            value=""
+            data-perm="console"
+          />
           <label for="consolePermCheckedDisabled">{{console-acc-ks}}</label>
         </div>
 
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="pluginsPermCheckedDisabled" value="" data-perm="plugins">
-          <label for="pluginsPermCheckedDisabled">{{sect-acc-ks}} "{{plugins-and-mods}}"</label>
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="pluginsPermCheckedDisabled"
+            value=""
+            data-perm="plugins"
+          />
+          <label for="pluginsPermCheckedDisabled"
+            >{{sect-acc-ks}} "{{plugins-and-mods}}"</label
+          >
         </div>
 
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="filemanPermCheckedDisabled" value="" data-perm="filemanager">
-          <label for="filemanPermCheckedDisabled">{{sect-acc-ks}} "{{file-manager}}"</label>
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="filemanPermCheckedDisabled"
+            value=""
+            data-perm="filemanager"
+          />
+          <label for="filemanPermCheckedDisabled"
+            >{{sect-acc-ks}} "{{file-manager}}"</label
+          >
         </div>
 
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="serversettPermCheckedDisabled" value=""
-            data-perm="server_settings">
-          <label for="serversettPermCheckedDisabled">{{sect-acc-ks}} "{{server-settings}}"</label>
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="serversettPermCheckedDisabled"
+            value=""
+            data-perm="server_settings"
+          />
+          <label for="serversettPermCheckedDisabled"
+            >{{sect-acc-ks}} "{{server-settings}}"</label
+          >
         </div>
 
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="backupsPermCheckedDisabled" value="" data-perm="backups">
-          <label for="backupsPermCheckedDisabled">{{sect-acc-ks}} "{{backups-capt}}"</label>
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="backupsPermCheckedDisabled"
+            value=""
+            data-perm="backups"
+          />
+          <label for="backupsPermCheckedDisabled"
+            >{{sect-acc-ks}} "{{backups-capt}}"</label
+          >
         </div>
 
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="kubeksettPermCheckedDisabled" value=""
-            data-perm="kubek_settings">
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="kubeksettPermCheckedDisabled"
+            value=""
+            data-perm="kubek_settings"
+          />
           <label for="kubeksettPermCheckedDisabled">
-            <div class="d-flex flex-row">{{sect-acc-ks}} "{{kubek-settings}}"<span data-mdb-toggle="tooltip"
-                data-mdb-placement="right" data-mdb-html="true" title="{{kubek-sett-warn-ks}}" id="tooltip-acc"
-                class="material-symbols-outlined ms-2">info</span></div>
+            <div class="d-flex flex-row">
+              {{sect-acc-ks}} "{{kubek-settings}}"<span
+                data-mdb-toggle="tooltip"
+                data-mdb-placement="right"
+                data-mdb-html="true"
+                title="{{kubek-sett-warn-ks}}"
+                id="tooltip-acc"
+                class="material-symbols-outlined ms-2"
+                >info</span
+              >
+            </div>
           </label>
         </div>
 
-        <div style="margin-top: 10px; display: flex; flex-direction: column;" class="buttons-cont">
-          <button type="button" class="btn btn-success btn-rounded" id="logoutAccButton"
-            onclick="regenCurrUserHash()">{{logout-all-ks}}</button>
-          <button type="button" class="btn btn-danger btn-rounded" id="delAccButton" style="margin-top: 8px;"
-            onclick="deleteCurrUserAccount()">{{del-acc-ks}}</button>
+        <div
+          style="margin-top: 10px; display: flex; flex-direction: column"
+          class="buttons-cont"
+        >
+          <button
+            type="button"
+            class="btn btn-success btn-rounded"
+            id="logoutAccButton"
+            onclick="regenCurrUserHash()"
+          >
+            {{logout-all-ks}}
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger btn-rounded"
+            id="delAccButton"
+            style="margin-top: 8px"
+            onclick="deleteCurrUserAccount()"
+          >
+            {{del-acc-ks}}
+          </button>
         </div>
-
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-mdb-dismiss="modal"
+        >
           {{cancel}}
         </button>
-        <button type="button" class="btn btn-primary" onclick="saveUser()">{{save}}</button>
+        <button type="button" class="btn btn-primary" onclick="saveUser()">
+          {{save}}
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal top fade" id="adminEditModal" tabindex="-1" data-mdb-backdrop="true" data-mdb-keyboard="true">
-  <div class="modal-dialog   modal-dialog-centered">
+<div
+  class="modal top fade"
+  id="adminEditModal"
+  tabindex="-1"
+  data-mdb-backdrop="true"
+  data-mdb-keyboard="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="adminEditModalLabel">{{edit-adm-acc-ks}}</h5>
-        <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+        <h5 class="modal-title" id="adminEditModalLabel">
+          {{edit-adm-acc-ks}}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-mdb-dismiss="modal"
+        ></button>
       </div>
       <div class="modal-body">
         <div class="input-group mb-3">
-          <input type="password" class="kbk-input w-100 opassword-input" placeholder="{{oldpass-ks}}" />
+          <input
+            type="password"
+            class="kbk-input w-100 opassword-input"
+            placeholder="{{oldpass-ks}}"
+          />
         </div>
         <div class="kbk-input input-bg d-flex align-items-center mb-2">
-          <input type="password" class="kbk-input w-100 npassword-input" placeholder="{{newpass-ks}}" />
-          <div style="width: 2px; height: 24px; background: gray;"></div>
-          <div class="d-flex align-items-center justify-content-center ms-2 me-2">
+          <input
+            type="password"
+            class="kbk-input w-100 npassword-input"
+            placeholder="{{newpass-ks}}"
+          />
+          <div style="width: 2px; height: 24px; background: gray"></div>
+          <div
+            class="d-flex align-items-center justify-content-center ms-2 me-2"
+          >
             <span class="material-symbols-outlined showpass">visibility</span>
             <span class="material-symbols-outlined genpass ms-3">casino</span>
           </div>
@@ -230,94 +409,115 @@
         <p class="passwd-err text-danger mb-1">{{passwd-err-ks}}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-mdb-dismiss="modal"
+        >
           {{cancel}}
         </button>
-        <button type="button" class="btn btn-primary" onclick="changeAdminPass()">{{save}}</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="changeAdminPass()"
+        >
+          {{save}}
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="k-settings-container animate__animated animate__slideInUp animate__faster">
+<div
+  class="k-settings-container animate__animated animate__slideInUp animate__faster"
+>
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center"
+  >
     <span class="material-symbols-outlined">task</span>
     <span class="caption flex-fill">{{savelogs-ks}}</span>
     <div class="element">
       <label class="switch">
-        <input type="checkbox" id="savelogs-checkbox">
+        <input type="checkbox" id="savelogs-checkbox" />
         <span class="slider round"></span>
       </label>
     </div>
   </li>
 
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center"
+  >
     <span class="material-symbols-outlined">cloud</span>
     <span class="caption flex-fill">{{allowintacc-ks}}</span>
     <div class="element">
       <label class="switch">
-        <input type="checkbox" id="allowintacc-checkbox">
+        <input type="checkbox" id="allowintacc-checkbox" />
         <span class="slider round"></span>
       </label>
     </div>
   </li>
 
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center"
+  >
     <span class="material-symbols-outlined">filter_drama</span>
     <span class="caption flex-fill">{{ftpserver-ks}}</span>
     <div class="element">
       <label class="switch">
-        <input type="checkbox" id="ftpserver-checkbox">
+        <input type="checkbox" id="ftpserver-checkbox" />
         <span class="slider round"></span>
       </label>
     </div>
   </li>
 
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center"
+  >
     <span class="material-symbols-outlined">person</span>
     <span class="caption flex-fill">FTP {{user}}</span>
     <div class="element">
-      <input type="text" class="kbk-input ftpuser">
+      <input type="text" class="kbk-input ftpuser" />
     </div>
   </li>
 
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center"
+  >
     <span class="material-symbols-outlined">password</span>
     <span class="caption flex-fill">FTP {{password}}</span>
     <div class="element">
-
       <div class="kbk-input input-bg align-items-center mb-2">
-        <input type="password" class="kbk-input ftppass">
-        <div style="width: 2px; height: 24px; background: gray;"></div>
+        <input type="password" class="kbk-input ftppass" />
+        <div style="width: 2px; height: 24px; background: gray"></div>
         <div class="d-flex align-items-center justify-content-center ms-2 me-3">
           <span class="material-symbols-outlined showpass">visibility</span>
         </div>
       </div>
-
     </div>
   </li>
 
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center"
+  >
     <span class="material-symbols-outlined">login</span>
     <span class="caption flex-fill">{{auth}}</span>
     <div class="element">
       <label class="switch">
-        <input type="checkbox" id="auth-checkbox">
+        <input type="checkbox" id="auth-checkbox" />
         <span class="slider round"></span>
       </label>
     </div>
   </li>
 
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-column align-items-center">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-column align-items-center"
+  >
     <span class="caption flex-fill">{{accounts}}</span>
-    <div class="row" style="width: 100%; margin-top: 16px; margin-bottom: 16px;" id="users-list">
+    <div
+      class="row"
+      style="width: 100%; margin-top: 16px; margin-bottom: 16px"
+      id="users-list"
+    >
       <div class="col-xl-4 col-lg-6">
         <div class="card" onclick="openNewUserModal()">
           <div class="card-body">
@@ -335,36 +535,57 @@
   </li>
 
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center">
-    <img src="assets/telegram-icon.png">
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center"
+  >
+    <img src="assets/telegram-icon.png" />
     <span class="caption flex-fill">Telegram Bot</span>
-    <span class="material-symbols-outlined addtooltip me-3" data-mdb-toggle="tooltip" data-mdb-placement="left"
-      data-mdb-html="true" title="{{tgbot-ks}}">info</span>
+    <span
+      class="material-symbols-outlined addtooltip me-3"
+      data-mdb-toggle="tooltip"
+      data-mdb-placement="left"
+      data-mdb-html="true"
+      title="{{tgbot-ks}}"
+      >info</span
+    >
     <div class="element">
       <label class="switch">
-        <input type="checkbox" id="tgbot-checkbox">
+        <input type="checkbox" id="tgbot-checkbox" />
         <span class="slider round"></span>
       </label>
     </div>
   </li>
 
-  <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 flex-row align-items-center"
-    id="tgbot-token-item" style="display: none;">
-    <img src="assets/telegram-icon.png">
-    <span class="caption">Telegram Bot Token (<a href="https://t.me/BotFather" target="_blank">@BotFather</a>)</span>
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 flex-row align-items-center"
+    id="tgbot-token-item"
+    style="display: none"
+  >
+    <img src="assets/telegram-icon.png" />
+    <span class="caption"
+      >Telegram Bot Token (<a href="https://t.me/BotFather" target="_blank"
+        >@BotFather</a
+      >)</span
+    >
     <div class="element flex-fill ms-5">
-      <input type="text" class="kbk-input tgbot-token w-100" autocomplete="off">
+      <input
+        type="text"
+        class="kbk-input tgbot-token w-100"
+        autocomplete="off"
+      />
     </div>
   </li>
 
-  <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 flex-row align-items-center"
-    id="tgbot-otp-item" style="display: none;">
-    <img src="assets/telegram-icon.png">
+  <li
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 flex-row align-items-center"
+    id="tgbot-otp-item"
+    style="display: none"
+  >
+    <img src="assets/telegram-icon.png" />
     <span class="caption flex-fill">{{tgbot-otp-ks}}</span>
     <div class="element">
       <div class="kbk-input input-bg align-items-center">
-        <input type="text" class="kbk-input tgbot-otp" readonly>
-        <div style="width: 2px; height: 24px; background: gray;"></div>
+        <input type="text" class="kbk-input tgbot-otp" readonly />
+        <div style="width: 2px; height: 24px; background: gray"></div>
         <div class="d-flex align-items-center justify-content-center ms-2 me-2">
           <span class="material-symbols-outlined copyotp">content_copy</span>
         </div>
@@ -373,10 +594,21 @@
   </li>
 
   <div class="d-flex mt-3">
-    <button type="button" class="btn btn-secondary btn-lg" onclick="saveKubekSettings()">{{save}}</button>
-    <button type="button" class="btn btn-danger btn-lg d-flex align-items-center justify-content-center ms-3"
-      onclick="shutdownKubek()"><span
-        class="material-symbols-outlined me-2">power_settings_new</span>{{shutdown-kubek-ks}}</button>
+    <button
+      type="button"
+      class="btn btn-secondary btn-lg"
+      onclick="saveKubekSettings()"
+    >
+      {{save}}
+    </button>
+    <button
+      type="button"
+      class="btn btn-danger btn-lg d-flex align-items-center justify-content-center ms-3"
+      onclick="shutdownKubek()"
+    >
+      <span class="material-symbols-outlined me-2">power_settings_new</span
+      >{{shutdown-kubek-ks}}
+    </button>
   </div>
 
   <p class="mt-3">

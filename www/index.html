@@ -49,10 +49,10 @@
   -->
 </head>
 
-<!--<form id="g-sbrk-form" enctype="multipart/form-data">
+<form id="g-sbrk-form" enctype="multipart/form-data">
   <input name="g-sbrk-input" id="g-sbrk-input"
     style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file">
-</form>-->
+</form>
 
 <div class="card" id="update-process"
   style="display: none; margin: auto; position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: max-content; height: max-content; z-index: 999999999; min-width: 30%;">
@@ -67,7 +67,7 @@
   </div>
 </div>
 
-<!--<div class="modal-black-bg" id="upload-sbrk-modal" style="display: none;">
+<div class="modal-black-bg" id="upload-sbrk-modal" style="display: none;">
   <div class="modal-layout">
     <div class="modal-icon">
       <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -84,7 +84,7 @@
       </div>
     </div>
   </div>
-</div>-->
+</div>
 
 <div class="modal-black-bg" id="restart-server-modal" style="display: none;">
   <div class="modal-layout">
@@ -473,7 +473,6 @@
       connect_socket_error = true;
     });
     socket.on("handleServerError", function (arg) {
-      console.log("[WS]", "Update handled: " + arg.type);
       $.get("/kubek/translate?text=" + arg.data, function (text) {
         Toastify({
           text: text,
@@ -492,7 +491,6 @@
       });
     });
     socket.on("handleUpdate", function (arg) {
-      console.log("[WS]", "Update handled: " + arg.type);
       type = arg.type;
       data = arg.data;
       switch (type) {
@@ -514,6 +512,7 @@
                 } else {
                   stl = "";
                 }
+                html_text = linkify(html_text);
                 html_text = "<span style='" + stl + "'>" + html_text + "</span>";
 
                 $("#console-text").html($("#console-text").html() + html_text);
@@ -616,7 +615,7 @@
     return r;
   }
 
-  /*function uploadSbrk() {
+  function uploadSbrk() {
     $("#g-sbrk-input").trigger('click');
     $("#g-sbrk-input").off("change");
     $("#g-sbrk-input").change(function () {
@@ -642,5 +641,5 @@
       request.timeout = 450000;
       request.send(formData);
     });
-  }*/
+  }
 </script>

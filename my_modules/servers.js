@@ -1,24 +1,24 @@
 const config = require("./config");
 var spParser = require("minecraft-server-properties");
-const fs = require('fs');
-const jobscheduler = require('node-schedule');
-const mcutil = require('minecraft-server-util');
-const osutils = require('os-utils');
-const os = require('os');
+const fs = require("fs");
+const jobscheduler = require("node-schedule");
+const mcutil = require("minecraft-server-util");
+const osutils = require("os-utils");
+const os = require("os");
 const errors_parser = require("./../my_modules/errors.mc.parser");
-const translator = require('./../my_modules/translator');
-var path = require('path');
-var iconvlite = require('iconv-lite');
-const {
-  spawn
-} = require('node:child_process');
-var additional = require('./../my_modules/additional');
-var tgbot = require('./../my_modules/tgbot');
+const translator = require("./../my_modules/translator");
+var path = require("path");
+var iconvlite = require("iconv-lite");
+const { spawn } = require("node:child_process");
+var additional = require("./../my_modules/additional");
+var tgbot = require("./../my_modules/tgbot");
 var colors = require("colors");
+
+var oldConsoleStamp = 0;
 
 exports.getStatuses = () => {
   return config.readServersJSON();
-}
+};
 
 exports.getStartScript = (name) => {
   if (fs.existsSync("./servers/" + name)) {
@@ -32,7 +32,7 @@ exports.getStartScript = (name) => {
   } else {
     return false;
   }
-}
+};
 
 exports.saveStartScript = (name, script, resonerr) => {
   if (fs.existsSync("./servers/" + name)) {
@@ -42,7 +42,7 @@ exports.saveStartScript = (name, script, resonerr) => {
       datat = fs.readFileSync("./servers/" + name + "/start.bat");
     }
     datat = datat.toString().split("\n");
-    datat[datat.length - 1] = Buffer.from(script, 'base64').toString("ascii");
+    datat[datat.length - 1] = Buffer.from(script, "base64").toString("ascii");
     if (process.platform == "linux") {
       fs.writeFileSync("./servers/" + name + "/start.sh", datat.join("\n"));
     } else {
@@ -50,39 +50,43 @@ exports.saveStartScript = (name, script, resonerr) => {
     }
     srv = JSON.parse(fs.readFileSync("./servers/servers.json"));
     if (resonerr == "true") {
-      srv[name]['restartOnError'] = true;
+      srv[name]["restartOnError"] = true;
     } else {
-      srv[name]['restartOnError'] = false;
+      srv[name]["restartOnError"] = false;
     }
     config.writeServersJSON(srv);
     return true;
   } else {
     return false;
   }
-}
+};
 
 exports.getServerProperties = (name) => {
-  if (typeof name !== "undefined" && fs.existsSync("./servers/" + name + "/server.properties")) {
+  if (
+    typeof name !== "undefined" &&
+    fs.existsSync("./servers/" + name + "/server.properties")
+  ) {
     data = fs.readFileSync("./servers/" + name + "/server.properties");
     return spParser.parse(data.toString());
   } else {
     return false;
   }
-}
+};
 
 exports.saveServerProperties = (name, doc) => {
   fs.writeFileSync("./servers/" + name + "/server.properties", doc);
   return true;
-}
+};
 
 exports.queryServer = (name, cb) => {
   data = this.getServerProperties(name);
-  if (data['enable-query'] == true) {
+  if (data["enable-query"] == true) {
     mcu_options = {
       timeout: 1000 * 5,
-      enableSRV: false
+      enableSRV: false,
     };
-    mcutil.status('127.0.0.1', data["query.port"], mcu_options)
+    mcutil
+      .status("127.0.0.1", data["query.port"], mcu_options)
       .then(function (data) {
         osutils.cpuUsage(function (value) {
           data["cpu"] = Math.round(value * 100);
@@ -94,7 +98,7 @@ exports.queryServer = (name, cb) => {
         });
       })
       .catch((error) => console.error(error));
-  } else if (data['enable-query'] == false) {
+  } else if (data["enable-query"] == false) {
     data = {};
     osutils.cpuUsage(function (value) {
       data["cpu"] = Math.round(value * 100);
@@ -105,41 +109,55 @@ exports.queryServer = (name, cb) => {
       cb(data);
     });
   }
-}
+};
 
 exports.disableAllScheduled = () => {
   jobscheduler.gracefulShutdown();
-}
+};
 
 exports.scheduleServerRestart = (crontab_text, server) => {
   jobscheduler.scheduleJob(crontab_text, function () {
-    if (serverjson_cfg[server]['status'] == 'started') {
+    if (serverjson_cfg[server]["status"] == "started") {
       restart_after_stop[server] = true;
-      command = Buffer.from("stop", 'utf-8').toString();
+      command = Buffer.from("stop", "utf-8").toString();
       servers_logs[server] = servers_logs[server] + command + "\n";
-      servers_instances[server].stdin.write(command + '\n');
-      additional.showAnyCustomMessage("Running restart job for " + server + " is " + colors.green("success"), "JOBS");
+      servers_instances[server].stdin.write(command + "\n");
+      additional.showAnyCustomMessage(
+        "Running restart job for " + server + " is " + colors.green("success"),
+        "JOBS"
+      );
       tgbot.runningSchedNotification(server, true);
     } else {
-      additional.showAnyCustomMessage("Running restart job for " + server + " " + colors.yellow("can`t be done"), "JOBS");
+      additional.showAnyCustomMessage(
+        "Running restart job for " +
+          server +
+          " " +
+          colors.yellow("can`t be done"),
+        "JOBS"
+      );
       tgbot.runningSchedNotification(server, false);
     }
   });
-}
+};
 
 exports.rescheduleAllServers = () => {
-  jobscheduler.gracefulShutdown()
-    .then(function () {
-      jobscount = 0;
-      for (const [key, value] of Object.entries(serverjson_cfg)) {
-        if (typeof serverjson_cfg[key]['restartScheduler'] !== "undefined" && serverjson_cfg[key]['restartScheduler']['enabled'] == 'true') {
-          module.exports.scheduleServerRestart(serverjson_cfg[key]['restartScheduler']['crontab'], key);
-          jobscount++;
-        }
+  jobscheduler.gracefulShutdown().then(function () {
+    jobscount = 0;
+    for (const [key, value] of Object.entries(serverjson_cfg)) {
+      if (
+        typeof serverjson_cfg[key]["restartScheduler"] !== "undefined" &&
+        serverjson_cfg[key]["restartScheduler"]["enabled"] == "true"
+      ) {
+        module.exports.scheduleServerRestart(
+          serverjson_cfg[key]["restartScheduler"]["crontab"],
+          key
+        );
+        jobscount++;
       }
-      additional.showAnyCustomMessage("Scheduled " + jobscount + " jobs", "JOBS");
-    })
-}
+    }
+    additional.showAnyCustomMessage("Scheduled " + jobscount + " jobs", "JOBS");
+  });
+};
 
 exports.listServers = () => {
   if (fs.existsSync("./servers/servers.json")) {
@@ -149,7 +167,7 @@ exports.listServers = () => {
     files = [];
   }
   return files;
-}
+};
 
 exports.startServer = (server) => {
   servers_logs[server] = "";
@@ -163,33 +181,62 @@ exports.startServer = (server) => {
       }
       start = true;
     } else {
-      console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.bat"' + translator.translateHTML(" {{consolemsg-notfound-tr}}", cfg['lang'])));
+      console.log(
+        colors.red(
+          additional.getTimeFormatted() +
+            " " +
+            '"servers/' +
+            server +
+            '/start.bat"' +
+            translator.translateHTML(" {{consolemsg-notfound-tr}}", cfg["lang"])
+        )
+      );
       start = false;
     }
   } else if (process.platform == "linux") {
     startFile = path.resolve("./servers/" + server + "/start.sh");
     if (fs.existsSync(startFile)) {
       try {
-        servers_instances[server] = spawn('sh', [startFile]);
+        servers_instances[server] = spawn("sh", [startFile]);
       } catch (error) {
         console.error(error);
       }
       start = true;
     } else {
-      console.log(colors.red(additional.getTimeFormatted() + " " + '"servers/' + server + '/start.sh"' + translator.translateHTML(" {{consolemsg-notfound-tr}}", cfg['lang'])));
+      console.log(
+        colors.red(
+          additional.getTimeFormatted() +
+            " " +
+            '"servers/' +
+            server +
+            '/start.sh"' +
+            translator.translateHTML(" {{consolemsg-notfound-tr}}", cfg["lang"])
+        )
+      );
       start = false;
     }
   } else {
-    console.log(colors.red(additional.getTimeFormatted() + " " + process.platform + translator.translateHTML(" {{consolemsg-notsup}} ", cfg['lang'])));
+    console.log(
+      colors.red(
+        additional.getTimeFormatted() +
+          " " +
+          process.platform +
+          translator.translateHTML(" {{consolemsg-notsup}} ", cfg["lang"])
+      )
+    );
     start = false;
   }
 
   if (start == true) {
     serverjson_cfg = JSON.parse(fs.readFileSync("./servers/servers.json"));
-    console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-starting}} ", cfg['lang']) + ":", server.green);
+    console.log(
+      additional.getTimeFormatted(),
+      translator.translateHTML("{{consolemsg-starting}} ", cfg["lang"]) + ":",
+      server.green
+    );
     statuss = "starting";
     serverjson_cfg[server].status = statuss;
-    servers_instances[server].on('close', (code) => {
+    servers_instances[server].on("close", (code) => {
       statuss = "stopped";
       serverjson_cfg[server].status = statuss;
       tgbot.changedServerStatus(server, statuss);
@@ -198,36 +245,95 @@ exports.startServer = (server) => {
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
           type: "servers",
-          data: this.getStatuses()
+          data: this.getStatuses(),
         });
       }
       if (code != 1 && code != null) {
         if (code != 0) {
-          servers_logs[server] = servers_logs[server] + "§4" + translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code;
-          console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.red);
-          if (serverjson_cfg[server]['restartOnError'] == true && errors_parser.checkStringForErrors(servers_logs[server]) == false) {
+          servers_logs[server] =
+            servers_logs[server] +
+            "§4" +
+            translator.translateHTML(
+              "{{consolemsg-stopwithcode}} ",
+              cfg["lang"]
+            ) +
+            code;
+          console.log(
+            additional.getTimeFormatted(),
+            translator.translateHTML(
+              "{{consolemsg-stopwithcode}} ",
+              cfg["lang"]
+            ) +
+              code +
+              ":",
+            server.red
+          );
+          if (
+            serverjson_cfg[server]["restartOnError"] == true &&
+            errors_parser.checkStringForErrors(servers_logs[server]) == false
+          ) {
             if (typeof servers_restart_count[server] == "undefined") {
               servers_restart_count[server] = 1;
-              console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1 :", server.red);
-              servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + "1";
+              console.log(
+                additional.getTimeFormatted(),
+                translator.translateHTML(
+                  "{{consolemsg-restartatt}} ",
+                  cfg["lang"]
+                ) + "1 :",
+                server.red
+              );
+              servers_logs[server] =
+                servers_logs[server] +
+                "\n" +
+                translator.translateHTML(
+                  "{{consolemsg-restartatt}} ",
+                  cfg["lang"]
+                ) +
+                "1";
               setTimeout(function () {
                 startServer(server);
               }, 3000);
             } else {
               if (servers_restart_count[server] < 3) {
                 servers_restart_count[server]++;
-                console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server] + " :", server.red);
-                servers_logs[server] = servers_logs[server] + "\n" + translator.translateHTML("{{consolemsg-restartatt}} ", cfg['lang']) + servers_restart_count[server];
+                console.log(
+                  additional.getTimeFormatted(),
+                  translator.translateHTML(
+                    "{{consolemsg-restartatt}} ",
+                    cfg["lang"]
+                  ) +
+                    servers_restart_count[server] +
+                    " :",
+                  server.red
+                );
+                servers_logs[server] =
+                  servers_logs[server] +
+                  "\n" +
+                  translator.translateHTML(
+                    "{{consolemsg-restartatt}} ",
+                    cfg["lang"]
+                  ) +
+                  servers_restart_count[server];
                 setTimeout(function () {
                   startServer(server);
                 }, 3000);
               } else {
-                servers_logs[server] = servers_logs[server] + "\n§4" + translator.translateHTML("{{consolemsg-cantbestarted}}", cfg['lang']);
+                servers_logs[server] =
+                  servers_logs[server] +
+                  "\n§4" +
+                  translator.translateHTML(
+                    "{{consolemsg-cantbestarted}}",
+                    cfg["lang"]
+                  );
               }
             }
           }
         } else {
-          console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stop}} ", cfg['lang']) + ":", server.green);
+          console.log(
+            additional.getTimeFormatted(),
+            translator.translateHTML("{{consolemsg-stop}} ", cfg["lang"]) + ":",
+            server.green
+          );
           if (restart_after_stop[server] == true) {
             restart_after_stop[server] = null;
             delete restart_after_stop[server];
@@ -237,22 +343,34 @@ exports.startServer = (server) => {
           }
         }
       } else {
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg['lang']) + code + ":", server.yellow);
+        console.log(
+          additional.getTimeFormatted(),
+          translator.translateHTML(
+            "{{consolemsg-stopwithcode}} ",
+            cfg["lang"]
+          ) +
+            code +
+            ":",
+          server.yellow
+        );
         servers_logs[server] = servers_logs[server] + "\n§bKilled";
       }
-      fsock = io.sockets.sockets;
-      for (const socket of fsock) {
-        spl = servers_logs[server].split(/\r?\n/).slice(-100);
-        socket[1].emit("handleUpdate", {
-          type: "console",
-          data: {
-            server: server,
-            data: spl.join("\r\n")
-          }
-        });
+      if (Date.now() - oldConsoleStamp >= 800) {
+        fsock = io.sockets.sockets;
+        for (const socket of fsock) {
+          spl = servers_logs[server].split(/\r?\n/).slice(-100);
+          socket[1].emit("handleUpdate", {
+            type: "console",
+            data: {
+              server: server,
+              data: spl.join("\r\n"),
+            },
+          });
+        }
+        oldConsoleStamp = Date.now();
       }
     });
-    servers_instances[server].stdout.on('data', (data) => {
+    servers_instances[server].stdout.on("data", (data) => {
       data = iconvlite.decode(data, "utf-8");
       err = errors_parser.checkStringForErrors(data.toString());
       if (err != false) {
@@ -260,48 +378,76 @@ exports.startServer = (server) => {
         for (const socket of fsock) {
           socket[1].emit("handleServerError", {
             type: "servers",
-            data: err
+            data: err,
           });
         }
       }
       servers_logs[server] = servers_logs[server] + data.toString();
-      fsock = io.sockets.sockets;
-      for (const socket of fsock) {
-        spl = servers_logs[server].split(/\r?\n/).slice(-100);
-        socket[1].emit("handleUpdate", {
-          type: "console",
-          data: {
-            server: server,
-            data: spl.join("\r\n")
-          }
-        });
+      if (Date.now() - oldConsoleStamp >= 800) {
+        fsock = io.sockets.sockets;
+        for (const socket of fsock) {
+          spl = servers_logs[server].split(/\r?\n/).slice(-100);
+          socket[1].emit("handleUpdate", {
+            type: "console",
+            data: {
+              server: server,
+              data: spl.join("\r\n"),
+            },
+          });
+        }
+        oldConsoleStamp = Date.now();
       }
-      if (data.indexOf("Loading libraries, please wait...") >= 0 || data.match(/Advanced terminal features are/gmi) || data.match(/Enabled Waterfall version/gmi)) {
+      if (
+        data.indexOf("Loading libraries, please wait...") >= 0 ||
+        data.match(/Advanced terminal features are/gim) ||
+        data.match(/Enabled Waterfall version/gim)
+      ) {
         statuss = "starting";
         tgbot.changedServerStatus(server, statuss);
       }
       if (data.indexOf("Done") >= 0) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
+        console.log(
+          additional.getTimeFormatted(),
+          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
+          server.green
+        );
       }
       if (data.indexOf("Listening on /") >= 0) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
+        console.log(
+          additional.getTimeFormatted(),
+          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
+          server.green
+        );
       }
-      if (data.match(/\[INFO] Listening on/gmi)) {
+      if (data.match(/\[INFO] Listening on/gim)) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
+        console.log(
+          additional.getTimeFormatted(),
+          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
+          server.green
+        );
       }
-      if (data.match(/\[INFO] Done/gmi)) {
+      if (data.match(/\[INFO] Done/gim)) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-start}} ", cfg['lang']) + ":", server.green);
+        console.log(
+          additional.getTimeFormatted(),
+          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
+          server.green
+        );
       }
       if (data.indexOf("Saving players") >= 0) {
-        console.log(additional.getTimeFormatted(), translator.translateHTML("{{consolemsg-stopping}} ", cfg['lang']) + ":", server.green);
+        console.log(
+          additional.getTimeFormatted(),
+          translator.translateHTML("{{consolemsg-stopping}} ", cfg["lang"]) +
+            ":",
+          server.green
+        );
         statuss = "stopping";
         tgbot.changedServerStatus(server, statuss);
       }
@@ -311,11 +457,11 @@ exports.startServer = (server) => {
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
           type: "servers",
-          data: this.getStatuses()
+          data: this.getStatuses(),
         });
       }
     });
-    servers_instances[server].stderr.on('data', (data) => {
+    servers_instances[server].stderr.on("data", (data) => {
       data = iconvlite.decode(data, "utf-8");
       err = errors_parser.checkStringForErrors(data.toString());
       if (err != false) {
@@ -323,7 +469,7 @@ exports.startServer = (server) => {
         for (const socket of fsock) {
           socket[1].emit("handleServerError", {
             type: "servers",
-            data: err
+            data: err,
           });
         }
       }
@@ -335,8 +481,8 @@ exports.startServer = (server) => {
           type: "console",
           data: {
             server: server,
-            data: spl.join("\r\n")
-          }
+            data: spl.join("\r\n"),
+          },
         });
       }
       serverjson_cfg[server].status = statuss;
@@ -346,7 +492,7 @@ exports.startServer = (server) => {
       for (const socket of fsock) {
         socket[1].emit("handleUpdate", {
           type: "servers",
-          data: this.getStatuses()
+          data: this.getStatuses(),
         });
       }
     });
@@ -355,11 +501,11 @@ exports.startServer = (server) => {
     for (const socket of fsock) {
       socket[1].emit("handleUpdate", {
         type: "servers",
-        data: this.getStatuses()
+        data: this.getStatuses(),
       });
     }
   }
-}
+};
 
 function startServer(server) {
   module.exports.startServer(server);

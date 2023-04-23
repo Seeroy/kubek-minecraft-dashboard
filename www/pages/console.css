@@ -274,6 +274,10 @@
   font-family: 'Roboto Mono Regular';
 }
 
+.mono-console-text span {
+  font-family: 'Roboto Mono Regular';
+}
+
 .main-layout {
   padding: 2%;
   height: 78% !important;

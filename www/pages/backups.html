@@ -1,8 +1,15 @@
-<link rel="stylesheet" href="/pages/backups.css">
+<link rel="stylesheet" href="/pages/backups.css" />
 <script src="/pages/backups.js"></script>
 
-<div class="modal bottom" id="restoreBackupModal" tabindex="-1" aria-labelledby="restoreBackupModalLabel"
-  aria-hidden="true" data-mdb-backdrop="static" data-mdb-keyboard="false">
+<div
+  class="modal bottom"
+  id="restoreBackupModal"
+  tabindex="-1"
+  aria-labelledby="restoreBackupModalLabel"
+  aria-hidden="true"
+  data-mdb-backdrop="static"
+  data-mdb-keyboard="false"
+>
   <div class="modal-dialog modal-frame modal-bottom">
     <div class="modal-content">
       <div class="modal-body"></div>
@@ -10,42 +17,78 @@
   </div>
 </div>
 
-<div class="modal-black-bg" id="backup-info-modal" style="display: none;">
+<div class="modal-black-bg" id="backup-info-modal" style="display: none">
   <div class="modal-layout">
     <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-primary);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">cloud_done</span>
+      <div
+        class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width: 64px; height: 64px; background: var(--mdb-primary)"
+      >
+        <span
+          class="material-symbols-outlined text-white"
+          style="font-size: 32px"
+          >cloud_done</span
+        >
       </div>
     </div>
     <div class="modal-contentt">
       <p class="caption"></p>
       <div class="inner-content"></div>
 
-      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">{{ok}}</button>
+      <button class="btn btn-primary btn-lg w-100 btn-rounded clsbtn">
+        {{ok}}
+      </button>
     </div>
   </div>
 </div>
 
-<div class="modal top" id="newBackupModal" tabindex="-1" data-mdb-backdrop="true" data-mdb-keyboard="true">
-  <div class="modal-dialog  modal-dialog-centered">
+<div
+  class="modal top"
+  id="newBackupModal"
+  tabindex="-1"
+  data-mdb-backdrop="true"
+  data-mdb-keyboard="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="newBackupModalLabel">{{backups-crb-btn}}</h5>
-        <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title" id="newBackupModalLabel">
+          {{backups-crb-btn}}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-mdb-dismiss="modal"
+          aria-label="Close"
+        ></button>
       </div>
       <div class="modal-body">
-
         <div class="input-group mb-3">
-          <input type="text" class="kbk-input w-100" placeholder="{{backups-backupname}}" id="bcname-input" />
+          <input
+            type="text"
+            class="kbk-input w-100"
+            placeholder="{{backups-backupname}}"
+            id="bcname-input"
+          />
         </div>
         <div class="input-group mb-3">
-          <textarea class="kbk-input w-100" rows="4" placeholder="{{backups-backupdesc}}" id="bcdesc-input"></textarea>
+          <textarea
+            class="kbk-input w-100"
+            rows="4"
+            placeholder="{{backups-backupdesc}}"
+            id="bcdesc-input"
+          ></textarea>
         </div>
 
         <span>{{backups-compress}}</span>
         <div class="range">
-          <input type="range" class="form-range" min="0" max="9" id="backupCompressRatio" />
+          <input
+            type="range"
+            class="form-range"
+            min="0"
+            max="9"
+            id="backupCompressRatio"
+          />
         </div>
         <div class="d-flex flex-row mb-3">
           <span class="flex-fill">0</span>
@@ -55,21 +98,42 @@
         <p>{{backups-seltype-capt}}</p>
 
         <div class="radio">
-          <input class="kbk-radio" type="radio" id="backupTypeRadio1" name="backupTypeRadio" value="full" checked>
+          <input
+            class="kbk-radio"
+            type="radio"
+            id="backupTypeRadio1"
+            name="backupTypeRadio"
+            value="full"
+            checked
+          />
           <label for="backupTypeRadio1"> {{backups-types-full}} </label>
         </div>
 
         <div class="radio">
-          <input class="kbk-radio" type="radio" id="backupTypeRadio2" name="backupTypeRadio" value="selected">
+          <input
+            class="kbk-radio"
+            type="radio"
+            id="backupTypeRadio2"
+            name="backupTypeRadio"
+            value="selected"
+          />
           <label for="backupTypeRadio2"> {{backups-types-selfiles}} </label>
         </div>
 
-        <div style="height: max-content; max-height: 300px; overflow-y: auto; display: none;" class="flt-parent">
+        <div
+          style="
+            height: max-content;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+          "
+          class="flt-parent"
+        >
           <table class="table" id="fl-table">
             <thead>
               <tr>
-                <th scope="col" style="width: 32px;"></th>
-                <th scope="col" style="width: 32px;"></th>
+                <th scope="col" style="width: 32px"></th>
+                <th scope="col" style="width: 32px"></th>
                 <th scope="col"></th>
               </tr>
             </thead>
@@ -78,19 +142,27 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-mdb-dismiss="modal"
+        >
           {{cancel}}
         </button>
-        <button type="button" class="btn btn-primary" data-mdb-dismiss="modal">{{create}}</button>
+        <button type="button" class="btn btn-primary" data-mdb-dismiss="modal">
+          {{create}}
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
-  style="animation-delay: .3s; padding-right: 24px;">
+<div
+  class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: 0.3s; padding-right: 24px"
+>
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img class="ms-3" height="32" id="server-icon">
+    <img class="ms-3" height="32" id="server-icon" />
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
@@ -105,26 +177,37 @@
   <div class="chip-nb d-flex flex-row align-items-center">
     <span class="material-symbols-outlined">groups</span>
     <span id="status-text" class="bold-chip">{{players}}:</span>
-    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+    <span class="bold-chip" style="margin-left: 4px" id="server-players-count"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img id="server-version-icon" height="24">
-    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+    <img id="server-version-icon" height="24" />
+    <span class="bold-chip" style="margin-left: 0" id="server-version"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="flex-fill"></div>
   <div class="d-flex flex-row server-control-flex">
-    <button class="btn btn-danger server-control stopsrv" onclick="stopServer()">
-      <img src="assets/buttons/stop.png" width=20 height=20>
+    <button
+      class="btn btn-danger server-control stopsrv"
+      onclick="stopServer()"
+    >
+      <img src="assets/buttons/stop.png" width="20" height="20" />
     </button>
     <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width=20 height=20></button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width=20 height=20>
+      <img src="assets/buttons/start.png" width="20" height="20" />
     </button>
-    <button class="btn btn-udanger btn-danger server-control killsrv" onclick="killServer()">
-      <img src="assets/buttons/kill.png" width=20 height=20>
+    <button class="btn btn-warning server-control" onclick="restartServer()">
+      <img src="assets/buttons/restart.png" width="20" height="20" />
+    </button>
+    <button
+      class="btn btn-udanger btn-danger server-control killsrv"
+      onclick="killServer()"
+    >
+      <img src="assets/buttons/kill.png" width="20" height="20" />
     </button>
     <button class="btn btn-light server-control" disabled>
       <div class="mat-spinner">
@@ -136,32 +219,52 @@
   </div>
 </div>
 
-<div class="backups-container animate__animated animate__slideInUp animate__faster">
+<div
+  class="backups-container animate__animated animate__slideInUp animate__faster"
+>
   <p class="fs-1 fw-bold">{{backups-capt}}</p>
   <li
-    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center headerr">
-
+    class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row align-items-center headerr"
+  >
     <div class="d-flex flex-row flex-fill">
       <div class="d-flex flex-row align-items-center" id="progress-box">
         <div class="percent" id="usage-disk-percent">0%</div>
         <div class="progress">
-          <div class="progress-bar" role="progressbar" style="width: 0%;" id="usage-disk-pbar"></div>
+          <div
+            class="progress-bar"
+            role="progressbar"
+            style="width: 0%"
+            id="usage-disk-pbar"
+          ></div>
         </div>
       </div>
 
       <div class="d-flex flex-column" style="margin-left: 2%">
-        <span>{{backups-disk-total}}: <span id="disk-total-size">{{unknown}}</span></span>
-        <span>{{backups-disk-used}}: <span id="disk-used-size">{{unknown}}</span></span>
-        <span>{{backups-disk-free}}: <span id="disk-free-size">{{unknown}}</span></span>
+        <span
+          >{{backups-disk-total}}:
+          <span id="disk-total-size">{{unknown}}</span></span
+        >
+        <span
+          >{{backups-disk-used}}:
+          <span id="disk-used-size">{{unknown}}</span></span
+        >
+        <span
+          >{{backups-disk-free}}:
+          <span id="disk-free-size">{{unknown}}</span></span
+        >
       </div>
     </div>
 
-    <button class="btn btn-primary btn-lg d-flex align-items-center" data-mdb-toggle="modal"
-      data-mdb-target="#newBackupModal">
-      <span class="material-symbols-outlined" style="margin-right: 8px">add</span>
+    <button
+      class="btn btn-primary btn-lg d-flex align-items-center"
+      data-mdb-toggle="modal"
+      data-mdb-target="#newBackupModal"
+    >
+      <span class="material-symbols-outlined" style="margin-right: 8px"
+        >add</span
+      >
       {{backups-crb-btn}}
     </button>
-
   </li>
 
   <p class="fs-1 fw-bold">{{backups-list-capt}}</p>

@@ -1,10 +1,12 @@
-<link rel="stylesheet" href="/pages/server_settings.css">
+<link rel="stylesheet" href="/pages/server_settings.css" />
 <script src="/pages/server_settings.js"></script>
 
-<div class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
-  style="animation-delay: .3s; padding-right: 24px;">
+<div
+  class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
+  style="animation-delay: 0.3s; padding-right: 24px"
+>
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img class="ms-3" height="32" id="server-icon">
+    <img class="ms-3" height="32" id="server-icon" />
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
@@ -19,26 +21,37 @@
   <div class="chip-nb d-flex flex-row align-items-center">
     <span class="material-symbols-outlined">groups</span>
     <span id="status-text" class="bold-chip">{{players}}:</span>
-    <span class="bold-chip" style="margin-left: 4px;" id="server-players-count">{{unknown}}</span>
+    <span class="bold-chip" style="margin-left: 4px" id="server-players-count"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="chip-nb d-flex flex-row align-items-center">
-    <img id="server-version-icon" height="24">
-    <span class="bold-chip" style="margin-left: 0;" id="server-version">{{unknown}}</span>
+    <img id="server-version-icon" height="24" />
+    <span class="bold-chip" style="margin-left: 0" id="server-version"
+      >{{unknown}}</span
+    >
   </div>
 
   <div class="flex-fill"></div>
   <div class="d-flex flex-row server-control-flex">
-    <button class="btn btn-danger server-control stopsrv" onclick="stopServer()">
-      <img src="assets/buttons/stop.png" width=20 height=20>
+    <button
+      class="btn btn-danger server-control stopsrv"
+      onclick="stopServer()"
+    >
+      <img src="assets/buttons/stop.png" width="20" height="20" />
     </button>
     <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width=20 height=20></button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width=20 height=20>
+      <img src="assets/buttons/start.png" width="20" height="20" />
     </button>
-    <button class="btn btn-udanger btn-danger server-control killsrv" onclick="killServer()">
-      <img src="assets/buttons/kill.png" width=20 height=20>
+    <button class="btn btn-warning server-control" onclick="restartServer()">
+      <img src="assets/buttons/restart.png" width="20" height="20" />
+    </button>
+    <button
+      class="btn btn-udanger btn-danger server-control killsrv"
+      onclick="killServer()"
+    >
+      <img src="assets/buttons/kill.png" width="20" height="20" />
     </button>
     <button class="btn btn-light server-control" disabled>
       <div class="mat-spinner">
@@ -50,72 +63,157 @@
   </div>
 </div>
 
-<div class="settings-container animate__animated animate__slideInUp animate__faster">
+<div
+  class="settings-container animate__animated animate__slideInUp animate__faster"
+>
   <ul class="nav nav-pills mb-3" id="ex1" role="tablist">
     <li class="nav-item" role="presentation">
-      <a class="nav-link active" id="main-tab" data-mdb-toggle="pill" href="#main-pills" role="tab"
-        aria-controls="main-pills" aria-selected="true">{{main}}</a>
+      <a
+        class="nav-link active"
+        id="main-tab"
+        data-mdb-toggle="pill"
+        href="#main-pills"
+        role="tab"
+        aria-controls="main-pills"
+        aria-selected="true"
+        >{{main}}</a
+      >
     </li>
     <li class="nav-item" role="presentation">
-      <a class="nav-link" id="speditor-tab" data-mdb-toggle="pill" href="#speditor-pills" role="tab"
-        aria-controls="speditor-pills" aria-selected="false">{{sp-editor-ss}}</a>
+      <a
+        class="nav-link"
+        id="speditor-tab"
+        data-mdb-toggle="pill"
+        href="#speditor-pills"
+        role="tab"
+        aria-controls="speditor-pills"
+        aria-selected="false"
+        >{{sp-editor-ss}}</a
+      >
     </li>
   </ul>
 
   <div class="tab-content" id="ex1-content">
-    <div class="tab-pane fade show active" id="main-pills" role="tabpanel" aria-labelledby="main-tab">
-      <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2">
+    <div
+      class="tab-pane fade show active"
+      id="main-pills"
+      role="tabpanel"
+      aria-labelledby="main-tab"
+    >
+      <li
+        class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2"
+      >
         <div class="d-flex flex-column w-100">
           <p>{{stopcmd-ss}}</p>
           <div class="d-flex">
-            <input type="text" class="kbk-input w-100" id="stopcmd-input" placeholder="{{stopcmd-ss}}" />
-            <button class="btn btn-outline-primary" style="margin-left: 16px;"
-              id="stopcmd-save-button">{{save}}</button>
+            <input
+              type="text"
+              class="kbk-input w-100"
+              id="stopcmd-input"
+              placeholder="{{stopcmd-ss}}"
+            />
+            <button
+              class="btn btn-outline-primary"
+              style="margin-left: 16px"
+              id="stopcmd-save-button"
+            >
+              {{save}}
+            </button>
           </div>
         </div>
       </li>
 
-      <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2">
+      <li
+        class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2"
+      >
         <div class="d-flex flex-column w-100">
           <div class="d-flex flex-row w-100 align-items-center mb-3 mobile-row">
             <p class="mb-0">{{resschd-desc-ss}}</p>
             <label class="switch ms-3">
-              <input type="checkbox" id="resschd-enabled-switch">
+              <input type="checkbox" id="resschd-enabled-switch" />
               <span class="slider round"></span>
             </label>
           </div>
           <div class="d-flex">
-            <input type="text" class="kbk-input w-100 me-2" id="resschd-crontab-input"
-              placeholder="{{resschd-crontab-input-ss}}" />
-            <button class="btn btn-outline-primary" style="margin-left: 16px;"
-              id="resschd-save-button">{{save}}</button>
+            <input
+              type="text"
+              class="kbk-input w-100 me-2"
+              id="resschd-crontab-input"
+              placeholder="{{resschd-crontab-input-ss}}"
+            />
+            <button
+              class="btn btn-outline-primary"
+              style="margin-left: 16px"
+              id="resschd-save-button"
+            >
+              {{save}}
+            </button>
           </div>
         </div>
       </li>
 
-      <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex mobile-col">
+      <li
+        class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex mobile-col"
+      >
         <span>{{java-ver-ss}}</span>
         <div id="java-versions-radios"></div>
       </li>
 
-      <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2">
+      <li
+        class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2"
+      >
         <div class="checkbox">
-          <input class="kbk-checkbox" type="checkbox" id="resOnErrCheckbox" value="">
+          <input
+            class="kbk-checkbox"
+            type="checkbox"
+            id="resOnErrCheckbox"
+            value=""
+          />
           <label for="resOnErrCheckbox">{{resonerr-ss}}</label>
         </div>
       </li>
 
-      <li class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row">
-        <input type="text" class="kbk-input w-100" id="delete-sname" placeholder="{{enter-to-del-ss}}" />
-        <button class="btn btn-outline-danger" style="margin-left: 16px;" id="delete-button"
-          disabled>{{delete}}</button>
+      <li
+        class="list-group-item px-3 w-100 border-0 rounded-3 list-group-item-light mb-2 d-flex flex-row"
+      >
+        <input
+          type="text"
+          class="kbk-input w-100"
+          id="delete-sname"
+          placeholder="{{enter-to-del-ss}}"
+        />
+        <button
+          class="btn btn-outline-danger"
+          style="margin-left: 16px"
+          id="delete-button"
+          disabled
+        >
+          {{delete}}
+        </button>
       </li>
 
-      <button type="button" class="btn btn-secondary btn-lg" onclick="saveServerSettings()">{{save}}</button>
+      <button
+        type="button"
+        class="btn btn-secondary btn-lg"
+        onclick="saveServerSettings()"
+      >
+        {{save}}
+      </button>
     </div>
-    <div class="tab-pane fade" id="speditor-pills" role="tabpanel" aria-labelledby="speditor-tab">
+    <div
+      class="tab-pane fade"
+      id="speditor-pills"
+      role="tabpanel"
+      aria-labelledby="speditor-tab"
+    >
       <div class="container_sp"></div>
-      <button type="button" class="btn btn-secondary btn-lg" onclick="saveProps()">{{save}}</button>
+      <button
+        type="button"
+        class="btn btn-secondary btn-lg"
+        onclick="saveProps()"
+      >
+        {{save}}
+      </button>
     </div>
   </div>
 </div>

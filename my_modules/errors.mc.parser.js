@@ -1,6 +1,11 @@
-const JAVA_INCOMP_ERRORS = [/A problem occurred running the Server launcher\.ERROR: java\.lang\.reflect\.InvocationTargetException/gmi, /Exception in thread \"main\" java\.lang\.UnsupportedClassVersionError/gmi, /Main has been compiled by a more recent version of the Java Runtime/gmi, /Unsupported Java detected/gmi]
-const JAVA_PATH_ERRORS = [/The system cannot find the path specified/gmi]
-const FILE_NOT_FOUND_ERRORS = [/Error: Unable to access jarfile/gmi]
+const JAVA_INCOMP_ERRORS = [
+  /A problem occurred running the Server launcher\.ERROR: java\.lang\.reflect\.InvocationTargetException/gim,
+  /Exception in thread \"main\" java\.lang\.UnsupportedClassVersionError/gim,
+  /Main has been compiled by a more recent version of the Java Runtime/gim,
+  /Unsupported Java detected/gim,
+];
+const JAVA_PATH_ERRORS = [/The system cannot find the path specified/gim];
+const FILE_NOT_FOUND_ERRORS = [/Error: Unable to access jarfile/gim];
 
 const JAVA_INCOMP_PLACEHOLDER = "{{java-incomp-error}}";
 const JAVA_PATH_PLACEHOLDER = "{{java-path-error}}";
@@ -37,4 +42,4 @@ exports.checkStringForErrors = (str) => {
   });
 
   return errors;
-}
+};
