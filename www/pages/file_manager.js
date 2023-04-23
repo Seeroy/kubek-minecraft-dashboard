@@ -9,38 +9,41 @@ $(document).ready(function () {
     } else {
       unselectAllCheckboxes();
     }
-    syncMultiplyFilesCount()
+    syncMultiplyFilesCount();
   });
 
   $("#nfeModal .btn-primary").click(function () {
     fn = $("#nfeModalEdit").val().trim();
     text = $("#newFileEditArea").val();
     if (fn != null) {
-      startTime = performance.now()
+      startTime = performance.now();
       console.log("[FM]", "Starting file save through websockets");
       path = window.localStorage.selectedServer + curDir + fn;
       randCode = genID(20);
 
       socket.emit("startFileWrite", {
         path: path,
-        randCode: randCode
+        randCode: randCode,
       });
       console.log("[FM]", "emit startFileWrite");
 
       textSplit = text.split("\n");
-      console.log("[FM]", "Sending " + textSplit.length + " fragments of file through websockets");
+      console.log(
+        "[FM]",
+        "Sending " + textSplit.length + " fragments of file through websockets"
+      );
       textSplit.forEach(function (seg) {
         socket.emit("addFileWrite", {
           add: seg,
-          randCode: randCode
+          randCode: randCode,
         });
       });
 
       socket.emit("finishFileWrite", {
-        randCode: randCode
+        randCode: randCode,
       });
       console.log("[FM]", "emit finishFileWrite");
-      endTime = performance.now()
+      endTime = performance.now();
       delta_sec = (endTime - startTime) / 1000;
       console.log("[PERF]", "Saving this file took " + delta_sec + " sec.");
       refreshDir();
@@ -50,7 +53,10 @@ $(document).ready(function () {
 });
 
 function ifAllFilesSelected() {
-  if ($("#fm-table td .fsboxes:checked").length == $("#fm-table td .fsboxes").length) {
+  if (
+    $("#fm-table td .fsboxes:checked").length ==
+    $("#fm-table td .fsboxes").length
+  ) {
     return true;
   } else {
     return false;
@@ -76,7 +82,6 @@ function selectAllCheckboxes() {
 function deleteAllSelected() {
   syncMultiplyFilesCount();
   if ($("#fm-table td .fsboxes:checked").length > 0) {
-    hideAllCards();
     $("#isremoving-card .card-text").text("{{removing-fm}}");
     $("#isremoving-card .btn-danger").unbind("click");
     $("#bdf").show();
@@ -88,78 +93,90 @@ function deleteAllSelected() {
       type = $(item).data("type");
       itemarr = {
         name: $(item).find(".fn").text(),
-        type: type
-      }
+        type: type,
+      };
       list.push(itemarr);
     });
     jsn = {
       path: curDir,
-      list: list
-    }
+      list: list,
+    };
     str = encodeURIComponent(JSON.stringify(jsn));
-    $.get("/fmapi/packetRemoving?server=" + window.localStorage.selectedServer + "&items=" + str, function (data) {
-      if (data['file'] == 0 && data['directory'] == 0) {
-        Toastify({
-          text: "{{afterdelno-fm}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "var(--mdb-warning)",
-          }
-        }).showToast();
-      } else if (data['file'] != 0 && data['directory'] == 0) {
-        Toastify({
-          text: "{{afterdel-fm}} " + data['file'] + " {{afterdelfiles-fm}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "var(--mdb-primary)",
-          }
-        }).showToast();
-      } else if (data['file'] == 0 && data['directory'] != 0) {
-        Toastify({
-          text: "{{afterdel-fm}} " + data['directory'] + " {{afterdeldirs-fm}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "var(--mdb-primary)",
-          }
-        }).showToast();
-      } else if (data['file'] != 0 && data['directory'] != 0) {
-        Toastify({
-          text: "{{afterdel-fm}} " + data['file'] + " {{afterdelfiles-fm}}, " + data['directory'] + " {{afterdeldirs-fm}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "var(--mdb-primary)",
-          }
-        }).showToast();
+    $.get(
+      "/fmapi/packetRemoving?server=" +
+        window.localStorage.selectedServer +
+        "&items=" +
+        str,
+      function (data) {
+        if (data["file"] == 0 && data["directory"] == 0) {
+          Toastify({
+            text: "{{afterdelno-fm}}",
+            duration: 3000,
+            newWindow: true,
+            close: false,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            style: {
+              background: "var(--mdb-warning)",
+            },
+          }).showToast();
+        } else if (data["file"] != 0 && data["directory"] == 0) {
+          Toastify({
+            text: "{{afterdel-fm}} " + data["file"] + " {{afterdelfiles-fm}}",
+            duration: 3000,
+            newWindow: true,
+            close: false,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            style: {
+              background: "var(--mdb-primary)",
+            },
+          }).showToast();
+        } else if (data["file"] == 0 && data["directory"] != 0) {
+          Toastify({
+            text:
+              "{{afterdel-fm}} " + data["directory"] + " {{afterdeldirs-fm}}",
+            duration: 3000,
+            newWindow: true,
+            close: false,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            style: {
+              background: "var(--mdb-primary)",
+            },
+          }).showToast();
+        } else if (data["file"] != 0 && data["directory"] != 0) {
+          Toastify({
+            text:
+              "{{afterdel-fm}} " +
+              data["file"] +
+              " {{afterdelfiles-fm}}, " +
+              data["directory"] +
+              " {{afterdeldirs-fm}}",
+            duration: 3000,
+            newWindow: true,
+            close: false,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            style: {
+              background: "var(--mdb-primary)",
+            },
+          }).showToast();
+        }
+        $("#bdf").hide();
+        refreshDir();
       }
-      $("#bdf").hide();
-      refreshDir();
-    });
+    );
   }
 }
 
 function unselectAllCheckboxes() {
   $("#fm-table .fsboxes").each(function () {
-    $(this).prop('checked', false);
+    $(this).prop("checked", false);
   });
 }
 
@@ -176,23 +193,29 @@ function deleteDirFM(path) {
 
   $("#delete-fm-modal .caption").text("{{aredelete-fm}} " + fn + "?");
   showModal("delete-fm-modal", "fadeIn", function () {
-    $.get("/fmapi/deleteDirectory?server=" + window.localStorage.selectedServer + "&path=" + path, function (data) {
-      refreshDir();
-      if (data == "ENOTEMPTY") {
-        Toastify({
-          text: "{{notempty-fm}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "var(--mdb-warning)",
-          }
-        }).showToast();
+    $.get(
+      "/fmapi/deleteDirectory?server=" +
+        window.localStorage.selectedServer +
+        "&path=" +
+        path,
+      function (data) {
+        refreshDir();
+        if (data == "ENOTEMPTY") {
+          Toastify({
+            text: "{{notempty-fm}}",
+            duration: 3000,
+            newWindow: true,
+            close: false,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            style: {
+              background: "var(--mdb-warning)",
+            },
+          }).showToast();
+        }
       }
-    });
+    );
   });
 }
 
@@ -201,7 +224,13 @@ function deleteFM(path) {
 
   $("#delete-fm-modal .caption").text("{{aredelete-fm}} " + fn + "?");
   showModal("delete-fm-modal", "fadeIn", function () {
-    $.get("/fmapi/deleteFile?server=" + window.localStorage.selectedServer + "&path=" + path, refreshDir);
+    $.get(
+      "/fmapi/deleteFile?server=" +
+        window.localStorage.selectedServer +
+        "&path=" +
+        path,
+      refreshDir
+    );
   });
 }
 
@@ -211,24 +240,37 @@ function newdirFM() {
   showModal("newdir-fm-modal", "fadeIn", function () {
     new_dname = $("#newdir-fm-modal .kbk-input").val();
     if (new_dname.trim() != "") {
-      $.get("/fmapi/newDirectory?server=" + window.localStorage.selectedServer + "&path=" + curDir + "&newdir=" + btoa(new_dname), refreshDir);
+      $.get(
+        "/fmapi/newDirectory?server=" +
+          window.localStorage.selectedServer +
+          "&path=" +
+          curDir +
+          "&newdir=" +
+          btoa(new_dname),
+        refreshDir
+      );
     }
   });
 }
 
 function uploadFM() {
-  $("#g-file-input").trigger('click');
+  $("#g-file-input").trigger("click");
   $("#g-file-input").off("change");
   $("#g-file-input").change(function () {
     var formData = new FormData($("#g-file-form")[0]);
     jQuery.ajax({
-      url: '/upload/file?server=' + window.localStorage.selectedServer + "&path=" + encodeURI(curDir),
+      url:
+        "/upload/file?server=" +
+        window.localStorage.selectedServer +
+        "&path=" +
+        encodeURI(curDir),
       type: "POST",
       data: formData,
       success: function (data) {
         refreshDir();
       },
       error: function (data) {
+        console.log(data);
         Toastify({
           text: "{{error}} " + data,
           duration: 3000,
@@ -239,7 +281,7 @@ function uploadFM() {
           stopOnFocus: true,
           style: {
             background: "var(--mdb-warning)",
-          }
+          },
         }).showToast();
       },
       cache: false,
@@ -253,17 +295,25 @@ function renameFM(path) {
   fn = path.split("/").slice(-1)[0];
 
   $("#rename-fm-modal .kbk-input").val(fn);
-  $("#rename-fm-modal .caption").text('{{dorename-fm}} ' + fn + "?");
+  $("#rename-fm-modal .caption").text("{{dorename-fm}} " + fn + "?");
   showModal("rename-fm-modal", "fadeIn", function () {
     new_fname = $("#rename-fm-modal .kbk-input").val();
     if (new_fname.trim() != "") {
-      $.get("/fmapi/renameFile?server=" + window.localStorage.selectedServer + "&path=" + path + "&newname=" + btoa(new_fname), refreshDir);
+      $.get(
+        "/fmapi/renameFile?server=" +
+          window.localStorage.selectedServer +
+          "&path=" +
+          path +
+          "&newname=" +
+          btoa(new_fname),
+        refreshDir
+      );
     }
   });
 }
 
 function saveFile() {
-  startTime = performance.now()
+  startTime = performance.now();
   console.log("[FM]", "Starting file save through websockets");
   fn = $("#feModalLabel").text();
   path = window.localStorage.selectedServer + curDir + fn;
@@ -271,149 +321,239 @@ function saveFile() {
 
   socket.emit("startFileWrite", {
     path: path,
-    randCode: randCode
+    randCode: randCode,
   });
   console.log("[FM]", "emit startFileWrite");
 
   textSplit = $("#fileEditArea").val().split("\n");
-  console.log("[FM]", "Sending " + textSplit.length + " fragments of file through websockets");
+  console.log(
+    "[FM]",
+    "Sending " + textSplit.length + " fragments of file through websockets"
+  );
   textSplit.forEach(function (seg) {
     socket.emit("addFileWrite", {
       add: seg,
-      randCode: randCode
+      randCode: randCode,
     });
   });
 
   socket.emit("finishFileWrite", {
-    randCode: randCode
+    randCode: randCode,
   });
   console.log("[FM]", "emit finishFileWrite");
-  endTime = performance.now()
+  endTime = performance.now();
   delta_sec = (endTime - startTime) / 1000;
   console.log("[PERF]", "Saving this file took " + delta_sec + " sec.");
   refreshDir();
 }
 
 function genID(length) {
-  var result = '';
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var result = "";
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   var charactersLength = characters.length;
   for (var i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() *
-      charactersLength));
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
 }
 
 function downloadFM(path) {
-  window.open("/fmapi/downloadFile?server=" + window.localStorage.selectedServer + "&path=" + path);
+  window.open(
+    "/fmapi/downloadFile?server=" +
+      window.localStorage.selectedServer +
+      "&path=" +
+      path
+  );
 }
 
 function refreshDir() {
   unselectAllCheckboxes();
   syncMultiplyFilesCount();
-  if(window.matchMedia("(min-width: 320px)").matches && window.matchMedia("(max-width: 480px)").matches){
+  if (
+    window.matchMedia("(min-width: 320px)").matches &&
+    window.matchMedia("(max-width: 480px)").matches
+  ) {
     bindev = "click";
   } else {
     bindev = "dblclick";
   }
   saveScroll = $(".fm_container>.sub-block>.contentt").scrollTop();
   $("#fm-table tbody").html("");
-  $("#breadcrumb-fm").html('<li class="breadcrumb-item">' + window.localStorage.selectedServer + '</li>');
+  $("#breadcrumb-fm").html(
+    '<li class="breadcrumb-item">' +
+      window.localStorage.selectedServer +
+      "</li>"
+  );
   spl = curDir.split("/");
-  spl = spl.filter(element => {
+  spl = spl.filter((element) => {
     return element != "";
   });
   if (spl != "/") {
     spl.forEach(function (dir) {
-      $("#breadcrumb-fm").append('<li class="breadcrumb-item">' + dir + '</li>');
+      $("#breadcrumb-fm").append(
+        '<li class="breadcrumb-item">' + dir + "</li>"
+      );
     });
   }
-  if (curDir != "/") {
-    $("#fm-table tbody").append(
-      '<tr on' + bindev + '="upperDir()"><td></td><td class="fn">..</td><td></td><td></td></tr>');
-  }
-  $.get("/fmapi/scanDirectory?server=" + window.localStorage.selectedServer + "&directory=" + curDir, function (data) {
-    data = JSON.parse(data);
-    if (typeof data == "object") {
-      data = sortToDirsAndFiles(data);
-      data.forEach(function (file, i) {
-        size = convertFileSizeToHuman(file.size);
-        obj_date = new Date(file.modify);
-        mdate = formatDateFactory(obj_date);
-        if (file.type == "directory") {
-          act =
-            '<button type="button" title="{{delete}}" onclick="deleteDirFM(' + "'" +
-            curDir + file.name + "'" +
-            ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
-            curDir + file.name +
-            '")><img width=24px src="/assets/fm_icons/edit.png"></button>';
-        } else {
-          act =
-            '<button type="button" title="{{delete}}" onclick="deleteFM(' + "'" +
-            curDir + file.name + "'" +
-            ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
-            curDir + file.name +
-            '")><img width=24px src="/assets/fm_icons/edit.png"></button><button type="button" title="{{download}}" onclick=downloadFM("' +
-            curDir + file.name +
-            '")><img width=24px src="/assets/fm_icons/download.png"></button>';
-        }
-        if (file.type == "directory") {
-          icon = "folder.png";
-        } else if (file.type == "file") {
-          if (file.name.match(/.*\.(jpg|jpeg|png|gif|ico|bmp|psd)/gmi) != null) {
-            icon = "image.png";
-          } else if (file.name.match(/.*\.(tar|zip|rar|gzip|7z|gz|tgz)/gmi) != null) {
-            icon = "archive.png";
-          } else if (file.name.match(/.*\.log/gmi) != null) {
-            icon = "logs.png";
-          } else {
-            icon = "file.png";
+  $("#breadcrumb-fm .breadcrumb-item:not(:last-child)").click(function () {
+    if ($(this).text() == window.localStorage.selectedServer) {
+      curDir = "/";
+      refreshDir();
+    } else {
+      path = "";
+      index = $(this).index();
+      $("#breadcrumb-fm .breadcrumb-item:not(:last-child)").each(
+        function (ind) {
+          if ($(this).text() != window.localStorage.selectedServer && ind <= index) {
+            path = path + $(this).text() + "/";
           }
         }
-        if (file.type == "directory") {
-          size = "";
-        }
-        cb = '<input class="fsboxes" type="checkbox" id="fsbox_' + i + '" value="sel"/>';
-        $("#fm-table tbody").append(
-          '<tr data-type="' + file.type +
-          '"><td>' + cb + '</td><td style="width: 20px;"><img height="32px" src="/assets/fm_icons/' + icon +
-          '"></td><td class="fn">' +
-          file.name + '</td><td>' + mdate + '</td><td>' + size + '</td><td class="buttons-td">' + act + '</td></tr>');
-      });
-      $("#fm-table tr").unbind("click");
-      $("#fm-table td .fsboxes").change(function () {
-        rs = ifAllFilesSelected();
-        if (rs) {
-          $("#fsbox_all").prop("checked", true);
-        } else {
-          $("#fsbox_all").prop("checked", false);
-        }
-        syncMultiplyFilesCount();
-      });
-      $("#fm-table tr").bind(bindev, function () {
-        if ($(this).data("type") == "directory") {
-          curDir += $(this).find(".fn")[0].innerText + "/";
-          refreshDir();
-        }
-        if ($(this).data("type") == "file") {
-          ext = $(this).find(".fn")[0].innerText.split(".").slice(-1)[0];
-          allowedExt = ["txt", "log", "yml", "xml", "cfg", "conf", "config", "json", "yaml", "properties", "sh", "bat"];
-          if (allowedExt.indexOf(ext) >= 0) {
-            $("#feModalLabel").text($(this).find(".fn")[0].innerText);
-            $.get("/fmapi/getFile?server=" + window.localStorage.selectedServer + "&path=" + curDir + $(this).find(".fn")[0]
-              .innerText,
-              function (data) {
-                $("#fileEditArea").val(data);
-                $("#feModal").show();
-                $("#feModal").fadeIn(150);
-              });
-          }
-        }
-      });
-      $(".fm_container>.sub-block>.contentt").scrollTop(saveScroll);
+      );
+      curDir = path;
+      refreshDir();
     }
   });
+  if (curDir != "/") {
+    $("#fm-table tbody").append(
+      "<tr on" +
+        bindev +
+        '="upperDir()"><td></td><td class="fn">..</td><td></td><td></td></tr>'
+    );
+  }
+  $.get(
+    "/fmapi/scanDirectory?server=" +
+      window.localStorage.selectedServer +
+      "&directory=" +
+      curDir,
+    function (data) {
+      data = JSON.parse(data);
+      if (typeof data == "object") {
+        data = sortToDirsAndFiles(data);
+        data.forEach(function (file, i) {
+          size = convertFileSizeToHuman(file.size);
+          obj_date = new Date(file.modify);
+          mdate = formatDateFactory(obj_date);
+          if (file.type == "directory") {
+            act =
+              '<button type="button" title="{{delete}}" onclick="deleteDirFM(' +
+              "'" +
+              curDir +
+              file.name +
+              "'" +
+              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
+              curDir +
+              file.name +
+              '")><img width=24px src="/assets/fm_icons/edit.png"></button>';
+          } else {
+            act =
+              '<button type="button" title="{{delete}}" onclick="deleteFM(' +
+              "'" +
+              curDir +
+              file.name +
+              "'" +
+              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
+              curDir +
+              file.name +
+              '")><img width=24px src="/assets/fm_icons/edit.png"></button><button type="button" title="{{download}}" onclick=downloadFM("' +
+              curDir +
+              file.name +
+              '")><img width=24px src="/assets/fm_icons/download.png"></button>';
+          }
+          if (file.type == "directory") {
+            icon = "folder.png";
+          } else if (file.type == "file") {
+            if (
+              file.name.match(/.*\.(jpg|jpeg|png|gif|ico|bmp|psd)/gim) != null
+            ) {
+              icon = "image.png";
+            } else if (
+              file.name.match(/.*\.(tar|zip|rar|gzip|7z|gz|tgz)/gim) != null
+            ) {
+              icon = "archive.png";
+            } else if (file.name.match(/.*\.log/gim) != null) {
+              icon = "logs.png";
+            } else {
+              icon = "file.png";
+            }
+          }
+          if (file.type == "directory") {
+            size = "";
+          }
+          cb =
+            '<input class="fsboxes" type="checkbox" id="fsbox_' +
+            i +
+            '" value="sel"/>';
+          $("#fm-table tbody").append(
+            '<tr data-type="' +
+              file.type +
+              '"><td>' +
+              cb +
+              '</td><td style="width: 20px;"><img height="32px" src="/assets/fm_icons/' +
+              icon +
+              '"></td><td class="fn">' +
+              file.name +
+              "</td><td>" +
+              mdate +
+              "</td><td>" +
+              size +
+              '</td><td class="buttons-td">' +
+              act +
+              "</td></tr>"
+          );
+        });
+        $("#fm-table tr").unbind("click");
+        $("#fm-table td .fsboxes").change(function () {
+          rs = ifAllFilesSelected();
+          if (rs) {
+            $("#fsbox_all").prop("checked", true);
+          } else {
+            $("#fsbox_all").prop("checked", false);
+          }
+          syncMultiplyFilesCount();
+        });
+        $("#fm-table tr").bind(bindev, function () {
+          if ($(this).data("type") == "directory") {
+            curDir += $(this).find(".fn")[0].innerText + "/";
+            refreshDir();
+          }
+          if ($(this).data("type") == "file") {
+            ext = $(this).find(".fn")[0].innerText.split(".").slice(-1)[0];
+            allowedExt = [
+              "txt",
+              "log",
+              "yml",
+              "xml",
+              "cfg",
+              "conf",
+              "config",
+              "json",
+              "yaml",
+              "properties",
+              "sh",
+              "bat",
+            ];
+            if (allowedExt.indexOf(ext) >= 0) {
+              $("#feModalLabel").text($(this).find(".fn")[0].innerText);
+              $.get(
+                "/fmapi/getFile?server=" +
+                  window.localStorage.selectedServer +
+                  "&path=" +
+                  curDir +
+                  $(this).find(".fn")[0].innerText,
+                function (data) {
+                  $("#fileEditArea").val(data);
+                  $("#feModal").show();
+                  $("#feModal").fadeIn(150);
+                }
+              );
+            }
+          }
+        });
+        $(".fm_container>.sub-block>.contentt").scrollTop(saveScroll);
+      }
+    }
+  );
 }
 
 function newFileFM() {

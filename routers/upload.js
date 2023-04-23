@@ -1,11 +1,11 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 var additional = require("./../my_modules/additional");
-var path = require('path');
-var fs = require('fs');
+var path = require("path");
+var fs = require("fs");
 const auth_manager = require("./../my_modules/auth_manager");
 var config = require("./../my_modules/config");
-var iconv = require('iconv-lite');
+var iconv = require("iconv-lite");
 var upl_status = 0;
 
 const ACCESS_PERMISSION = "server_settings";
@@ -15,12 +15,15 @@ const ACCESS_PERMISSION_3 = "filemanager";
 router.use(function (req, res, next) {
   additional.showRequestInLogs(req, res);
   cfg = config.readConfig();
-  ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
-  if (cfg['internet-access'] == false && ip != "127.0.0.1") {
+  if (cfg["internet-access"] == false && ip != "127.0.0.1") {
     res.send("Cannot be accessed from the internet");
   } else {
-    authsucc = auth_manager.authorize(req.cookies["kbk__hash"], req.cookies["kbk__login"]);
+    authsucc = auth_manager.authorize(
+      req.cookies["kbk__hash"],
+      req.cookies["kbk__login"]
+    );
     if (authsucc == true) {
       next();
     } else {
@@ -29,23 +32,22 @@ router.use(function (req, res, next) {
   }
 });
 
-router.post('/icon', function (req, res) {
+router.post("/icon", function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     let sampleFile;
     let uploadPath;
 
     if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).send('No files were uploaded.');
+      return res.status(400).send("No files were uploaded.");
     }
 
-    sampleFile = req.files['g-img-input'];
+    sampleFile = req.files["g-img-input"];
     uploadPath = "./servers/" + req.query["server"] + "/server-icon.png";
 
     if (path.extname(sampleFile.name) == ".png") {
       sampleFile.mv(uploadPath, function (err) {
-        if (err)
-          return res.status(400).send(err);
+        if (err) return res.status(400).send(err);
 
         res.send("uploaded");
       });
@@ -57,7 +59,7 @@ router.post('/icon', function (req, res) {
   }
 });
 
-router.post('/core', function (req, res) {
+router.post("/core", function (req, res) {
   if (!fs.existsSync("./servers")) {
     fs.mkdirSync("./servers");
   }
@@ -66,16 +68,15 @@ router.post('/core', function (req, res) {
   let uploadPath;
 
   if (!req.files || Object.keys(req.files).length === 0) {
-    return res.status(400).send('No files were uploaded.');
+    return res.status(400).send("No files were uploaded.");
   }
 
-  sampleFile = req.files['g-core-input'];
+  sampleFile = req.files["g-core-input"];
   uploadPath = "./servers/" + req.query["server"] + "/" + sampleFile.name;
 
   if (path.extname(sampleFile.name) == ".jar") {
     sampleFile.mv(uploadPath, function (err) {
-      if (err)
-        return res.status(400).send(err);
+      if (err) return res.status(400).send(err);
 
       res.send("uploaded");
     });
@@ -84,7 +85,7 @@ router.post('/core', function (req, res) {
   }
 });
 
-router.post('/plugin', function (req, res) {
+router.post("/plugin", function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (!fs.existsSync("./servers/" + req.query["server"] + "/plugins")) {
@@ -94,16 +95,16 @@ router.post('/plugin', function (req, res) {
     let uploadPath;
 
     if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).send('No files were uploaded.');
+      return res.status(400).send("No files were uploaded.");
     }
 
-    sampleFile = req.files['g-plugin-input'];
-    uploadPath = "./servers/" + req.query["server"] + "/plugins/" + sampleFile.name;
+    sampleFile = req.files["g-plugin-input"];
+    uploadPath =
+      "./servers/" + req.query["server"] + "/plugins/" + sampleFile.name;
 
     if (path.extname(sampleFile.name) == ".jar") {
       sampleFile.mv(uploadPath, function (err) {
-        if (err)
-          return res.status(400).send(err);
+        if (err) return res.status(400).send(err);
 
         res.send("uploaded");
       });
@@ -115,7 +116,7 @@ router.post('/plugin', function (req, res) {
   }
 });
 
-router.post('/mod', function (req, res) {
+router.post("/mod", function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (!fs.existsSync("./servers/" + req.query["server"] + "/mods")) {
@@ -125,16 +126,16 @@ router.post('/mod', function (req, res) {
     let uploadPath;
 
     if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).send('No files were uploaded.');
+      return res.status(400).send("No files were uploaded.");
     }
 
-    sampleFile = req.files['g-mod-input'];
-    uploadPath = "./servers/" + req.query["server"] + "/mods/" + sampleFile.name;
+    sampleFile = req.files["g-mod-input"];
+    uploadPath =
+      "./servers/" + req.query["server"] + "/mods/" + sampleFile.name;
 
     if (path.extname(sampleFile.name) == ".jar") {
       sampleFile.mv(uploadPath, function (err) {
-        if (err)
-          return res.status(400).send(err);
+        if (err) return res.status(400).send(err);
 
         res.send("uploaded");
       });
@@ -146,27 +147,46 @@ router.post('/mod', function (req, res) {
   }
 });
 
-router.post('/file', (req, res) => {
+router.post("/file", (req, res) => {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_3)) {
     let sampleFile;
     let uploadPath;
 
-    if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).send('No files were uploaded.');
-    }
+    if (req.files["g-file-input"].length !== undefined) {
+      req.files["g-file-input"].forEach((element) => {
+        if (!req.files || Object.keys(req.files).length === 0) {
+          return res.status(400).send("No files were uploaded.");
+        }
 
-    sampleFile = req.files['g-file-input'];
-    filename = iconv.decode(sampleFile.name, 'utf-8');
+        sampleFile = element;
+        filename = iconv.decode(sampleFile.name, "utf-8");
 
-    uploadPath = "./servers/" + req.query["server"] + req.query["path"] + filename;
+        uploadPath =
+          "./servers/" + req.query["server"] + req.query["path"] + filename;
 
-    sampleFile.mv(uploadPath, function (err) {
-      if (err)
-        return res.status(400).send(err);
-
+        sampleFile.mv(uploadPath, function (err) {
+          if (err) return res.status(400).send(err);
+        });
+      });
       res.send("uploaded");
-    });
+    } else {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).send("No files were uploaded.");
+      }
+
+      sampleFile = req.files["g-file-input"];
+      filename = iconv.decode(sampleFile.name, "utf-8");
+
+      uploadPath =
+        "./servers/" + req.query["server"] + req.query["path"] + filename;
+
+      sampleFile.mv(uploadPath, function (err) {
+        if (err) return res.status(400).send(err);
+
+        res.send("uploaded");
+      });
+    }
   } else {
     res.status(403).send();
   }

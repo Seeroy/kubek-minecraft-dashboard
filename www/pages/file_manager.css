@@ -83,6 +83,7 @@
 
 #breadcrumb-fm .breadcrumb-item:not(:last-child) {
   color: var(--mdb-gray-500);
+  cursor: pointer;
 }
 
 #breadcrumb-fm .breadcrumb-item:not(:first-child) {
