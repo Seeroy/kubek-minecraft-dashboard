@@ -355,7 +355,7 @@ exports.startServer = (server) => {
         );
         servers_logs[server] = servers_logs[server] + "\n§bKilled";
       }
-      if (Date.now() - oldConsoleStamp >= 800) {
+      if (Date.now() - oldConsoleStamp >= 800 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
         fsock = io.sockets.sockets;
         for (const socket of fsock) {
           spl = servers_logs[server].split(/\r?\n/).slice(-100);
@@ -383,7 +383,7 @@ exports.startServer = (server) => {
         }
       }
       servers_logs[server] = servers_logs[server] + data.toString();
-      if (Date.now() - oldConsoleStamp >= 800) {
+      if (Date.now() - oldConsoleStamp >= 800 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
         fsock = io.sockets.sockets;
         for (const socket of fsock) {
           spl = servers_logs[server].split(/\r?\n/).slice(-100);
