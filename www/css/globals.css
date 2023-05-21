@@ -183,8 +183,8 @@
 .kbk-checkbox+label::before {
   content: '';
   display: inline-block;
-  width: 1em;
-  height: 1em;
+  width: 1.2em;
+  height: 1.2em;
   flex-shrink: 0;
   flex-grow: 0;
   border: 1px solid #adb5bd;
@@ -239,8 +239,8 @@
 .kbk-radio+label::before {
   content: '';
   display: inline-block;
-  width: 1.2em;
-  height: 1.2em;
+  width: 1.3em;
+  height: 1.3em;
   flex-shrink: 0;
   flex-grow: 0;
   border: 1px solid #adb5bd;

@@ -111,6 +111,7 @@ body {
   box-shadow: none !important;
 }
 
+/* Mobile version styling */
 @media (min-width: 320px) and (max-width: 480px) {
   body>.d-flex.flex-row.w-100.h-100 {
     height: var(--app-height) !important;
@@ -301,6 +302,12 @@ body {
   .pluginsandmods-container .list-group-item {
     padding-left: 8px !important;
     padding-right: 8px !important;
+  }
+
+  .pluginsandmods-container .list-group-item span.flex-fill {
+    overflow: hidden;
+    width: 50%;
+    text-overflow: ellipsis;
   }
 
   .backups-container .list-group-item {

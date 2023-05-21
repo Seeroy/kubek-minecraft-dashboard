@@ -88,6 +88,8 @@ function loadKubekSettings() {
 
     $(".ftppass").val(kubekCfg["ftpd-password"]);
     $(".ftpuser").val(kubekCfg["ftpd-user"]);
+    $(".webserverport").val(kubekCfg["webserver-port"]);
+    $(".socketport").val(kubekCfg["socket-port"]);
 
     $.get("/kubek/support-uid", function (supuid) {
       $("#supuid").text(supuid);
@@ -359,8 +361,20 @@ function saveSettingsStage2() {
 function saveSettingsStage3() {
   if (kubekCfg["internet-access"] != allowint) {
     showModal("othip-need-res-modal", "fadeIn", function () {
-      saveSettingsStage4();
+      saveSettingsStage35();
     });
+  } else {
+    saveSettingsStage35();
+  }
+}
+
+function saveSettingsStage35(){
+  if (kubekCfg["webserver-port"] != $(".webserverport").val() || kubekCfg["socket-port"] != $(".socketport").val()) {
+    if ($(".webserverport").val() >= 80 && $(".webserverport").val() <= 65500 && $(".socketport").val() >= 81 && $(".socketport").val() <= 65500) {
+      showModal("othport-need-res-modal", "fadeIn", function () {
+        saveSettingsStage4();
+      });
+    }
   } else {
     saveSettingsStage4();
   }
@@ -375,6 +389,8 @@ function saveSettingsStage4() {
   kubekCfg["ftpd-password"] = $(".ftppass").val();
   kubekCfg["ftpd-user"] = $(".ftpuser").val();
   kubekCfg["tgbot-token"] = $(".tgbot-token").val();
+  kubekCfg["socket-port"] = $(".socketport").val();
+  kubekCfg["webserver-port"] = $(".webserverport").val();
   kubekCfg["tgbot-chatid"] = [];
   $.get(
     "/kubek/saveConfig?data=" + encodeURI(JSON.stringify(kubekCfg)),

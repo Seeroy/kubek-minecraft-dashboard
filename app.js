@@ -13,7 +13,8 @@ const tgbot_manager = require("./my_modules/tgbot");
 // Express initialization
 const express = require("express");
 const app = express();
-const port = 3000;
+var EXPRESS_PORT = 3000;
+var SIO_PORT = 3001;
 const updatesInterval = 3600000; // 5 hours
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
@@ -60,13 +61,18 @@ const authLimiter3 = rateLimit({
 
 // Config loading
 global.cfg = config.readConfig();
-
+if (typeof cfg["webserver-port"] !== "undefined") {
+  EXPRESS_PORT = cfg["webserver-port"];
+}
+if (typeof cfg["socket-port"] !== "undefined") {
+  SIO_PORT = cfg["socket-port"];
+}
 // Socket.io initialization
 var socket_options;
 if (cfg["internet-access"] == true) {
   origin = "*";
 } else {
-  origin = "http://localhost:3000";
+  origin = "http://localhost:" + SIO_PORT;
 }
 socket_options = {
   cors: {
@@ -74,7 +80,7 @@ socket_options = {
   },
 };
 
-global.io = require("socket.io")(3001, socket_options);
+global.io = require("socket.io")(SIO_PORT, socket_options);
 
 io.on("connection", (socket) => {
   socket.on("update", (arg) => {
@@ -325,19 +331,19 @@ updater.checkForUpdates(function (upd, body) {
     }
     next();
   });
-  app.listen(port, () => {
+  app.listen(EXPRESS_PORT, () => {
     console.log(
       additional.getTimeFormatted(),
       "Webserver",
       translator.translateHTML("{{consolemsg-usingport}}", cfg["lang"]),
-      port
+      EXPRESS_PORT
     );
   });
   console.log(
     additional.getTimeFormatted(),
     "Socket.io",
     translator.translateHTML("{{consolemsg-usingport}}", cfg["lang"]),
-    3001
+    SIO_PORT
   );
   if (cfg.ftpd == true) {
     var options = {
@@ -354,7 +360,7 @@ updater.checkForUpdates(function (upd, body) {
   console.log(
     additional.getTimeFormatted(),
     translator.translateHTML("{{consolemsg-viewurl-start}}", cfg["lang"]),
-    "http://localhost:" + port
+    "http://localhost:" + EXPRESS_PORT
   );
 });
 

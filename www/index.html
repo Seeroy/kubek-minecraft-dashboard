@@ -458,130 +458,135 @@
       }
     });
 
-    socket = openSocket();
-    afterSocketHandshake();
-    socket.on("disconnect", () => {
-      showLoading();
-      connect_socket_error = true;
-    });
-    socket.on("reconnect", () => {
-      hideLoading();
+    $.get('/kubek/config', function (data) {
+      socket = openSocket(data['socket-port']);
       afterSocketHandshake();
-    });
-    socket.on("connect_error", () => {
-      showLoading();
-      connect_socket_error = true;
-    });
-    socket.on("handleServerError", function (arg) {
-      $.get("/kubek/translate?text=" + arg.data, function (text) {
-        Toastify({
-          text: text,
-          duration: 10000,
-          newWindow: true,
-          close: true,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "#dc4c64",
-            color: "white",
-          },
-          onClick: function () {}
-        }).showToast();
+      socket.on("disconnect", () => {
+        showLoading();
+        connect_socket_error = true;
       });
-    });
-    socket.on("handleUpdate", function (arg) {
-      type = arg.type;
-      data = arg.data;
-      switch (type) {
-        case "console":
-          if ($(".console-container").length > 0 && data.server == window.localStorage.selectedServer && $(
-              "#autoupdateConsoleCheckbox").is(":checked")) {
-            split = data.data.split(/\r?\n/);
-            $("#console-text").html("");
+      socket.on("reconnect", () => {
+        hideLoading();
+        afterSocketHandshake();
+      });
+      socket.on("connect_error", () => {
+        showLoading();
+        connect_socket_error = true;
+      });
+      socket.on("handleServerError", function (arg) {
+        $.get("/kubek/translate?text=" + arg.data, function (text) {
+          Toastify({
+            text: text,
+            duration: 10000,
+            newWindow: true,
+            close: true,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            style: {
+              background: "#dc4c64",
+              color: "white",
+            },
+            onClick: function () {}
+          }).showToast();
+        });
+      });
+      socket.on("handleUpdate", function (arg) {
+        type = arg.type;
+        data = arg.data;
+        switch (type) {
+          case "console":
+            if ($(".console-container").length > 0 && data.server == window.localStorage.selectedServer &&
+              $(
+                "#autoupdateConsoleCheckbox").is(":checked")) {
+              split = data.data.split(/\r?\n/);
+              $("#console-text").html("");
 
-            split.forEach(function (line) {
-              line = mineParse(line.replaceAll("<", "&lt;")).parsed.innerHTML;
+              split.forEach(function (line) {
+                line = mineParse(line.replaceAll("<", "&lt;")).parsed.innerHTML;
 
-              htmlObject = document.createElement('div');
-              htmlObject.innerHTML = line;
-              if (htmlObject.firstChild.firstChild != null) {
-                html_text = htmlObject.firstChild.firstChild.wholeText.replaceAll("<", "&lt;") + "<br>";
-                if (htmlObject.firstChild.style.color != "") {
-                  stl = "color:" + htmlObject.firstChild.style.color + ";";
-                } else {
-                  stl = "";
+                htmlObject = document.createElement('div');
+                htmlObject.innerHTML = line;
+                if (htmlObject.firstChild.firstChild != null) {
+                  html_text = htmlObject.firstChild.firstChild.wholeText.replaceAll("<", "&lt;") +
+                    "<br>";
+                  if (htmlObject.firstChild.style.color != "") {
+                    stl = "color:" + htmlObject.firstChild.style.color + ";";
+                  } else {
+                    stl = "";
+                  }
+                  html_text = linkify(html_text);
+                  html_text = "<span style='" + stl + "'>" + html_text + "</span>";
+
+                  $("#console-text").html($("#console-text").html() + html_text);
                 }
-                html_text = linkify(html_text);
-                html_text = "<span style='" + stl + "'>" + html_text + "</span>";
-
-                $("#console-text").html($("#console-text").html() + html_text);
+              });
+              if ($("#autoscrollConsoleCheckbox").is(":checked")) {
+                $("#console-text").scrollTop($("#console-text")[0].scrollHeight);
               }
-            });
-            if ($("#autoscrollConsoleCheckbox").is(":checked")) {
-              $("#console-text").scrollTop($("#console-text")[0].scrollHeight);
+              hideLoading();
             }
-            hideLoading();
-          }
-          break;
-        case "usage":
-          updateMemoryAndCPUUsage_ui(data);
-          break;
-        case "servers":
-          if (cs == false) {
-            if (data[window.localStorage.selectedServer]['restartOnError'] == true && $("#resOnErrCheckbox")
-              .length > 0) {
-              $('#resOnErrCheckbox').prop('checked', true);
+            break;
+          case "usage":
+            updateMemoryAndCPUUsage_ui(data);
+            break;
+          case "servers":
+            if (cs == false) {
+              if (data[window.localStorage.selectedServer]['restartOnError'] == true && $(
+                  "#resOnErrCheckbox")
+                .length > 0) {
+                $('#resOnErrCheckbox').prop('checked', true);
+              } else {
+                $('#resOnErrCheckbox').prop('checked', false);
+              }
+              cs = true;
+            }
+            updateServersStatuses_ui(data);
+            break;
+          case "backups_list":
+            if (data == "progress") {
+              cur = new Date().valueOf();
+              if (cur - 1000 > old_bl_upd) {
+                old_bl_upd = cur;
+                if ($("#backups-list").length > 0) {
+                  refreshBackupsList();
+                }
+              }
             } else {
-              $('#resOnErrCheckbox').prop('checked', false);
-            }
-            cs = true;
-          }
-          updateServersStatuses_ui(data);
-          break;
-        case "backups_list":
-          if (data == "progress") {
-            cur = new Date().valueOf();
-            if (cur - 1000 > old_bl_upd) {
-              old_bl_upd = cur;
               if ($("#backups-list").length > 0) {
                 refreshBackupsList();
               }
             }
-          } else {
-            if ($("#backups-list").length > 0) {
-              refreshBackupsList();
+            break;
+          case "query":
+            updateServerDataFromQuery_ui(data);
+            break;
+          case "newOTP":
+            if ($(".tgbot-otp").length > 0) {
+              $(".tgbot-otp").val(data);
             }
-          }
-          break;
-        case "query":
-          updateServerDataFromQuery_ui(data);
-          break;
-        case "newOTP":
-          if ($(".tgbot-otp").length > 0) {
-            $(".tgbot-otp").val(data);
-          }
-          break;
-        case "downloadTasks":
-          keys = Object.keys(data);
-          keys.forEach(function (key) {
-            value = data[key];
-            if (key == "update.tmp" && value != "ready") {
-              $("#update-process").show();
-              showLoading();
-              $("#update-process .card-text").text("{{downing-core-sw}} update.tmp (" + value + "%)");
-              $("#update-process .progress-bar").css("width", value + "%");
-            } else if (key == "update.tmp" && value == "ready") {
-              $("#update-process").hide();
-              hideLoading();
-              updateIsReady();
-            }
-          });
-          break;
-      }
-    });
+            break;
+          case "downloadTasks":
+            keys = Object.keys(data);
+            keys.forEach(function (key) {
+              value = data[key];
+              if (key == "update.tmp" && value != "ready") {
+                $("#update-process").show();
+                showLoading();
+                $("#update-process .card-text").text("{{downing-core-sw}} update.tmp (" + value + "%)");
+                $("#update-process .progress-bar").css("width", value + "%");
+              } else if (key == "update.tmp" && value == "ready") {
+                $("#update-process").hide();
+                hideLoading();
+                updateIsReady();
+              }
+            });
+            break;
+        }
+      });
 
-    console.log("[UI]", "Document is ready");
+      console.log("[UI]", "Document is ready and connection is established");
+    });
   });
 
   $("#theme-mode-selector .nav-link").click(function () {

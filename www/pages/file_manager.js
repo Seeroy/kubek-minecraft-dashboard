@@ -250,7 +250,7 @@ function newdirFM() {
         refreshDir
       );
     }
-  });
+  }, true);
 }
 
 function uploadFM() {
@@ -309,7 +309,7 @@ function renameFM(path) {
         refreshDir
       );
     }
-  });
+  }, true);
 }
 
 function saveFile() {

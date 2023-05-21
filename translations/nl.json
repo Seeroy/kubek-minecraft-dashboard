@@ -108,6 +108,9 @@
   "{{tgbot-otp-desc-ks}}": "Om de bot te starten, moet je naar Kubek-instellingen gaan, de OTP-code kopiëren en naar de bot sturen",
   "{{tgbot-otp-capt-ks}}": "OTP-code voor Telegram",
   "{{turnoff-warn-ks}}": "Weet u zeker dat u Kubek wilt uitschakelen? U kunt het niet terug starten via de webinterface",
+  "{{webserver-port-ks}}": "Webserverpoort (80 tot 65500)",
+  "{{socket-port-ks}}": "WebSockets-poort (80 tot 65500)",
+  "{{fullres-othport-need-ks}}": "Na het wijzigen van poorten is een volledige herstart van Kubek vereist om de wijzigingen door te voeren",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",

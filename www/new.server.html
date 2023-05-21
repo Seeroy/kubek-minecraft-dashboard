@@ -1,4 +1,3 @@
-
 <head>
   <!-- Meta -->
   <meta charset="utf-8">
@@ -79,11 +78,13 @@
               <img alt="PaperMC Core" src="/assets/cores/paper.png" style="height: 64px;" />
               <span>PaperMC</span>
             </div>
-            <div class="core-block d-flex flex-column align-items-center justify-content-center kbk-input" data-core="spigot">
+            <div class="core-block d-flex flex-column align-items-center justify-content-center kbk-input"
+              data-core="spigot">
               <img alt="Spigot Core" src="/assets/cores/spigot.png" style="height: 64px;" />
               <span>Spigot</span>
             </div>
-            <div class="core-block d-flex flex-column align-items-center justify-content-center kbk-input" data-core="own">
+            <div class="core-block d-flex flex-column align-items-center justify-content-center kbk-input"
+              data-core="own">
               <img alt="Upload Core" src="/assets/cores/jar.png" style="height: 64px;" />
               <span>{{upload}}</span>
             </div>
@@ -231,100 +232,64 @@
       }
     });
 
-    socket = openSocket();
-    socket.on("handshake", function () {
-      console.log("[WS]", "WebSocket handshake successful");
-    });
-    socket.on("handleUpdate", function (arg) {
-      console.log("[WS]", "Update handled: " + arg.type);
-      type = arg.type;
-      data = arg.data;
-      switch (type) {
-        case "downloadTasks":
-          if (trackDownloadTasks2_enabled) {
+    $.get('/kubek/config', function (data) {
+      socket = openSocket(data['socket-port']);
+      socket.on("handshake", function () {
+        console.log("[WS]", "WebSocket handshake successful");
+      });
+      socket.on("handleUpdate", function (arg) {
+        console.log("[WS]", "Update handled: " + arg.type);
+        type = arg.type;
+        data = arg.data;
+        switch (type) {
+          case "downloadTasks":
+            if (trackDownloadTasks2_enabled) {
 
-            if (typeof data[trackDownloadTasks2_filename] !== "undefined") {
-              $("#progress-card .progress").show();
-              $("#progress-card .progress-bar").css("width", data[trackDownloadTasks2_filename] + "%");
-              $("#progress-card p").html("{{downing-core-sw}} " + trackDownloadTasks2_filename + " (" + data[
-                trackDownloadTasks2_filename] + "%)");
-            } else {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{downloading-compl-java-sw}}");
-              trackDownloadTasks2_enabled = false;
-              trackDownloadTasks2_completed = true;
-              trackJavaUnpack_enabled = true;
-            }
-
-          }
-
-          if (trackDownloadTasks_enabled) {
-
-            if (typeof data[trackDownloadTasks_filename] !== "undefined") {
-              $("#progress-card .progress").show();
-              $("#progress-card .progress-bar").css("width", data[trackDownloadTasks_filename] + "%");
-              $("#progress-card p").html("{{downing-core-sw}} " + trackDownloadTasks_filename + " (" + data[
-                trackDownloadTasks_filename] + "%)");
-            } else {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{unpacking-java-sw}}");
-              if ($("#cur-jv").data("selvalue") == "usedetect") {
-                ver = $("#srv-ver-detected").data('ver');
-
-                $.get("/downloader/downloadJavaForServer?serverVersion=" +
-                  selectedCore_version + "&server=" + $("#server-name-input").val(),
-                  function (ret) {
-                    trackDownloadTasks2_filename = ret;
-                    trackDownloadTasks2_enabled = true;
-                  });
-                trackDownloadTasks_enabled = false;
+              if (typeof data[trackDownloadTasks2_filename] !== "undefined") {
+                $("#progress-card .progress").show();
+                $("#progress-card .progress-bar").css("width", data[trackDownloadTasks2_filename] + "%");
+                $("#progress-card p").html("{{downing-core-sw}} " + trackDownloadTasks2_filename + " (" +
+                  data[
+                    trackDownloadTasks2_filename] + "%)");
               } else {
+                $("#progress-card .progress").hide();
+                $("#progress-card p").html("{{downloading-compl-java-sw}}");
                 trackDownloadTasks2_enabled = false;
-                trackDownloadTasks_enabled = false;
-                pathh = $("#cur-jv").text();
-
-                $("#progress-card .progress-bar").css("width", "100%");
-                $("#progress-card p").html("{{unpacking-java-sw}}");
-                startLine = '"' + pathh + '"' + " " + $("#fsc").val();
-                $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) + "&jf=" +
-                  trackDownloadTasks_filename + "&startcmd=" +
-                  btoa(
-                    startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
-                  function (data) {
-                    if (data == "Success") {
-                      window.localStorage.setItem("selectedServer", $("#server-name-input").val());
-                      window.location = "/";
-                    }
-                  });
+                trackDownloadTasks2_completed = true;
+                trackJavaUnpack_enabled = true;
               }
+
             }
 
-          }
-          break;
-        case "unpackingJavaArchive":
-          if (trackJavaUnpack_enabled) {
-            if (data == "started") {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{unpacking-java-sw}}");
-            } else if (data == "completed") {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{unpacking-java-compl-sw}}");
-              $.get("/downloader/getPathToJava?server=" + $("#server-name-input").val(), function (path) {
-                startLine = '"' + path + '"' + " " + $("#fsc").val();
-                if (trackDownloadTasks2_type == "forge" || trackDownloadTasks2_type == "other_own") {
-                  $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) +
-                    "&jf=" +
-                    selectedCore_filename.replace(/-installer/gm, "") + "&startcmd=" +
-                    btoa(
-                      startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
-                    function (data) {
-                      if (data == "Success") {
-                        window.localStorage.setItem("selectedServer", $("#server-name-input")
-                          .val());
-                        window.location = "/";
-                      }
+            if (trackDownloadTasks_enabled) {
+
+              if (typeof data[trackDownloadTasks_filename] !== "undefined") {
+                $("#progress-card .progress").show();
+                $("#progress-card .progress-bar").css("width", data[trackDownloadTasks_filename] + "%");
+                $("#progress-card p").html("{{downing-core-sw}} " + trackDownloadTasks_filename + " (" +
+                  data[
+                    trackDownloadTasks_filename] + "%)");
+              } else {
+                $("#progress-card .progress").hide();
+                $("#progress-card p").html("{{unpacking-java-sw}}");
+                if ($("#cur-jv").data("selvalue") == "usedetect") {
+                  ver = $("#srv-ver-detected").data('ver');
+
+                  $.get("/downloader/downloadJavaForServer?serverVersion=" +
+                    selectedCore_version + "&server=" + $("#server-name-input").val(),
+                    function (ret) {
+                      trackDownloadTasks2_filename = ret;
+                      trackDownloadTasks2_enabled = true;
                     });
+                  trackDownloadTasks_enabled = false;
                 } else {
+                  trackDownloadTasks2_enabled = false;
+                  trackDownloadTasks_enabled = false;
+                  pathh = $("#cur-jv").text();
+
+                  $("#progress-card .progress-bar").css("width", "100%");
+                  $("#progress-card p").html("{{unpacking-java-sw}}");
+                  startLine = '"' + pathh + '"' + " " + $("#fsc").val();
                   $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) + "&jf=" +
                     trackDownloadTasks_filename + "&startcmd=" +
                     btoa(
@@ -336,13 +301,55 @@
                       }
                     });
                 }
-              });
-            } else {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html(data);
+              }
+
             }
-          }
-      }
+            break;
+          case "unpackingJavaArchive":
+            if (trackJavaUnpack_enabled) {
+              if (data == "started") {
+                $("#progress-card .progress").hide();
+                $("#progress-card p").html("{{unpacking-java-sw}}");
+              } else if (data == "completed") {
+                $("#progress-card .progress").hide();
+                $("#progress-card p").html("{{unpacking-java-compl-sw}}");
+                $.get("/downloader/getPathToJava?server=" + $("#server-name-input").val(), function (path) {
+                  startLine = '"' + path + '"' + " " + $("#fsc").val();
+                  if (trackDownloadTasks2_type == "forge" || trackDownloadTasks2_type == "other_own") {
+                    $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) +
+                      "&jf=" +
+                      selectedCore_filename.replace(/-installer/gm, "") + "&startcmd=" +
+                      btoa(
+                        startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
+                      function (data) {
+                        if (data == "Success") {
+                          window.localStorage.setItem("selectedServer", $("#server-name-input")
+                            .val());
+                          window.location = "/";
+                        }
+                      });
+                  } else {
+                    $.get("/server/completion?server=" + encodeURI($("#server-name-input").val()) +
+                      "&jf=" +
+                      trackDownloadTasks_filename + "&startcmd=" +
+                      btoa(
+                        startLine) + "&port=" + sv_port + "&onMode=" + sv_onmode,
+                      function (data) {
+                        if (data == "Success") {
+                          window.localStorage.setItem("selectedServer", $("#server-name-input")
+                        .val());
+                          window.location = "/";
+                        }
+                      });
+                  }
+                });
+              } else {
+                $("#progress-card .progress").hide();
+                $("#progress-card p").html(data);
+              }
+            }
+        }
+      });
     });
   });
 

@@ -110,6 +110,9 @@
   "{{tgbot-otp-desc-ks}}": "To start the bot, you need to go down in Kubek Settings, copy the OTP code and send to the bot",
   "{{tgbot-otp-capt-ks}}": "OTP code for Telegram",
   "{{turnoff-warn-ks}}": "Are you sure you want to turn off Kubek? You can't launch it back through the web interface",
+  "{{webserver-port-ks}}": "Web Server Port (80 to 65500)",
+  "{{socket-port-ks}}": "WebSockets Port (80 to 65500)",
+  "{{fullres-othport-need-ks}}": "After changing ports, a full restart of Kubek is required for the changes to take effect",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",

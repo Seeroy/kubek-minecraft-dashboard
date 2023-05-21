@@ -10,7 +10,7 @@ function hideLoading() {
 }
 
 /* Modal functions */
-function showModal(id, anim, cb) {
+function showModal(id, anim, cb, bindToInput = false) {
   $("#" + id).show();
   animateCSS("#" + id + " .modal-layout", anim);
   $("#" + id + " .modal-layout .clsbtn").unbind("click");
@@ -18,6 +18,15 @@ function showModal(id, anim, cb) {
     hideModal(id);
     cb(e);
   });
+  if (bindToInput == true) {
+    $("#" + id + " .modal-layout input").eq(0).focus();
+    $("#" + id + " .modal-layout input").keydown(function (e) {
+      if (e.key == "Enter") {
+        hideModal(id);
+        cb(e);
+      }
+    });
+  }
 }
 
 function hideModal(id) {
@@ -27,8 +36,8 @@ function hideModal(id) {
   });
 }
 
-function openSocket() {
-  return io("ws://" + window.location.hostname + ":3001");
+function openSocket(port) {
+  return io("ws://" + window.location.hostname + ":" + port);
 }
 
 function toggleMobileMenu() {
@@ -59,7 +68,7 @@ function updateURLParameter(url, param, paramVal) {
   if (additionalURL) {
     tempArray = additionalURL.split("&");
     for (var i = 0; i < tempArray.length; i++) {
-      if (tempArray[i].split('=')[0] != param) {
+      if (tempArray[i].split("=")[0] != param) {
         newAdditionalURL += temp + tempArray[i];
         temp = "&";
       }
@@ -71,26 +80,33 @@ function updateURLParameter(url, param, paramVal) {
 }
 
 function setPageURL(page) {
-  window.history.replaceState('', '', updateURLParameter(window.location.href, "act", page));
+  window.history.replaceState(
+    "",
+    "",
+    updateURLParameter(window.location.href, "act", page)
+  );
 }
 
 function gotoPage(page) {
   $.get("/auth/permissions", function (perms) {
     if (page == "console" && !perms.includes("console")) {
-      gotoPage("access_blocked")
+      gotoPage("access_blocked");
     } else if (page == "mods" && !perms.includes("plugins")) {
-      gotoPage("access_blocked")
+      gotoPage("access_blocked");
     } else if (page == "file_manager" && !perms.includes("filemanager")) {
-      gotoPage("access_blocked")
-    } else if (page == "server_settings" && !perms.includes("server_settings")) {
-      gotoPage("access_blocked")
+      gotoPage("access_blocked");
+    } else if (
+      page == "server_settings" &&
+      !perms.includes("server_settings")
+    ) {
+      gotoPage("access_blocked");
     } else if (page == "kubek_settings" && !perms.includes("kubek_settings")) {
-      gotoPage("access_blocked")
+      gotoPage("access_blocked");
     } else {
       console.log("[UI]", "Trying to load page:", page);
       queryStringg = window.location.search;
       urlParamss = new URLSearchParams(queryStringg);
-      act = urlParamss.get('act');
+      act = urlParamss.get("act");
       showLoading();
       setPageURL(page);
       $.ajax({
@@ -99,21 +115,29 @@ function gotoPage(page) {
           console.log("[UI]", "We got page content");
           $(".content").html(result);
           socket.emit("update", {
-            type: "servers"
+            type: "servers",
           });
           $("#server-name").text(window.localStorage.selectedServer);
-          $("#server-icon").attr("src", "/server/icon?server=" + window.localStorage.selectedServer);
+          $("#server-icon").attr(
+            "src",
+            "/server/icon?server=" + window.localStorage.selectedServer
+          );
           setTimeout(() => {
             hideLoading();
           }, 200);
         },
         error: function (error) {
-          console.error("[UI]", "Error happend when loading page:", error.status, error.statusText);
-          gotoPage('console');
+          console.error(
+            "[UI]",
+            "Error happend when loading page:",
+            error.status,
+            error.statusText
+          );
+          gotoPage("console");
           setTimeout(() => {
             hideLoading();
           }, 200);
-        }
+        },
       });
       setUnactiveSidebarItem();
       setActiveSidebarItem(page);
@@ -128,7 +152,7 @@ function logoutUser() {
 function gotoPageWithAttr(page, skipcheck, attr) {
   queryString = window.location.search;
   urlParams = new URLSearchParams(queryString);
-  act = urlParams.get('act');
+  act = urlParams.get("act");
   showLoading();
   $.ajax({
     url: "/pages/" + page + ".html" + attr,
@@ -139,11 +163,11 @@ function gotoPageWithAttr(page, skipcheck, attr) {
       }, 200);
     },
     error: function () {
-      gotoPage('console');
+      gotoPage("console");
       setTimeout(() => {
         hideLoading();
       }, 200);
-    }
+    },
   });
   setUnactiveSidebarItem();
   setActiveSidebarItem(page);
@@ -170,10 +194,23 @@ function startServer() {
 function stopServer() {
   showModal("stop-server-modal", "zoomIn", function () {
     $.get("/server/statuses", function (sstat) {
-      if (typeof sstat[window.localStorage.selectedServer] !== "undefined" && typeof sstat[window.localStorage.selectedServer]['stopCommand'] !== "undefined") {
-        $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=" + sstat[window.localStorage.selectedServer]['stopCommand']);
+      if (
+        typeof sstat[window.localStorage.selectedServer] !== "undefined" &&
+        typeof sstat[window.localStorage.selectedServer]["stopCommand"] !==
+          "undefined"
+      ) {
+        $.get(
+          "/server/sendCommand?server=" +
+            window.localStorage.selectedServer +
+            "&cmd=" +
+            sstat[window.localStorage.selectedServer]["stopCommand"]
+        );
       } else {
-        $.get("/server/sendCommand?server=" + window.localStorage.selectedServer + "&cmd=stop");
+        $.get(
+          "/server/sendCommand?server=" +
+            window.localStorage.selectedServer +
+            "&cmd=stop"
+        );
       }
     });
   });
@@ -193,16 +230,16 @@ function killServer() {
 
 function formatUptime(seconds) {
   function padU(s) {
-    return (s < 10 ? '0' : '') + s;
+    return (s < 10 ? "0" : "") + s;
   }
   var hours = Math.floor(seconds / (60 * 60));
-  var minutes = Math.floor(seconds % (60 * 60) / 60);
+  var minutes = Math.floor((seconds % (60 * 60)) / 60);
   var seconds = Math.floor(seconds % 60);
 
-  return padU(hours) + 'h' + padU(minutes) + 'm' + padU(seconds) + 's';
+  return padU(hours) + "h" + padU(minutes) + "m" + padU(seconds) + "s";
 }
 
-const animateCSS = (element, animation, prefix = 'animate__') =>
+const animateCSS = (element, animation, prefix = "animate__") =>
   new Promise((resolve, reject) => {
     const animationName = `${prefix}${animation}`;
     const node = document.querySelector(element);
@@ -211,12 +248,16 @@ const animateCSS = (element, animation, prefix = 'animate__') =>
 
     function handleAnimationEnd(event) {
       event.stopPropagation();
-      node.classList.remove(`${prefix}animated`, animationName, `${prefix}faster`);
-      resolve('Animation ended');
+      node.classList.remove(
+        `${prefix}animated`,
+        animationName,
+        `${prefix}faster`
+      );
+      resolve("Animation ended");
     }
 
-    node.addEventListener('animationend', handleAnimationEnd, {
-      once: true
+    node.addEventListener("animationend", handleAnimationEnd, {
+      once: true,
     });
   });
 
@@ -224,11 +265,11 @@ function convertFileSizeToHuman(size) {
   if (size < 1024) {
     size = size + " B";
   } else if (size < 1024 * 1024) {
-    size = Math.round(size / 1024 * 10) / 10 + " Kb";
+    size = Math.round((size / 1024) * 10) / 10 + " Kb";
   } else if (size >= 1024 * 1024 && size < 1024 * 1024 * 1024) {
-    size = Math.round(size / 1024 / 1024 * 10) / 10 + " Mb";
+    size = Math.round((size / 1024 / 1024) * 10) / 10 + " Mb";
   } else if (size >= 1024 * 1024 * 1024) {
-    size = Math.round(size / 1024 / 1024 / 1024 * 10) / 10 + " Gb";
+    size = Math.round((size / 1024 / 1024 / 1024) * 10) / 10 + " Gb";
   } else {
     size = size + " ?";
   }
@@ -239,16 +280,26 @@ function linkify(inputText) {
   var replacedText, replacePattern1, replacePattern2, replacePattern3;
 
   //URLs starting with http://, https://, or ftp://
-  replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
-  replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+  replacePattern1 =
+    /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+  replacedText = inputText.replace(
+    replacePattern1,
+    '<a href="$1" target="_blank">$1</a>'
+  );
 
   //URLs starting with "www." (without // before it, or it'd re-link the ones done above).
   replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
-  replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2" target="_blank">$2</a>');
+  replacedText = replacedText.replace(
+    replacePattern2,
+    '$1<a href="http://$2" target="_blank">$2</a>'
+  );
 
   //Change email addresses to mailto:: links.
   replacePattern3 = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
-  replacedText = replacedText.replace(replacePattern3, '<a href="mailto:$1">$1</a>');
+  replacedText = replacedText.replace(
+    replacePattern3,
+    '<a href="mailto:$1">$1</a>'
+  );
 
   return replacedText;
 }

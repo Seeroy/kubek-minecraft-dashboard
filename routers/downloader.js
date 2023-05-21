@@ -106,7 +106,7 @@ router.get("/downloadJavaForServer", function (req, res) {
       if (ter <= 4) {
         java = "11";
       } else {
-        java = "18";
+        java = "16";
       }
     } else if (sec >= 17) {
       java = "18";
