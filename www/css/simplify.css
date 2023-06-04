@@ -1,0 +1,79 @@
+html.simplify .blurry-bg-img {
+  display: none;
+  backdrop-filter: blur(0px) !important;
+  filter: blur(0px) !important;
+}
+
+html.simplify #blurry-bg-img-bg {
+  backdrop-filter: blur(0px) !important;
+  filter: blur(0px) !important;
+}
+
+html.simplify .glassmorphed {
+  backdrop-filter: blur(0px) !important;
+}
+
+html.simplify .drawer-backdrop {
+  backdrop-filter: blur(0px) !important;
+}
+
+html.simplify:not(.dark) .glassmorphed {
+  background: #e5e7eb !important;
+}
+
+html.simplify.dark .glassmorphed {
+  background: #4b5563 !important;
+}
+
+html.simplify button.glassmorphed {
+  border: 1px solid rgb(150, 150, 150) !important;
+}
+
+html.simplify:not(.dark) #blurry-bg-img-bg {
+  background: rgba(255, 255, 255, 0.8);
+  opacity: 1;
+}
+
+html.simplify:not(.dark) {
+  background: black;
+}
+
+html.norounded *,
+html.norounded *::after,
+html.norounded *::before {
+  border-radius: 0 !important;
+}
+
+html.nobackdrop .glassmorphed {
+  backdrop-filter: blur(0) contrast(102%) saturate(102%) !important;
+}
+
+html.inter *:not(i),
+html.inter *:not(i):before,
+html.inter *:not(i):after {
+  font-family: 'Inter';
+}
+
+html.sansserif *:not(i),
+html.sansserif *:not(i):before,
+html.sansserif *:not(i):after {
+  font-family: sans-serif;
+}
+
+html.segoeui *:not(i),
+html.segoeui *:not(i):before,
+html.segoeui *:not(i):after {
+  font-family: 'Segoe UI';
+}
+
+html.consolas *:not(i),
+html.consolas *:not(i):before,
+html.consolas *:not(i):after {
+  font-family: 'Consolas';
+}
+
+html.verdana *:not(i),
+html.verdana *:not(i):before,
+html.verdana *:not(i):after {
+  font-family: 'Verdana';
+}

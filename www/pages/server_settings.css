@@ -1,43 +1,7 @@
-.settings-container {
-  padding: 2%;
-  height: 92vh;
+.ssettings-container table td {
+  text-align: end;
 }
 
-/* Main tab */
-#ex1-content .list-group-item {
-  padding: 24px;
-}
-
-#java-versions-radios {
-  margin-left: 16px;
-}
-
-/* Server.properties tab */
-.ttc {
-  margin: 5px;
-  padding: 5px;
-  flex: 0 1 auto;
-}
-
-.ttbb {
-  display: flex;
-  align-items: center;
-}
-
-.ttcc {
-  flex: 0 1 auto;
-}
-
-.ttcc:nth-child(2) {
-  margin-left: 8px;
-}
-
-.btn-secondary {
-  margin-top: 16px;
-  margin-bottom: 16px;
-}
-
-.addtooltip {
-  cursor: help;
-  color: rgba(150, 150, 150);
+.ssettings-container table input[type="text"] {
+  width: 100%;
 }

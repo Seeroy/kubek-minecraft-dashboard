@@ -1,0 +1,25 @@
+<link rel="stylesheet" href="/pages/speditor.css" />
+<script src="/pages/speditor.js"></script>
+
+<div
+  class="speditor-container animate__animated animate__fadeIn animate__faster"
+>
+  <div id="oldc" style="overflow: auto; height: 75vh">
+    <p class="text-3xl font-bold text-black dark:text-white mb-3">
+      {{sp-editor-ss}}
+    </p>
+
+    <div class="overflow-x-auto rounded-lg">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <tbody></tbody>
+      </table>
+    </div>
+    <button
+      type="button"
+      class="mt-3 focus:outline-none text-white bg-purple-700 hover:bg-purple-800 font-medium rounded-lg text-sm px-5 py-3 dark:bg-purple-600 dark:hover:bg-purple-700 btn-lg mr-3"
+      onclick="saveProps()"
+    >
+      {{save}}
+    </button>
+  </div>
+</div>

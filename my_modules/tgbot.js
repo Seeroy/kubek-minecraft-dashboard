@@ -9,6 +9,7 @@ exports.chatIdSave = [];
 exports.rateLimits = {};
 exports.botStarted = false;
 exports.lastStatuses = {};
+exports.selectedServer = {};
 
 exports.startBot = (token) => {
   this.bot = new TelegramBot(token, {
@@ -57,9 +58,9 @@ exports.createBotHandlers = () => {
       ) {
         if (
           cfg["tgbot-chatid"].includes(userId) ||
-          msgText.split(" ")[0] == "/start"
+          msgText.split(" ")[0].toUpperCase() == "/start".toUpperCase()
         ) {
-          if (msgText.split(" ")[0] == "/start") {
+          if (msgText.split(" ")[0].toUpperCase() == "/start".toUpperCase()) {
             if (msgText.split(" ")[1] == otp_tg) {
               if (!cfg["tgbot-chatid"].includes(userId)) {
                 cfg["tgbot-chatid"].push(userId);
@@ -107,7 +108,7 @@ exports.createBotHandlers = () => {
                 "{{tgbot-serverstatuses}}",
                 cfg["lang"]
               ) ||
-            msgText.split(" ")[0] == "/statuses"
+            msgText.split(" ")[0].toUpperCase() == "/statuses".toUpperCase()
           ) {
             msg = "";
             statuses = serverController.getStatuses();
@@ -168,132 +169,19 @@ exports.createBotHandlers = () => {
                 parse_mode: "html",
               }
             );
-          } else if (msgText.split(" ")[0] == "/startServer") {
-            sname = msgText.split(" ")[1];
-            statuses = serverController.getStatuses();
-            if (typeof statuses[sname] !== "undefined") {
-              if (statuses[sname].status == "stopped") {
-                serverController.startServer(sname);
-                this.bot.sendMessage(
-                  chatId,
-                  translator.translateHTML(
-                    "{{tgbot-starting}}" + "<b>" + sname + "</b>",
-                    cfg["lang"]
-                  ),
-                  {
-                    parse_mode: "html",
-                  }
-                );
-              } else {
-                this.bot.sendMessage(
-                  chatId,
-                  translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
-                  {
-                    parse_mode: "html",
-                  }
-                );
-              }
-            } else {
-              this.bot.sendMessage(
-                chatId,
-                translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
-                {
-                  parse_mode: "html",
-                }
-              );
-            }
-          } else if (msgText.split(" ")[0] == "/stopServer") {
-            sname = msgText.split(" ")[1];
-            statuses = serverController.getStatuses();
-            if (typeof statuses[sname] !== "undefined") {
-              if (statuses[sname].status != "stopped") {
-                command = Buffer.from("stop", "utf-8").toString();
-                servers_logs[sname] = servers_logs[sname] + command + "\n";
-                servers_instances[sname].stdin.write(command + "\n");
-
-                this.bot.sendMessage(
-                  chatId,
-                  translator.translateHTML(
-                    "{{tgbot-stopping}}" + "<b>" + sname + "</b>",
-                    cfg["lang"]
-                  ),
-                  {
-                    parse_mode: "html",
-                  }
-                );
-              } else {
-                this.bot.sendMessage(
-                  chatId,
-                  translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
-                  {
-                    parse_mode: "html",
-                  }
-                );
-              }
-            } else {
-              this.bot.sendMessage(
-                chatId,
-                translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
-                {
-                  parse_mode: "html",
-                }
-              );
-            }
-          } else if (msgText.split(" ")[0] == "/restartServer") {
-            sname = msgText.split(" ")[1];
-            statuses = serverController.getStatuses();
-            if (typeof statuses[sname] !== "undefined") {
-              if (statuses[sname].status == "started") {
-                restart_after_stop[sname] = true;
-                command = Buffer.from("stop", "utf-8").toString();
-                servers_logs[sname] = servers_logs[sname] + command + "\n";
-                servers_instances[sname].stdin.write(command + "\n");
-
-                this.bot.sendMessage(
-                  chatId,
-                  translator.translateHTML(
-                    "{{tgbot-restarting}}" + "<b>" + sname + "</b>",
-                    cfg["lang"]
-                  ),
-                  {
-                    parse_mode: "html",
-                  }
-                );
-              } else {
-                this.bot.sendMessage(
-                  chatId,
-                  translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
-                  {
-                    parse_mode: "html",
-                  }
-                );
-              }
-            } else {
-              this.bot.sendMessage(
-                chatId,
-                translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
-                {
-                  parse_mode: "html",
-                }
-              );
-            }
-          } else if (msgText.split(" ")[0] == "/serverLog") {
-            sname = msgText.split(" ")[1];
-            statuses = serverController.getStatuses();
-            if (typeof statuses[sname] !== "undefined") {
-              if (statuses[sname].status != "stopped") {
-                this.bot.sendMessage(
-                  chatId,
-                  translator.translateHTML("{{tgbot-sendinglog}}", cfg["lang"]),
-                  {
-                    parse_mode: "html",
-                  }
-                );
-                log = servers_logs[sname];
-                if (fs.existsSync("./servers/" + sname + "/logs/latest.log")) {
-                  this.bot.sendDocument(
+          } else if (msgText.split(" ")[0].toUpperCase() == "/startServer".toUpperCase()) {
+            if (typeof this.selectedServer[chatId] !== "undefined") {
+              sname = this.selectedServer[chatId];
+              statuses = serverController.getStatuses();
+              if (typeof statuses[sname] !== "undefined") {
+                if (statuses[sname].status == "stopped") {
+                  serverController.startServer(sname);
+                  this.bot.sendMessage(
                     chatId,
-                    "./servers/" + sname + "/logs/latest.log",
+                    translator.translateHTML(
+                      "{{tgbot-starting}}" + "<b>" + sname + "</b>",
+                      cfg["lang"]
+                    ),
                     {
                       parse_mode: "html",
                     }
@@ -301,7 +189,7 @@ exports.createBotHandlers = () => {
                 } else {
                   this.bot.sendMessage(
                     chatId,
-                    translator.translateHTML("{{tgbot-nologs}}", cfg["lang"]),
+                    translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
                     {
                       parse_mode: "html",
                     }
@@ -310,7 +198,7 @@ exports.createBotHandlers = () => {
               } else {
                 this.bot.sendMessage(
                   chatId,
-                  translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
+                  translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
                   {
                     parse_mode: "html",
                   }
@@ -319,46 +207,45 @@ exports.createBotHandlers = () => {
             } else {
               this.bot.sendMessage(
                 chatId,
-                translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
+                translator.translateHTML("{{tgbot-noselectsrv}}", cfg["lang"]),
                 {
                   parse_mode: "html",
                 }
               );
             }
-          } else if (msgText.split(" ")[0] == "/execCommand") {
-            sname = msgText.split(" ")[1];
-            txtspl = msgText.split(" ");
-            var newtxtspl = [];
-            txtspl.forEach(function (elem, i) {
-              if (i > 1) {
-                newtxtspl.push(elem);
-              }
-            });
-            command_text = newtxtspl.join(" ");
-            statuses = serverController.getStatuses();
-            if (typeof statuses[sname] !== "undefined") {
-              if (statuses[sname].status != "stopped") {
-                command = Buffer.from(command_text, "utf-8").toString();
-                servers_logs[sname] = servers_logs[sname] + command + "\n";
-                servers_instances[sname].stdin.write(command + "\n");
+          } else if (msgText.split(" ")[0].toUpperCase() == "/stopServer".toUpperCase()) {
+            if (typeof this.selectedServer[chatId] !== "undefined") {
+              sname = this.selectedServer[chatId];
+              statuses = serverController.getStatuses();
+              if (typeof statuses[sname] !== "undefined") {
+                if (statuses[sname].status != "stopped") {
+                  command = Buffer.from("stop", "utf-8").toString();
+                  servers_logs[sname] = servers_logs[sname] + command + "\n";
+                  servers_instances[sname].stdin.write(command + "\n");
 
-                setTimeout(function () {
-                  line_index = servers_logs[sname]
-                    .split("\n")
-                    .lastIndexOf(command);
-                  line_index - 1;
-                  cmd_response = servers_logs[sname]
-                    .split("\n")
-                    .slice(line_index)
-                    .join("\n");
-                  exports.bot.sendMessage(chatId, cmd_response, {
-                    parse_mode: "html",
-                  });
-                }, 500);
+                  this.bot.sendMessage(
+                    chatId,
+                    translator.translateHTML(
+                      "{{tgbot-stopping}}" + "<b>" + sname + "</b>",
+                      cfg["lang"]
+                    ),
+                    {
+                      parse_mode: "html",
+                    }
+                  );
+                } else {
+                  this.bot.sendMessage(
+                    chatId,
+                    translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
+                    {
+                      parse_mode: "html",
+                    }
+                  );
+                }
               } else {
                 this.bot.sendMessage(
                   chatId,
-                  translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
+                  translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
                   {
                     parse_mode: "html",
                   }
@@ -367,7 +254,197 @@ exports.createBotHandlers = () => {
             } else {
               this.bot.sendMessage(
                 chatId,
-                translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
+                translator.translateHTML("{{tgbot-noselectsrv}}", cfg["lang"]),
+                {
+                  parse_mode: "html",
+                }
+              );
+            }
+          } else if (msgText.split(" ")[0].toUpperCase() == "/restartServer".toUpperCase()) {
+            if (typeof this.selectedServer[chatId] !== "undefined") {
+              sname = this.selectedServer[chatId];
+              statuses = serverController.getStatuses();
+              if (typeof statuses[sname] !== "undefined") {
+                if (statuses[sname].status == "started") {
+                  restart_after_stop[sname] = true;
+                  command = Buffer.from("stop", "utf-8").toString();
+                  servers_logs[sname] = servers_logs[sname] + command + "\n";
+                  servers_instances[sname].stdin.write(command + "\n");
+
+                  this.bot.sendMessage(
+                    chatId,
+                    translator.translateHTML(
+                      "{{tgbot-restarting}}" + "<b>" + sname + "</b>",
+                      cfg["lang"]
+                    ),
+                    {
+                      parse_mode: "html",
+                    }
+                  );
+                } else {
+                  this.bot.sendMessage(
+                    chatId,
+                    translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
+                    {
+                      parse_mode: "html",
+                    }
+                  );
+                }
+              } else {
+                this.bot.sendMessage(
+                  chatId,
+                  translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
+                  {
+                    parse_mode: "html",
+                  }
+                );
+              }
+            } else {
+              this.bot.sendMessage(
+                chatId,
+                translator.translateHTML("{{tgbot-noselectsrv}}", cfg["lang"]),
+                {
+                  parse_mode: "html",
+                }
+              );
+            }
+          } else if (msgText.split(" ")[0].toUpperCase() == "/serverLog".toUpperCase()) {
+            if (typeof this.selectedServer[chatId] !== "undefined") {
+              sname = this.selectedServer[chatId];
+              statuses = serverController.getStatuses();
+              if (typeof statuses[sname] !== "undefined") {
+                if (statuses[sname].status != "stopped") {
+                  this.bot.sendMessage(
+                    chatId,
+                    translator.translateHTML(
+                      "{{tgbot-sendinglog}}",
+                      cfg["lang"]
+                    ),
+                    {
+                      parse_mode: "html",
+                    }
+                  );
+                  log = servers_logs[sname];
+                  if (
+                    fs.existsSync("./servers/" + sname + "/logs/latest.log")
+                  ) {
+                    this.bot.sendDocument(
+                      chatId,
+                      "./servers/" + sname + "/logs/latest.log",
+                      {
+                        parse_mode: "html",
+                      }
+                    );
+                  } else {
+                    this.bot.sendMessage(
+                      chatId,
+                      translator.translateHTML("{{tgbot-nologs}}", cfg["lang"]),
+                      {
+                        parse_mode: "html",
+                      }
+                    );
+                  }
+                } else {
+                  this.bot.sendMessage(
+                    chatId,
+                    translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
+                    {
+                      parse_mode: "html",
+                    }
+                  );
+                }
+              } else {
+                this.bot.sendMessage(
+                  chatId,
+                  translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
+                  {
+                    parse_mode: "html",
+                  }
+                );
+              }
+            } else {
+              this.bot.sendMessage(
+                chatId,
+                translator.translateHTML("{{tgbot-noselectsrv}}", cfg["lang"]),
+                {
+                  parse_mode: "html",
+                }
+              );
+            }
+          } else if (msgText.split(" ")[0].toUpperCase() == "/execCommand".toUpperCase()) {
+            if (typeof this.selectedServer[chatId] !== "undefined") {
+              sname = this.selectedServer[chatId];
+              txtspl = msgText.split(" ");
+              var newtxtspl = [];
+              txtspl.forEach(function (elem, i) {
+                if (i > 1) {
+                  newtxtspl.push(elem);
+                }
+              });
+              command_text = newtxtspl.join(" ");
+              statuses = serverController.getStatuses();
+              if (typeof statuses[sname] !== "undefined") {
+                if (statuses[sname].status != "stopped") {
+                  command = Buffer.from(command_text, "utf-8").toString();
+                  servers_logs[sname] = servers_logs[sname] + command + "\n";
+                  servers_instances[sname].stdin.write(command + "\n");
+
+                  setTimeout(function () {
+                    line_index = servers_logs[sname]
+                      .split("\n")
+                      .lastIndexOf(command);
+                    line_index - 1;
+                    cmd_response = servers_logs[sname]
+                      .split("\n")
+                      .slice(line_index)
+                      .join("\n");
+                    exports.bot.sendMessage(chatId, cmd_response, {
+                      parse_mode: "html",
+                    });
+                  }, 500);
+                } else {
+                  this.bot.sendMessage(
+                    chatId,
+                    translator.translateHTML("{{tgbot-cantdo}}", cfg["lang"]),
+                    {
+                      parse_mode: "html",
+                    }
+                  );
+                }
+              } else {
+                this.bot.sendMessage(
+                  chatId,
+                  translator.translateHTML("{{tgbot-usage}}", cfg["lang"]),
+                  {
+                    parse_mode: "html",
+                  }
+                );
+              }
+            } else {
+              this.bot.sendMessage(
+                chatId,
+                translator.translateHTML("{{tgbot-noselectsrv}}", cfg["lang"]),
+                {
+                  parse_mode: "html",
+                }
+              );
+            }
+          } else if (msgText.split(" ")[0].toUpperCase() == "/selectServer".toUpperCase()) {
+            sname = msgText.split(" ")[1];
+            statuses = serverController.getStatuses();
+            if (typeof statuses[sname] !== "undefined") {
+              this.selectedServer[chatId] = sname;
+              this.bot.sendMessage(
+                chatId,
+                translator.translateHTML("{{tgbot-succsel}}" + sname, cfg["lang"]),
+                {
+                  parse_mode: "html",
+                }
+              );
+            } else {
+              this.bot.sendMessage(
+                chatId,
+                translator.translateHTML("{{tgbot-noserver}}", cfg["lang"]),
                 {
                   parse_mode: "html",
                 }

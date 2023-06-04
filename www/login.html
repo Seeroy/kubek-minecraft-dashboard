@@ -1,65 +1,76 @@
 <head>
   <!-- Meta -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
   <title>Kubek</title>
 
-  <!-- MDB -->
-  <script src="/js/mdb.min.js"></script>
-  <link rel="stylesheet" id="mdbLight" href="/css/mdb.min.css">
-  <link rel="stylesheet" media="none" id="mdbDark" href="/css/mdb.dark.min.css">
-
-  <!-- Theme modes -->
-  <link rel="stylesheet" id="linkLight" href="/css/modes/white.css">
-  <link rel="stylesheet" media="none" id="linkDark" href="/css/modes/dark.css">
+  <!-- Flowbite -->
+  <script src="/js/flowbite.min.js"></script>
+  <link rel="stylesheet" href="/css/flowbite.min.css" />
 
   <!-- Others -->
   <script src="/js/jquery-3.6.0.min.js"></script>
   <link rel="stylesheet" href="/css/animate.min.css" />
-  <link rel="stylesheet" href="/css/toastify.min.css" />
-  <script src="/js/toastify-js.js"></script>
+
+  <script src="js/toastify-js.js"></script>
+  <link rel="stylesheet" href="css/toastify.min.css" />
 
   <!-- Own -->
-  <link rel="stylesheet" href="/css/globals.css" />
   <script src="/js/funcs.js"></script>
+  <link rel="stylesheet" href="/css/globals.css" />
 
   <!-- Icons and font -->
   <link rel="stylesheet" href="/fonts/Inter/stylesheet.css" />
-  <link rel="stylesheet" href="/fonts/MaterialSymbols/stylesheet.css" />
+  <link rel="stylesheet" href="/assets/icons/remixicon.css" />
 </head>
 
-<body class="text-center login-window">
-  <div class="window">
-    <img class="mb-4" style="align-self: start;" src="/assets/icon.png" width="64px">
-    <h3 class="mb-5 w-100" style="text-align: start;">{{auth}}</h3>
+<body>
+  <div class="glassmorphed main-window">
+    <img class="mb-4" src="/assets/icon.png" width="64px" />
+    <h3
+      class="mb-5 w-100 text-white text-3xl font-semibold"
+      style="text-align: start"
+    >
+      {{auth}}
+    </h3>
 
-    <input type="text" id="floatingInput" class="kbk-input w-100" placeholder="{{user}}" />
+    <input
+      type="text"
+      id="floatingInput"
+      class="text-md rounded-lg focus:border-blue-500 block w-full p-3 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:border-blue-500"
+      placeholder="{{user}}"
+    />
 
-    <input type="password" id="floatingPassword" class="kbk-input w-100 mt-4 mb-5" placeholder="{{password}}" />
+    <input
+      type="password"
+      id="floatingPassword"
+      class="mt-3 text-md rounded-lg focus:border-blue-500 block w-full p-3 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:border-blue-500"
+      placeholder="{{password}}"
+    />
 
-    <button class="btn btn-lg btn-primary shadow-0">{{signinbtn-login}}</button>
+    <button
+      class="focus:outline-none text-white font-medium rounded-lg text-md mt-10 w-full py-4 bg-purple-600 hover:bg-purple-700 focus:ring-purple-900"
+      id="signin-btn"
+    >
+      {{signinbtn-login}}
+    </button>
   </div>
+  <!-- Main background image -->
+  <img src="./assets/main-background.png" id="blurry-bg-img" />
+  <!-- Background image overlap -->
+  <div id="blurry-bg-img-bg" class="bg-gray-100 dark:bg-gray-900"></div>
 </body>
 
 <style>
-  html,
-  body {
-    height: 100%;
-    background: white;
-  }
-
-  * {
-    color: black;
-    font-family: 'Inter';
-  }
-
-  .window {
+  .main-window {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
     top: 0;
-    background-color: #f7f7f7;
     width: 24%;
     height: max-content;
     min-height: 350px;
@@ -70,60 +81,21 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    z-index: 2;
   }
 
-  .form-signin {
-    width: 100%;
-    max-width: 330px;
-    padding: 15px;
-    margin: auto;
+  .main-window.glassmorphed {
+    background: rgba(55, 55, 55, 0.5) !important;
   }
 
-  .kubekLogoText {
-    color: black;
-  }
-
-  @media (min-width: 320px) and (max-width: 480px) {
-    .window {
-      width: 100%;
-      height: 100%;
-      border-radius: 0;
-    }
-  }
-
-  @media (min-width: 768px) and (max-width: 1024px) {
-    .window {
-      width: 80%;
-    }
+  #blurry-bg-img {
+    filter: brightness(30%) !important;
   }
 </style>
 
 <script>
   $(document).ready(function () {
-    if (typeof window.localStorage.currentTheme !== "undefined") {
-      if (window.localStorage.currentTheme == "dark") {
-        $("body").addClass("dark");
-        $("#linkDark")[0].media = '';
-        $("#mdbDark")[0].media = '';
-        $("#linkLight")[0].media = 'none';
-        $("#mdbLight")[0].media = 'none';
-      } else if (window.localStorage.currentTheme == "light") {
-        $("body").removeClass("dark");
-        $("#linkDark")[0].media = 'none';
-        $("#mdbDark")[0].media = 'none';
-        $("#linkLight")[0].media = '';
-        $("#mdbLight")[0].media = '';
-      }
-    } else {
-      window.localStorage.setItem("currentTheme", "light");
-      $("body").removeClass("dark");
-      $("#linkDark")[0].media = 'none';
-      $("#mdbDark")[0].media = 'none';
-      $("#linkLight")[0].media = '';
-      $("#mdbLight")[0].media = '';
-    }
-
-    $(".btn").click(function () {
+    $("#signin-btn").click(function () {
       login = $("#floatingInput").val();
       password = $("#floatingPassword").val();
 
@@ -141,11 +113,10 @@
                 position: "center",
                 stopOnFocus: true,
                 style: {
-                  background: "var(--mdb-danger)",
-                }
+                  background: "#E02424",
+                },
               }).showToast();
             } else {
-              $("#autherror").hide();
               window.location = "/";
             }
           },
@@ -159,10 +130,10 @@
               position: "center",
               stopOnFocus: true,
               style: {
-                background: "var(--mdb-warning)",
-              }
+                background: "#E3A008",
+              },
             }).showToast();
-          }
+          },
         },
       });
     });

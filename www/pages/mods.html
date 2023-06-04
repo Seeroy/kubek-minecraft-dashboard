@@ -1,8 +1,3 @@
-<!-- 
-  #installed-plugins-list
-  #installed-mods-list
--->
-
 <link rel="stylesheet" href="/pages/mods.css" />
 <script src="/pages/mods.js"></script>
 
@@ -41,103 +36,54 @@
 </form>
 
 <div
-  class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
-  style="animation-delay: 0.3s; padding-right: 24px"
+  class="mods-container animate__animated animate__fadeIn animate__faster"
 >
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <img class="ms-3" height="32" id="server-icon" />
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <span id="server-name" class="bold-chip"></span>
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <div id="status-circle" class="rounded-circle bg-success"></div>
-    <span id="status-text" class="bold-chip"></span>
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <span class="material-symbols-outlined">groups</span>
-    <span id="status-text" class="bold-chip">{{players}}:</span>
-    <span class="bold-chip" style="margin-left: 4px" id="server-players-count"
-      >{{unknown}}</span
-    >
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <img id="server-version-icon" height="24" />
-    <span class="bold-chip" style="margin-left: 0" id="server-version"
-      >{{unknown}}</span
-    >
-  </div>
-
-  <div class="flex-fill"></div>
-  <div class="d-flex flex-row server-control-flex">
-    <button
-      class="btn btn-danger server-control stopsrv"
-      onclick="stopServer()"
-    >
-      <img src="assets/buttons/stop.png" width="20" height="20" />
-    </button>
-    <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width="20" height="20" />
-    </button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width="20" height="20" />
-    </button>
-    <button
-      class="btn btn-udanger btn-danger server-control killsrv"
-      onclick="killServer()"
-    >
-      <img src="assets/buttons/kill.png" width="20" height="20" />
-    </button>
-    <button class="btn btn-light server-control" disabled>
-      <div class="mat-spinner">
-        <svg viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="20" />
-        </svg>
+  <div
+    id="oldc"
+    style="overflow: auto; height: 75vh"
+    class="flex w-full h-full"
+  >
+    <div class="mr-2 h-full w-full">
+      <div class="flex">
+        <p class="text-3xl font-bold text-black dark:text-white mb-3 grow">
+          {{plugins}}
+        </p>
+        <button
+          type="button" onclick="uploadPlugin()"
+          class="py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none glassmorphed dark:text-gray-400"
+        >
+        <i class="ri-upload-2-line"></i>
+        </button>
       </div>
-    </button>
-  </div>
-</div>
 
-<div
-  class="pluginsandmods-container animate__animated animate__slideInUp animate__faster"
->
-  <div class="row gx-5">
-    <div class="col-md-6">
-      <div class="sub-block pl-blocks card border border-1 shadow-0">
-        <div class="header d-flex flex-row align-items-center">
-          <span class="flex-fill">{{plugins}}</span>
-          <button type="button" class="btn" onclick="uploadPlugin()">
-            {{upload}}
-          </button>
-        </div>
-        <div class="contentt">
-          <ul
-            class="list-group list-group-light flex-fill"
-            id="installed-plugins-list"
-            style="overflow-y: auto"
-          ></ul>
-        </div>
+      <div class="overflow-x-auto rounded-lg animate__animated animate__fadeIn animate__faster mt-3" style="animation-delay: .12s;">
+        <table
+          class="h-full w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <tbody id="installed-plugins-list"></tbody>
+        </table>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="sub-block pl-blocks card border border-1 shadow-0">
-        <div class="header d-flex flex-row align-items-center">
-          <span class="flex-fill">{{mods}}</span>
-          <button type="button" class="btn" onclick="uploadMod()">
-            {{upload}}
-          </button>
-        </div>
-        <div class="contentt">
-          <ul
-            class="list-group list-group-light flex-fill"
-            id="installed-mods-list"
-            style="overflow-y: auto"
-          ></ul>
-        </div>
+
+    <div class="ml-2 h-full w-full">
+      <div class="flex">
+        <p class="text-3xl font-bold text-black dark:text-white mb-3 grow">
+          {{mods}}
+        </p>
+        <button
+          type="button" onclick="uploadMod()"
+          class="py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none glassmorphed dark:text-gray-400"
+        >
+        <i class="ri-upload-2-line"></i>
+        </button>
+      </div>
+
+      <div class="overflow-x-auto rounded-lg animate__animated animate__fadeIn animate__faster mt-3" style="animation-delay: .12s;">
+        <table
+          class="h-full w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <tbody id="installed-mods-list"></tbody>
+        </table>
       </div>
     </div>
   </div>

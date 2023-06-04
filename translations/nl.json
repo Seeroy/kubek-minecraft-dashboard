@@ -16,7 +16,7 @@
   "{{settings}}": "Instellingen",
   "{{success}}": "Met succes",
   "{{error}}": "Fout",
-  "{{accounts}}": "rekeningen",
+  "{{accounts}}": "Rekeningen",
   "{{upload}}": "Uploaden",
   "{{main}}": "Thuis",
   "{{create}}": "Creëren",
@@ -33,6 +33,14 @@
   "{{status}}": "Toestand",
   "{{description}}": "Beschrijving",
   "{{no-description}}": "Geen beschrijving",
+  "{{change-theme}}": "Wissel van thema",
+  "{{disconnect-notify}}": "Verbinding met server verbroken",
+  "{{reconnect-notify}}": "Verbinding met server hersteld",
+
+  "{{sc-start}}": "Starten",
+  "{{sc-stop}}": "Stoppen",
+  "{{sc-restart}}": "Opnieuw opstarten",
+  "{{sc-kill}}": "Geforceerd stoppen",
 
   "{{restart-server-to-see-changes}}": "Start de server opnieuw op om de wijzigingen te zien",
   "{{error-upload}}": "Fout bij uploaden van bestand",
@@ -56,8 +64,8 @@
   "{{openlogs-console}}": "Logboeken bekijken",
 
   "{{dashboard}}": "Startpagina",
-  "{{console}}": "Server-console",
-  "{{plugins-and-mods}}": "Plug-ins en aanpassingen",
+  "{{console}}": "Console",
+  "{{plugins-and-mods}}": "Aanpassingen",
   "{{plugins}}": "Plug-ins",
   "{{mods}}": "Wijzigingen",
   "{{file-manager}}": "Bestandsbeheer",
@@ -111,6 +119,13 @@
   "{{webserver-port-ks}}": "Webserverpoort (80 tot 65500)",
   "{{socket-port-ks}}": "WebSockets-poort (80 tot 65500)",
   "{{fullres-othport-need-ks}}": "Na het wijzigen van poorten is een volledige herstart van Kubek vereist om de wijzigingen door te voeren",
+  "{{simplify-ks}}": "Vereenvoudig het uiterlijk van de webinterface",
+  "{{norounded-ks}}": "Hoekafronding uitschakelen",
+  "{{background-ks}}": "Achtergrond",
+  "{{noblur-ks}}": "Achtergrondvervaging achter transparante elementen uitschakelen",
+  "{{weblook-ks}}": "UI-uiterlijk",
+  "{{blurrange-ks}}": "Hoeveelheid achtergrondonscherpte",
+  "{{font-ks}}": "Lettertype hoofdinterface",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",
@@ -118,7 +133,7 @@
   "{{resonerr-ss}}": "Herstart server bij crash (gecontroleerd door afsluitcode)",
   "{{enter-to-del-ss}}": "Voer de servernaam in om de verwijdering te bevestigen",
   "{{stopcmd-ss}}": "U kunt hier een aangepast afsluitcommando invoeren",
-  "{{resschd-desc-ss}}": "Start de server volgens schema opnieuw op (voer de taak hieronder in <a href='https://github.com/Seeroy/kubek-minecraft-dashboard/blob/main/SCHEDULER_GUIDE.md'>in crontab-formaat<a/>)",
+  "{{resschd-desc-ss}}": "Start de server volgens schema opnieuw op (voer de taak hieronder in <a target='_blank' class='font-medium text-blue-600 dark:text-blue-500 hover:underline' href='https://github.com/Seeroy/kubek-minecraft-dashboard/blob/main/SCHEDULER_GUIDE.md'>in crontab-formaat<a/>)",
   "{{resschd-crontab-input-ss}}": "Voer de tijd in crontab-indeling in",
 
   "{{summary-sysmon}}": "Samenvattende informatie",
@@ -135,8 +150,8 @@
   "{{adips-sysmon}}": "Adapter IP-adressen",
   "{{env-sysmon}}": "Omgevingsvariabelen",
 
-  "{{welcome-msg}}": "Kubek is een Minecraft-serverconfiguratiescherm dat is ontwikkeld met behulp van Node.js en webtechnologieën.",
-  "{{first-server-welcome}}": "Maak je eerste server",
+  "{{welcome-msg}}": "Kubek is een Minecraft-serverconfiguratiescherm dat is ontwikkeld met behulp van Node.js en webtechnologieën.<br><br>Om een ​​server aan te maken, klikt u op de knop met het +-teken in de rechterbovenhoek",
+  "{{first-server-welcome}}": "Maak server",
 
   "{{newupdate-found-1}}": "Een nieuwe update gevonden - ",
   "{{newupdate-found-2}}": "Klik om te downloaden",
@@ -244,7 +259,7 @@
   "{{tgbot-savedchatid}}": "🔒 OTP-code is correct! Nu kun je in elke chat met deze bot werken",
   "{{tgbot-serverstatuses}}": "Serverstatussen",
   "{{tgbot-commands}}": "Teams",
-  "{{tgbot-helpmsg}}": "<b>Beheer servers</b>\n/startServer [servernaam] - <i>Start server</i>\n/stopServer [servernaam] - <i>Stop server</i>\n/restartServer [servernaam] - <i>Herstart server</i>\n/statuses - <i>Serverstatussen</i>\n/help - <i>Dit opdrachtbericht :)</i>\n/serverLog [server name] - <i>Upload nieuwste.log-bestand vanuit servermap</i>\n/execCommand [servernaam] [commando] [argument 1]... - <i>Voer commando uit op server en krijg antwoord< /i >\n\n<code>Kubek",
+  "{{tgbot-helpmsg}}": "<b>Beheer servers</b>\n/selectServer [server naam] - <i>Selecteer een server om te beheren</i>\n/startServer - <i>Start server</i>\n/stopServer - <i>Stop server</i>\n/restartServer - <i>Herstart server</i>\n/statuses - <i>Serverstatussen</i>\n/help - <i>Dit opdrachtbericht :)</i>\n/serverLog - <i>Upload nieuwste.log-bestand vanuit servermap</i>\n/execCommand [commando] [argument 1]... - <i>Voer commando uit op server en krijg antwoord< /i >\n\n<code>Kubek",
   "{{tgbot-usage}}": "❌ Verkeerd commandogebruik",
   "{{tgbot-starting}}": "✅ We starten de server op ",
   "{{tgbot-stopping}}": "⏹️ Stop de server ",
@@ -261,5 +276,8 @@
   "{{tgbot-running-sched-failed}}": "🔔🟡 Server herstart taak mislukt: ",
   "{{tgbot-wait2sec}}": "❗ Wacht 2 seconden voordat u een actie uitvoert",
   "{{tgbot-plsstart}}": "Um mit dem Bot zu arbeiten, müssen Sie sich registrieren /start",
-  "{{tgbot-wrongotp}}": "Ongeldige OTP-code (u kunt deze ophalen in de Kubek-instellingen)"
+  "{{tgbot-wrongotp}}": "Ongeldige OTP-code (u kunt deze ophalen in de Kubek-instellingen)",
+  "{{tgbot-noserver}}": "❗ Zo'n server bestaat niet, gebruik /status om een lijst met servers te krijgen",
+  "{{tgbot-succsel}}": "✅ De geselecteerde server is nu: ",
+  "{{tgbot-noselectsrv}}": "❗U heeft geen server geselecteerd om te beheren, gebruik /selectServer [servernaam] om te selecteren"
 }

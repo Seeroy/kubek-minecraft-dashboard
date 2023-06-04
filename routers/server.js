@@ -184,8 +184,8 @@ router.get("/completion", function (req, res) {
     status: "stopped",
     restartOnError: true,
     stopCommand: "stop",
-    scheludedRestart: {
-      enabled: false,
+    restartScheduler: {
+      enabled: "false",
       crontab: "* * * * *",
     },
   };

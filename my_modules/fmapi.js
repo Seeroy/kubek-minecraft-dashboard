@@ -6,12 +6,12 @@ exports.scanDirectory = (server, directory, cb) => {
     fs.lstatSync("./servers/" + server + "/" + directory).isDirectory()
   ) {
     directory = directory.toString();
-    rd = "./servers/" + server + "/" + directory;
-    fs.readdir(rd, function (err, rd_res) {
+    rdd_path_fm = "./servers/" + server + "/" + directory;
+    fs.readdir(rdd_path_fm, function (err, rd_res) {
       if (typeof rd_res !== "undefined") {
         rd_res_c = [];
         rd_res.forEach((elem) => {
-          path = rd + elem;
+          path = rdd_path_fm + elem;
           stat = fs.lstatSync(path);
           stat.isDirectory() ? (type = "directory") : (type = "file");
           file = {

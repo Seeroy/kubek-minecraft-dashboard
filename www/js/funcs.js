@@ -1,14 +1,3 @@
-/* Loader */
-function showLoading() {
-  $("#loading-overlay").show();
-}
-
-function hideLoading() {
-  $("#loading-overlay").fadeOut(150, function () {
-    $("#loading-overlay").hide();
-  });
-}
-
 /* Modal functions */
 function showModal(id, anim, cb, bindToInput = false) {
   $("#" + id).show();
@@ -19,7 +8,9 @@ function showModal(id, anim, cb, bindToInput = false) {
     cb(e);
   });
   if (bindToInput == true) {
-    $("#" + id + " .modal-layout input").eq(0).focus();
+    $("#" + id + " .modal-layout input")
+      .eq(0)
+      .focus();
     $("#" + id + " .modal-layout input").keydown(function (e) {
       if (e.key == "Enter") {
         hideModal(id);
@@ -88,32 +79,35 @@ function setPageURL(page) {
 }
 
 function gotoPage(page) {
+  animateTopbar(25, 50);
   $.get("/auth/permissions", function (perms) {
+    animateTopbar(90, 50);
     if (page == "console" && !perms.includes("console")) {
       gotoPage("access_blocked");
+      animateTopbar(0, 50);
     } else if (page == "mods" && !perms.includes("plugins")) {
       gotoPage("access_blocked");
+      animateTopbar(0, 50);
     } else if (page == "file_manager" && !perms.includes("filemanager")) {
       gotoPage("access_blocked");
+      animateTopbar(0, 50);
     } else if (
       page == "server_settings" &&
       !perms.includes("server_settings")
     ) {
       gotoPage("access_blocked");
+      animateTopbar(0, 50);
     } else if (page == "kubek_settings" && !perms.includes("kubek_settings")) {
       gotoPage("access_blocked");
+      animateTopbar(0, 50);
     } else {
       console.log("[UI]", "Trying to load page:", page);
-      queryStringg = window.location.search;
-      urlParamss = new URLSearchParams(queryStringg);
-      act = urlParamss.get("act");
-      showLoading();
       setPageURL(page);
       $.ajax({
-        url: "/pages/" + page + ".html" + queryStringg,
+        url: "/pages/" + page + ".html",
         success: function (result) {
           console.log("[UI]", "We got page content");
-          $(".content").html(result);
+          $("#content-place").html(result);
           socket.emit("update", {
             type: "servers",
           });
@@ -122,8 +116,9 @@ function gotoPage(page) {
             "src",
             "/server/icon?server=" + window.localStorage.selectedServer
           );
+          animateTopbar(100, 50);
           setTimeout(() => {
-            hideLoading();
+            animateTopbar(0, 50);
           }, 200);
         },
         error: function (error) {
@@ -133,56 +128,47 @@ function gotoPage(page) {
             error.status,
             error.statusText
           );
+          animateTopbar(0, 15);
           gotoPage("console");
-          setTimeout(() => {
-            hideLoading();
-          }, 200);
         },
       });
-      setUnactiveSidebarItem();
-      setActiveSidebarItem(page);
+      setUnactiveTabMenu();
+      setActiveTabMenuByPage(page);
     }
   });
+}
+
+function animateTopbar(percent, time){
+  $("#topbar div").stop();
+  $("#topbar div").animate({width: percent + "%"}, time);
 }
 
 function logoutUser() {
   window.location = "/auth/logout";
 }
 
-function gotoPageWithAttr(page, skipcheck, attr) {
-  queryString = window.location.search;
-  urlParams = new URLSearchParams(queryString);
-  act = urlParams.get("act");
-  showLoading();
-  $.ajax({
-    url: "/pages/" + page + ".html" + attr,
-    success: function (result) {
-      $(".content").html(result);
-      setTimeout(() => {
-        hideLoading();
-      }, 200);
-    },
-    error: function () {
-      gotoPage("console");
-      setTimeout(() => {
-        hideLoading();
-      }, 200);
-    },
-  });
-  setUnactiveSidebarItem();
-  setActiveSidebarItem(page);
+function setUnactiveTabMenu() {
+  addel = $("#menu-tabs-list li button.active");
+  $(addel).removeClass();
+  $(addel).addClass(
+    "inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+  );
 }
 
-function setUnactiveSidebarItem() {
-  $("#sidebar-menu-list .active").removeClass("active");
-  $("#sidebar-menu-list .active").attr("aria-current", "");
+function setActiveTabMenuByElement(elem) {
+  $(elem).removeClass();
+  $(elem).addClass(
+    "active inline-flex p-4 text-blue-600 border-b-2 border-blue-600 rounded-t-lg active dark:text-blue-500 dark:border-blue-500 group"
+  );
 }
 
-function setActiveSidebarItem(pg) {
-  $("#sidebar-menu-list .list-group-item").each(function () {
+function setActiveTabMenuByPage(pg) {
+  $("#menu-tabs-list li button").each(function () {
     if ($(this).data("page") == pg) {
-      $(this).addClass("active");
-      $(this).attr("aria-current", "true");
+      $(this).removeClass();
+      $(this).addClass(
+        "active inline-flex p-4 text-blue-600 border-b-2 border-blue-600 rounded-t-lg active dark:text-blue-500 dark:border-blue-500 group"
+      );
     }
   });
 }
@@ -192,7 +178,7 @@ function startServer() {
 }
 
 function stopServer() {
-  showModal("stop-server-modal", "zoomIn", function () {
+  showModal("stop-server-modal", "fadeIn", function () {
     $.get("/server/statuses", function (sstat) {
       if (
         typeof sstat[window.localStorage.selectedServer] !== "undefined" &&
@@ -217,13 +203,13 @@ function stopServer() {
 }
 
 function restartServer() {
-  showModal("restart-server-modal", "zoomIn", function () {
+  showModal("restart-server-modal", "fadeIn", function () {
     $.get("/server/restart?server=" + window.localStorage.selectedServer);
   });
 }
 
 function killServer() {
-  showModal("kill-server-modal", "zoomIn", function () {
+  showModal("kill-server-modal", "fadeIn", function () {
     $.get("/server/kill?server=" + window.localStorage.selectedServer);
   });
 }

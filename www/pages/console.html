@@ -1,313 +1,141 @@
-<!-- 
-  main page
-  #status-circle (classes backgrounds mdb)
-  #status-text (Online/Offline/Pending)
-  #server-name
-  #server-version (Paper 1.18.2)
-  #server-ip-addr (127.0.0.1)
-  #server-players-count (cur/max)
-  #server-icon (image)
-  #players-list
-  #usage-memory-pbar (set width and aria-valuenow)
-  #usage-memory-percent (50%)
-  #usage-memory-count (0.5 / 5 GB)
-  #usage-cpu-pbar (set width and aria-valuenow)
-  #usage-cpu-percent (50%)
--->
-
 <link rel="stylesheet" href="/pages/console.css" />
 <script src="/pages/console.js"></script>
 
-<div
-  class="background-image d-flex flex-row animate__animated animate__fadeIn animate__faster"
->
-  <div class="server-capt-div">
-    <img src="/assets/icon.png" height="48" id="server-icon" />
-    <span id="server-name"></span>
-    <button
-      type="button"
-      class="btn"
-      onclick="showModal('edit-server-modal', 'fadeIn', function(){})"
-    >
-      <span class="material-symbols-outlined ms-2 text-white" id="edit-button"
-        >edit</span
-      >
-    </button>
-  </div>
-</div>
-
-<form id="g-img-form" enctype="multipart/form-data">
-  <input
-    name="g-img-input"
-    id="g-img-input"
-    style="
-      position: absolute;
-      left: -2582px;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      z-index: -285;
-    "
-    type="file"
-    accept=".png"
-  />
-</form>
-
-<div class="modal-black-bg" id="edit-server-modal" style="display: none">
-  <div class="modal-layout">
-    <div class="modal-contentt">
-      <div class="d-flex flex-column">
-        <div
-          class="d-flex flex-row align-items-center justify-content-center mb-4"
-        >
-          <div class="icon-changer">
-            <img height="48px" onclick="changeServerIcon()" />
-          </div>
-          <div
-            style="font-size: 12pt; color: rgb(150, 150, 150); margin-left: 8px"
-          >
-            {{use-64-for-better-look-ss}}
-          </div>
-        </div>
-        <input
-          class="kbk-input w-100"
-          placeholder="{{selected-sn-sw}}"
-          id="serverNameModalEdit"
-        />
-        <p class="mt-2 mb-0" style="font-size: 10pt">* {{change-only-sp}}</p>
-      </div>
-
-      <div
-        class="d-flex flex-row align-items-center w-100 justify-content-center mt-3"
-      >
-        <button
-          type="button"
-          class="btn btn-primary clsbtn"
-          onclick="saveServerEdits()"
-        >
-          {{save}}
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary ms-3"
-          onclick="hideModal('edit-server-modal')"
-        >
-          {{cancel}}
-        </button>
+<div class="console-container animate__animated animate__fadeIn animate__faster h-full" style="overflow: hidden;">
+  <!-- Caption -->
+  <h1 class="text-black dark:text-white text-3xl font-bold">{{console}}</h1>
+  <!-- Grid -->
+  <div class="main-console-grid h-full mt-3" style="overflow: hidden;">
+    <!-- Main console window (glassmorphed) -->
+    <div class="main-console glassmorphed flex flex-col" style="overflow: hidden; height: 98%;">
+      <!-- Console content text -->
+      <div id="console-text" class="w-full overflow-y-auto p-3 h-full"></div>
+      <!-- Console footer -->
+      <div class="flex w-full items-center justify-center p-3 py-2">
+        <input type="text" id="command-input" class="w-full text-black dark:text-white mono-console-text"
+          placeholder="{{enter-command-console}}">
       </div>
     </div>
-  </div>
-</div>
+    <!-- Additional blocks list -->
+    <div class="additional-blocks w-full h-full w-20 overflow-y-auto" style="height: 98%;">
 
-<div class="modal-console-props rounded-3" style="display: none">
-  <div class="d-flex flex-row justify-content-center align-items-center">
-    <span class="flex-fill">{{settings}}</span>
-    <button
-      type="button"
-      class="btn-close"
-      aria-label="Close"
-      onclick='$(".modal-console-props").hide();'
-    ></button>
-  </div>
-  <div class="form-check">
-    <input
-      class="form-check-input"
-      checked
-      type="checkbox"
-      value=""
-      id="autoupdateConsoleCheckbox"
-    />
-    <label class="form-check-label" for="autoupdateConsoleCheckbox"
-      >{{autoupdate-console}}</label
-    >
-  </div>
-  <div class="form-check">
-    <input
-      class="form-check-input"
-      checked
-      type="checkbox"
-      value=""
-      id="autoscrollConsoleCheckbox"
-    />
-    <label class="form-check-label" for="autoscrollConsoleCheckbox"
-      >{{autoscroll-console}}</label
-    >
-  </div>
-
-  <p>Размер шрифта</p>
-
-  <div class="form-check">
-    <input
-      class="form-check-input"
-      type="radio"
-      name="ctfontsizeRadio"
-      value="small"
-      id="ctfontsizeRadio_small"
-    />
-    <label class="form-check-label" for="ctfontsizeRadio_small"> small </label>
-  </div>
-  <div class="form-check">
-    <input
-      class="form-check-input"
-      type="radio"
-      name="ctfontsizeRadio"
-      value="medium"
-      id="ctfontsizeRadio_medium"
-    />
-    <label class="form-check-label" for="ctfontsizeRadio_medium">
-      medium
-    </label>
-  </div>
-  <div class="form-check">
-    <input
-      class="form-check-input"
-      type="radio"
-      name="ctfontsizeRadio"
-      value="large"
-      id="ctfontsizeRadio_large"
-    />
-    <label class="form-check-label" for="ctfontsizeRadio_large"> large </label>
-  </div>
-
-  <p></p>
-
-  <div class="form-check">
-    <input
-      class="form-check-input"
-      type="checkbox"
-      value=""
-      id="ctmonofontCheck"
-    />
-    <label class="form-check-label" for="ctmonofontCheck"
-      >{{monofont-console}}</label
-    >
-  </div>
-
-  <p></p>
-
-  <div class="form-check">
-    <input
-      class="form-check-input"
-      type="checkbox"
-      value=""
-      id="ctcpuchartCheck"
-    />
-    <label class="form-check-label" for="ctcpuchartCheck"
-      >{{buildchart-console}}</label
-    >
-  </div>
-</div>
-
-<div
-  class="d-flex flex-row server-info-flex animate__animated animate__fadeInRight animate__faster"
-  style="animation-delay: 0.3s; padding-right: 24px"
->
-  <div class="flex-fill"></div>
-  <div class="d-flex flex-row server-control-flex">
-    <button
-      class="btn btn-danger server-control stopsrv"
-      onclick="stopServer()"
-    >
-      <img src="assets/buttons/stop.png" width="24" height="24" />
-    </button>
-    <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width="24" height="24" />
-    </button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width="24" height="24" />
-    </button>
-    <button
-      class="btn btn-udanger btn-danger server-control killsrv"
-      onclick="killServer()"
-    >
-      <img src="assets/buttons/kill.png" width="24" height="24" />
-    </button>
-    <button class="btn btn-light server-control" disabled>
-      <div class="mat-spinner">
-        <svg viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="20" />
-        </svg>
-      </div>
-    </button>
-  </div>
-</div>
-
-<div
-  class="d-flex flex-row h-100 align-items-center justify-content-center main-layout"
->
-  <div
-    class="console-container animate__animated animate__slideInUp animate__faster h-100"
-  >
-    <div class="sub-block console card border border-1">
-      <div class="contentt" id="console-text"></div>
-      <div class="footer">
-        <div class="d-flex flex-row align-items-center justify-content-center">
-          <span class="me-3 console-icon"> > </span>
-          <input
-            type="text"
-            id="command-input"
-            class="w-100"
-            placeholder="{{enter-command-console}}"
-          />
+      <!-- Server controls additional block -->
+      <div class="w-full glassmorphed px-5 py-3 animate__animated animate__fast animate__fadeInRight"
+        id="server-controls-block" style="animation-delay: .2s;">
+        <div class="flex gap-x-4">
+          <button type="button" id="server-start-btn"
+            class="focus:outline-none text-white bg-green-700 hover:bg-green-800 font-medium rounded-lg text-sm px-1 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 my-2 w-full" onclick="startServer()">{{sc-start}}</button>
+          <button type="button" id="server-stop-btn"
+            class="py-2.5 px-1 text-sm font-medium glassmorphed text-gray-900 focus:outline-none hover:bg-gray-100 hover:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 my-2 w-full" onclick="stopServer()">{{sc-stop}}</button>
+        </div>
+        <div class="flex flex-col">
+          <button type="button" id="server-restart-btn"
+            class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-1 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 my-2 w-full" onclick="restartServer()">{{sc-restart}}</button>
+          <button type="button" id="server-kill-btn"
+            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-1 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 my-2 w-full" onclick="killServer()">{{sc-kill}}</button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div
-    class="sub-block additional-block animate__animated animate__fadeInRight animate__fast"
-  >
-    <div class="header d-flex align-items-center justify-content-center">
-      <div class="d-flex flex-row align-items-center">
-        <div id="status-circle" class="rounded-circle bg-success me-3"></div>
-        <span id="status-text" class="bold-chip"></span>
+      <!-- CPU additional block -->
+      <div class="micro-block w-full glassmorphed px-4 py-2 mt-3 animate__animated animate__fast animate__fadeInRight"
+        id="cpu-block" style="animation-delay: .3s;">
+        <div class="icon glassmorphed text-2xl text-black dark:text-white">
+          <i class="ri-cpu-fill"></i>
+        </div>
+        <div class="label text-black dark:text-white">CPU</div>
+        <div class="progress">
+          <div class="w-full bg-gray-200 rounded-full h-1 dark:bg-gray-500">
+            <div class="h-1 rounded-full" style="width: 0"></div>
+          </div>
+        </div>
+        <div class="percent text-black dark:text-white">{{unknown}}</div>
       </div>
-    </div>
-    <div class="contentt d-flex flex-column">
-      <p
-        class="d-flex flex-row align-items-center list-item"
-        style="margin-bottom: 0 !important"
-      >
-        <span class="material-symbols-outlined me-2">person</span
-        >{{players}}:<span style="margin-left: 4px" id="server-players-count"
-          >{{unknown}}</span
-        >
-      </p>
+
+      <!-- RAM additional block -->
+      <div class="micro-block w-full glassmorphed px-4 py-2 mt-3 animate__animated animate__fast animate__fadeInRight"
+        id="ram-block" style="animation-delay: .4s;">
+        <div class="icon glassmorphed text-2xl text-black dark:text-white">
+          <i class="ri-sd-card-fill"></i>
+        </div>
+        <div class="label text-black dark:text-white">RAM</div>
+        <div class="progress">
+          <div class="w-full bg-gray-200 rounded-full h-1 dark:bg-gray-500">
+            <div class="h-1 rounded-full" style="width: 0;"></div>
+          </div>
+        </div>
+        <div class="percent text-black dark:text-white">{{unknown}}</div>
+      </div>
+
+      <!-- Players additional block -->
       <div
-        class="d-flex flex-wrap align-items-center"
-        id="players-heads-list"
-        style="margin: 10px 0"
-      ></div>
-      <p
-        class="flex-row align-items-center list-item"
-        id="server-version-item"
-        style="display: none"
-      >
-        <img
-          id="server-version-icon"
-          height="24"
-          style="margin-right: 8px"
-        /><span id="server-version">{{unknown}}</span>
-      </p>
-      <p class="d-flex flex-row align-items-center list-item">
-        <span class="material-symbols-outlined me-2">memory</span>CPU:<span
-          style="margin-left: 4px"
-          id="usage-cpu-percent"
-          >{{unknown}}</span
-        >
-      </p>
-      <p class="d-flex flex-row align-items-center list-item">
-        <span class="material-symbols-outlined me-2">memory</span>RAM:<span
-          style="margin-left: 4px"
-          id="usage-memory-text"
-          >{{unknown}}</span
-        >
-      </p>
-      <canvas id="cpu-chart" height="256"></canvas>
-      <div class="flex-fill"></div>
-      <a href="#console-settings" id="console-settings-button"
-        >{{settings-console}}</a
-      >
+        class="micro-block noprogress w-full glassmorphed px-4 py-2 mt-3 animate__animated animate__fast animate__fadeInRight"
+        id="players-block" style="animation-delay: .5s;">
+        <div class="icon glassmorphed text-2xl text-black dark:text-white">
+          <i class="ri-user-3-fill"></i>
+        </div>
+        <div class="label text-black dark:text-white">{{players}}</div>
+        <div class="percent text-black dark:text-white">{{unknown}}</div>
+      </div>
+
+      <!-- Server version additional block -->
+      <div
+        class="micro-block noprogress w-full glassmorphed px-4 py-2 mt-3 animate__animated animate__fast animate__fadeInRight"
+        id="server-ver-block" style="animation-delay: .6s;">
+        <div class="icon glassmorphed text-2xl text-black dark:text-white">
+          <i class="ri-server-fill"></i>
+        </div>
+        <div class="label text-black dark:text-white">{{version}}</div>
+        <div class="percent text-black dark:text-white">{{unknown}}</div>
+      </div>
+
+      <!-- Console settings additional block -->
+      <div class="w-full glassmorphed px-5 py-3 mt-3 animate__animated animate__fast animate__fadeInRight"
+        id="server-ver-block" style="animation-delay: .7s;">
+        <h1 class="text-black dark:text-white text-xl font-bold">Настройки</h1>
+
+        <div class="flex items-center mt-2">
+          <input id="autoupdateConsoleCheckbox" type="checkbox" checked
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="autoupdateConsoleCheckbox"
+            class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300">{{autoupdate-console}}</label>
+        </div>
+
+        <div class="flex items-center mb-2">
+          <input id="autoscrollConsoleCheckbox" type="checkbox" checked
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="autoscrollConsoleCheckbox"
+            class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300">{{autoscroll-console}}</label>
+        </div>
+
+        <h1 class="text-black dark:text-white text-md mb-2">Размер шрифта</h1>
+
+        <div class="flex items-center">
+          <input type="radio" name="ctfontsizeRadio" value="text-sm" id="ctfontsizeRadio_text-sm"
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="ctfontsizeRadio_text-sm" class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"> small
+          </label>
+        </div>
+        <div class="flex items-center">
+          <input type="radio" name="ctfontsizeRadio" value="text-md" id="ctfontsizeRadio_text-md"
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="ctfontsizeRadio_text-md" class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"> medium
+          </label>
+        </div>
+        <div class="flex items-center mb-2">
+          <input type="radio" name="ctfontsizeRadio" value="text-lg" id="ctfontsizeRadio_text-lg"
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="ctfontsizeRadio_text-lg" class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"> large
+          </label>
+        </div>
+
+        <div class="flex items-center mb-1">
+          <input id="ctmonofontCheck" type="checkbox"
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="ctmonofontCheck"
+            class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300">{{monofont-console}}</label>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

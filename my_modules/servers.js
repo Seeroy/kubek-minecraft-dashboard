@@ -17,7 +17,15 @@ var colors = require("colors");
 var oldConsoleStamp = 0;
 
 exports.getStatuses = () => {
-  return config.readServersJSON();
+  rd = config.readServersJSON();
+  newrd = {};
+  Object.keys(rd).forEach(function (key) {
+    rstatus = rd[key]['status'];
+    rtrans = translator.translateHTML("{{status-" + rstatus + "}}", cfg["lang"]);
+    newrd[key] = rd[key];
+    newrd[key]['statusTranslated'] = rtrans;
+  });
+  return newrd;
 };
 
 exports.getStartScript = (name) => {
@@ -355,7 +363,7 @@ exports.startServer = (server) => {
         );
         servers_logs[server] = servers_logs[server] + "\n§bKilled";
       }
-      if (Date.now() - oldConsoleStamp >= 800 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
+      if (Date.now() - oldConsoleStamp >= 400 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
         fsock = io.sockets.sockets;
         for (const socket of fsock) {
           spl = servers_logs[server].split(/\r?\n/).slice(-100);
@@ -383,7 +391,7 @@ exports.startServer = (server) => {
         }
       }
       servers_logs[server] = servers_logs[server] + data.toString();
-      if (Date.now() - oldConsoleStamp >= 800 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
+      if (Date.now() - oldConsoleStamp >= 400 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
         fsock = io.sockets.sockets;
         for (const socket of fsock) {
           spl = servers_logs[server].split(/\r?\n/).slice(-100);
@@ -400,7 +408,7 @@ exports.startServer = (server) => {
       if (
         data.indexOf("Loading libraries, please wait...") >= 0 ||
         data.match(/Advanced terminal features are/gim) ||
-        data.match(/Enabled Waterfall version/gim)
+        data.match(/Enabled Waterfall version/gim) || data.indexOf("Starting Server") >= 0
       ) {
         statuss = "starting";
         tgbot.changedServerStatus(server, statuss);
@@ -414,7 +422,7 @@ exports.startServer = (server) => {
           server.green
         );
       }
-      if (data.indexOf("Listening on /") >= 0) {
+      if (data.indexOf("Listening on /") >= 0 || data.indexOf("Server Started.") >= 0) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
         console.log(
@@ -441,7 +449,7 @@ exports.startServer = (server) => {
           server.green
         );
       }
-      if (data.indexOf("Saving players") >= 0) {
+      if (data.indexOf("Saving players") >= 0 || data.indexOf("Server stop requested.") >= 0) {
         console.log(
           additional.getTimeFormatted(),
           translator.translateHTML("{{consolemsg-stopping}} ", cfg["lang"]) +

@@ -2,649 +2,1584 @@
 
 <head>
   <!-- Meta -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
   <title>Kubek</title>
 
-  <!-- MDB -->
-  <script src="/js/mdb.min.js"></script>
-  <link rel="stylesheet" id="mdbLight" href="/css/mdb.min.css">
-  <link rel="stylesheet" media="none" id="mdbDark" href="/css/mdb.dark.min.css">
-
-  <!-- Theme modes -->
-  <link rel="stylesheet" id="linkLight" href="/css/modes/white.css">
-  <link rel="stylesheet" media="none" id="linkDark" href="/css/modes/dark.css">
+  <!-- Flowbite -->
+  <script src="/js/flowbite.min.js"></script>
+  <link rel="stylesheet" href="/css/flowbite.min.css" />
 
   <!-- Others -->
   <script src="/js/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="/css/animate.min.css" />
   <script src="/js/socket.io.min.js"></script>
-  <script src="/js/popper.min.js"></script>
-  <link rel="stylesheet" href="/css/main.css">
   <script src="/js/mineParse.js"></script>
-
-  <script src="js/sweetalert2.all.min.js"></script>
-  <link rel="stylesheet" href="/css/sweetalert.dark.css">
-
   <script src="js/toastify-js.js"></script>
-  <link rel="stylesheet" href="css/toastify.min.css" />
 
-  <script src="/js/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/css/toastify.min.css" />
+  <link rel="stylesheet" href="/css/animate.min.css" />
 
   <!-- Own -->
-  <link rel="stylesheet" href="/css/globals.css" />
   <script src="/js/funcs.js"></script>
+  <script src="/js/new_server.wizard.js"></script>
+  <script src="/js/simply.functions.js"></script>
   <script src="/js/ui.functions.js"></script>
+  <script src="/main.js"></script>
+
+  <link rel="stylesheet" href="/css/globals.css" />
+  <link rel="stylesheet" href="/main.css" />
+  <link rel="stylesheet" href="/css/simplify.css" id="simplifycss" />
 
   <!-- Icons and font -->
   <link rel="stylesheet" href="/fonts/Inter/stylesheet.css" />
-  <link rel="stylesheet" href="/fonts/MaterialSymbols/stylesheet.css" />
+  <link rel="stylesheet" href="/assets/icons/remixicon.css" />
   <link rel="stylesheet" href="/fonts/RobotoMono/stylesheet.css" />
-
-  <!-- 
-    sidebar items:
-    .kbk-ver
-    #servers-list-sidebar
-    #new-server-button
-  -->
 </head>
 
-<form id="g-sbrk-form" enctype="multipart/form-data">
-  <input name="g-sbrk-input" id="g-sbrk-input"
-    style="position: absolute; left: -2582px; right: 0; top: 0; bottom: 0; z-index: -285;" type="file">
+<form id="g-img-form" enctype="multipart/form-data">
+  <input
+    name="g-img-input"
+    id="g-img-input"
+    style="
+      position: absolute;
+      left: -2582px;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: -285;
+    "
+    type="file"
+    accept=".png"
+  />
 </form>
 
-<div class="card" id="update-process"
-  style="display: none; margin: auto; position: absolute; left: 0; right: 0; top: 0; bottom: 0; width: max-content; height: max-content; z-index: 999999999; min-width: 30%;">
-  <div class="card-body">
-    <p class="card-text">
-      Loading
-    </p>
-    <div class="progress">
-      <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
-        aria-valuemax="100"></div>
-    </div>
-  </div>
-</div>
+<!-- Let`s start it :lol: -->
+<body style="overflow: hidden">
+  <div class="flex flex-col h-screen w-screen">
+    <header>
+      <nav class="bg-white border-gray-200 px-4 lg:px-6 dark:bg-gray-800 py-1">
+        <div class="flex justify-between items-center">
+          <div class="flex justify-start items-center w-full">
+            <!-- Kubek logo -->
+            <div class="flex flex-row items-center justify-center">
+              <div class="p-2">
+                <img src="assets/icon.png" style="height: 32px" />
+              </div>
+              <div
+                class="p-2 ms-3 text-black dark:text-white text-3xl font-semibold"
+              >
+                Kubek
+              </div>
+              <span
+                class="kbk-ver text-gray-700 dark:text-gray-300 text-sm pb-3"
+              ></span>
+            </div>
 
-<div class="modal-black-bg" id="upload-sbrk-modal" style="display: none;">
-  <div class="modal-layout">
-    <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-primary);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">upload_file</span>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center">{{uploading-sbrk-capt}}</p>
-      <p>{{uploading-sbrk-desc}}</p>
+            <!-- Server status badge -->
+            <div class="flex items-center justify-center grow">
+              <span id="status-text"></span>
+            </div>
+          </div>
+          <div class="flex items-center lg:order-2">
+            <!-- Logout button with tooltip -->
+            <a
+              href="#"
+              data-tooltip-target="tooltip-logout"
+              id="logout-button"
+              onclick="window.location='/auth/logout'"
+              class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
+            >
+              <i class="ri-logout-box-line"></i>
+            </a>
+            <div
+              id="tooltip-logout"
+              role="tooltip"
+              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+            >
+              {{logout-account}}
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
 
-      <div class="progress w-100">
-        <div class="progress-bar" role="progressbar" style="width: 75%;" id="upload-sbrk-progress"></div>
-      </div>
-    </div>
-  </div>
-</div>
+            <!-- Kubek Settings button with tooltip -->
+            <a
+              href="#"
+              data-tooltip-target="tooltip-settings"
+              id="kubek-settings-button"
+              class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
+            >
+              <i class="ri-settings-2-fill"></i>
+            </a>
+            <div
+              id="tooltip-settings"
+              role="tooltip"
+              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+            >
+              {{kubek-settings}}
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
 
-<div class="modal-black-bg" id="restart-server-modal" style="display: none;">
-  <div class="modal-layout">
-    <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-warning);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">restart_alt</span>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="text-center">{{really-restart-srv}}</p>
+            <!-- Language button with tooltip and dropdown -->
+            <button
+              type="button"
+              data-tooltip-target="tooltip-language"
+              data-dropdown-toggle="language-dropdown"
+              id="language-dropdown-btn"
+              class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer dark:hover:text-white dark:text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-600 w-10 mr-2"
+            >
+              <img class="h-6 w-6 mt-0.5" src="" />
+            </button>
+            <div
+              id="tooltip-language"
+              role="tooltip"
+              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+            >
+              {{softLang-ks}}
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
+            <!-- Dropdown -->
+            <div
+              class="hidden z-50 my-4 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700"
+              id="language-dropdown"
+            >
+              <ul class="py-1" role="none">
+                <li data-lang="en">
+                  <a
+                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:text-white dark:text-gray-300 dark:hover:bg-gray-600"
+                    role="menuitem"
+                  >
+                    <div class="inline-flex items-center">
+                      <img
+                        src="/assets/flags/en.svg"
+                        style="width: 16px"
+                        class="mr-2"
+                      />
+                      English (US)
+                    </div>
+                  </a>
+                </li>
+                <li data-lang="nl">
+                  <a
+                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
+                    role="menuitem"
+                  >
+                    <div class="inline-flex items-center">
+                      <img
+                        src="/assets/flags/nl.svg"
+                        style="width: 16px"
+                        class="mr-2"
+                      />
+                      Nederlands
+                    </div>
+                  </a>
+                </li>
+                <li data-lang="ru">
+                  <a
+                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
+                    role="menuitem"
+                  >
+                    <div class="inline-flex items-center">
+                      <img
+                        src="/assets/flags/ru.svg"
+                        style="width: 16px"
+                        class="mr-2"
+                      />
+                      Русский
+                    </div>
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
-        <button type="button" class="btn btn-warning clsbtn">{{ok}}</button>
-        <button type="button" class="btn btn-secondary ms-3"
-          onclick="hideModal('restart-server-modal')">{{cancel}}</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="stop-server-modal" style="display: none;">
-  <div class="modal-layout">
-    <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-warning);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">power_settings_new</span>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="text-center">{{really-stop-srv}}</p>
-
-      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
-        <button type="button" class="btn btn-warning clsbtn">{{ok}}</button>
-        <button type="button" class="btn btn-secondary ms-3"
-          onclick="hideModal('stop-server-modal')">{{cancel}}</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="kill-server-modal" style="display: none;">
-  <div class="modal-layout">
-    <div class="modal-icon">
-      <div class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-danger);">
-        <span class="material-symbols-outlined text-white" style="font-size: 32px;">dangerous</span>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="text-center">{{really-kill-srv}}</p>
-
-      <div class="d-flex flex-row align-items-center w-100 justify-content-center">
-        <button type="button" class="btn btn-danger clsbtn">{{ok}}</button>
-        <button type="button" class="btn btn-secondary ms-3"
-          onclick="hideModal('kill-server-modal')">{{cancel}}</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<body>
-  <div class="mobile-header" style="display: none;">
-    <img src="assets/icon.png" height="32">
-    <div class="ms-3 kubekLogoText">Kubek</div>
-    <span class="kbk-ver"></span>
-    <div class="flex-fill"></div>
-    <span class="material-symbols-outlined" onclick="toggleMobileMenu()">menu</span>
-  </div>
-  <div class="d-flex flex-row w-100 h-100">
-    <div class="menuContainer text-body d-flex flex-column">
-      <div class="d-flex flex-row mb-3 align-items-center justify-content-center">
-        <div class="p-2">
-          <img src="assets/icon.png" height="56">
+            <!-- Theme switch with tooltip -->
+            <a
+              id="theme-toggle"
+              data-tooltip-target="tooltip-theme"
+              class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
+            >
+              <svg
+                id="theme-toggle-dark-icon"
+                class="hidden w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                ></path>
+              </svg>
+              <svg
+                id="theme-toggle-light-icon"
+                class="hidden w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </a>
+            <div
+              id="tooltip-theme"
+              role="tooltip"
+              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+            >
+              {{change-theme}}
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
+          </div>
         </div>
-        <div class="p-2 ms-3 kubekLogoText">Kubek</div>
-        <span class="kbk-ver"></span>
-        <div class="flex-fill" style="display: none;"></div>
-        <button type="button" class="btn-close" aria-label="Close" onclick="hideMobileMenu()"
-          style="display: none;"></button>
+      </nav>
+
+      <!-- Tabs menu -->
+      <div class="bg-gray-100 border-gray-200 px-4 lg:px-6 dark:bg-gray-700">
+        <div class="flex flex-wrap justify-between items-center">
+          <div class="border-b border-transparent">
+            <ul
+              class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+              id="menu-tabs-list"
+            >
+              <li class="mr-2">
+                <button
+                  data-page="console"
+                  data-perm="console"
+                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                >
+                  <i
+                    class="ri-terminal-fill w-6 h-6 transition duration-75"
+                  ></i>
+                  <span class="ml-3">{{console}}</span>
+                </button>
+              </li>
+              <li class="mr-2">
+                <button
+                  data-page="file_manager"
+                  data-perm="filemanager"
+                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                >
+                  <i class="ri-folders-fill w-6 h-6 transition duration-75"></i>
+                  <span class="ml-3">{{file-manager}}</span>
+                </button>
+              </li>
+              <li class="mr-2">
+                <button
+                  data-page="mods"
+                  data-perm="plugins"
+                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                >
+                  <i
+                    class="ri-window-2-fill w-6 h-6 transition duration-75"
+                  ></i>
+                  <span class="ml-3">{{plugins-and-mods}}</span>
+                </button>
+              </li>
+              <li class="mr-2">
+                <button
+                  data-page="backups"
+                  data-perm="backups"
+                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                >
+                  <i
+                    class="ri-hard-drive-3-fill w-6 h-6 transition duration-75"
+                  ></i>
+                  <span class="ml-3">{{backups-capt}}</span>
+                </button>
+              </li>
+              <li class="mr-2">
+                <button
+                  data-page="server_settings"
+                  data-perm="server_settings"
+                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                >
+                  <i
+                    class="ri-settings-2-fill w-6 h-6 transition duration-75"
+                  ></i>
+                  <span class="ml-3">{{server-settings}}</span>
+                </button>
+              </li>
+              <li class="mr-2">
+                <button
+                  data-page="speditor"
+                  data-perm="server_settings"
+                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                >
+                  <i
+                    class="ri-list-settings-fill w-6 h-6 transition duration-75"
+                  ></i>
+                  <span class="ml-3">server.properties</span>
+                </button>
+              </li>
+              <li class="mr-2">
+                <button
+                  data-page="sysmon"
+                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                >
+                  <i class="ri-bug-fill w-6 h-6 transition duration-75"></i>
+                  <span class="ml-3">{{system-monitor}}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+          <div class="flex items-center justify-center order-2">
+            <!-- New server button -->
+            <button
+              id="new-server-button"
+              data-drawer-target="new-server-wizard-drawer"
+              data-drawer-show="new-server-wizard-drawer"
+              aria-controls="new-server-wizard-drawer"
+              data-drawer-backdrop="false"
+              onclick="$('.drawer-backdrop').show()"
+              class="text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+              type="button"
+            >
+              <i class="ri-add-line text-xl font-light"></i>
+            </button>
+
+            <!-- Edit server button -->
+            <button
+              id="edit-server-button"
+              onclick="showModal('edit-server-modal', 'fadeIn')"
+              class="ml-2 text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+              type="button"
+            >
+              <i class="ri-edit-box-line text-xl font-light"></i>
+            </button>
+
+            <!-- Servers list open dropdown button -->
+            <button
+              id="servers-list-dropdown"
+              data-dropdown-toggle="servers-list"
+              class="ml-2 text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+              type="button"
+            >
+              <div></div>
+            </button>
+
+            <!-- Servers list dropdown -->
+            <div
+              id="servers-list"
+              class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-60 dark:bg-gray-700 dark:divide-gray-600"
+            >
+              <ul
+                class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200"
+                aria-labelledby="servers-list-dropdown"
+              ></ul>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <ul class="sidenavLayout list-group list-group-light flex-fill" id="sidebar-menu-list"
-        style="overflow-y: auto; margin-bottom: 12px;">
-        <li class="list-group-item px-4 d-flex flex-row align-items-center console-menu-item" data-page="console">
-          <span class="material-symbols-outlined">terminal</span>
-          <span class="ms-2">{{console}}</span>
-        </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center fm-menu-item" data-page="file_manager">
-          <span class="material-symbols-outlined">folder_open</span>
-          <span class="ms-2">{{file-manager}}</span>
-        </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center plugins-menu-item" data-page="mods">
-          <span class="material-symbols-outlined">extension</span>
-          <span class="ms-2">{{plugins-and-mods}}</span>
-        </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center backups-menu-item" data-page="backups">
-          <span class="material-symbols-outlined">cloud_circle</span>
-          <span class="ms-2">{{backups-capt}}</span>
-        </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center serversett-menu-item"
-          data-page="server_settings">
-          <span class="material-symbols-outlined">tune</span>
-          <span class="ms-2">{{server-settings}}</span>
-        </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center kubeksett-menu-item"
-          data-page="kubek_settings">
-          <span class="material-symbols-outlined">settings_applications</span>
-          <span class="ms-2">{{kubek-settings}}</span>
-        </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center" data-page="sysmon">
-          <span class="material-symbols-outlined">monitoring</span>
-          <span class="ms-2">{{system-monitor}}</span>
-        </li>
-        <li class="list-group-item px-4 d-flex flex-row align-items-center logout-account-item" onclick="logoutUser()">
-          <span class="material-symbols-outlined">logout</span>
-          <span class="ms-2">{{logout-account}}</span>
-        </li>
-      </ul>
-
-      <ul class="sidenavLayout list-group list-group-light" id="servers-list-sidebar">
-        <li class="list-group-item px-4 d-flex flex-row align-items-center" id="new-server-button">
-          <span class="material-symbols-outlined">add</span>
-          <span class="ms-2 flex-fill">{{create-server}}</span>
-          <span class="material-symbols-outlined goicon">chevron_right</span>
-        </li>
-      </ul>
-
-      <ul class="nav nav-pills nav-justified mb-3" id="theme-mode-selector">
-        <li class="nav-item">
-          <a class="nav-link lighttheme-button" data-theme="light" data-mdb-toggle="pill"><span
-              class="txt">LIGHT</span><span class="material-symbols-outlined" style="display: none;">sunny</span></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link darktheme-button" data-theme="dark" data-mdb-toggle="pill"><span
-              class="txt">DARK</span><span class="material-symbols-outlined" style="display: none;">dark_mode</span></a>
-        </li>
-      </ul>
-
-      <div class="dropdown">
-        <button class="dropdown-toggle kbk-input" type="button" id="langSelectButton"
-          data-mdb-toggle="dropdown"></button>
-        <ul class="dropdown-menu" id="langSelectMenu">
-          <li><a class="dropdown-item" value="ru" data-lang="ru"><i class="flag flag-ru"></i><span
-                class="langName">Русский</span></a></li>
-          <li><a class="dropdown-item" value="en" data-lang="en"><i class="flag flag-us"></i><span
-                class="langName">English</span></a></li>
-          <li><a class="dropdown-item" value="nl" data-lang="nl"><i class="flag flag-nl"></i><span
-                class="langName">Dutch</span></a></li>
-        </ul>
-      </div>
+    </header>
+    <div
+      class="flex w-full h-full items-center justify-center"
+      style="overflow: hidden"
+    >
+      <main id="content-place" style="width: 70%; height: 90%"></main>
     </div>
-
-    <div class="content flex-fill" style="width: 1vh;"></div>
   </div>
 
-  <div id="loading-overlay" class="w-100 h-100">
-    <div class="spinner-border text-primary" style="width: 5rem; height: 5rem;" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
+  <!-- Main background image -->
+  <img
+    id="blurry-bg-img-1"
+    src="/assets/backgrounds/1.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-2"
+    src="/assets/backgrounds/2.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-3"
+    src="/assets/backgrounds/3.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-4"
+    src="/assets/backgrounds/4.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-5"
+    src="/assets/backgrounds/5.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-6"
+    src="/assets/backgrounds/6.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-7"
+    src="/assets/backgrounds/7.png"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-8"
+    src="/assets/backgrounds/8.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <img
+    id="blurry-bg-img-9"
+    src="/assets/backgrounds/9.jpg"
+    style="display: none"
+    class="blurry-bg-img"
+  />
+  <!-- Background image overlap -->
+  <div id="blurry-bg-img-bg" class="img-1 bg-gray-100 dark:bg-gray-900"></div>
+  <!-- Loading progress bar on top -->
+  <div class="w-full h-1" id="topbar">
+    <div
+      class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 h-1"
+      style="width: 0"
+    ></div>
   </div>
 </body>
 
-<script>
-  console.log("[UI] Starting Kubek UI...");
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-  act = urlParams.get('act');
-  var old = "";
-  var selectedServer = "";
-  var socket = "";
-  var cs = true;
-  var connect_socket_error = false;
-  var old_bl_upd = 10;
+<!-- K SETTINGS MODALS -->
+<!-- ADMIN EDIT MODAL -->
+<div class="modal-black-bg" id="admin-edit-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
+      {{edit-adm-acc-ks}}
+    </h1>
 
-  function updateIsReady() {
-    Toastify({
-      text: "{{newupdate-installed}}",
-      duration: 5000,
-      close: false,
-      gravity: "top",
-      position: "left",
-      stopOnFocus: true,
-      className: "upd-toast",
-      style: {
-        background: "var(--mdb-success)",
-      }
-    }).showToast();
-  }
+    <input
+      type="text"
+      placeholder="{{oldpass-ks}}"
+      class="opassword-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+    />
+    <input
+      type="text"
+      placeholder="{{newpass-ks}}"
+      class="npassword-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+    />
 
-  $(document).ready(function () {
-    animateCSS(".menuContainer", "slideInLeft");
-    $(".menuContainer .list-group-item").click(function () {
-      hideMobileMenu();
-    });
-    const appHeight = () => {
-      const doc = document.documentElement;
-      doc.style.setProperty('--app-height', `${window.innerHeight - 48}px`);
-    }
-    window.addEventListener('resize', appHeight);
-    appHeight();
-    $("#langSelectMenu li").click(function () {
-      newlang = $(this).find("a").data("lang");
-      $.get('/kubek/config', function (data) {
-        data['lang'] = newlang;
-        $.get("/kubek/saveConfig?data=" + encodeURI(JSON.stringify(data)), function (data) {
-          location.reload();
-        });
-      });
-    });
-    $.get("/auth/permissions", function (perms) {
-      if (!perms.includes("console")) {
-        $(".sidenavLayout .console-menu-item").removeClass("d-flex");
-        $(".sidenavLayout .console-menu-item").hide();
-      }
-      if (!perms.includes("plugins")) {
-        $(".sidenavLayout .plugins-menu-item").removeClass("d-flex");
-        $(".sidenavLayout .plugins-menu-item").hide();
-      }
-      if (!perms.includes("filemanager")) {
-        $(".sidenavLayout .fm-menu-item").removeClass("d-flex");
-        $(".sidenavLayout .fm-menu-item").hide();
-      }
-      if (!perms.includes("server_settings")) {
-        $(".sidenavLayout .serversett-menu-item").removeClass("d-flex");
-        $(".sidenavLayout .serversett-menu-item").hide();
-      }
-      if (!perms.includes("kubek_settings")) {
-        $(".sidenavLayout .kubeksett-menu-item").removeClass("d-flex");
-        $(".sidenavLayout .kubeksett-menu-item").hide();
-      }
-      if (!perms.includes("backups")) {
-        $(".sidenavLayout .backups-menu-item").removeClass("d-flex");
-        $(".sidenavLayout .backups-menu-item").hide();
-      }
-    });
-    $.get('/kubek/config', function (data) {
-      $("#langSelectButton").html($("#langSelectMenu li a[value=" + data.lang + "]").html());
-      if (data.auth == false) {
-        $(".sidenavLayout .logout-account-item").removeClass("d-flex");
-        $(".sidenavLayout .logout-account-item").hide();
-      }
-    });
-    if (typeof window.localStorage.currentTheme !== "undefined") {
-      if (window.localStorage.currentTheme == "dark") {
-        $("#theme-mode-selector .darktheme-button").addClass("active");
-        $("body").addClass("dark");
-        $("#linkDark")[0].media = '';
-        $("#mdbDark")[0].media = '';
-        $("#linkLight")[0].media = 'none';
-        $("#mdbLight")[0].media = 'none';
-      } else if (window.localStorage.currentTheme == "light") {
-        $("#theme-mode-selector .lighttheme-button").addClass("active");
-        $("body").removeClass("dark");
-        $("#linkDark")[0].media = 'none';
-        $("#mdbDark")[0].media = 'none';
-        $("#linkLight")[0].media = '';
-        $("#mdbLight")[0].media = '';
-      }
-    } else {
-      window.localStorage.setItem("currentTheme", "light");
-      $("#theme-mode-selector .lighttheme-button").addClass("active");
-      $("body").removeClass("dark");
-      $("#linkDark")[0].media = 'none';
-      $("#mdbDark")[0].media = 'none';
-      $("#linkLight")[0].media = '';
-      $("#mdbLight")[0].media = '';
-    }
-    $("#new-server-button").click(function () {
-      window.location = "/new.server.html";
-    });
+    <div class="flex items-center justify-center mt-3">
+      <button
+        type="button"
+        class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+      >
+        {{save}}
+      </button>
+      <button
+        type="button"
+        onclick="$('#admin-edit-modal').hide()"
+        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+      >
+        {{cancel}}
+      </button>
+    </div>
+  </div>
+</div>
 
-    $.get("/kubek/updates/check", function (upd) {
-      if (upd.found == true) {
-        downloaded = upd.downloaded;
-        $.get("/tasks/progress", function (tasks) {
-          keys = Object.keys(tasks);
-          keys.forEach(function (key) {
-            value = tasks[key];
-            if (key == "update.tmp" && value == "ready" && downloaded == false) {
-              downloaded = true;
-            }
-          });
-          version = upd.url.split("/").pop();
+<!-- NEW ACCOUNT MODAL -->
+<div class="modal-black-bg" id="user-edit-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <h1
+      class="text-black dark:text-white text-2xl font-semibold mb-1"
+      id="user-edit-modal-label"
+    ></h1>
 
-          if (downloaded == false) {
-            Toastify({
-              text: "{{newupdate-found-1}}" + version + "\n" + "{{newupdate-found-2}}",
-              duration: 5000,
-              close: false,
-              gravity: "top",
-              position: "left",
-              stopOnFocus: true,
-              className: "upd-toast",
-              style: {
-                background: "var(--mdb-primary)",
-              },
-              onClick: function () {
-                $(".upd-toast").remove();
-                $.get("/kubek/updates/downloadLatest");
-              }
-            }).showToast();
-          } else {
-            updateIsReady();
-          }
-        });
-      }
-    });
+    <input
+      type="text"
+      placeholder="{{user}}"
+      style="margin-bottom: -8px"
+      class="usrname-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+    />
+    <input
+      type="text"
+      placeholder="E-mail"
+      style="margin-bottom: -8px"
+      class="mail-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+    />
+    <input
+      type="text"
+      placeholder="{{password}}"
+      style="margin-bottom: -8px"
+      class="password-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+    />
+    <p class="passwd-err text-red-500">{{passwd-err-ks}}</p>
+    <label
+      class="relative inline-flex items-center"
+      style="margin-bottom: -8px"
+    >
+      <input
+        type="checkbox"
+        id="serverControlCheckedDisabled"
+        checked
+        disabled
+        class="sr-only peer"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+      ></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+        >{{server-control-ks}}</span
+      >
+    </label>
 
-    $("#sidebar-menu-list .list-group-item").click(function () {
-      if ($("#servers-list-sidebar .list-group-item").length < 2) {
-        $("#sidebar-menu-list").hide();
-        $("#servers-list-sidebar").hide();
-        gotoPage("welcome");
-      } else {
-        pg = $(this).data("page");
-        gotoPage(pg);
-      }
-    });
+    <label
+      class="relative inline-flex items-center cursor-pointer"
+      style="margin-bottom: -8px"
+    >
+      <input
+        type="checkbox"
+        id="consolePermCheckedDisabled"
+        data-perm="console"
+        class="sr-only peer"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+      ></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+        >{{console-acc-ks}}</span
+      >
+    </label>
 
-    $.get('/kubek/version', function (data) {
-      $(".kbk-ver").html(data.replace("v", "").trim());
-    });
+    <label
+      class="relative inline-flex items-center cursor-pointer"
+      style="margin-bottom: -8px"
+    >
+      <input
+        type="checkbox"
+        id="pluginsPermCheckedDisabled"
+        data-perm="plugins"
+        class="sr-only peer"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+      ></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+        >{{sect-acc-ks}} "{{plugins-and-mods}}"</span
+      >
+    </label>
 
-    $.get("/server/statuses", function (data) {
-      for (const [key, value] of Object.entries(data)) {
-        active = "";
-        if (window.localStorage.selectedServer == key) {
-          active = " active";
-        }
-        $("#servers-list-sidebar").prepend(
-          '<li class="list-group-item px-4 d-flex flex-row align-items-center' + active +
-          '" aria-current="true"><img src="/server/icon?server=' + key +
-          '" height="24"><span class="ms-2 flex-fill">' + key + '</span><img src="assets/statuses/' + value
-          .status +
-          '.png" class="server-status" height="24"><span class="material-symbols-outlined goicon">chevron_right</span></li>'
-        );
-      }
-      if (typeof window.localStorage.selectedServer !== "undefined" && thisServerExists(window.localStorage
-          .selectedServer)) {
-        selectedServer = window.localStorage.selectedServer;
-      } else {
-        if ($("#servers-list-sidebar .list-group-item").length >= 2) {
-          thiss = $("#servers-list-sidebar .list-group-item").eq(0);
-          serverName = $(thiss).children("span.ms-2.flex-fill").text();
-          window.localStorage.setItem("selectedServer", serverName);
-          window.location.reload();
-        }
-      }
+    <label
+      class="relative inline-flex items-center cursor-pointer"
+      style="margin-bottom: -8px"
+    >
+      <input
+        type="checkbox"
+        id="filemanPermCheckedDisabled"
+        data-perm="filemanager"
+        class="sr-only peer"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+      ></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+        >{{sect-acc-ks}} "{{file-manager}}"</span
+      >
+    </label>
 
-      $("#servers-list-sidebar .list-group-item").click(function () {
-        if ($(this)[0].id != "new-server-button") {
-          serverName = $(this).children("span.ms-2.flex-fill").text();
-          window.localStorage.setItem("selectedServer", serverName);
-          window.location.reload();
-        }
-      });
+    <label
+      class="relative inline-flex items-center cursor-pointer"
+      style="margin-bottom: -8px"
+    >
+      <input
+        type="checkbox"
+        id="serversettPermCheckedDisabled"
+        data-perm="server_settings"
+        class="sr-only peer"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+      ></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+        >{{sect-acc-ks}} "{{server-settings}}"</span
+      >
+    </label>
 
-      if ($("#servers-list-sidebar .list-group-item").length < 2) {
-        $("#sidebar-menu-list").hide();
-        $("#servers-list-sidebar").hide();
-        gotoPage("welcome");
-      } else {
-        if (typeof act !== "undefined" && act !== "undefined") {
-          console.log("[UI]", "act is not null, trying to load", act);
-          gotoPage(act, true);
-        } else {
-          console.log("[UI]", "act is null, loading console");
-          gotoPage("console", true);
-        }
-      }
-    });
+    <label
+      class="relative inline-flex items-center cursor-pointer"
+      style="margin-bottom: -8px"
+    >
+      <input
+        type="checkbox"
+        id="backupsPermCheckedDisabled"
+        data-perm="backups"
+        class="sr-only peer"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+      ></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+        >{{sect-acc-ks}} "{{backups-capt}}"</span
+      >
+    </label>
 
-    $.get('/kubek/config', function (data) {
-      socket = openSocket(data['socket-port']);
-      afterSocketHandshake();
-      socket.on("disconnect", () => {
-        showLoading();
-        connect_socket_error = true;
-      });
-      socket.on("reconnect", () => {
-        hideLoading();
-        afterSocketHandshake();
-      });
-      socket.on("connect_error", () => {
-        showLoading();
-        connect_socket_error = true;
-      });
-      socket.on("handleServerError", function (arg) {
-        $.get("/kubek/translate?text=" + arg.data, function (text) {
-          Toastify({
-            text: text,
-            duration: 10000,
-            newWindow: true,
-            close: true,
-            gravity: "top",
-            position: "center",
-            stopOnFocus: true,
-            style: {
-              background: "#dc4c64",
-              color: "white",
-            },
-            onClick: function () {}
-          }).showToast();
-        });
-      });
-      socket.on("handleUpdate", function (arg) {
-        type = arg.type;
-        data = arg.data;
-        switch (type) {
-          case "console":
-            if ($(".console-container").length > 0 && data.server == window.localStorage.selectedServer &&
-              $(
-                "#autoupdateConsoleCheckbox").is(":checked")) {
-              split = data.data.split(/\r?\n/);
-              $("#console-text").html("");
+    <label class="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        id="kubeksettPermCheckedDisabled"
+        data-perm="backups"
+        class="sr-only peer"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+      ></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+        >{{sect-acc-ks}} "{{kubek-settings}}"</span
+      >
+    </label>
 
-              split.forEach(function (line) {
-                line = mineParse(line.replaceAll("<", "&lt;")).parsed.innerHTML;
+    <div class="flex items-center justify-center mt-2 buttons-cont">
+      <button
+        type="button"
+        id="logoutAccButton"
+        onclick="regenCurrUserHash()"
+        class="ml-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none"
+      >
+        {{logout-all-ks}}
+      </button>
+      <button
+        type="button"
+        onclick="deleteCurrUserAccount()"
+        class="focus:outline-none text-white bg-yellow-700 hover:bg-yellow-800 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-900"
+      >
+        {{del-acc-ks}}
+      </button>
+    </div>
 
-                htmlObject = document.createElement('div');
-                htmlObject.innerHTML = line;
-                if (htmlObject.firstChild.firstChild != null) {
-                  html_text = htmlObject.firstChild.firstChild.wholeText.replaceAll("<", "&lt;") +
-                    "<br>";
-                  if (htmlObject.firstChild.style.color != "") {
-                    stl = "color:" + htmlObject.firstChild.style.color + ";";
-                  } else {
-                    stl = "";
-                  }
-                  html_text = linkify(html_text);
-                  html_text = "<span style='" + stl + "'>" + html_text + "</span>";
+    <div class="flex items-center justify-center">
+      <button
+        type="button"
+        class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+      >
+        {{save}}
+      </button>
+      <button
+        type="button"
+        onclick="$('#user-edit-modal').hide()"
+        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+      >
+        {{cancel}}
+      </button>
+    </div>
+  </div>
+</div>
 
-                  $("#console-text").html($("#console-text").html() + html_text);
-                }
-              });
-              if ($("#autoscrollConsoleCheckbox").is(":checked")) {
-                $("#console-text").scrollTop($("#console-text")[0].scrollHeight);
-              }
-              hideLoading();
-            }
-            break;
-          case "usage":
-            updateMemoryAndCPUUsage_ui(data);
-            break;
-          case "servers":
-            if (cs == false) {
-              if (data[window.localStorage.selectedServer]['restartOnError'] == true && $(
-                  "#resOnErrCheckbox")
-                .length > 0) {
-                $('#resOnErrCheckbox').prop('checked', true);
-              } else {
-                $('#resOnErrCheckbox').prop('checked', false);
-              }
-              cs = true;
-            }
-            updateServersStatuses_ui(data);
-            break;
-          case "backups_list":
-            if (data == "progress") {
-              cur = new Date().valueOf();
-              if (cur - 1000 > old_bl_upd) {
-                old_bl_upd = cur;
-                if ($("#backups-list").length > 0) {
-                  refreshBackupsList();
-                }
-              }
-            } else {
-              if ($("#backups-list").length > 0) {
-                refreshBackupsList();
-              }
-            }
-            break;
-          case "query":
-            updateServerDataFromQuery_ui(data);
-            break;
-          case "newOTP":
-            if ($(".tgbot-otp").length > 0) {
-              $(".tgbot-otp").val(data);
-            }
-            break;
-          case "downloadTasks":
-            keys = Object.keys(data);
-            keys.forEach(function (key) {
-              value = data[key];
-              if (key == "update.tmp" && value != "ready") {
-                $("#update-process").show();
-                showLoading();
-                $("#update-process .card-text").text("{{downing-core-sw}} update.tmp (" + value + "%)");
-                $("#update-process .progress-bar").css("width", value + "%");
-              } else if (key == "update.tmp" && value == "ready") {
-                $("#update-process").hide();
-                hideLoading();
-                updateIsReady();
-              }
-            });
-            break;
-        }
-      });
+<!-- About OTP -->
+<div class="modal-black-bg" id="about-otp-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-keyboard-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-black dark:text-white">{{tgbot-otp-capt-ks}}</p>
+      <p class="text-black dark:text-white">{{tgbot-otp-desc-ks}}</p>
 
-      console.log("[UI]", "Document is ready and connection is established");
-    });
-  });
+      <button
+        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+      >
+        {{ok}}
+      </button>
+    </div>
+  </div>
+</div>
 
-  $("#theme-mode-selector .nav-link").click(function () {
-    console.log("[UI]", "Changing theme...");
-    th = this;
-    if ($(th).data("theme") == "dark") {
-      window.localStorage.setItem("currentTheme", "dark");
-      $("body").addClass("dark");
-      $("#linkDark")[0].media = '';
-      $("#mdbDark")[0].media = '';
-      $("#linkLight")[0].media = 'none';
-      $("#mdbLight")[0].media = 'none';
-    }
-    if ($(th).data("theme") == "light") {
-      window.localStorage.setItem("currentTheme", "light");
-      $("body").removeClass("dark");
-      $("#linkDark")[0].media = 'none';
-      $("#mdbDark")[0].media = 'none';
-      $("#linkLight")[0].media = '';
-      $("#mdbLight")[0].media = '';
-    }
-  });
+<!-- Kubek turn off alert -->
+<div class="modal-black-bg" id="turnoff-warn-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-shut-down-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-black dark:text-white">{{shutdown-kubek-ks}}</p>
+      <p class="text-black dark:text-white">{{turnoff-warn-ks}}</p>
 
-  function thisServerExists(sn) {
-    r = false;
-    $("#servers-list-sidebar li").each(function () {
-      if ($(this).find(".ms-2").text() == sn) {
-        r = true;
-      }
-    });
-    return r;
-  }
+      <div class="flex flex-row items-center w-100 justify-center mt-3">
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
+        >
+          {{shutdown-kubek-ks}}
+        </button>
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none ms-3"
+          onclick="hideModal('turnoff-warn-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  function uploadSbrk() {
-    $("#g-sbrk-input").trigger('click');
-    $("#g-sbrk-input").off("change");
-    $("#g-sbrk-input").change(function () {
-      showModal("upload-sbrk-modal", "zoomIn");
-      var formData = new FormData($("#g-sbrk-form")[0]);
-      var request = new XMLHttpRequest();
+<!-- Other IP alert -->
+<div class="modal-black-bg" id="othip-need-res-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-cloud-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-black dark:text-white">{{allowintacc-ks}}</p>
+      <p class="text-black dark:text-white">{{fullres-othip-need-ks}}</p>
 
-      request.upload.addEventListener('progress', function (e) {
-        var fileSize = document.getElementById('g-sbrk-input').files[0].size;
+      <button
+        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+      >
+        {{ok}}
+      </button>
+    </div>
+  </div>
+</div>
 
-        if (e.loaded <= fileSize) {
-          var percent = Math.round(e.loaded / fileSize * 100);
-          document.getElementById('upload-sbrk-progress').style.width = percent + '%';
-        }
+<!-- Other port alert -->
+<div class="modal-black-bg" id="othport-need-res-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-cloud-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-black dark:text-white">{{allowintacc-ks}}</p>
+      <p class="text-black dark:text-white">{{fullres-othport-need-ks}}</p>
 
-        if (e.loaded == e.total) {
-          document.getElementById('upload-sbrk-progress').style.width = '100%';
-          console.log("Sborka upload finished");
-        }
-      });
+      <button
+        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+      >
+        {{ok}}
+      </button>
+    </div>
+  </div>
+</div>
 
-      request.open('post', '/upload/with_progress?server=' + window.localStorage.selectedServer);
-      request.timeout = 450000;
-      request.send(formData);
-    });
-  }
-</script>
+<!-- FTP restart alert -->
+<div class="modal-black-bg" id="ftp-need-res-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-shut-down-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-black dark:text-white">{{ftpserver-ks}}</p>
+      <p class="text-black dark:text-white">{{fullres-need-ks}}</p>
+
+      <button
+        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+      >
+        {{ok}}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS SECTION -->
+<!-- Edit server modal -->
+<div class="modal-black-bg" id="edit-server-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-contentt">
+      <div class="flex flex-col">
+        <div class="flex flex-row items-center justify-center mb-4">
+          <div class="icon-changer">
+            <img height="48px" onclick="changeServerIcon()" />
+          </div>
+          <div class="text-black dark:text-white">
+            {{use-64-for-better-look-ss}}
+          </div>
+        </div>
+
+        <input
+          type="text"
+          id="serverNameModalEdit"
+          placeholder="{{selected-sn-sw}}"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        />
+        <p
+          class="mt-2 mb-0 text-gray-800 dark:text-gray-300"
+          style="font-size: 10pt"
+        >
+          * {{change-only-sp}}
+        </p>
+      </div>
+
+      <div class="flex flex-row items-center w-100 justify-center mt-3">
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+          onclick="saveServerEdits()"
+        >
+          {{save}}
+        </button>
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('edit-server-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Restart server alert -->
+<div class="modal-black-bg" id="restart-server-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-yellow-500"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-restart-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="text-center text-black dark:text-white">
+        {{really-restart-srv}}
+      </p>
+
+      <div class="flex items-center w-full justify-center mt-3">
+        <button
+          type="button"
+          class="text-white bg-yellow-600 hover:bg-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-yellow-500 dark:hover:bg-yellow-600 focus:outline-none clsbtn"
+        >
+          {{sc-restart}}
+        </button>
+        <button
+          type="button"
+          class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
+          onclick="hideModal('restart-server-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stop server alert -->
+<div class="modal-black-bg" id="stop-server-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-shut-down-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="text-center text-black dark:text-white">{{really-stop-srv}}</p>
+
+      <div class="flex items-center w-full justify-center mt-3">
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+        >
+          {{sc-stop}}
+        </button>
+        <button
+          type="button"
+          class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
+          onclick="hideModal('stop-server-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Force stop server alert -->
+<div class="modal-black-bg" id="kill-server-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-red-500"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-error-warning-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="text-center text-black dark:text-white">{{really-kill-srv}}</p>
+
+      <div class="flex items-center w-full justify-center mt-3">
+        <button
+          type="button"
+          class="text-white bg-red-600 hover:bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none clsbtn"
+        >
+          {{sc-kill}}
+        </button>
+        <button
+          type="button"
+          class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
+          onclick="hideModal('kill-server-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="drawer-backdrop" style="display: none"></div>
+
+<!-- New server wizard -->
+<div
+  id="new-server-wizard-drawer"
+  class="fixed top-0 left-0 z-40 w-full h-screen max-w-2xl p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
+  tabindex="-1"
+  aria-labelledby="drawer-label"
+  aria-hidden="true"
+>
+  <h5
+    id="drawer-label"
+    class="inline-flex items-center mb-6 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400"
+  >
+    {{first-server-welcome}}
+  </h5>
+  <button
+    type="button"
+    data-drawer-dismiss="new-server-wizard-drawer"
+    aria-controls="new-server-wizard-drawer"
+    onclick="$('.drawer-backdrop').hide()"
+    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+  >
+    <svg
+      aria-hidden="true"
+      class="w-5 h-5"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fill-rule="evenodd"
+        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+        clip-rule="evenodd"
+      ></path>
+    </svg>
+    <span class="sr-only">Close menu</span>
+  </button>
+  <!-- Progress card layout -->
+  <div
+    class="hidden flex flex-col items-center justify-center"
+    id="progress-card"
+    style="height: 80%"
+  >
+    <p class="text-black dark:text-white">Test</p>
+    <div
+      class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700 progress mt-3"
+    >
+      <div
+        class="bg-blue-600 h-2 rounded-full progress-bar"
+        style="width: 45%"
+      ></div>
+    </div>
+    <textarea
+      id="forgeins"
+      disabled
+      style="display: none"
+      class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white mt-2"
+    >
+test text</textarea
+    >
+  </div>
+  <!-- Main form layout -->
+  <div class="main-form">
+    <div class="space-y-4">
+      <!-- Server name -->
+      <div>
+        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
+          {{ns-name-sw}}
+        </p>
+        <input
+          type="text"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          id="server-name-input"
+          placeholder="{{enter-new-sn-sw}}"
+        />
+      </div>
+      <!-- Core properties -->
+      <div>
+        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
+          {{select-core-sw}}
+        </p>
+
+        <select
+          id="core-brands"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        >
+          <option selected disabled>{{select-core-sw}}</option>
+          <option value="paper">Paper</option>
+          <option value="spigot">Spigot</option>
+          <option value="own">{{upload}}</option>
+        </select>
+
+        <select
+          id="core-versions"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mt-3"
+        ></select>
+
+        <form id="g-core-form" enctype="multipart/form-data">
+          <input
+            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 mt-3 hidden"
+            id="g-core-input"
+            name="g-core-input"
+            type="file"
+            accept=".jar"
+          />
+        </form>
+      </div>
+      <!-- Step 2 -->
+      <div>
+        <p
+          class="inline-flex items-center mb-2 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400"
+        >
+          {{finalize-new-sn-sw}}
+        </p>
+        <div
+          class="block mb-3 text-sm font-light text-black dark:text-white"
+          id="srv-ver-detected"
+        ></div>
+      </div>
+      <!-- Java version select -->
+      <div>
+        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
+          Java
+        </p>
+        <select
+          id="java-vers"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        ></select>
+      </div>
+      <!-- Startup command -->
+      <div>
+        <textarea
+          id="fsc"
+          rows="8"
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+        ></textarea>
+      </div>
+      <p
+        class="req-java"
+        style="color: rgb(130, 130, 130); font-size: 11pt"
+      ></p>
+      <!-- Checkboxes and inputs -->
+      <div>
+        <div class="flex items-center">
+          <input
+            checked
+            id="javaOptiflagsCheckbox"
+            type="checkbox"
+            value=""
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+          />
+          <label
+            for="javaOptiflagsCheckbox"
+            class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+            >{{add-opti-java-flags-sw}}</label
+          >
+        </div>
+        <div class="flex items-center mt-2">
+          <input
+            checked
+            id="onlinemodeCheckbox"
+            type="checkbox"
+            value=""
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+          />
+          <label
+            for="onlinemodeCheckbox"
+            class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+            >online-mode</label
+          >
+        </div>
+      </div>
+      <div>
+        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
+          {{memory}} (-Xmx)
+        </p>
+        <input
+          type="number"
+          min="0.5"
+          max="4"
+          step="0.5"
+          id="xmx"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          placeholder="{{memory}} (-Xmx)"
+        />
+      </div>
+      <div>
+        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
+          {{server-port}}
+        </p>
+        <input
+          type="number"
+          value="25565"
+          min="20000"
+          max="65000"
+          step="1"
+          id="serverport"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          placeholder="{{server-port}}"
+        />
+      </div>
+    </div>
+    <!-- Buttons -->
+    <div class="bottom-0 left-0 flex justify-center w-full pb-4 mt-4 space-x-4">
+      <button
+        type="button"
+        onclick="createServerV2()"
+        class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none w-full"
+      >
+        {{create}}
+      </button>
+      <button
+        type="button"
+        disabled
+        class="text-white bg-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 focus:outline-none w-full disabled-btn"
+      >
+        {{create}}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Backup info modal -->
+<div class="modal-black-bg" id="backup-info-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-cloudy-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p
+        class="caption text-2xl font-semibold text-black dark:text-white my-2"
+      ></p>
+      <div class="inner-content text-black dark:text-white my-2"></div>
+
+      <button
+        class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+      >
+        {{ok}}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- New backup modal -->
+<div class="modal-black-bg" id="new-backup-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
+      {{backups-crb-btn}}
+    </h1>
+
+    <input
+      type="text"
+      placeholder="{{backups-backupname}}"
+      style="margin-bottom: -8px"
+      id="bcname-input"
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+    />
+    <input
+      type="text"
+      placeholder="{{backups-backupdesc}}"
+      style="margin-bottom: -8px"
+      id="bcdesc-input"
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+    />
+
+    <label
+      for="steps-range"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >{{backups-compress}}</label
+    >
+    <input
+      type="range"
+      min="0"
+      max="9"
+      id="backupCompressRatio"
+      class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+    />
+    <div class="flex flex-row mb-3" style="margin-top: -12px">
+      <span class="grow text-gray-900 dark:text-white">0</span>
+      <span class="text-gray-900 dark:text-white">9</span>
+    </div>
+
+    <span class="text-gray-900 dark:text-white" style="margin-top: -18px"
+      >{{backups-seltype-capt}}</span
+    >
+
+    <div class="flex items-center" style="margin-top: -16px">
+      <input
+        checked
+        id="backupTypeRadio1"
+        type="radio"
+        value="full"
+        name="backupTypeRadio"
+        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+      />
+      <label
+        for="backupTypeRadio1"
+        class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
+        >{{backups-types-full}}</label
+      >
+    </div>
+    <div class="flex items-center" style="margin-top: -16px">
+      <input
+        id="backupTypeRadio2"
+        type="radio"
+        value="selected"
+        name="backupTypeRadio"
+        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+      />
+      <label
+        for="backupTypeRadio2"
+        class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
+        >{{backups-types-selfiles}}</label
+      >
+    </div>
+
+    <div
+      style="
+        height: max-content;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+      "
+      class="flt-parent px-2"
+    >
+      <table class="table" id="fl-table">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 32px"></th>
+            <th scope="col" style="width: 32px"></th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-center">
+      <button
+        type="button"
+        class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+      >
+        {{save}}
+      </button>
+      <button
+        type="button"
+        onclick="$('#new-backup-modal').hide()"
+        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+      >
+        {{cancel}}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal bottom"
+  id="restoreBackupModal"
+  tabindex="-1"
+  aria-labelledby="restoreBackupModalLabel"
+  aria-hidden="true"
+  data-mdb-backdrop="static"
+  data-mdb-keyboard="false"
+>
+  <div class="modal-dialog modal-frame modal-bottom">
+    <div class="modal-content">
+      <div class="modal-body"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-black-bg" id="ask-restore-backup-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-red-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-cloudy-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <div class="inner-content text-black dark:text-white my-2">
+        {{backup-candestroy}}
+      </div>
+
+      <div class="flex items-center justify-center">
+        <button
+          type="button"
+          class="clsbtn ml-2 text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none"
+        >
+          {{ok}}
+        </button>
+        <button
+          type="button"
+          onclick="$('#ask-restore-backup-modal').hide()"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILE MANAGER MODALS -->
+<div class="modal-black-bg" id="delete-fm-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-red-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-delete-bin-6-fill text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-center text-black dark:text-white mb-3"></p>
+
+      <div class="flex flex-row items-center w-100 justify-center">
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
+        >
+          {{delete}}
+        </button>
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('delete-fm-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-black-bg" id="rename-fm-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-edit-2-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-center text-black dark:text-white mb-3"></p>
+      <input
+        type="text"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
+      />
+
+      <div class="flex flex-row items-center w-100 justify-center">
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+        >
+          {{rename}}
+        </button>
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('rename-fm-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-black-bg" id="newdir-fm-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-folder-add-line text-white font-xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <p class="caption text-center text-black dark:text-white mb-3">
+        {{new-directory-fm}}
+      </p>
+      <input
+        type="text"
+        placeholder="{{new-directory-fm}}"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
+      />
+
+      <div class="flex flex-row items-center w-100 justify-center">
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+        >
+          {{create}}
+        </button>
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('newdir-fm-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILE MANAGER FILES EDIT MODAL -->
+<div class="modal-black-bg" id="newfile-fm-modal" style="display: none">
+  <div
+    class="modal-layout bg-gray-100 dark:bg-gray-900"
+    style="width: 55%; height: max-content"
+  >
+    <div class="header flex flex-row items-center">
+      <input
+        class="w-full bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white"
+        id="nfeModalEdit"
+        autocomplete="off"
+        placeholder="{{newfile-name-fm}}"
+      />
+    </div>
+    <div class="contentt p-3" style="overflow: hidden">
+      <textarea
+        id="newFileEditArea"
+        class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+        spellcheck="false"
+        rows="18"
+        style="overflow-y: auto"
+      ></textarea>
+    </div>
+
+    <div class="flex flex-row items-center w-100 justify-center">
+      <button
+        type="button"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+      >
+        {{save}}
+      </button>
+      <button
+        type="button"
+        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+        onclick="hideModal('newfile-fm-modal')"
+      >
+        {{cancel}}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-black-bg" id="editfile-fm-modal" style="display: none">
+  <div
+    class="modal-layout bg-gray-100 dark:bg-gray-900"
+    style="width: 55%; height: max-content"
+  >
+    <div class="header flex flex-row items-center">
+      <span
+        class="text-black dark:text-white text-2xl"
+        id="feModalLabel"
+      ></span>
+    </div>
+    <div class="contentt p-3" style="overflow: hidden">
+      <textarea
+        id="fileEditArea"
+        class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+        spellcheck="false"
+        rows="18"
+        style="overflow-y: auto"
+      ></textarea>
+    </div>
+
+    <div class="flex flex-row items-center w-100 justify-center">
+      <button
+        type="button"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+      >
+        {{save}}
+      </button>
+      <button
+        type="button"
+        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+        onclick="hideModal('editfile-fm-modal')"
+      >
+        {{cancel}}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="editModalBg" style="display: none" id="feModal">
+  <div class="sub-block console card border border-1 shadow-0">
+    <div class="header flex flex-row items-center">
+      <span class="grow" id="feModalLabel"></span>
+    </div>
+    <div class="contentt p-3" style="overflow: hidden">
+      <textarea
+        id="fileEditArea"
+        class="w-100 h-100"
+        spellcheck="false"
+        style="overflow-y: auto"
+      ></textarea>
+    </div>
+    <div class="footer flex items-center justify-content-end">
+      <button
+        type="button"
+        class="btn btn-teritary"
+        onclick="$('#feModal').hide()"
+      >
+        {{cancel}}
+      </button>
+      <button
+        type="button"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+        onclick="saveFile(); $('#feModal').hide()"
+      >
+        {{save}}
+      </button>
+    </div>
+  </div>
+</div>

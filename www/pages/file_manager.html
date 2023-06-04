@@ -1,247 +1,6 @@
-<!--
-  #breadcrumb-fm
-  #fm-table
-  #create-new-folder-button
-  #upload-file-button
--->
-
 <link rel="stylesheet" href="/pages/file_manager.css" />
 <script src="/pages/file_manager.js"></script>
 <script src="/js/datefactory.js"></script>
-
-<div class="modal-black-bg" id="delete-fm-modal" style="display: none">
-  <div class="modal-layout">
-    <div class="modal-icon">
-      <div
-        class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-danger)"
-      >
-        <span
-          class="material-symbols-outlined text-white"
-          style="font-size: 32px"
-          >delete</span
-        >
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center"></p>
-
-      <div
-        class="d-flex flex-row align-items-center w-100 justify-content-center"
-      >
-        <button type="button" class="btn btn-danger clsbtn">{{delete}}</button>
-        <button
-          type="button"
-          class="btn btn-secondary ms-3"
-          onclick="hideModal('delete-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="rename-fm-modal" style="display: none">
-  <div class="modal-layout">
-    <div class="modal-icon">
-      <div
-        class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-primary)"
-      >
-        <span
-          class="material-symbols-outlined text-white"
-          style="font-size: 32px"
-          >edit_square</span
-        >
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center"></p>
-      <input type="text" placeholder="" class="kbk-input w-100 mb-3" />
-
-      <div
-        class="d-flex flex-row align-items-center w-100 justify-content-center"
-      >
-        <button type="button" class="btn btn-primary clsbtn">{{rename}}</button>
-        <button
-          type="button"
-          class="btn btn-secondary ms-3"
-          onclick="hideModal('rename-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="newdir-fm-modal" style="display: none">
-  <div class="modal-layout">
-    <div class="modal-icon">
-      <div
-        class="rounded-circle d-flex align-items-center justify-content-center"
-        style="width: 64px; height: 64px; background: var(--mdb-primary)"
-      >
-        <span
-          class="material-symbols-outlined text-white"
-          style="font-size: 32px"
-          >create_new_folder</span
-        >
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center"></p>
-      <input type="text" placeholder="" class="kbk-input w-100 mb-3" />
-
-      <div
-        class="d-flex flex-row align-items-center w-100 justify-content-center"
-      >
-        <button type="button" class="btn btn-primary clsbtn">{{create}}</button>
-        <button
-          type="button"
-          class="btn btn-secondary ms-3"
-          onclick="hideModal('newdir-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="bdf" style="display: none">
-  <div class="card" id="isremoving-card" style="display: none">
-    <div class="card-body">
-      <p class="card-text"></p>
-    </div>
-  </div>
-</div>
-
-<div
-  class="d-flex flex-row server-info-header animate__animated animate__fadeInDown animate__faster"
-  style="animation-delay: 0.3s; padding-right: 24px"
->
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <img class="ms-3" height="32" id="server-icon" />
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <span id="server-name" class="bold-chip"></span>
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <div id="status-circle" class="rounded-circle bg-success"></div>
-    <span id="status-text" class="bold-chip"></span>
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <span class="material-symbols-outlined">groups</span>
-    <span id="status-text" class="bold-chip">{{players}}:</span>
-    <span class="bold-chip" style="margin-left: 4px" id="server-players-count"
-      >{{unknown}}</span
-    >
-  </div>
-
-  <div class="chip-nb d-flex flex-row align-items-center">
-    <img id="server-version-icon" height="24" />
-    <span class="bold-chip" style="margin-left: 0" id="server-version"
-      >{{unknown}}</span
-    >
-  </div>
-
-  <div class="flex-fill"></div>
-  <div class="d-flex flex-row server-control-flex">
-    <button
-      class="btn btn-danger server-control stopsrv"
-      onclick="stopServer()"
-    >
-      <img src="assets/buttons/stop.png" width="20" height="20" />
-    </button>
-    <button class="btn btn-success server-control" onclick="startServer()">
-      <img src="assets/buttons/start.png" width="20" height="20" />
-    </button>
-    <button class="btn btn-warning server-control" onclick="restartServer()">
-      <img src="assets/buttons/restart.png" width="20" height="20" />
-    </button>
-    <button
-      class="btn btn-udanger btn-danger server-control killsrv"
-      onclick="killServer()"
-    >
-      <img src="assets/buttons/kill.png" width="20" height="20" />
-    </button>
-    <button class="btn btn-light server-control" disabled>
-      <div class="mat-spinner">
-        <svg viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="20" />
-        </svg>
-      </div>
-    </button>
-  </div>
-</div>
-
-<div class="editModalBg" style="display: none" id="nfeModal">
-  <div class="sub-block console card border border-1 shadow-0">
-    <div class="header d-flex flex-row align-items-center">
-      <input
-        class="kbk-input w-100"
-        id="nfeModalEdit"
-        autocomplete="off"
-        placeholder="{{newfile-name-fm}}"
-      />
-    </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="newFileEditArea"
-        class="w-100 h-100"
-        spellcheck="false"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-    <div class="footer d-flex align-items-center justify-content-end">
-      <button
-        type="button"
-        class="btn btn-teritary"
-        onclick="$('#nfeModal').hide()"
-      >
-        {{cancel}}
-      </button>
-      <button type="button" class="btn btn-primary">{{create}}</button>
-    </div>
-  </div>
-</div>
-
-<div class="editModalBg" style="display: none" id="feModal">
-  <div class="sub-block console card border border-1 shadow-0">
-    <div class="header d-flex flex-row align-items-center">
-      <span class="flex-fill" id="feModalLabel"></span>
-    </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="fileEditArea"
-        class="w-100 h-100"
-        spellcheck="false"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-    <div class="footer d-flex align-items-center justify-content-end">
-      <button
-        type="button"
-        class="btn btn-teritary"
-        onclick="$('#feModal').hide()"
-      >
-        {{cancel}}
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary"
-        onclick="saveFile(); $('#feModal').hide()"
-      >
-        {{save}}
-      </button>
-    </div>
-  </div>
-</div>
 
 <form id="g-file-form" enctype="multipart/form-data">
   <input
@@ -260,13 +19,15 @@
   />
 </form>
 
-<div class="fm_container animate__animated animate__slideInUp animate__faster">
-  <div class="sub-block console card border border-1 shadow-0">
-    <div class="header d-flex flex-row align-items-center">
-      <span class="flex-fill">{{file-manager}}</span>
+<div class="fm-container animate__animated animate__fadeIn animate__faster">
+  <div id="oldc" style="overflow: auto; height: 75vh">
+    <div class="flex justify-center">
+      <p class="text-3xl font-bold text-black dark:text-white mb-3 grow">
+        {{file-manager}}
+      </p>
       <button
         type="button"
-        class="btn btn-secondary h-100"
+        class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm px-5 py-2.5 mr-2 focus:outline-none"
         onclick="newFileFM()"
         style="margin-right: 10px"
       >
@@ -274,66 +35,127 @@
       </button>
       <button
         type="button"
-        class="btn btn-primary"
+        class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm px-5 py-2.5 mr-2 focus:outline-none"
         onclick="refreshDir()"
         style="margin-right: 10px"
       >
-        <span class="material-symbols-outlined">autorenew</span>
+        <i class="ri-refresh-line text-xl"></i>
       </button>
       <button
         type="button"
-        class="btn btn-primary"
+        class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm px-5 py-2.5 mr-2 focus:outline-none"
         onclick="newdirFM()"
         style="margin-right: 10px"
       >
-        <span class="material-symbols-outlined">create_new_folder</span>
+        <i class="ri-folder-add-line text-xl"></i>
       </button>
       <button
         type="button"
-        class="btn btn-primary"
+        class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm px-5 py-2.5 mr-2 focus:outline-none"
         onclick="uploadFM()"
         title="{{upload}}"
       >
-        <span class="material-symbols-outlined">publish</span>
+        <i class="ri-upload-2-line text-xl"></i>
       </button>
     </div>
-    <div class="contentt">
-      <div class="d-flex flex-row">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb" id="breadcrumb-fm"></ol>
-        </nav>
-      </div>
 
-      <div class="multiply-select" style="display: none">
-        <div class="d-flex flex-row align-items-center">
-          <button
-            class="btn-close me-3"
-            onclick="unselectAllCheckboxes(); syncMultiplyFilesCount();"
-          ></button>
-          <span class="count flex-fill">1 files</span>
-          <button class="btn btn-danger" onclick="deleteAllSelected()">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </div>
+    <div class="multiply-select px-3 py-3 glassmorphed" style="display: none">
+      <div class="flex items-center">
+        <button
+          class="p-2 px-3 glassmorphed text-black dark:text-white mr-3"
+          onclick="unselectAllCheckboxes(); syncMultiplyFilesCount();"
+        >
+          <i class="ri-close-line"></i>
+        </button>
+        <span class="count grow text-black dark:text-white"></span>
+        <button
+          class="focus:outline-none text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700"
+          onclick="deleteAllSelected()"
+        >
+          <div class="flex items-center justify-center">
+            <i class="ri-delete-bin-6-fill mr-2"></i><span>{{delete}}</span>
+          </div>
+        </button>
       </div>
+    </div>
 
-      <table class="table" id="fm-table">
-        <thead>
+    <nav class="flex my-3" aria-label="Breadcrumb">
+      <ol
+        class="inline-flex items-center space-x-1 md:space-x-3"
+        id="breadcrumb-fm"
+      ></ol>
+    </nav>
+
+    <div class="overflow-x-auto rounded-lg">
+      <table
+        class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        id="fm-table"
+      >
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        >
           <tr>
             <th
               scope="col"
-              style="width: 32px; height: 24px; padding: 0.8em 1.45em"
+              class="px-6 py-3"
+              style="max-width: 64px; width: 64px"
             >
-              <input class="fsboxes" type="checkbox" id="fsbox_all" />
+              <input
+                class="fsboxes"
+                type="checkbox"
+                style="height: 26px; width: 26px"
+                id="fsbox_all"
+              />
             </th>
-            <th scope="col" style="width: 32px"></th>
-            <th scope="col">{{tb-filename-fm}}</th>
-            <th scope="col">{{tb-modifydate-fm}}</th>
-            <th scope="col">{{tb-size-fm}}</th>
-            <th scope="col"></th>
+            <th
+              scope="col"
+              class="px-6 py-3"
+              style="width: 32px !important"
+            ></th>
+            <th scope="col" class="px-6 py-3">{{tb-filename-fm}}</th>
+            <th scope="col" class="px-6 py-3">{{tb-modifydate-fm}}</th>
+            <th scope="col" class="px-6 py-3">{{tb-size-fm}}</th>
+            <th scope="col" class="px-6 py-3"></th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+          <tr class="bg-white dark:bg-gray-800 glassmorphed">
+            <th
+              scope="row"
+              class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+            >
+              <div class="flex items-center">
+                <i class="ri-information-line text-xl"></i>
+                <span style="margin-left: 16px">Kubek Uptime</span>
+              </div>
+            </th>
+            <td class="px-6 py-4" id="kubek-uptime">{{unknown}}</td>
+          </tr>
+          <tr class="bg-white dark:bg-gray-800 glassmorphed">
+            <th
+              scope="row"
+              class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+            >
+              <div class="flex items-center">
+                <i class="ri-information-line text-xl"></i>
+                <span style="margin-left: 16px">{{os-sysmon}}</span>
+              </div>
+            </th>
+            <td class="px-6 py-4" id="os-name">{{unknown}}</td>
+          </tr>
+          <tr class="bg-white dark:bg-gray-800 glassmorphed">
+            <th
+              scope="row"
+              class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+            >
+              <div class="flex items-center">
+                <i class="ri-information-line text-xl"></i>
+                <span style="margin-left: 16px">{{osbuild-sysmon}}</span>
+              </div>
+            </th>
+            <td class="px-6 py-4" id="os-build">{{unknown}}</td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>

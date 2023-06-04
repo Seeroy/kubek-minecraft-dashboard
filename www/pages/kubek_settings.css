@@ -1,54 +1,7 @@
-.k-settings-container {
-  padding: 2%;
-  height: 92vh;
+.ksettings-container table td {
+  text-align: end;
 }
 
-.k-settings-container .list-group-item {
-  padding: 16px 24px;
-}
-
-.k-settings-container .list-group-item .caption {
-  margin-left: 12px;
-}
-
-#users-list .card {
-  cursor: pointer;
-  height: 100%;
-}
-
-#users-list .col-xl-4.col-lg-6 {
-  margin-top: 10px;
-}
-
-#users-list .card .card-body {
-  display: flex;
-}
-
-.addtooltip {
-  cursor: help;
-  color: rgba(150, 150, 150);
-}
-
-#tgbot-token-item,
-#tgbot-otp-item {
-  display: flex;
-}
-
-.input-bg.showing-pass .material-symbols-outlined.showpass {
-  color: var(--mdb-primary);
-}
-
-.input-bg .material-symbols-outlined {
-  cursor: pointer;
-  user-select: none;
-}
-
-.input-bg {
-  padding: 0 !important;
-  display: flex;
-}
-
-.k-settings-container li .material-symbols-outlined {
-  font-size: 32px;
-  padding: 8px;
+.ksettings-container table input {
+  width: 100%;
 }

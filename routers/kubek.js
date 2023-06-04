@@ -198,6 +198,13 @@ router.get("/support-uid", function (req, res) {
   res.send(statsCollector.supportUID());
 });
 
+router.get("/socket-port", function (req, res) {
+  perms = auth_manager.getUserPermissions(req);
+  cfg = config.readConfig();
+  jsn = {port: cfg['socket-port']};
+  res.json(jsn);
+});
+
 router.get("/config", function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {

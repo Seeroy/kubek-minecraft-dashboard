@@ -3,11 +3,11 @@ $(document).ready(function () {
     for (var key in hw.enviroment) {
       value = hw.enviroment[key];
       $("#env-table tbody").append(
-        '<tr><th style="text-align:left;">' +
+        '<tr class="bg-white dark:bg-gray-800 glassmorphed"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           key +
-          '</th><td style="text-align:right;">' +
+          '</th><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           value +
-          "</td></tr>"
+          "</th></tr>"
       );
     }
 
@@ -15,14 +15,14 @@ $(document).ready(function () {
     netkeys.forEach(function (key, i) {
       value = hw.networkInterfaces[key];
       html =
-        "<tr><td style='vertical-align: middle;'>" +
+        '<tr class="bg-white dark:bg-gray-800 glassmorphed"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
         key +
-        "</td><td><div class='d-flex flex-column justify-content-center'>";
+        '</th><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"><div class="flex flex-col justify-center">';
       value.forEach(function (inner) {
         html =
           html + "<span>" + inner.address + " (" + inner.family + ")</span>";
       });
-      html = html + "</div></td></tr>";
+      html = html + "</div></th></tr>";
       $("#networks-table").append(html);
     });
 
@@ -43,17 +43,17 @@ $(document).ready(function () {
       free = convertFileSizeToHuman(free);
       percent = disk["_capacity"];
       $("#disks-table tbody").append(
-        "<tr><td>" +
+        '<tr class="bg-white dark:bg-gray-800 glassmorphed"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           letter +
-          "</td><td>" +
+          '</th><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           used +
-          "</td><td>" +
+          '</th><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           free +
-          "</td><td>" +
+          '</th><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           total +
-          "</td><td>" +
+          '</th><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           percent +
-          "</td></tr>"
+          '</th></tr>'
       );
     });
     $("#os-name").text(hw.platform.version + " (" + hw.platform.arch + ")");

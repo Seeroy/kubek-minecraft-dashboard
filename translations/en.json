@@ -33,6 +33,14 @@
   "{{status}}": "Status",
   "{{description}}": "Description",
   "{{no-description}}": "There is no description",
+  "{{change-theme}}": "Switch theme",
+  "{{disconnect-notify}}": "Connection to server lost",
+  "{{reconnect-notify}}": "Connection to server re-established",
+
+  "{{sc-start}}": "Start",
+  "{{sc-stop}}": "Stop",
+  "{{sc-restart}}": "Restart",
+  "{{sc-kill}}": "Force stop",
 
   "{{restart-server-to-see-changes}}": "Restart the server to see the changes",
   "{{error-upload}}": "File upload error",
@@ -56,8 +64,8 @@
   "{{openlogs-console}}": "Logs viewer",
 
   "{{dashboard}}": "Dashboard",
-  "{{console}}": "Server Console",
-  "{{plugins-and-mods}}": "Plugins and modifications",
+  "{{console}}": "Console",
+  "{{plugins-and-mods}}": "Modifications",
   "{{plugins}}": "Plugins",
   "{{mods}}": "Modifications",
   "{{file-manager}}": "File manager",
@@ -113,6 +121,13 @@
   "{{webserver-port-ks}}": "Web Server Port (80 to 65500)",
   "{{socket-port-ks}}": "WebSockets Port (80 to 65500)",
   "{{fullres-othport-need-ks}}": "After changing ports, a full restart of Kubek is required for the changes to take effect",
+  "{{simplify-ks}}": "Simplify the appearance of the web interface",
+  "{{norounded-ks}}": "Disable corner rounding",
+  "{{background-ks}}": "Background",
+  "{{noblur-ks}}": "Disable background blur behind transparent elements",
+  "{{weblook-ks}}": "UI Appearance",
+  "{{blurrange-ks}}": "Amount of background blur",
+  "{{font-ks}}": "Main interface font",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",
@@ -120,7 +135,7 @@
   "{{resonerr-ss}}": "Restart server on crash (checked by exit code)",
   "{{enter-to-del-ss}}": "Enter the server name to confirm the deletion",
   "{{stopcmd-ss}}": "You can enter a custom shutdown command here",
-  "{{resschd-desc-ss}}": "Restart the server on schedule (enter the task below <a href='https://github.com/Seeroy/kubek-minecraft-dashboard/blob/main/SCHEDULER_GUIDE.md'>in crontab format<a/>)",
+  "{{resschd-desc-ss}}": "Restart the server on schedule (enter the task below <a target='_blank' class='font-medium text-blue-600 dark:text-blue-500 hover:underline' href='https://github.com/Seeroy/kubek-minecraft-dashboard/blob/main/SCHEDULER_GUIDE.md'>in crontab format<a/>)",
   "{{resschd-crontab-input-ss}}": "Enter time in crontab format",
 
   "{{summary-sysmon}}": "Summary Information",
@@ -137,8 +152,8 @@
   "{{adips-sysmon}}": "Adapter IP Addresses",
   "{{env-sysmon}}": "Environment Variables",
 
-  "{{welcome-msg}}": "Kubek is a Minecraft server control panel developed using Node.js and web technologies.",
-  "{{first-server-welcome}}": "Create your first server",
+  "{{welcome-msg}}": "Kubek is a Minecraft server control panel developed using Node.js and web technologies.<br><br>To create a server, click the button with the + sign in the upper right corner",
+  "{{first-server-welcome}}": "Create server",
 
   "{{newupdate-found-1}}": "Found a new update - ",
   "{{newupdate-found-2}}": "Click here to download",
@@ -246,7 +261,7 @@
   "{{tgbot-savedchatid}}": "🔒 OTP-сode is correct! Now you can work with this bot in any chat",
   "{{tgbot-serverstatuses}}": "Server statuses",
   "{{tgbot-commands}}": "Commands",
-  "{{tgbot-helpmsg}}": "<b>Manage Servers</b>\n/startServer [server name] - <i>Start Server</i>\n/stopServer [server name] - <i> Stop server</i>\n/restartServer [server name] - <i>Restart server</i>\n/statuses - <i>Server statuses</i>\n/help - <i>This command message :)</i>\n/serverLog [server name] - <i>Upload the latest.log file from the server folder</i>\n/execCommand [server name] [command] [argument 1]... - <i>Run a command on the server and get a response</i>\n\n<code>Kubek ",
+  "{{tgbot-helpmsg}}": "<b>Manage Servers</b>\n/selectServer [server name] - <i>Select a server to manage</i>\n/startServer [server name] - <i>Start Server</i>\n/stopServer - <i> Stop server</i>\n/restartServer - <i>Restart server</i>\n/statuses - <i>Server statuses</i>\n/help - <i>This command message :)</i>\n/serverLog - <i>Upload the latest.log file from the server folder</i>\n/execCommand [command] [argument 1]... - <i>Run a command on the server and get a response</i>\n\n<code>Kubek ",
   "{{tgbot-usage}}": "❌ Wrong command usage",
   "{{tgbot-starting}}": "✅ We start the server ",
   "{{tgbot-stopping}}": "⏹️ Stop the server ",
@@ -263,5 +278,8 @@
   "{{tgbot-running-sched-failed}}": "🔔🟡 Server restart task failed: ",
   "{{tgbot-wait2sec}}": "❗ Wait 2 seconds before performing an action",
   "{{tgbot-plsstart}}": "To start working with the bot, you need to write /start",
-  "{{tgbot-wrongotp}}": "Invalid OTP code (you can get it in the Kubek settings)"
+  "{{tgbot-wrongotp}}": "Invalid OTP code (you can get it in the Kubek settings)",
+  "{{tgbot-noserver}}": "❗ No such server, use /status to get a list of servers",
+  "{{tgbot-succsel}}": "✅ The selected server is now: ",
+  "{{tgbot-noselectsrv}}": "❗You have not selected a server to manage, use /selectServer [server name] to select"
 }

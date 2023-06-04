@@ -1,7 +1,5 @@
 var modalModeNewUser = false;
 var currEdit = "";
-mymodal = new mdb.Modal(document.getElementById("userEditModal"));
-admmodal = new mdb.Modal(document.getElementById("adminEditModal"));
 
 var PASSWORD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{6,64}$/g;
 var LOGIN_REGEX = /^[a-zA-Z0-9_.-]{3,16}$/g;
@@ -13,7 +11,6 @@ $(document).ready(function () {
   $.get("/kubek/tgOTP", function (otp) {
     $(".tgbot-otp").val(otp);
   });
-  new mdb.Tooltip(document.getElementById("tooltip-acc"));
   $("#tgbot-checkbox").change(function () {
     if ($(this).is(":checked")) {
       $("#tgbot-token-item").show();
@@ -23,48 +20,104 @@ $(document).ready(function () {
       $("#tgbot-otp-item").hide();
     }
   });
-  $(".addtooltip").each(function () {
-    new mdb.Tooltip(this);
+  $("#auth-checkbox").change(function () {
+    if ($(this).is(":checked")) {
+      $("#auth-users-item").show();
+    } else {
+      $("#auth-users-item").hide();
+    }
   });
-  $(".copyotp").click(function () {
-    navigator.clipboard.writeText("/start " + $(".tgbot-otp").val()).then(
-      function () {
-        console.log("[UI] Copying success!");
-        Toastify({
-          text: "{{copying-succ-ks}}",
-          duration: 1500,
-          newWindow: true,
-          close: false,
-          gravity: "bottom",
-          position: "right",
-          stopOnFocus: false,
-          style: {
-            background: "#14A44D",
-            color: "white",
-          },
-          onClick: function () {},
-        }).showToast();
-      },
-      function (err) {
-        console.log("[UI] Copying error", err);
-      }
+  $("#ftpserver-checkbox").change(function () {
+    if ($(this).is(":checked")) {
+      $("#ftp-login-item").show();
+      $("#ftp-pass-item").show();
+    } else {
+      $("#ftp-login-item").hide();
+      $("#ftp-pass-item").hide();
+    }
+  });
+  $("#simplify-checkbox").change(function () {
+    if ($(this).is(":checked")) {
+      window.localStorage.setItem("simplify", "true");
+      refreshSimplify();
+    } else {
+      window.localStorage.setItem("simplify", "false");
+      refreshSimplify();
+    }
+  });
+  $("#backgrounds-select").change(function () {
+    window.localStorage.setItem(
+      "background",
+      $(this).find("option:selected").val()
     );
+    $(".blurry-bg-img").each(function(){
+      $(this).hide();
+    });
+    refreshBackgroundImage();
+  });
+  $("#blurrange-range").change(function () {
+    window.localStorage.setItem(
+      "blurrange",
+      $(this).val()
+    );
+    refreshBlurRange();
+  });
+  $("#fontfamily-select").change(function () {
+    window.localStorage.setItem(
+      "fontfamily",
+      $(this).find("option:selected").val()
+    );
+    refreshFont();
+  });
+  $("#norounded-checkbox").change(function () {
+    if ($(this).is(":checked")) {
+      window.localStorage.setItem("norounded", "true");
+      refreshNoRounded();
+    } else {
+      window.localStorage.setItem("norounded", "false");
+      refreshNoRounded();
+    }
+  });
+  $("#nobackdrop-checkbox").change(function () {
+    if ($(this).is(":checked")) {
+      window.localStorage.setItem("nobackdrop", "true");
+      refreshNoBackdrop();
+    } else {
+      window.localStorage.setItem("nobackdrop", "false");
+      refreshNoBackdrop();
+    }
   });
 });
 
 function loadKubekSettings() {
   $.get("/kubek/config", function (data) {
     kubekCfg = data;
-    if (kubekCfg["lang"] == "en") {
-      $("#englishRadio").attr("checked", true);
-    } else if (kubekCfg["lang"] == "ru") {
-      $("#russianRadio").attr("checked", true);
-    } else if (kubekCfg["lang"] == "nl") {
-      $("#dutchRadio").attr("checked", true);
-    }
-
     if (kubekCfg["ftpd"] == true) {
       $("#ftpserver-checkbox").attr("checked", true);
+    }
+
+    if (window.localStorage.getItem("simplify") == "true") {
+      $("#simplify-checkbox").attr("checked", true);
+    }
+
+    if (window.localStorage.getItem("nobackdrop") == "true") {
+      $("#nobackdrop-checkbox").attr("checked", true);
+    }
+
+    if (window.localStorage.getItem("blurrange") != null) {
+      $("#blurrange-range").val(window.localStorage.getItem("blurrange"));
+    }
+
+    if (window.localStorage.getItem("norounded") == "true") {
+      $("#norounded-checkbox").attr("checked", true);
+    }
+
+    if (window.localStorage.getItem("background") != null) {
+      $("#backgrounds-select option[value='" + window.localStorage.getItem("background") + "']").prop("selected", true);
+    }
+
+    if (window.localStorage.getItem("fontfamily") != null) {
+      $("#fontfamily-select option[value='" + window.localStorage.getItem("fontfamily") + "']").prop("selected", true);
     }
 
     if (kubekCfg["tgbot-enabled"] == true) {
@@ -94,111 +147,36 @@ function loadKubekSettings() {
     $.get("/kubek/support-uid", function (supuid) {
       $("#supuid").text(supuid);
     });
-  });
 
-  $("#userEditModal .password-input").keyup(function () {
-    passwd = $("#userEditModal .password-input").val();
-    if (passwd.match(PASSWORD_REGEX) != null) {
-      $("#userEditModal .passwd-err").hide();
+    if ($("#tgbot-checkbox").is(":checked")) {
+      $("#tgbot-token-item").show();
+      $("#tgbot-otp-item").show();
     } else {
-      $("#userEditModal .passwd-err").show();
+      $("#tgbot-token-item").hide();
+      $("#tgbot-otp-item").hide();
     }
-  });
-
-  $("#adminEditModal .npassword-input").keyup(function () {
-    passwd = $("#adminEditModal .npassword-input").val();
-    if (passwd.match(PASSWORD_REGEX) != null) {
-      $("#adminEditModal .passwd-err").hide();
+    if ($("#auth-checkbox").is(":checked")) {
+      $("#auth-users-item").show();
     } else {
-      $("#adminEditModal .passwd-err").show();
+      $("#auth-users-item").hide();
+    }
+    if ($("#ftpserver-checkbox").is(":checked")) {
+      $("#ftp-login-item").show();
+      $("#ftp-pass-item").show();
+    } else {
+      $("#ftp-login-item").hide();
+      $("#ftp-pass-item").hide();
     }
   });
 
-  $("#userEditModal .input-bg .material-symbols-outlined.showpass").click(
-    function () {
-      if ($(this).parent().parent().hasClass("showing-pass")) {
-        $(this).parent().parent().removeClass("showing-pass");
-        $(this)
-          .parent()
-          .parent()
-          .children(".password-input")
-          .attr("type", "password");
-      } else {
-        $(this).parent().parent().addClass("showing-pass");
-        $(this)
-          .parent()
-          .parent()
-          .children(".password-input")
-          .attr("type", "text");
-      }
+  $("#user-edit-modal .password-input").keyup(function () {
+    passwd = $("#user-edit-modal .password-input").val();
+    if (passwd.match(PASSWORD_REGEX) != null) {
+      $("#user-edit-modal .passwd-err").hide();
+    } else {
+      $("#user-edit-modal .passwd-err").show();
     }
-  );
-
-  $(".element .input-bg .material-symbols-outlined.showpass").click(
-    function () {
-      if ($(this).parent().parent().hasClass("showing-pass")) {
-        $(this).parent().parent().removeClass("showing-pass");
-        $(this)
-          .parent()
-          .parent()
-          .children(".kbk-input")
-          .attr("type", "password");
-      } else {
-        $(this).parent().parent().addClass("showing-pass");
-        $(this).parent().parent().children(".kbk-input").attr("type", "text");
-      }
-    }
-  );
-
-  $("#userEditModal .input-bg .material-symbols-outlined.genpass").click(
-    function () {
-      genp = generatePassword(24);
-      $(this).parent().parent().children(".password-input").val(genp);
-      $(this).parent().parent().children(".password-input").keyup();
-    }
-  );
-
-  $("#adminEditModal .input-bg .material-symbols-outlined.genpass").click(
-    function () {
-      genp = generatePassword(24);
-      $(this).parent().parent().children(".npassword-input").val(genp);
-      $(this).parent().parent().children(".npassword-input").keyup();
-    }
-  );
-
-  $("#adminEditModal .input-bg .material-symbols-outlined.showpass").click(
-    function () {
-      if ($(this).parent().parent().hasClass("showing-pass")) {
-        $(this).parent().parent().removeClass("showing-pass");
-        $(this)
-          .parent()
-          .parent()
-          .children(".npassword-input")
-          .attr("type", "password");
-      } else {
-        $(this).parent().parent().addClass("showing-pass");
-        $(this)
-          .parent()
-          .parent()
-          .children(".npassword-input")
-          .attr("type", "text");
-      }
-    }
-  );
-}
-
-function generatePassword(length) {
-  var pass = "";
-  var str =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz0123456789@#$";
-
-  for (let i = 1; i <= length; i++) {
-    var char = Math.floor(Math.random() * str.length + 1);
-
-    pass += str.charAt(char);
-  }
-
-  return pass;
+  });
 }
 
 function shutdownKubek() {
@@ -209,29 +187,27 @@ function shutdownKubek() {
 
 function setNewUserMode(bool) {
   if (bool) {
-    $("#userEditModal #userEditModalLabel").text("{{adding-usr-ks}}");
-    $("#userEditModal .input-bg").show();
-    $("#userEditModal .passwd-err").hide();
-    $("#userEditModal .usrname-group").show();
-    $("#userEditModal .buttons-cont").hide();
+    $("#user-edit-modal #user-edit-modal-label").text("{{adding-usr-ks}}");
+    $("#user-edit-modal .input-bg").show();
+    $("#user-edit-modal .passwd-err").hide();
+    $("#user-edit-modal .buttons-cont").hide();
     modalModeNewUser = true;
   } else {
-    $("#userEditModal #userEditModalLabel").text("{{editing-usr-ks}}");
-    $("#userEditModal .input-bg").hide();
-    $("#userEditModal .passwd-err").hide();
-    $("#userEditModal .usrname-group").hide();
-    $("#userEditModal .buttons-cont").show();
+    $("#user-edit-modal #user-edit-modal-label").text("{{editing-usr-ks}}");
+    $("#user-edit-modal .input-bg").hide();
+    $("#user-edit-modal .passwd-err").hide();
+    $("#user-edit-modal .buttons-cont").show();
     modalModeNewUser = false;
   }
   setModalDefaultValues();
 }
 
 function setModalDefaultValues() {
-  $("#userEditModal input[type=checkbox]:not(:disabled)").each(function () {
+  $("#user-edit-modal input[type=checkbox]:not(:disabled)").each(function () {
     $(this).prop("checked", false);
   });
   $(
-    "#userEditModal input[type=text], #userEditModal input[type=password], #userEditModal input[type=email]"
+    "#user-edit-modal input[type=text], #user-edit-modal input[type=password], #user-edit-modal input[type=email]"
   ).each(function () {
     $(this).val("");
   });
@@ -240,16 +216,18 @@ function setModalDefaultValues() {
 function openNewUserModal() {
   setNewUserMode(true);
   setModalDefaultValues();
-  mymodal.show();
+  showModal("user-edit-modal", "fadeIn", function () {
+    saveUser();
+  });
 }
 
 function saveUser() {
-  usrname = $("#userEditModal .usrname-input").val();
-  mail = $("#userEditModal .mail-input").val();
+  usrname = $("#user-edit-modal .usrname-input").val();
+  mail = $("#user-edit-modal .mail-input").val();
   if (mail == "" || mail.match(EMAIL_REGEX)) {
     if (usrname.match(LOGIN_REGEX)) {
       perms = [];
-      $("#userEditModal input[type=checkbox]:checked:not(:disabled)").each(
+      $("#user-edit-modal input[type=checkbox]:checked:not(:disabled)").each(
         function () {
           perm = $(this).data("perm");
           perms.push(perm);
@@ -257,7 +235,7 @@ function saveUser() {
       );
       perms = perms.join(",");
       if (modalModeNewUser == true) {
-        passwd = $("#userEditModal .password-input").val();
+        passwd = $("#user-edit-modal .password-input").val();
         if (passwd.match(PASSWORD_REGEX)) {
           if (mail == "") {
             reqUrl =
@@ -295,7 +273,6 @@ function saveUser() {
                 onClick: function () {},
               }).showToast();
             }
-            mymodal.hide();
             loadUsersList();
           });
         }
@@ -308,7 +285,6 @@ function saveUser() {
             "&permissions=" +
             perms,
           function () {
-            mymodal.hide();
             loadUsersList();
           }
         );
@@ -320,10 +296,10 @@ function saveUser() {
 function setModalDataByUserInfo(userInfo) {
   setModalDefaultValues();
   currEdit = userInfo.username;
-  $("#userEditModal .usrname-input").val(userInfo.username);
-  $("#userEditModal .mail-input").val(userInfo.mail);
+  $("#user-edit-modal .usrname-input").val(userInfo.username);
+  $("#user-edit-modal .mail-input").val(userInfo.mail);
   perms = userInfo.permissions;
-  $("#userEditModal input[type=checkbox]").each(function () {
+  $("#user-edit-modal input[type=checkbox]").each(function () {
     perm = $(this).data("perm");
     if (perms.includes(perm)) {
       $(this).prop("checked", true);
@@ -368,9 +344,17 @@ function saveSettingsStage3() {
   }
 }
 
-function saveSettingsStage35(){
-  if (kubekCfg["webserver-port"] != $(".webserverport").val() || kubekCfg["socket-port"] != $(".socketport").val()) {
-    if ($(".webserverport").val() >= 80 && $(".webserverport").val() <= 65500 && $(".socketport").val() >= 81 && $(".socketport").val() <= 65500) {
+function saveSettingsStage35() {
+  if (
+    kubekCfg["webserver-port"] != $(".webserverport").val() ||
+    kubekCfg["socket-port"] != $(".socketport").val()
+  ) {
+    if (
+      $(".webserverport").val() >= 80 &&
+      $(".webserverport").val() <= 65500 &&
+      $(".socketport").val() >= 81 &&
+      $(".socketport").val() <= 65500
+    ) {
       showModal("othport-need-res-modal", "fadeIn", function () {
         saveSettingsStage4();
       });
@@ -403,74 +387,79 @@ function saveSettingsStage4() {
 }
 
 function changeAdminPass() {
-  oldPass = $("#adminEditModal .opassword-input").val();
-  newPass = $("#adminEditModal .npassword-input").val();
-  $.get(
-    "/auth/changeAdminPass?oldPass=" + oldPass + "&newPass=" + newPass,
-    function (ret) {
-      if (ret == true) {
-        admmodal.hide();
-        window.location = "/";
-      } else {
-        $("#adminEditModal .opassword-input").val("");
-        $("#adminEditModal .npassword-input").val("");
+  oldPass = $("#admin-edit-modal .opassword-input").val();
+  newPass = $("#admin-edit-modal .npassword-input").val();
+  if (oldPass != "" && newPass != "") {
+    $.get(
+      "/auth/changeAdminPass?oldPass=" + oldPass + "&newPass=" + newPass,
+      function (ret) {
+        if (ret == true) {
+          window.location = "/";
+        } else {
+          $("#admin-edit-modal .opassword-input").val("");
+          $("#admin-edit-modal .npassword-input").val("");
+        }
       }
-    }
-  );
+    );
+  }
 }
 
 function deleteCurrUserAccount() {
   $.get("/auth/deleteUser?login=" + currEdit, function () {
-    mymodal.hide();
     loadUsersList();
+    $("#user-edit-modal").hide();
   });
 }
 
 function regenCurrUserHash() {
   $.get("/auth/regenUserHash?login=" + currEdit, function () {
-    mymodal.hide();
     loadUsersList();
+    $("#user-edit-modal").hide();
   });
 }
 
 function openEditAdminModal() {
-  admmodal.show();
+  showModal("admin-edit-modal", "fadeIn", function () {
+    changeAdminPass();
+  });
 }
 
 function openEditUserModal(username) {
   setNewUserMode(false);
   $.get("/auth/getUserInfo?username=" + username, function (usrdata) {
     setModalDataByUserInfo(usrdata);
-    mymodal.show();
+    showModal("user-edit-modal", "fadeIn", function () {
+      saveUser();
+    });
   });
 }
 
 function loadUsersList() {
-  $("#users-list .col-xl-4.ucard").each(function () {
+  $("#users-list tr:not(.addusr)").each(function () {
     $(this).remove();
   });
+  htmlc = "";
   $.get("/auth/listUsers", function (users) {
-    $("#users-list").append(
-      '<div class="col-xl-4 col-lg-6 ucard"><div class="card" onclick="openEditAdminModal()"><div class="card-body"><div class="d-flex align-items-center"><span class="material-symbols-outlined">admin_panel_settings</span><div class="ms-3"><p class="fw-bold mb-1">kubek</p><p class="text-muted mb-0">{{admin-acc-ks}}</p></div></div></div></div></div>'
-    );
+    htmlc =
+      htmlc +
+      '<tr class="bg-white dark:bg-gray-800 cursor-pointer" onclick="openEditAdminModal()"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"><div class="flex items-center"><i class="ri-user-2-fill text-xl"></i><span style="margin-left: 16px"></span></div></th><td class="px-6 py-4">{{admin-acc-ks}}</td></tr>';
     for (const [key, value] of Object.entries(users)) {
       usr = value;
       if (usr.mail == "undefined" || usr.mail == null || usr.mail == "") {
         usr.mail = "{{mail-no-ks}}";
       }
       if (usr.username != "kubek") {
-        $("#users-list").append(
-          '<div class="col-xl-4 col-lg-6 ucard"><div class="card" onclick="openEditUserModal(' +
-            "'" +
-            usr.username +
-            "'" +
-            ')"><div class="card-body"><div class="d-flex align-items-center"><span class="material-symbols-outlined">account_circle</span><div class="ms-3"><p class="fw-bold mb-1">' +
-            usr.username +
-            '</p><p class="text-muted mb-0">' +
-            usr.mail +
-            "</p></div></div></div></div></div>"
-        );
+        htmlc =
+          htmlc +
+          '<tr class="bg-white dark:bg-gray-800 cursor-pointer" onclick="openEditUserModal(' +
+          "'" +
+          usr.username +
+          "'" +
+          ')"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"><div class="flex items-center"><i class="ri-user-fill text-xl"></i><span style="margin-left: 16px"></span></div></th><td class="px-6 py-4">' +
+          usr.username +
+          "</td></tr>";
       }
     }
+    $("#users-list").append(htmlc);
   });
 }

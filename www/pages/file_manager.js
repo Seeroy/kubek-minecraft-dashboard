@@ -11,45 +11,6 @@ $(document).ready(function () {
     }
     syncMultiplyFilesCount();
   });
-
-  $("#nfeModal .btn-primary").click(function () {
-    fn = $("#nfeModalEdit").val().trim();
-    text = $("#newFileEditArea").val();
-    if (fn != null) {
-      startTime = performance.now();
-      console.log("[FM]", "Starting file save through websockets");
-      path = window.localStorage.selectedServer + curDir + fn;
-      randCode = genID(20);
-
-      socket.emit("startFileWrite", {
-        path: path,
-        randCode: randCode,
-      });
-      console.log("[FM]", "emit startFileWrite");
-
-      textSplit = text.split("\n");
-      console.log(
-        "[FM]",
-        "Sending " + textSplit.length + " fragments of file through websockets"
-      );
-      textSplit.forEach(function (seg) {
-        socket.emit("addFileWrite", {
-          add: seg,
-          randCode: randCode,
-        });
-      });
-
-      socket.emit("finishFileWrite", {
-        randCode: randCode,
-      });
-      console.log("[FM]", "emit finishFileWrite");
-      endTime = performance.now();
-      delta_sec = (endTime - startTime) / 1000;
-      console.log("[PERF]", "Saving this file took " + delta_sec + " sec.");
-      refreshDir();
-      $("#nfeModal").hide();
-    }
-  });
 });
 
 function ifAllFilesSelected() {
@@ -118,7 +79,7 @@ function deleteAllSelected() {
             position: "center",
             stopOnFocus: true,
             style: {
-              background: "var(--mdb-warning)",
+              background: "#E3A008",
             },
           }).showToast();
         } else if (data["file"] != 0 && data["directory"] == 0) {
@@ -131,7 +92,7 @@ function deleteAllSelected() {
             position: "center",
             stopOnFocus: true,
             style: {
-              background: "var(--mdb-primary)",
+              background: "#1C64F2",
             },
           }).showToast();
         } else if (data["file"] == 0 && data["directory"] != 0) {
@@ -145,7 +106,7 @@ function deleteAllSelected() {
             position: "center",
             stopOnFocus: true,
             style: {
-              background: "var(--mdb-primary)",
+              background: "#1C64F2",
             },
           }).showToast();
         } else if (data["file"] != 0 && data["directory"] != 0) {
@@ -163,7 +124,7 @@ function deleteAllSelected() {
             position: "center",
             stopOnFocus: true,
             style: {
-              background: "var(--mdb-primary)",
+              background: "#1C64F2",
             },
           }).showToast();
         }
@@ -193,6 +154,7 @@ function deleteDirFM(path) {
 
   $("#delete-fm-modal .caption").text("{{aredelete-fm}} " + fn + "?");
   showModal("delete-fm-modal", "fadeIn", function () {
+    path = encodeURIComponent(path);
     $.get(
       "/fmapi/deleteDirectory?server=" +
         window.localStorage.selectedServer +
@@ -210,7 +172,7 @@ function deleteDirFM(path) {
             position: "center",
             stopOnFocus: true,
             style: {
-              background: "var(--mdb-warning)",
+              background: "#E3A008",
             },
           }).showToast();
         }
@@ -224,6 +186,7 @@ function deleteFM(path) {
 
   $("#delete-fm-modal .caption").text("{{aredelete-fm}} " + fn + "?");
   showModal("delete-fm-modal", "fadeIn", function () {
+    path = encodeURIComponent(path);
     $.get(
       "/fmapi/deleteFile?server=" +
         window.localStorage.selectedServer +
@@ -235,22 +198,26 @@ function deleteFM(path) {
 }
 
 function newdirFM() {
-  $("#newdir-fm-modal .caption").text("{{new-directory-fm}}");
-  $("#newdir-fm-modal .kbk-input").val("");
-  showModal("newdir-fm-modal", "fadeIn", function () {
-    new_dname = $("#newdir-fm-modal .kbk-input").val();
-    if (new_dname.trim() != "") {
-      $.get(
-        "/fmapi/newDirectory?server=" +
-          window.localStorage.selectedServer +
-          "&path=" +
-          curDir +
-          "&newdir=" +
-          btoa(new_dname),
-        refreshDir
-      );
-    }
-  }, true);
+  $("#newdir-fm-modal input[type=text]").val("");
+  showModal(
+    "newdir-fm-modal",
+    "fadeIn",
+    function () {
+      new_dname = $("#newdir-fm-modal input[type=text]").val();
+      if (new_dname.trim() != "") {
+        $.get(
+          "/fmapi/newDirectory?server=" +
+            window.localStorage.selectedServer +
+            "&path=" +
+            curDir +
+            "&newdir=" +
+            btoa(new_dname),
+          refreshDir
+        );
+      }
+    },
+    true
+  );
 }
 
 function uploadFM() {
@@ -280,7 +247,7 @@ function uploadFM() {
           position: "center",
           stopOnFocus: true,
           style: {
-            background: "var(--mdb-warning)",
+            background: "#E3A008",
           },
         }).showToast();
       },
@@ -294,22 +261,29 @@ function uploadFM() {
 function renameFM(path) {
   fn = path.split("/").slice(-1)[0];
 
-  $("#rename-fm-modal .kbk-input").val(fn);
+  $("#rename-fm-modal input[type=text]").val(fn);
+  $("#rename-fm-modal input[type=text]").attr("placeholder", fn);
   $("#rename-fm-modal .caption").text("{{dorename-fm}} " + fn + "?");
-  showModal("rename-fm-modal", "fadeIn", function () {
-    new_fname = $("#rename-fm-modal .kbk-input").val();
-    if (new_fname.trim() != "") {
-      $.get(
-        "/fmapi/renameFile?server=" +
-          window.localStorage.selectedServer +
-          "&path=" +
-          path +
-          "&newname=" +
-          btoa(new_fname),
-        refreshDir
-      );
-    }
-  }, true);
+  showModal(
+    "rename-fm-modal",
+    "fadeIn",
+    function () {
+      new_fname = $("#rename-fm-modal input[type=text]").val();
+      if (new_fname.trim() != "") {
+        path = encodeURIComponent(path);
+        $.get(
+          "/fmapi/renameFile?server=" +
+            window.localStorage.selectedServer +
+            "&path=" +
+            path +
+            "&newname=" +
+            btoa(new_fname),
+          refreshDir
+        );
+      }
+    },
+    true
+  );
 }
 
 function saveFile() {
@@ -326,16 +300,23 @@ function saveFile() {
   console.log("[FM]", "emit startFileWrite");
 
   textSplit = $("#fileEditArea").val().split("\n");
+  partsCount = Math.round(100 / textSplit.length);
   console.log(
     "[FM]",
     "Sending " + textSplit.length + " fragments of file through websockets"
   );
-  textSplit.forEach(function (seg) {
+  textSplit.forEach(function (seg, i) {
     socket.emit("addFileWrite", {
       add: seg,
       randCode: randCode,
     });
+    setTimeout(function () {
+      animateTopbar(partsCount * i, 5);
+    }, 10 * i);
   });
+  setTimeout(function () {
+    animateTopbar(0, 50);
+  }, 11 * textSplit.length);
 
   socket.emit("finishFileWrite", {
     randCode: randCode,
@@ -344,6 +325,7 @@ function saveFile() {
   endTime = performance.now();
   delta_sec = (endTime - startTime) / 1000;
   console.log("[PERF]", "Saving this file took " + delta_sec + " sec.");
+  animateTopbar(0, 20);
   refreshDir();
 }
 
@@ -368,6 +350,7 @@ function downloadFM(path) {
 }
 
 function refreshDir() {
+  animateTopbar(25, 20);
   unselectAllCheckboxes();
   syncMultiplyFilesCount();
   if (
@@ -378,12 +361,12 @@ function refreshDir() {
   } else {
     bindev = "dblclick";
   }
-  saveScroll = $(".fm_container>.sub-block>.contentt").scrollTop();
+  saveScroll = $(".fm-container #oldc").scrollTop();
   $("#fm-table tbody").html("");
   $("#breadcrumb-fm").html(
-    '<li class="breadcrumb-item">' +
+    '<li><div class="flex items-center"><svg aria-hidden="true" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><a href="#" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">' +
       window.localStorage.selectedServer +
-      "</li>"
+      "</a></div></li>"
   );
   spl = curDir.split("/");
   spl = spl.filter((element) => {
@@ -392,20 +375,20 @@ function refreshDir() {
   if (spl != "/") {
     spl.forEach(function (dir) {
       $("#breadcrumb-fm").append(
-        '<li class="breadcrumb-item">' + dir + "</li>"
+        '<li><div class="flex items-center"><svg aria-hidden="true" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><a href="#" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">' +
+          dir +
+          "</a></div></li>"
       );
     });
   }
-  $("#breadcrumb-fm .breadcrumb-item:not(:last-child)").click(function () {
+  $("#breadcrumb-fm li:not(:last-child) a").click(function () {
     if ($(this).text() == window.localStorage.selectedServer) {
       curDir = "/";
       refreshDir();
     } else {
       path = "";
       index = $(this).index();
-      $("#breadcrumb-fm .breadcrumb-item:not(:last-child)").each(function (
-        ind
-      ) {
+      $("#breadcrumb-fm li:not(:last-child) a").each(function (ind) {
         if (
           $(this).text() != window.localStorage.selectedServer &&
           ind <= index
@@ -419,9 +402,9 @@ function refreshDir() {
   });
   if (curDir != "/") {
     $("#fm-table tbody").append(
-      "<tr on" +
+      "<tr class='bg-white dark:bg-gray-800 glassmorphed cursor-pointer' on" +
         bindev +
-        '="upperDir()"><td></td><td class="fn">..</td><td></td><td></td></tr>'
+        '="upperDir()"><td></td><td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white fn">..</td><td></td><td></td><td></td><td></td></tr>'
     );
   }
   $.get(
@@ -430,6 +413,7 @@ function refreshDir() {
       "&directory=" +
       curDir,
     function (data) {
+      animateTopbar(50, 20);
       data = JSON.parse(data);
       if (typeof data == "object") {
         data = sortToDirsAndFiles(data);
@@ -439,29 +423,29 @@ function refreshDir() {
           mdate = formatDateFactory(obj_date);
           if (file.type == "directory") {
             act =
-              '<button type="button" title="{{delete}}" onclick="deleteDirFM(' +
+              '<button type="button" title="{{delete}}" class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" onclick="deleteDirFM(' +
               "'" +
               curDir +
               file.name +
               "'" +
-              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
+              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{rename}}" onclick="renameFM(' + "'" +
               curDir +
-              file.name +
-              '")><img width=24px src="/assets/fm_icons/edit.png"></button>';
+              file.name + "'" +
+              ')"><img width=24px src="/assets/fm_icons/edit.png"></button>';
           } else {
             act =
-              '<button type="button" title="{{delete}}" onclick="deleteFM(' +
+              '<button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{delete}}" onclick="deleteFM(' +
               "'" +
               curDir +
               file.name +
               "'" +
-              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button type="button" title="{{rename}}" onclick=renameFM("' +
+              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{rename}}" onclick="renameFM(' + "'" + 
               curDir +
-              file.name +
-              '")><img width=24px src="/assets/fm_icons/edit.png"></button><button type="button" title="{{download}}" onclick=downloadFM("' +
+              file.name + "'" +
+              ')"><img width=24px src="/assets/fm_icons/edit.png"></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{download}}" onclick="downloadFM(' + "'" +
               curDir +
-              file.name +
-              '")><img width=24px src="/assets/fm_icons/download.png"></button>';
+              file.name + "'" +
+              ')"><img width=24px src="/assets/fm_icons/download.png"></button>';
           }
           if (file.type == "directory") {
             icon = "folder.png";
@@ -488,19 +472,19 @@ function refreshDir() {
             i +
             '" value="sel"/>';
           $("#fm-table tbody").append(
-            '<tr data-type="' +
+            '<tr class="bg-white dark:bg-gray-800 glassmorphed cursor-pointer" data-type="' +
               file.type +
-              '"><td>' +
+              '"><td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
               cb +
-              '</td><td style="width: 20px;"><img height="32px" src="/assets/fm_icons/' +
+              '</td><td class="px-2 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"><img style="height: 32px; width: 32px;" src="/assets/fm_icons/' +
               icon +
-              '"></td><td class="fn">' +
+              '"></td><td class="pl-5 px-2 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white fn" style="width: 50%;">' +
               file.name +
-              "</td><td>" +
+              '</td><td class="px-2 py-4 font-medium text-gray-600 whitespace-nowrap dark:text-gray-400">' +
               mdate +
-              "</td><td>" +
+              '</td><td class="px-2 py-4 font-semibold text-gray-700 whitespace-nowrap dark:text-gray-300">' +
               size +
-              '</td><td class="buttons-td">' +
+              '</td><td class="px-2 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
               act +
               "</td></tr>"
           );
@@ -546,24 +530,64 @@ function refreshDir() {
                   $(this).find(".fn")[0].innerText,
                 function (data) {
                   $("#fileEditArea").val(data);
-                  $("#feModal").show();
-                  $("#feModal").fadeIn(150);
+                  showModal("editfile-fm-modal", "fadeIn", function () {
+                    saveFile();
+                  });
                 }
               );
             }
           }
         });
-        $(".fm_container>.sub-block>.contentt").scrollTop(saveScroll);
+        $(".fm-container #oldc").scrollTop(saveScroll);
+        animateTopbar(100, 20);
+        setTimeout(function () {
+          animateTopbar(0, 10);
+        }, 21);
       }
     }
   );
 }
 
 function newFileFM() {
-  $("#fileEditArea").val("");
+  $("#newFileEditArea").val("");
   $("#nfeModalEdit").val("");
-  $("#nfeModal").show();
-  $("#nfeModal").fadeIn(150);
+  showModal("newfile-fm-modal", "fadeIn", function () {
+    fn = $("#nfeModalEdit").val().trim();
+    text = $("#newFileEditArea").val();
+    if (fn != null) {
+      startTime = performance.now();
+      console.log("[FM]", "Starting file save through websockets");
+      path = window.localStorage.selectedServer + curDir + fn;
+      randCode = genID(20);
+
+      socket.emit("startFileWrite", {
+        path: path,
+        randCode: randCode,
+      });
+      console.log("[FM]", "emit startFileWrite");
+
+      textSplit = text.split("\n");
+      console.log(
+        "[FM]",
+        "Sending " + textSplit.length + " fragments of file through websockets"
+      );
+      textSplit.forEach(function (seg) {
+        socket.emit("addFileWrite", {
+          add: seg,
+          randCode: randCode,
+        });
+      });
+
+      socket.emit("finishFileWrite", {
+        randCode: randCode,
+      });
+      console.log("[FM]", "emit finishFileWrite");
+      endTime = performance.now();
+      delta_sec = (endTime - startTime) / 1000;
+      console.log("[PERF]", "Saving this file took " + delta_sec + " sec.");
+      refreshDir();
+    }
+  });
 }
 
 function sortToDirsAndFiles(data) {
