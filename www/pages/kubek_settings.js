@@ -23,6 +23,7 @@ $(document).ready(function () {
   $("#auth-checkbox").change(function () {
     if ($(this).is(":checked")) {
       $("#auth-users-item").show();
+      showModal("needtosave-auth-warn-modal", "fadeIn");
     } else {
       $("#auth-users-item").hide();
     }

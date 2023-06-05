@@ -128,6 +128,7 @@
   "{{weblook-ks}}": "UI Appearance",
   "{{blurrange-ks}}": "Amount of background blur",
   "{{font-ks}}": "Main interface font",
+  "{{need-to-save-ks}}": "Before editing users, you must first save the settings and log in to your account!",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",

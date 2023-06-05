@@ -126,6 +126,7 @@
   "{{weblook-ks}}": "UI-uiterlijk",
   "{{blurrange-ks}}": "Hoeveelheid achtergrondonscherpte",
   "{{font-ks}}": "Lettertype hoofdinterface",
+  "{{need-to-save-ks}}": "Voordat u gebruikers kunt bewerken, moet u eerst de instellingen opslaan en inloggen op uw account!",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",

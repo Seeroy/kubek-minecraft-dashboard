@@ -83,8 +83,7 @@ router.get("/completion", function (req, res) {
         }
       });
       if (jl != null) {
-        args_path = jl.split("@")[2];
-        args_path = args_path.replace("\r", "").trim();
+        args_path = jl.split(" ").slice(1).join(" ").replace("\r", "").trim();
         fs.writeFileSync(
           "./servers/" + req.query.server + "/start.bat",
           "@echo off\nchcp 65001>nul\ncd servers\ncd " +
@@ -94,7 +93,7 @@ router.get("/completion", function (req, res) {
               .toString()
               .replace("-jar", "")
               .trim() +
-            " @" +
+            " " +
             args_path +
             " nogui"
         );
@@ -124,8 +123,7 @@ router.get("/completion", function (req, res) {
         }
       });
       if (jl != null) {
-        args_path = jl.split("@")[2];
-        args_path = args_path.replace("\r", "").trim();
+        args_path = jl.split(" ").slice(1).join(" ").replace("\r", "").trim();
         fs.writeFileSync(
           "./servers/" + req.query.server + "/start.sh",
           "cd servers\ncd " +
@@ -135,7 +133,7 @@ router.get("/completion", function (req, res) {
               .toString()
               .replace("-jar", "")
               .trim() +
-            " @" +
+            " " +
             args_path +
             " nogui"
         );

@@ -85,15 +85,14 @@
           </div>
           <div class="flex items-center lg:order-2">
             <!-- Logout button with tooltip -->
-            <a
-              href="#"
+            <button
               data-tooltip-target="tooltip-logout"
               id="logout-button"
               onclick="window.location='/auth/logout'"
               class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
             >
               <i class="ri-logout-box-line"></i>
-            </a>
+            </button>
             <div
               id="tooltip-logout"
               role="tooltip"
@@ -104,14 +103,13 @@
             </div>
 
             <!-- Kubek Settings button with tooltip -->
-            <a
-              href="#"
+            <button
               data-tooltip-target="tooltip-settings"
               id="kubek-settings-button"
               class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
             >
               <i class="ri-settings-2-fill"></i>
-            </a>
+            </button>
             <div
               id="tooltip-settings"
               role="tooltip"
@@ -146,7 +144,7 @@
             >
               <ul class="py-1" role="none">
                 <li data-lang="en">
-                  <a
+                  <button
                     class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:text-white dark:text-gray-300 dark:hover:bg-gray-600"
                     role="menuitem"
                   >
@@ -158,10 +156,10 @@
                       />
                       English (US)
                     </div>
-                  </a>
+                  </button>
                 </li>
                 <li data-lang="nl">
-                  <a
+                  <button
                     class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
                     role="menuitem"
                   >
@@ -173,10 +171,10 @@
                       />
                       Nederlands
                     </div>
-                  </a>
+                  </button>
                 </li>
                 <li data-lang="ru">
-                  <a
+                  <button
                     class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
                     role="menuitem"
                   >
@@ -188,13 +186,13 @@
                       />
                       Русский
                     </div>
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
 
             <!-- Theme switch with tooltip -->
-            <a
+            <button
               id="theme-toggle"
               data-tooltip-target="tooltip-theme"
               class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
@@ -223,7 +221,7 @@
                   clip-rule="evenodd"
                 ></path>
               </svg>
-            </a>
+            </button>
             <div
               id="tooltip-theme"
               role="tooltip"
@@ -680,7 +678,7 @@
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-keyboard-line text-white font-xl"></i>
+        <i class="ri-keyboard-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -704,7 +702,7 @@
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-shut-down-line text-white font-xl"></i>
+        <i class="ri-shut-down-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -738,7 +736,7 @@
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-cloud-line text-white font-xl"></i>
+        <i class="ri-cloud-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -762,7 +760,7 @@
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-cloud-line text-white font-xl"></i>
+        <i class="ri-cloud-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -786,7 +784,7 @@
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-shut-down-line text-white font-xl"></i>
+        <i class="ri-shut-down-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -859,7 +857,7 @@
         class="flex items-center justify-center bg-yellow-500"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-restart-line text-white font-xl"></i>
+        <i class="ri-restart-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -894,7 +892,7 @@
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-shut-down-line text-white font-xl"></i>
+        <i class="ri-shut-down-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -927,7 +925,7 @@
         class="flex items-center justify-center bg-red-500"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-error-warning-line text-white font-xl"></i>
+        <i class="ri-error-warning-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -1175,6 +1173,30 @@ test text</textarea
   </div>
 </div>
 
+
+<!-- Need to save auth modal -->
+<div class="modal-black-bg" id="needtosave-auth-warn-modal" style="display: none">
+  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+    <div class="modal-icon">
+      <div
+        class="flex items-center justify-center bg-blue-600"
+        style="width: 64px; height: 64px; border-radius: 50%"
+      >
+        <i class="ri-save-2-line text-white text-2xl"></i>
+      </div>
+    </div>
+    <div class="modal-contentt">
+      <div class="inner-content text-black dark:text-white my-2 text-center">{{need-to-save-ks}}</div>
+
+      <button
+        class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+      >
+        {{ok}}
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Backup info modal -->
 <div class="modal-black-bg" id="backup-info-modal" style="display: none">
   <div class="modal-layout bg-gray-100 dark:bg-gray-900">
@@ -1183,7 +1205,7 @@ test text</textarea
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-cloudy-line text-white font-xl"></i>
+        <i class="ri-cloudy-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -1336,7 +1358,7 @@ test text</textarea
         class="flex items-center justify-center bg-red-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-cloudy-line text-white font-xl"></i>
+        <i class="ri-cloudy-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -1371,7 +1393,7 @@ test text</textarea
         class="flex items-center justify-center bg-red-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-delete-bin-6-fill text-white font-xl"></i>
+        <i class="ri-delete-bin-6-fill text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -1403,7 +1425,7 @@ test text</textarea
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-edit-2-line text-white font-xl"></i>
+        <i class="ri-edit-2-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
@@ -1439,7 +1461,7 @@ test text</textarea
         class="flex items-center justify-center bg-blue-600"
         style="width: 64px; height: 64px; border-radius: 50%"
       >
-        <i class="ri-folder-add-line text-white font-xl"></i>
+        <i class="ri-folder-add-line text-white text-2xl"></i>
       </div>
     </div>
     <div class="modal-contentt">
