@@ -44,7 +44,12 @@ function genColorFromPercent(percent) {
 }
 
 function updateServersStatuses_ui(data) {
-  if (window.localStorage.selectedServer != null && typeof data[window.localStorage.selectedServer] !== "undefined" && typeof data[window.localStorage.selectedServer].status !== "undefined" && $("#status-text").length > 0) {
+  if (
+    window.localStorage.selectedServer != null &&
+    typeof data[window.localStorage.selectedServer] !== "undefined" &&
+    typeof data[window.localStorage.selectedServer].status !== "undefined" &&
+    $("#status-text").length > 0
+  ) {
     if (data[window.localStorage.selectedServer].status == "stopped") {
       $("#status-text").html("{{status-stopped}}");
       $("#status-text").removeClass();
@@ -55,7 +60,6 @@ function updateServersStatuses_ui(data) {
       $("#server-kill-btn").hide();
       $("#server-stop-btn").hide();
       $("#server-restart-btn").hide();
-      updateServersDropdownList(function () {});
     } else if (data[window.localStorage.selectedServer].status == "started") {
       $("#status-text").html("{{status-started}}");
       $("#status-text").removeClass();
@@ -66,7 +70,6 @@ function updateServersStatuses_ui(data) {
       $("#server-kill-btn").show();
       $("#server-stop-btn").show();
       $("#server-restart-btn").show();
-      updateServersDropdownList(function () {});
     } else if (data[window.localStorage.selectedServer].status == "starting") {
       $("#status-text").html("{{status-starting}}");
       $("#status-text").removeClass();
@@ -77,7 +80,6 @@ function updateServersStatuses_ui(data) {
       $("#server-kill-btn").show();
       $("#server-stop-btn").hide();
       $("#server-restart-btn").hide();
-      updateServersDropdownList(function () {});
     } else if (data[window.localStorage.selectedServer].status == "stopping") {
       $("#status-text").html("{{status-stopping}}");
       $("#status-text").removeClass();
@@ -87,61 +89,72 @@ function updateServersStatuses_ui(data) {
       $("#server-start-btn").hide();
       $("#server-kill-btn").show();
       $("#server-stop-btn").hide();
-      $("#server-restart-btn").hide();
-      updateServersDropdownList(function () {});
     }
+    updateServersDropdownList(function () {}, data);
   }
 }
 
-function updateServersDropdownList(cb) {
-  $.get("/server/statuses", function (data) {
-    $("#servers-list li").unbind("click");
-    $("#servers-list ul").html("");
-    for (const [key, value] of Object.entries(data)) {
-      clr = "text-black dark:text-white";
-      switch (value.status) {
-        case "stopped":
-          clr = "text-red-500";
-          break;
-        case "started":
-          clr = "text-green-500";
-          break;
-        case "starting":
-          clr = "text-yellow-500";
-          break;
-        case "stopping":
-          clr = "text-yellow-500";
-          break;
-      }
-      $("#servers-list ul").prepend(
-        SERVERS_LIST_ITEM_BASE.replace(
-          /\$1/gim,
-          '<img src="/server/icon?server=' + key + '" style="height: 24px;">'
+function updateServersDropdownList_ui(preparedData, cbf) {
+  $("#servers-list li").unbind("click");
+  $("#servers-list ul").html("");
+  for (const [key, value] of Object.entries(preparedData)) {
+    clr = "text-black dark:text-white";
+    switch (value.status) {
+      case "stopped":
+        clr = "text-red-500";
+        break;
+      case "started":
+        clr = "text-green-500";
+        break;
+      case "starting":
+        clr = "text-yellow-500";
+        break;
+      case "stopping":
+        clr = "text-yellow-500";
+        break;
+    }
+    $("#servers-list ul").prepend(
+      SERVERS_LIST_ITEM_BASE.replace(
+        /\$1/gim,
+        '<img src="/server/icon?server=' + key + '" style="height: 24px;">'
+      )
+        .replace(/\$2/gim, "<span class='server-name'>" + key + "</span>")
+        .replace(
+          /\$3/gim,
+          "<span class='" + clr + "'>" + value["statusTranslated"] + "</span>"
         )
-          .replace(/\$2/gim, "<span class='server-name'>" + key + "</span>")
-          .replace(
-            /\$3/gim,
-            "<span class='" + clr + "'>" + value["statusTranslated"] + "</span>"
-          )
-      );
-    }
-    $("#servers-list li").click(function () {
-      serverName = $(this).find(".server-name").text();
-      window.localStorage.setItem("selectedServer", serverName);
-      window.location.reload();
-    });
-
-    if ($("#servers-list li").length == 0) {
-      $("#status-text").hide();
-      $("#logout-button").hide();
-      $("#menu-tabs-list").hide();
-      $("#edit-server-button").hide();
-      $("#servers-list-dropdown").hide();
-      $("#new-server-button").addClass("animate__animated animate__heartBeat");
-      gotoPage("welcome");
-    }
-    cb();
+    );
+  }
+  $("#servers-list li").click(function () {
+    serverName = $(this).find(".server-name").text();
+    window.localStorage.setItem("selectedServer", serverName);
+    window.location.reload();
   });
+
+  if ($("#servers-list li").length == 0) {
+    $("#status-text").hide();
+    $("#logout-button").hide();
+    $("#menu-tabs-list").hide();
+    $("#edit-server-button").hide();
+    $("#servers-list-dropdown").hide();
+    $("#new-server-button").addClass("animate__animated animate__heartBeat");
+    gotoPage("welcome");
+  }
+  cbf();
+}
+
+function updateServersDropdownList(cb, preparedData = null) {
+  if (preparedData != null) {
+    updateServersDropdownList_ui(preparedData, function () {
+      cb();
+    });
+  } else {
+    $.get("/server/statuses", function (data) {
+      updateServersDropdownList_ui(data, function () {
+        cb();
+      });
+    });
+  }
 }
 
 function updateServerDataFromQuery_ui(data) {
@@ -201,56 +214,147 @@ function updateQuery_socket() {
   }
 }
 
+// Notifications presets
 function showDisconnectNotify() {
-  Toastify({
-    text: "{{disconnect-notify}}",
-    duration: 3000,
-    newWindow: true,
-    close: false,
-    gravity: "top",
-    position: "center",
-    stopOnFocus: true,
-    style: {
-      background: "#E02424",
-      color: "white",
-    },
-    onClick: function () {},
-  }).showToast();
+  Toaster("{{disconnect-notify}}", 3000, false, "error");
 }
 
 function showReconnectNotify() {
-  Toastify({
-    text: "{{reconnect-notify}}",
-    duration: 3000,
-    newWindow: true,
-    close: false,
-    gravity: "top",
-    position: "center",
-    stopOnFocus: true,
-    style: {
-      background: "#0E9F6E",
-      color: "white",
-    },
-    onClick: function () {},
-  }).showToast();
+  Toaster("{{reconnect-notify}}", 3000, false, "success");
 }
 
 function updateIsReady() {
-  Toastify({
-    text: "{{newupdate-installed}}",
-    duration: 5000,
-    close: false,
-    gravity: "top",
-    position: "left",
-    stopOnFocus: true,
-    className: "upd-toast",
-    style: {
-      background: "#7E3AF2",
-    },
-  }).showToast();
+  Toaster("{{newupdate-installed}}", 5000, false, "success", true);
 }
 
 function changeServerIcon() {
   $("#g-img-input").trigger("click");
   $("#g-img-input").off("change");
+}
+
+// Refresh UI functions
+function refreshSimplify() {
+  if (typeof window.localStorage.simplify !== "undefined") {
+    if (window.localStorage.simplify == "true") {
+      $("html").addClass("simplify");
+    } else {
+      $("html").removeClass("simplify");
+    }
+  } else {
+    window.localStorage.setItem("simplify", "false");
+    $("html").removeClass("simplify");
+  }
+}
+
+function refreshNoRounded() {
+  if (typeof window.localStorage.norounded !== "undefined") {
+    if (window.localStorage.norounded == "true") {
+      $("html").addClass("norounded");
+    } else {
+      $("html").removeClass("norounded");
+    }
+  } else {
+    window.localStorage.setItem("norounded", "false");
+    $("html").removeClass("norounded");
+  }
+}
+
+function refreshNoBackdrop() {
+  if (typeof window.localStorage.nobackdrop !== "undefined") {
+    if (window.localStorage.nobackdrop == "true") {
+      $("html").addClass("nobackdrop");
+    } else {
+      $("html").removeClass("nobackdrop");
+    }
+  } else {
+    window.localStorage.setItem("nobackdrop", "false");
+    $("html").removeClass("nobackdrop");
+  }
+}
+
+function refreshBackgroundImage() {
+  if (typeof window.localStorage.background !== "undefined") {
+    $("#blurry-bg-img-" + window.localStorage.background).show();
+  } else {
+    window.localStorage.setItem("background", "1");
+    $("#blurry-bg-img-1").show();
+  }
+}
+
+function refreshBlurRange() {
+  if (typeof window.localStorage.blurrange !== "undefined") {
+    $(".blurry-bg-img").each(function () {
+      if ($(this).css("display") == "none") {
+        $(this).attr(
+          "style",
+          "display: none; filter: blur(" +
+            window.localStorage.blurrange +
+            "px) !important;"
+        );
+      } else {
+        $(this).attr(
+          "style",
+          "filter: blur(" + window.localStorage.blurrange + "px) !important;"
+        );
+      }
+    });
+  } else {
+    window.localStorage.setItem("blurrange", "24");
+  }
+}
+
+function refreshToastsPosition(){
+  if (typeof window.localStorage.toastspos !== "undefined") {
+    $("#toasts-list").removeClass("left-top right-top left-bottom right-bottom top-center bottom-center");
+    $("#toasts-list").addClass(window.localStorage.toastspos);
+  } else {
+    window.localStorage.setItem("toastspos", "left-bottom");
+    $("#toasts-list").addClass("left-bottom");
+  }
+}
+
+function refreshFont() {
+  if (typeof window.localStorage.fontfamily !== "undefined") {
+    $("html").removeClass("inter sansserif segoeui consolas verdana");
+    $("html").addClass(window.localStorage.fontfamily);
+  } else {
+    window.localStorage.setItem("fontfamily", "inter");
+  }
+}
+
+function refreshAllUI(){
+  refreshSimplify();
+  refreshNoRounded();
+  refreshNoBackdrop();
+  refreshBackgroundImage();
+  refreshBlurRange();
+  refreshToastsPosition();
+  refreshFont();
+}
+
+// Tab menu functions
+function setUnactiveTabMenu() {
+  addel = $("#menu-tabs-list li button.active");
+  $(addel).removeClass();
+  $(addel).addClass(
+    "inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+  );
+}
+
+function setActiveTabMenuByElement(elem) {
+  $(elem).removeClass();
+  $(elem).addClass(
+    "active inline-flex p-4 text-blue-600 border-b-2 border-blue-600 rounded-t-lg active dark:text-blue-500 dark:border-blue-500 group"
+  );
+}
+
+function setActiveTabMenuByPage(pg) {
+  $("#menu-tabs-list li button").each(function () {
+    if ($(this).data("page") == pg) {
+      $(this).removeClass();
+      $(this).addClass(
+        "active inline-flex p-4 text-blue-600 border-b-2 border-blue-600 rounded-t-lg active dark:text-blue-500 dark:border-blue-500 group"
+      );
+    }
+  });
 }

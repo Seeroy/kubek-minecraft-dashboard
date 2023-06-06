@@ -53,7 +53,7 @@ $(document).ready(function () {
           total +
           '</th><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">' +
           percent +
-          '</th></tr>'
+          "</th></tr>"
       );
     });
     $("#os-name").text(hw.platform.version + " (" + hw.platform.arch + ")");

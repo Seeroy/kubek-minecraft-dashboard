@@ -13,13 +13,15 @@
 
   <!-- Others -->
   <script src="/js/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="/css/animate.min.css" />
 
-  <script src="js/toastify-js.js"></script>
-  <link rel="stylesheet" href="css/toastify.min.css" />
+  <link rel="stylesheet" href="/css/animate.min.css" />
 
   <!-- Own -->
   <script src="/js/funcs.js"></script>
+  <script src="/js/simply.functions.js"></script>
+  <script src="/js/ui.functions.js"></script>
+  <script src="/js/toaster.js"></script>
+  
   <link rel="stylesheet" href="/css/globals.css" />
 
   <!-- Icons and font -->
@@ -62,6 +64,8 @@
   <img src="./assets/backgrounds/1.jpg" id="blurry-bg-img" />
   <!-- Background image overlap -->
   <div id="blurry-bg-img-bg" class="bg-gray-100 dark:bg-gray-900"></div>
+  <!-- TOASTS LIST -->
+  <div id="toasts-list" class="flex flex-col right-bottom"></div>
 </body>
 
 <style>
@@ -104,35 +108,13 @@
         statusCode: {
           200: function (response) {
             if (response == "Wrong credetinals!") {
-              Toastify({
-                text: "{{wrong-cred-login}}",
-                duration: 2000,
-                newWindow: true,
-                close: false,
-                gravity: "top",
-                position: "center",
-                stopOnFocus: true,
-                style: {
-                  background: "#E02424",
-                },
-              }).showToast();
+              Toaster("{{wrong-cred-login}}", 2000, false, "error");
             } else {
               window.location = "/";
             }
           },
           429: function (response) {
-            Toastify({
-              text: "{{rate-limit-login}}",
-              duration: 1000,
-              newWindow: true,
-              close: false,
-              gravity: "top",
-              position: "center",
-              stopOnFocus: true,
-              style: {
-                background: "#E3A008",
-              },
-            }).showToast();
+            Toaster("{{rate-limit-login}}", 2000, false, "warning");
           },
         },
       });

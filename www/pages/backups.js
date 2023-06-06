@@ -75,7 +75,6 @@ function setPercentage(percentage) {
 }
 
 function refreshServerFilesList() {
-  $("#fl-table").html("");
   $.get(
     "/fmapi/scanDirectory?server=" +
       window.localStorage.selectedServer +
@@ -84,6 +83,7 @@ function refreshServerFilesList() {
       data = JSON.parse(data);
       data = sortToDirsAndFiles(data);
       if (typeof data == "object") {
+		$("#fl-table").html("");
         data.forEach(function (file, i) {
           if (file.type == "directory") {
             icon = "folder.png";
@@ -149,18 +149,7 @@ function refreshDiskStats() {
 
 function restoreBackup(fn) {
   showModal("ask-restore-backup-modal", "fadeIn", function () {
-    Toastify({
-      text: "{{backups-restorproc}}",
-      duration: -1,
-      close: true,
-      gravity: "top",
-      position: "left",
-      stopOnFocus: true,
-      style: {
-        background: "#E74694",
-      },
-      onClick: function () {},
-    }).showToast();
+    Toaster("{{backups-restorproc}}", -1, false, "");
     $.ajax({
       url:
         "/backups/restore?filename=" +
@@ -168,18 +157,7 @@ function restoreBackup(fn) {
         "&server=" +
         window.localStorage.selectedServer,
       error: function (err) {
-        Toastify({
-          text: "Error happend: " + err.toString(),
-          duration: -1,
-          close: true,
-          gravity: "top",
-          position: "left",
-          stopOnFocus: true,
-          style: {
-            background: "#E02424",
-          },
-          onClick: function () {},
-        }).showToast();
+        Toaster("Error happend: " + err.toString(), 5000, false, "error");
       },
       success: function () {
         window.location.reload();
@@ -211,9 +189,9 @@ function showBackupInfo(bname, desc) {
 
 function refreshBackupsList() {
   refreshDiskStats();
-  $("#backups-list").html("");
   $.get("/backups/list", function (data) {
     if (typeof data == "object") {
+      $("#backups-list").html("");
       data.forEach(function (item, i) {
         size = item.size;
         if (item.size < 1024) {

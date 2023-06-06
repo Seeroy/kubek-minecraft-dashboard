@@ -70,63 +70,32 @@ function deleteAllSelected() {
         str,
       function (data) {
         if (data["file"] == 0 && data["directory"] == 0) {
-          Toastify({
-            text: "{{afterdelno-fm}}",
-            duration: 3000,
-            newWindow: true,
-            close: false,
-            gravity: "top",
-            position: "center",
-            stopOnFocus: true,
-            style: {
-              background: "#E3A008",
-            },
-          }).showToast();
+          Toaster("{{afterdelno-fm}}", 3000, false, "warning");
         } else if (data["file"] != 0 && data["directory"] == 0) {
-          Toastify({
-            text: "{{afterdel-fm}} " + data["file"] + " {{afterdelfiles-fm}}",
-            duration: 3000,
-            newWindow: true,
-            close: false,
-            gravity: "top",
-            position: "center",
-            stopOnFocus: true,
-            style: {
-              background: "#1C64F2",
-            },
-          }).showToast();
+          Toaster(
+            "{{afterdel-fm}} " + data["file"] + " {{afterdelfiles-fm}}",
+            3000,
+            false,
+            "success"
+          );
         } else if (data["file"] == 0 && data["directory"] != 0) {
-          Toastify({
-            text:
-              "{{afterdel-fm}} " + data["directory"] + " {{afterdeldirs-fm}}",
-            duration: 3000,
-            newWindow: true,
-            close: false,
-            gravity: "top",
-            position: "center",
-            stopOnFocus: true,
-            style: {
-              background: "#1C64F2",
-            },
-          }).showToast();
+          Toaster(
+            "{{afterdel-fm}} " + data["directory"] + " {{afterdelfiles-fm}}",
+            3000,
+            false,
+            "success"
+          );
         } else if (data["file"] != 0 && data["directory"] != 0) {
-          Toastify({
-            text:
-              "{{afterdel-fm}} " +
+          Toaster(
+            "{{afterdel-fm}} " +
               data["file"] +
               " {{afterdelfiles-fm}}, " +
               data["directory"] +
               " {{afterdeldirs-fm}}",
-            duration: 3000,
-            newWindow: true,
-            close: false,
-            gravity: "top",
-            position: "center",
-            stopOnFocus: true,
-            style: {
-              background: "#1C64F2",
-            },
-          }).showToast();
+            3000,
+            false,
+            "success"
+          );
         }
         $("#bdf").hide();
         refreshDir();
@@ -146,7 +115,7 @@ function upperDir() {
   curDir.pop();
   curDir.pop();
   curDir = curDir.join("/") + "/";
-  refreshDir();
+  refreshDir(false);
 }
 
 function deleteDirFM(path) {
@@ -163,18 +132,7 @@ function deleteDirFM(path) {
       function (data) {
         refreshDir();
         if (data == "ENOTEMPTY") {
-          Toastify({
-            text: "{{notempty-fm}}",
-            duration: 3000,
-            newWindow: true,
-            close: false,
-            gravity: "top",
-            position: "center",
-            stopOnFocus: true,
-            style: {
-              background: "#E3A008",
-            },
-          }).showToast();
+          Toaster("{{notempty-fm}}", 3000, false, "warning");
         }
       }
     );
@@ -238,18 +196,7 @@ function uploadFM() {
       },
       error: function (data) {
         console.log(data);
-        Toastify({
-          text: "{{error}} " + data,
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "#E3A008",
-          },
-        }).showToast();
+        Toaster("{{error}}", 3000, false, "error");
       },
       cache: false,
       contentType: false,
@@ -349,70 +296,74 @@ function downloadFM(path) {
   );
 }
 
-function refreshDir() {
-  animateTopbar(25, 20);
-  unselectAllCheckboxes();
-  syncMultiplyFilesCount();
-  if (
-    window.matchMedia("(min-width: 320px)").matches &&
-    window.matchMedia("(max-width: 480px)").matches
-  ) {
-    bindev = "click";
-  } else {
-    bindev = "dblclick";
-  }
-  saveScroll = $(".fm-container #oldc").scrollTop();
-  $("#fm-table tbody").html("");
-  $("#breadcrumb-fm").html(
-    '<li><div class="flex items-center"><svg aria-hidden="true" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><a href="#" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">' +
-      window.localStorage.selectedServer +
-      "</a></div></li>"
-  );
-  spl = curDir.split("/");
-  spl = spl.filter((element) => {
-    return element != "";
-  });
-  if (spl != "/") {
-    spl.forEach(function (dir) {
-      $("#breadcrumb-fm").append(
-        '<li><div class="flex items-center"><svg aria-hidden="true" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><a href="#" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">' +
-          dir +
-          "</a></div></li>"
-      );
-    });
-  }
-  $("#breadcrumb-fm li:not(:last-child) a").click(function () {
-    if ($(this).text() == window.localStorage.selectedServer) {
-      curDir = "/";
-      refreshDir();
-    } else {
-      path = "";
-      index = $(this).index();
-      $("#breadcrumb-fm li:not(:last-child) a").each(function (ind) {
-        if (
-          $(this).text() != window.localStorage.selectedServer &&
-          ind <= index
-        ) {
-          path = path + $(this).text() + "/";
-        }
-      });
-      curDir = path;
-      refreshDir();
-    }
-  });
-  if (curDir != "/") {
-    $("#fm-table tbody").append(
-      "<tr class='bg-white dark:bg-gray-800 glassmorphed cursor-pointer' on" +
-        bindev +
-        '="upperDir()"><td></td><td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white fn">..</td><td></td><td></td><td></td><td></td></tr>'
-    );
-  }
+function refreshDir(needToSaveScroll = true) {
   $.get(
     "/fmapi/scanDirectory?server=" +
       window.localStorage.selectedServer +
       "&directory=" +
       curDir,
     function (data) {
+      animateTopbar(25, 20);
+      unselectAllCheckboxes();
+      syncMultiplyFilesCount();
+      if (
+        window.matchMedia("(min-width: 320px)").matches &&
+        window.matchMedia("(max-width: 480px)").matches
+      ) {
+        bindev = "click";
+      } else {
+        bindev = "dblclick";
+      }
+      if (needToSaveScroll == true) {
+        saveScroll = $(".fm-container #oldc").scrollTop();
+      } else {
+        saveScroll = 0;
+      }
+      $("#fm-table tbody").html("");
+      $("#breadcrumb-fm").html(
+        '<li style="margin-left: 0"><div class="flex items-center"><i class="ri-home-2-line text-gray-800 dark:text-gray-200"></i><a href="#" class="ml-1 text-sm font-medium md:ml-2 text-gray-700 dark:text-gray-300 hover:text-gray-500 hover:dark:text-gray-100">' +
+          window.localStorage.selectedServer +
+          "</a></div></li>"
+      );
+      spl = curDir.split("/");
+      spl = spl.filter((element) => {
+        return element != "";
+      });
+      if (spl != "/") {
+        spl.forEach(function (dir) {
+          $("#breadcrumb-fm").append(
+            '<li style="margin-left: 0"><div class="flex items-center"><svg aria-hidden="true" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><a href="#" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">' +
+              dir +
+              "</a></div></li>"
+          );
+        });
+      }
+      $("#breadcrumb-fm li:not(:last-child) a").click(function () {
+        if ($(this).text() == window.localStorage.selectedServer) {
+          curDir = "/";
+          refreshDir(false);
+        } else {
+          path = "";
+          index = $(this).index();
+          $("#breadcrumb-fm li:not(:last-child) a").each(function (ind) {
+            if (
+              $(this).text() != window.localStorage.selectedServer &&
+              ind <= index
+            ) {
+              path = path + $(this).text() + "/";
+            }
+          });
+          curDir = path;
+          refreshDir(false);
+        }
+      });
+      if (curDir != "/") {
+        $("#fm-table tbody").append(
+          "<tr class='bg-white dark:bg-gray-800 glassmorphed cursor-pointer' on" +
+            bindev +
+            '="upperDir()"><td></td><td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white fn">..</td><td></td><td></td><td></td><td></td></tr>'
+        );
+      }
       animateTopbar(50, 20);
       data = JSON.parse(data);
       if (typeof data == "object") {
@@ -428,10 +379,12 @@ function refreshDir() {
               curDir +
               file.name +
               "'" +
-              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{rename}}" onclick="renameFM(' + "'" +
+              ')"><i class="ri-delete-bin-6-fill text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" style="font-size: 20px;"></i></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{rename}}" onclick="renameFM(' +
+              "'" +
               curDir +
-              file.name + "'" +
-              ')"><img width=24px src="/assets/fm_icons/edit.png"></button>';
+              file.name +
+              "'" +
+              ')"><i class="ri-edit-2-fill text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" style="font-size: 20px;"></i></button>';
           } else {
             act =
               '<button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{delete}}" onclick="deleteFM(' +
@@ -439,13 +392,17 @@ function refreshDir() {
               curDir +
               file.name +
               "'" +
-              ')"><img width=24px src="/assets/fm_icons/delete.png"></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{rename}}" onclick="renameFM(' + "'" + 
+              ')"><i class="ri-delete-bin-6-fill text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" style="font-size: 20px;"></i></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{rename}}" onclick="renameFM(' +
+              "'" +
               curDir +
-              file.name + "'" +
-              ')"><img width=24px src="/assets/fm_icons/edit.png"></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{download}}" onclick="downloadFM(' + "'" +
+              file.name +
+              "'" +
+              ')"><i class="ri-edit-2-fill text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" style="font-size: 20px;"></i></button><button class="glassmorphed text-black dark:text-white font-medium rounded-lg text-sm mr-2 focus:outline-none inline-flex items-center justify-center" style="height: 40px; width: 40px;" type="button" title="{{download}}" onclick="downloadFM(' +
+              "'" +
               curDir +
-              file.name + "'" +
-              ')"><img width=24px src="/assets/fm_icons/download.png"></button>';
+              file.name +
+              "'" +
+              ')"><i class="ri-download-cloud-2-fill text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" style="font-size: 20px;"></i></button>';
           }
           if (file.type == "directory") {
             icon = "folder.png";
@@ -502,7 +459,7 @@ function refreshDir() {
         $("#fm-table tr").bind(bindev, function () {
           if ($(this).data("type") == "directory") {
             curDir += $(this).find(".fn")[0].innerText + "/";
-            refreshDir();
+            refreshDir(false);
           }
           if ($(this).data("type") == "file") {
             ext = $(this).find(".fn")[0].innerText.split(".").slice(-1)[0];

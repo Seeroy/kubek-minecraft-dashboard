@@ -8,73 +8,82 @@ function thisServerExists(sn) {
   return r;
 }
 
-function refreshSimplify() {
-  if (typeof window.localStorage.simplify !== "undefined") {
-    if (window.localStorage.simplify == "true") {
-      $("html").addClass("simplify");
-    } else {
-      $("html").removeClass("simplify");
-    }
-  } else {
-    window.localStorage.setItem("simplify", "false");
-    $("html").removeClass("simplify");
-  }
+function formatUptime(seconds) {
+  var hours = Math.floor(seconds / (60 * 60));
+  var minutes = Math.floor((seconds % (60 * 60)) / 60);
+  var seconds = Math.floor(seconds % 60);
+
+  return padU(hours) + "h" + padU(minutes) + "m" + padU(seconds) + "s";
 }
 
-function refreshNoRounded() {
-  if (typeof window.localStorage.norounded !== "undefined") {
-    if (window.localStorage.norounded == "true") {
-      $("html").addClass("norounded");
-    } else {
-      $("html").removeClass("norounded");
-    }
-  } else {
-    window.localStorage.setItem("norounded", "false");
-    $("html").removeClass("norounded");
-  }
+function padU(s) {
+  return (s < 10 ? "0" : "") + s;
 }
 
-function refreshNoBackdrop() {
-  if (typeof window.localStorage.nobackdrop !== "undefined") {
-    if (window.localStorage.nobackdrop == "true") {
-      $("html").addClass("nobackdrop");
-    } else {
-      $("html").removeClass("nobackdrop");
-    }
-  } else {
-    window.localStorage.setItem("nobackdrop", "false");
-    $("html").removeClass("nobackdrop");
-  }
-}
+const animateCSS = (element, animation, removeAfterAnimation = false, prefix = "animate__") =>
+  new Promise((resolve, reject) => {
+    const animationName = `${prefix}${animation}`;
+    const node = document.querySelector(element);
 
-function refreshBackgroundImage() {
-  if (typeof window.localStorage.background !== "undefined") {
-    $("#blurry-bg-img-" + window.localStorage.background).show();
-  } else {
-    window.localStorage.setItem("background", "1");
-    $("#blurry-bg-img-1").show();
-  }
-}
+    node.classList.add(`${prefix}animated`, animationName, `${prefix}faster`);
 
-function refreshBlurRange() {
-  if (typeof window.localStorage.blurrange !== "undefined") {
-    $(".blurry-bg-img").each(function(){
-      if($(this).css("display") == "none"){
-        $(this).attr("style", "display: none; filter: blur(" + window.localStorage.blurrange + "px) !important;");
-      } else {
-        $(this).attr("style", "filter: blur(" + window.localStorage.blurrange + "px) !important;");
+    function handleAnimationEnd(event) {
+      event.stopPropagation();
+      node.classList.remove(
+        `${prefix}animated`,
+        animationName,
+        `${prefix}faster`
+      );
+      if(removeAfterAnimation == true){
+        node.remove();
       }
+      resolve("Animation ended");
+    }
+
+    node.addEventListener("animationend", handleAnimationEnd, {
+      once: true,
     });
+  });
+
+function convertFileSizeToHuman(size) {
+  if (size < 1024) {
+    size = size + " B";
+  } else if (size < 1024 * 1024) {
+    size = Math.round((size / 1024) * 10) / 10 + " Kb";
+  } else if (size >= 1024 * 1024 && size < 1024 * 1024 * 1024) {
+    size = Math.round((size / 1024 / 1024) * 10) / 10 + " Mb";
+  } else if (size >= 1024 * 1024 * 1024) {
+    size = Math.round((size / 1024 / 1024 / 1024) * 10) / 10 + " Gb";
   } else {
-    window.localStorage.setItem("blurrange", "24");
+    size = size + " ?";
   }
+  return size;
 }
 
-function refreshFont() {
-  if (typeof window.localStorage.fontfamily !== "undefined") {
-    $("html").removeClass("inter sansserif segoeui consolas verdana")
-    $("html").addClass(window.localStorage.fontfamily);
-  } else {
-    window.localStorage.setItem("fontfamily", "inter");
-  }
+function linkify(inputText) {
+  var replacedText, replacePattern1, replacePattern2, replacePattern3;
+
+  //URLs starting with http://, https://, or ftp://
+  replacePattern1 =
+    /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+  replacedText = inputText.replace(
+    replacePattern1,
+    '<a href="$1" target="_blank">$1</a>'
+  );
+
+  //URLs starting with "www." (without // before it, or it'd re-link the ones done above).
+  replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+  replacedText = replacedText.replace(
+    replacePattern2,
+    '$1<a href="http://$2" target="_blank">$2</a>'
+  );
+
+  //Change email addresses to mailto:: links.
+  replacePattern3 = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
+  replacedText = replacedText.replace(
+    replacePattern3,
+    '<a href="mailto:$1">$1</a>'
+  );
+
+  return replacedText;
 }

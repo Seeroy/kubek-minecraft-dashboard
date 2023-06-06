@@ -114,20 +114,7 @@ $(document).ready(function () {
 });
 
 function deleteServer() {
-  Toastify({
-    text: "{{do-not-reload-page}}!",
-    duration: 3000,
-    newWindow: true,
-    close: false,
-    gravity: "bottom",
-    position: "left",
-    stopOnFocus: true,
-    style: {
-      background: "#0067f4",
-      color: "white",
-    },
-    onClick: function () {},
-  }).showToast();
+  Toaster("{{do-not-reload-page}}!", -1, false, "");
   $.get(
     "/server/delete?server=" + window.localStorage.selectedServer,
     function () {

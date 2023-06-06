@@ -83,7 +83,7 @@ router.get("/completion", function (req, res) {
         }
       });
       if (jl != null) {
-        args_path = jl.split(" ").slice(1).join(" ").replace("\r", "").trim();
+        args_path = jl.split(" ").slice(1).join(" ").replace(/\\r/gmi, "").trim();
         fs.writeFileSync(
           "./servers/" + req.query.server + "/start.bat",
           "@echo off\nchcp 65001>nul\ncd servers\ncd " +
@@ -123,7 +123,7 @@ router.get("/completion", function (req, res) {
         }
       });
       if (jl != null) {
-        args_path = jl.split(" ").slice(1).join(" ").replace("\r", "").trim();
+        args_path = jl.split(" ").slice(1).join(" ").replace(/\\r/gmi, "").trim();
         fs.writeFileSync(
           "./servers/" + req.query.server + "/start.sh",
           "cd servers\ncd " +

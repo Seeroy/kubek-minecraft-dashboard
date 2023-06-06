@@ -18,6 +18,10 @@
   box-sizing: border-box !important;
 }
 
+i {
+  font-weight: 100 !important;
+}
+
 .glassmorphed {
   border-radius: 16px;
   border: 1px solid rgba(225, 225, 225, 0.1);
@@ -44,11 +48,6 @@ html.dark .glassmorphed {
   z-index: 8;
   background: rgba(10, 10, 10, 0.4);
   backdrop-filter: blur(4px);
-}
-
-.toastify *,
-.toastify {
-  box-shadow: none !important;
 }
 
 #topbar {
@@ -121,4 +120,32 @@ table * {
 .modal-black-bg .modal-layout .caption {
   font-size: 16pt;
   font-weight: 600;
+}
+
+/* Toasts styling */
+#toasts-list {
+  position: absolute;
+  height: max-content;
+  width: max-content;
+  overflow: hidden;
+}
+
+#toasts-list.left-top {
+  top: 32px;
+  left: 32px;
+}
+
+#toasts-list.right-top {
+  top: 32px;
+  right: 32px;
+}
+
+#toasts-list.left-bottom {
+  bottom: 32px;
+  left: 32px;
+}
+
+#toasts-list.right-bottom {
+  bottom: 32px;
+  right: 32px;
 }

@@ -454,3 +454,22 @@ function round512(x) {
 function detectServerVersion(name) {
   return name.match(/-1\.\d{1,2}(\.\d)?/gm);
 }
+
+function setDownloadProgressBarValue(progress) {
+  $("#progress-card .progress-bar").css(
+    "width",
+    progress + "%"
+  );
+}
+
+function setDownloadProgressBarVisible(isVisible){
+  if(isVisible == true){
+    $("#progress-card .progress").show();
+  } else {
+    $("#progress-card .progress").hide();
+  }
+}
+
+function setProgressCardText(text) {
+  $("#progress-card p").html(text);
+}

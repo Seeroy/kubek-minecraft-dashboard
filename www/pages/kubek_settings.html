@@ -135,7 +135,7 @@
             </div>
           </th>
           <td class="px-6 py-4">
-            <input id="blurrange-range" type="range" min="0" max="32" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+            <input id="blurrange-range" type="range" min="0" max="32" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700">
           </td>
         </tr>
         <tr class="bg-white dark:bg-gray-800 glassmorphed">
@@ -214,6 +214,89 @@
                 class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
               ></div>
             </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th
+            scope="col"
+            class="px-6 py-3 bg-gray-200 dark:bg-gray-700 uppercase"
+          >{{notifications-ks}}</th>
+          <th scope="col" class="px-6 py-3 bg-gray-200 dark:bg-gray-700"></th>
+        </tr>
+
+        <tr class="bg-white dark:bg-gray-800 glassmorphed">
+          <th
+            scope="row"
+            class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+          >
+            <div class="flex items-center">
+              <i class="ri-mail-forbid-fill text-xl"></i>
+              <span style="margin-left: 16px">{{nolowpriority-ks}}</span>
+            </div>
+          </th>
+          <td class="px-6 py-4">
+            <label
+              class="relative inline-flex items-center cursor-pointer"
+              style="vertical-align: middle"
+            >
+              <input
+                type="checkbox"
+                id="nolowpriority-checkbox"
+                class="sr-only peer"
+              />
+              <div
+                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+              ></div>
+            </label>
+          </td>
+        </tr>
+        <tr class="bg-white dark:bg-gray-800 glassmorphed">
+          <th
+            scope="row"
+            class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+          >
+            <div class="flex items-center">
+              <i class="ri-notification-off-fill text-xl"></i>
+              <span style="margin-left: 16px">{{noupdatenotify-ks}}</span>
+            </div>
+          </th>
+          <td class="px-6 py-4">
+            <label
+              class="relative inline-flex items-center cursor-pointer"
+              style="vertical-align: middle"
+            >
+              <input
+                type="checkbox"
+                id="noupdatenotify-checkbox"
+                class="sr-only peer"
+              />
+              <div
+                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+              ></div>
+            </label>
+          </td>
+        </tr>
+        <tr class="bg-white dark:bg-gray-800 glassmorphed">
+          <th
+            scope="row"
+            class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+          >
+            <div class="flex items-center">
+              <i class="ri-notification-badge-fill text-xl"></i>
+              <span style="margin-left: 16px">{{toastspos-ks}}</span>
+            </div>
+          </th>
+          <td class="px-6 py-4">
+            <select
+              id="toastspos-select"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+            >
+              <option value="left-top">{{toastspos-tl-ks}}</option>
+              <option value="right-top">{{toastspos-tr-ks}}</option>
+              <option value="left-bottom">{{toastspos-bl-ks}}</option>
+              <option value="right-bottom">{{toastspos-br-ks}}</option>
+            </select>
           </td>
         </tr>
 

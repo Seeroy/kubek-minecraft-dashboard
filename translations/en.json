@@ -129,6 +129,14 @@
   "{{blurrange-ks}}": "Amount of background blur",
   "{{font-ks}}": "Main interface font",
   "{{need-to-save-ks}}": "Before editing users, you must first save the settings and log in to your account!",
+  "{{toastspos-ks}}": "Toasts position",
+  "{{toastspos-tl-ks}}": "Top Left",
+  "{{toastspos-tr-ks}}": "Top Right",
+  "{{toastspos-bl-ks}}": "Bottom Left",
+  "{{toastspos-br-ks}}": "Bottom Right",
+  "{{noupdatenotify-ks}}": "Disable update notifications (not recommended)",
+  "{{nolowpriority-ks}}": "Don't show low priority notifications",
+  "{{notifications-ks}}": "Notifications",
 
   "{{sp-editor-ss}}": "server.properties editor",
   "{{java-ver-ss}}": "Java Version",
@@ -282,5 +290,10 @@
   "{{tgbot-wrongotp}}": "Invalid OTP code (you can get it in the Kubek settings)",
   "{{tgbot-noserver}}": "❗ No such server, use /status to get a list of servers",
   "{{tgbot-succsel}}": "✅ The selected server is now: ",
-  "{{tgbot-noselectsrv}}": "❗You have not selected a server to manage, use /selectServer [server name] to select"
+  "{{tgbot-noselectsrv}}": "❗You have not selected a server to manage, use /selectServer [server name] to select",
+
+  "{{toasts-list-tooltip}}": "Toasts history",
+  "{{toasts-start-success}}": " started successfully",
+  "{{toasts-stop-success}}": " shut down successfully",
+  "{{toasts-stop-code}}": " closed with code "
 }

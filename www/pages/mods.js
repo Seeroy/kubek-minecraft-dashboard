@@ -118,18 +118,7 @@ function uploadPlugin() {
         refreshLists();
       },
       error: function (data) {
-        Toastify({
-          text: "{{error-upload}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "#E02424",
-          },
-        }).showToast();
+        Toaster("{{error-upload}}", 3000, false, "error");
         refreshLists();
       },
       cache: false,
@@ -152,18 +141,7 @@ function uploadMod() {
         refreshLists();
       },
       error: function (data) {
-        Toastify({
-          text: "{{error-upload}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "#E02424",
-          },
-        }).showToast();
+        Toaster("{{error-upload}}", 3000, false, "error");
         refreshLists();
       },
       cache: false,

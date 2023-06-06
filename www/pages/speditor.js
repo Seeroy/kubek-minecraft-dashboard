@@ -17,7 +17,7 @@ function refreshServerProperties() {
               znach = JSON.stringify(znach).replace("null", "").trim();
             }
 
-            if(typeof spt[key] == "undefined"){
+            if (typeof spt[key] == "undefined") {
               spt[key] = "";
             }
 
@@ -84,7 +84,9 @@ function refreshServerProperties() {
                   key +
                   '</span><span class="text-gray-600 dark:text-gray-400 text-sm font-light">' +
                   spt[key] +
-                  '</span></div></th><td class="px-6 py-4"><input type="text" value="' + znach + '" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"></td></tr>';
+                  '</span></div></th><td class="px-6 py-4"><input type="text" value="' +
+                  znach +
+                  '" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"></td></tr>';
               }
               $(".speditor-container table tbody").append(htmlcode);
             }
@@ -130,18 +132,5 @@ function saveProps() {
       "&server=" +
       window.localStorage.selectedServer
   );
-  Toastify({
-    text: "{{settings-saved}}",
-    duration: 3000,
-    newWindow: true,
-    close: false,
-    gravity: "bottom",
-    position: "left",
-    stopOnFocus: true,
-    style: {
-      background: "#0067f4",
-      color: "white",
-    },
-    onClick: function () {},
-  }).showToast();
+  Toaster("{{settings-saved}}", 3000, false, "success", true);
 }

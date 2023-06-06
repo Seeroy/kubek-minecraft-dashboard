@@ -276,6 +276,21 @@ exports.startServer = (server) => {
               ":",
             server.red
           );
+
+          fsock = io.sockets.sockets;
+          for (const socket of fsock) {
+            socket[1].emit("handleUpdate", {
+              type: "server_status_changed",
+              data: {
+                message: translator.translateHTML(
+                  server + "{{toasts-stop-code}}" + code,
+                  cfg["lang"]
+                ),
+                type: "warning"
+              },
+            });
+          }
+
           if (
             serverjson_cfg[server]["restartOnError"] == true &&
             errors_parser.checkStringForErrors(servers_logs[server]) == false
@@ -349,6 +364,19 @@ exports.startServer = (server) => {
               startServer(server);
             }, 500);
           }
+            fsock = io.sockets.sockets;
+            for (const socket of fsock) {
+              socket[1].emit("handleUpdate", {
+                type: "server_status_changed",
+                data: {
+                  message: translator.translateHTML(
+                    server + "{{toasts-stop-success}}",
+                    cfg["lang"]
+                  ),
+                  type: "success"
+                },
+              });
+            }
         }
       } else {
         console.log(
@@ -361,6 +389,21 @@ exports.startServer = (server) => {
             ":",
           server.yellow
         );
+
+        fsock = io.sockets.sockets;
+        for (const socket of fsock) {
+          socket[1].emit("handleUpdate", {
+            type: "server_status_changed",
+            data: {
+              message: translator.translateHTML(
+                server + "{{toasts-stop-code}}" + code,
+                cfg["lang"]
+              ),
+              type: "warning"
+            },
+          });
+        }
+
         servers_logs[server] = servers_logs[server] + "\n§bKilled";
       }
       if (Date.now() - oldConsoleStamp >= 400 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
@@ -449,6 +492,7 @@ exports.startServer = (server) => {
           server.green
         );
       }
+
       if (data.indexOf("Saving players") >= 0 || data.indexOf("Server stop requested.") >= 0) {
         console.log(
           additional.getTimeFormatted(),
@@ -458,6 +502,21 @@ exports.startServer = (server) => {
         );
         statuss = "stopping";
         tgbot.changedServerStatus(server, statuss);
+      }
+      if(serverjson_cfg[server].status != statuss && statuss == "started"){
+        fsock = io.sockets.sockets;
+        for (const socket of fsock) {
+          socket[1].emit("handleUpdate", {
+            type: "server_status_changed",
+            data: {
+              message: translator.translateHTML(
+                server + "{{toasts-start-success}}",
+                cfg["lang"]
+              ),
+              type: "success"
+            },
+          });
+        }
       }
       serverjson_cfg[server].status = statuss;
       config.writeServersJSON(serverjson_cfg);

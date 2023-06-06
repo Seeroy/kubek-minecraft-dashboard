@@ -127,6 +127,14 @@
   "{{blurrange-ks}}": "Hoeveelheid achtergrondonscherpte",
   "{{font-ks}}": "Lettertype hoofdinterface",
   "{{need-to-save-ks}}": "Voordat u gebruikers kunt bewerken, moet u eerst de instellingen opslaan en inloggen op uw account!",
+  "{{toastspos-ks}}": "Meldingslocatie",
+  "{{toastspos-tl-ks}}": "Linksboven",
+  "{{toastspos-tr-ks}}": "Rechtsboven",
+  "{{toastspos-bl-ks}}": "Linksonder",
+  "{{toastspos-br-ks}}": "Rechtsonder",
+  "{{noupdatenotify-ks}}": "Updatemeldingen uitschakelen (niet aanbevolen)",
+  "{{nolowpriority-ks}}": "Geen meldingen met lage prioriteit weergeven",
+  "{{notifications-ks}}": "Meldingen",
 
   "{{sp-editor-ss}}": "server.properties-editor",
   "{{java-ver-ss}}": "Java-versie",
@@ -280,5 +288,10 @@
   "{{tgbot-wrongotp}}": "Ongeldige OTP-code (u kunt deze ophalen in de Kubek-instellingen)",
   "{{tgbot-noserver}}": "❗ Zo'n server bestaat niet, gebruik /status om een lijst met servers te krijgen",
   "{{tgbot-succsel}}": "✅ De geselecteerde server is nu: ",
-  "{{tgbot-noselectsrv}}": "❗U heeft geen server geselecteerd om te beheren, gebruik /selectServer [servernaam] om te selecteren"
+  "{{tgbot-noselectsrv}}": "❗U heeft geen server geselecteerd om te beheren, gebruik /selectServer [servernaam] om te selecteren",
+
+  "{{toasts-list-tooltip}}": "Toastgeschiedenis",
+  "{{toasts-start-success}}": " succesvol gestart",
+  "{{toasts-stop-success}}": " succesvol afgesloten",
+  "{{toasts-stop-code}}": " afgesloten met code "
 }

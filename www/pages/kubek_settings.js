@@ -37,31 +37,29 @@ $(document).ready(function () {
       $("#ftp-pass-item").hide();
     }
   });
-  $("#simplify-checkbox").change(function () {
-    if ($(this).is(":checked")) {
-      window.localStorage.setItem("simplify", "true");
-      refreshSimplify();
-    } else {
-      window.localStorage.setItem("simplify", "false");
-      refreshSimplify();
-    }
+
+  $("#blurrange-range").change(function () {
+    window.localStorage.setItem("blurrange", $(this).val());
+    refreshBlurRange();
   });
+
   $("#backgrounds-select").change(function () {
     window.localStorage.setItem(
       "background",
       $(this).find("option:selected").val()
     );
-    $(".blurry-bg-img").each(function(){
+    $(".blurry-bg-img").each(function () {
       $(this).hide();
     });
     refreshBackgroundImage();
   });
-  $("#blurrange-range").change(function () {
+  $("#toastspos-select").change(function () {
     window.localStorage.setItem(
-      "blurrange",
-      $(this).val()
+      "toastspos",
+      $(this).find("option:selected").val()
     );
-    refreshBlurRange();
+    refreshToastsPosition();
+    Toaster("Test", 800, false, "success");
   });
   $("#fontfamily-select").change(function () {
     window.localStorage.setItem(
@@ -70,23 +68,27 @@ $(document).ready(function () {
     );
     refreshFont();
   });
+
+  $("#noupdatenotify-checkbox").change(function () {
+    window.localStorage.setItem(
+      "noupdatenotify",
+      $(this).is(":checked").toString()
+    );
+  });
   $("#norounded-checkbox").change(function () {
-    if ($(this).is(":checked")) {
-      window.localStorage.setItem("norounded", "true");
-      refreshNoRounded();
-    } else {
-      window.localStorage.setItem("norounded", "false");
-      refreshNoRounded();
-    }
+    window.localStorage.setItem("norounded", $(this).is(":checked").toString());
+    refreshNoRounded();
+  });
+  $("#nolowpriority-checkbox").change(function () {
+    window.localStorage.setItem("nolowpriority", $(this).is(":checked").toString());
   });
   $("#nobackdrop-checkbox").change(function () {
-    if ($(this).is(":checked")) {
-      window.localStorage.setItem("nobackdrop", "true");
-      refreshNoBackdrop();
-    } else {
-      window.localStorage.setItem("nobackdrop", "false");
-      refreshNoBackdrop();
-    }
+    window.localStorage.setItem("nobackdrop", $(this).is(":checked").toString());
+    refreshNoBackdrop();
+  });
+  $("#simplify-checkbox").change(function () {
+    window.localStorage.setItem("simplify", $(this).is(":checked").toString());
+    refreshSimplify();
   });
 });
 
@@ -113,12 +115,36 @@ function loadKubekSettings() {
       $("#norounded-checkbox").attr("checked", true);
     }
 
+    if (window.localStorage.getItem("noupdatenotify") == "true") {
+      $("#noupdatenotify-checkbox").attr("checked", true);
+    }
+
+    if (window.localStorage.getItem("nolowpriority") == "true") {
+      $("#nolowpriority-checkbox").attr("checked", true);
+    }
+
     if (window.localStorage.getItem("background") != null) {
-      $("#backgrounds-select option[value='" + window.localStorage.getItem("background") + "']").prop("selected", true);
+      $(
+        "#backgrounds-select option[value='" +
+          window.localStorage.getItem("background") +
+          "']"
+      ).prop("selected", true);
+    }
+
+    if (window.localStorage.getItem("toastspos") != null) {
+      $(
+        "#toastspos-select option[value='" +
+          window.localStorage.getItem("background") +
+          "']"
+      ).prop("selected", true);
     }
 
     if (window.localStorage.getItem("fontfamily") != null) {
-      $("#fontfamily-select option[value='" + window.localStorage.getItem("fontfamily") + "']").prop("selected", true);
+      $(
+        "#fontfamily-select option[value='" +
+          window.localStorage.getItem("fontfamily") +
+          "']"
+      ).prop("selected", true);
     }
 
     if (kubekCfg["tgbot-enabled"] == true) {
@@ -259,20 +285,7 @@ function saveUser() {
           }
           $.get(reqUrl, function (res) {
             if (res == "Users count is limited to 5 users") {
-              Toastify({
-                text: "{{users-limited-count-ks}}",
-                duration: 3000,
-                newWindow: true,
-                close: false,
-                gravity: "bottom",
-                position: "left",
-                stopOnFocus: true,
-                style: {
-                  background: "#dc4c64",
-                  color: "white",
-                },
-                onClick: function () {},
-              }).showToast();
+              Toaster("{{users-limited-count-ks}}", 3000, false, "warning");
             }
             loadUsersList();
           });

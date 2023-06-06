@@ -50,22 +50,15 @@ $(document).ready(function () {
   }
 
   if (typeof window.localStorage.ct__fontsize !== "undefined") {
-    $("#console-text").addClass(
-      window.localStorage.ct__fontsize
-    );
+    $("#console-text").addClass(window.localStorage.ct__fontsize);
     $("#ctfontsizeRadio_" + window.localStorage.ct__fontsize).prop(
       "checked",
       true
     );
   } else {
     window.localStorage.setItem("ct__fontsize", "text-md");
-    $("#console-text").addClass(
-      "text-md"
-    );
-    $("#ctfontsizeRadio_text-md").prop(
-      "checked",
-      true
-    );
+    $("#console-text").addClass("text-md");
+    $("#ctfontsizeRadio_text-md").prop("checked", true);
   }
 
   $("#ctmonofontCheck").change(function () {

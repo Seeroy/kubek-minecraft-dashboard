@@ -63,12 +63,13 @@ const SERVERS_LIST_ITEM_BASE =
   '<li> <div class="flex p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"> <div class="flex items-center h-5"> $1 </div> <div class="ml-2 text-sm"> <div>$2</div> <p class="text-xs font-normal text-gray-500 dark:text-gray-300">$3</p> </div> </div> </li>';
 
 $(document).ready(function () {
-  refreshSimplify();
-  refreshNoRounded();
-  refreshBackgroundImage();
-  refreshNoBackdrop();
-  refreshBlurRange();
-  refreshFont();
+  refreshAllUI();
+  if (window.localStorage.noupdatenotify == null) {
+    window.localStorage.setItem("noupdatenotify", "false");
+  }
+  if (window.localStorage.nolowpriority == null) {
+    window.localStorage.setItem("nolowpriority", "false");
+  }
   $(".icon-changer img").attr(
     "src",
     "/server/icon?server=" + window.localStorage.selectedServer
@@ -94,18 +95,7 @@ $(document).ready(function () {
         window.location.reload();
       },
       error: function (data) {
-        Toastify({
-          text: "{{error-upload}}",
-          duration: 3000,
-          newWindow: true,
-          close: false,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "#E02424",
-          },
-        }).showToast();
+        Toaster("{{error-upload}}", 3000, false, "error");
       },
       cache: false,
       contentType: false,
@@ -148,46 +138,47 @@ $(document).ready(function () {
     gotoPage("kubek_settings");
   });
 
-  $.get("/kubek/updates/check", function (upd) {
-    if (upd.found == true) {
-      downloaded = upd.downloaded;
-      $.get("/tasks/progress", function (tasks) {
-        keys = Object.keys(tasks);
-        keys.forEach(function (key) {
-          value = tasks[key];
-          if (key == "update.tmp" && value == "ready" && downloaded == false) {
-            downloaded = true;
-          }
-        });
-        version = upd.url.split("/").pop();
+  if (window.localStorage.noupdatenotify != "true") {
+    setTimeout(function () {
+      $.get("/kubek/updates/check", function (upd) {
+        if (upd.found == true) {
+          downloaded = upd.downloaded;
+          $.get("/tasks/progress", function (tasks) {
+            keys = Object.keys(tasks);
+            keys.forEach(function (key) {
+              value = tasks[key];
+              if (
+                key == "update.tmp" &&
+                value == "ready" &&
+                downloaded == false
+              ) {
+                downloaded = true;
+              }
+            });
+            version = upd.url.split("/").pop();
 
-        if (downloaded == false) {
-          Toastify({
-            text:
-              "{{newupdate-found-1}}" +
-              version +
-              "\n" +
-              "{{newupdate-found-2}}",
-            duration: 5000,
-            close: false,
-            gravity: "top",
-            position: "left",
-            stopOnFocus: true,
-            className: "upd-toast",
-            style: {
-              background: "#1C64F2",
-            },
-            onClick: function () {
-              $(".upd-toast").remove();
-              $.get("/kubek/updates/downloadLatest");
-            },
-          }).showToast();
-        } else {
-          updateIsReady();
+            if (downloaded == false) {
+              Toaster(
+                "{{newupdate-found-1}}<span class='font-bold'>" +
+                  version +
+                  "</span><br>" +
+                  "{{newupdate-found-2}}",
+                5000,
+                false,
+                "update",
+                function () {
+                  Toaster("<span class='update-downloader'>{{toasts-downloading-update}} <span class='percent'></span></span>", -1, false, "clock");
+                  $.get("/kubek/updates/downloadLatest");
+                }, true
+              );
+            } else {
+              updateIsReady();
+            }
+          });
         }
       });
-    }
-  });
+    }, 500);
+  }
 
   $("#menu-tabs-list li button").click(function (e) {
     if (!$(this).hasClass("active")) {
@@ -261,20 +252,7 @@ $(document).ready(function () {
     });
     socket.on("handleServerError", function (arg) {
       $.get("/kubek/translate?text=" + arg.data, function (text) {
-        Toastify({
-          text: text,
-          duration: 10000,
-          newWindow: true,
-          close: true,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "#dc4c64",
-            color: "white",
-          },
-          onClick: function () {},
-        }).showToast();
+        Toaster(text, 3000, false, "error");
       });
     });
     socket.on("handleUpdate", function (arg) {
@@ -343,6 +321,9 @@ $(document).ready(function () {
           }
           updateServersStatuses_ui(data);
           break;
+        case "server_status_changed":
+          Toaster(data.message, 1500, false, data.type, function(){}, true)
+          break;
         case "backups_list":
           if (data == "progress") {
             cur = new Date().valueOf();
@@ -371,13 +352,11 @@ $(document).ready(function () {
           keys.forEach(function (key) {
             value = data[key];
             if (key == "update.tmp" && value != "ready") {
-              $("#update-process").show();
-              $("#update-process .card-text").text(
-                "{{downing-core-sw}} update.tmp (" + value + "%)"
+              $(".update-downloader .percent").text(
+                "(" + value + "%)"
               );
-              $("#update-process .progress-bar").css("width", value + "%");
             } else if (key == "update.tmp" && value == "ready") {
-              $("#update-process").hide();
+              $(".update-downloader").parent().parent().remove();
               updateIsReady();
             }
           });
