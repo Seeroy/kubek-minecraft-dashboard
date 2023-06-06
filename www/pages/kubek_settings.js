@@ -134,7 +134,7 @@ function loadKubekSettings() {
     if (window.localStorage.getItem("toastspos") != null) {
       $(
         "#toastspos-select option[value='" +
-          window.localStorage.getItem("background") +
+          window.localStorage.getItem("toastspos") +
           "']"
       ).prop("selected", true);
     }
