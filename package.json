@@ -9,6 +9,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@sfirew/minecraft-motd-parser": "^1.1.1",
     "archiver": "^4.0.2",
     "cheerio": "^1.0.0-rc.10",
     "cli-progress": "^3.10.0",

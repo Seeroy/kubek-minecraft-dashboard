@@ -123,6 +123,12 @@ $(document).ready(function () {
         $(parent).remove();
       }
     });
+    $("#drawer-mobile-navigation button:not(.close-menu)").each(function (i, item) {
+      perm = $(item).data("perm");
+      if (typeof perm !== "undefined" && !perms.includes(perm)) {
+        $(item).remove();
+      }
+    });
   });
   $.get("/kubek/config", function (data) {
     $("#language-dropdown-btn img").attr(
@@ -191,6 +197,18 @@ $(document).ready(function () {
     }
   });
 
+  $("#drawer-mobile-navigation button:not(.close-menu)").click(function (e) {
+    if (!$(this).hasClass("active")) {
+      if ($("#servers-list li").length > 0) {
+        pg = $(this).data("page");
+        gotoPage(pg);
+      } else {
+        gotoPage("welcome");
+      }
+    }
+  });
+
+
   $.get("/kubek/version", function (data) {
     $(".kbk-ver").html(data.replace("v", "").trim());
   });
@@ -225,6 +243,7 @@ $(document).ready(function () {
         $("#status-text").hide();
         $("#logout-button").hide();
         $("#menu-tabs-list").hide();
+        $("#drawer-mobile-navigation").hide();
         $("#edit-server-button").hide();
         $("#servers-list-dropdown").hide();
         $("#new-server-button").addClass(

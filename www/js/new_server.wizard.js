@@ -14,6 +14,8 @@ var selectedCore_type = "";
 var selectedCore_version = "";
 var selectedCore_filename = "";
 
+var selectedGameType = "";
+
 var sv_port = "";
 var sv_onmode = "";
 
@@ -29,8 +31,51 @@ $(document).ready(function () {
   $("#new-server-wizard-drawer #g-core-input").val("");
   $("#new-server-wizard-drawer #g-core-input")[0].value = "";
 
-  $("#new-server-wizard-drawer input:not(#xmx), #new-server-wizard-drawer textarea").keyup(function () {
+  $(
+    "#new-server-wizard-drawer input:not(#xmx), #new-server-wizard-drawer textarea"
+  ).keyup(function () {
     checkAllInputs();
+  });
+
+  $("#new-server-wizard-drawer #be-game-version").keyup(function () {
+    split = $(this).val().split(".");
+    split.forEach(function (v, i) {
+      v = parseInt(v);
+      if (v != NaN) {
+        split[i] = v;
+      } else {
+        split[i] = -1;
+      }
+    });
+    if (split[0] == 1 || split[0] == 0) {
+      if (split[1] > -1 && split[2] > -1 && split[3] > -1) {
+        setInputInvalidMode(
+          $("#new-server-wizard-drawer #be-game-version"),
+          false
+        );
+      } else {
+        setInputInvalidMode(
+          $("#new-server-wizard-drawer #be-game-version"),
+          true
+        );
+      }
+    } else {
+      setInputInvalidMode(
+        $("#new-server-wizard-drawer #be-game-version"),
+        true
+      );
+    }
+  });
+
+  $("#game-type").change(function () {
+    selectedGameType = $("#game-type option:selected").val();
+    if (selectedGameType == "java") {
+      $("#new-server-wizard-drawer .java-edition-only").show();
+      $("#new-server-wizard-drawer .bedrock-edition-only").hide();
+    } else if (selectedGameType == "bedrock") {
+      $("#new-server-wizard-drawer .java-edition-only").hide();
+      $("#new-server-wizard-drawer .bedrock-edition-only").show();
+    }
   });
 
   $("#core-brands").change(function () {
@@ -84,7 +129,7 @@ $(document).ready(function () {
     });
   });
 
-  $("#xmx").change(function () {  
+  $("#xmx").change(function () {
     if ($(this).val() > parseInt($(this).attr("max"))) {
       $(this).val(parseInt($(this).attr("max")));
     }
@@ -129,8 +174,18 @@ $(document).ready(function () {
   checkAllInputs();
 });
 
+function checkBEVersion(){
+  $.get("/server/checkBEVersion?version=" + $("#be-game-version").val(), function(data){
+    if(data.exists == true){
+      alert("Version exists");
+    } else {
+      alert("Version not found");
+    }
+  });
+}
+
 function checkAllInputs() {
-  check_1 = false;
+/*  check_1 = false;
   check_1_items = 0;
   check_2 = false;
   check_3 = false;
@@ -199,7 +254,7 @@ function checkAllInputs() {
   } else {
     $("#new-server-wizard-drawer button.bg-blue-700").addClass("hidden");
     $("#new-server-wizard-drawer button.disabled-btn").removeClass("hidden");
-  }
+  }*/
 }
 
 function generateJavaStartup() {
@@ -456,14 +511,11 @@ function detectServerVersion(name) {
 }
 
 function setDownloadProgressBarValue(progress) {
-  $("#progress-card .progress-bar").css(
-    "width",
-    progress + "%"
-  );
+  $("#progress-card .progress-bar").css("width", progress + "%");
 }
 
-function setDownloadProgressBarVisible(isVisible){
-  if(isVisible == true){
+function setDownloadProgressBarVisible(isVisible) {
+  if (isVisible == true) {
     $("#progress-card .progress").show();
   } else {
     $("#progress-card .progress").hide();

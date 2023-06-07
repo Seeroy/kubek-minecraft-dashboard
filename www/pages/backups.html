@@ -52,22 +52,7 @@
 
   <div class="overflow-x-auto rounded-lg mt-3 animate__animated animate__fadeIn animate__faster" style="animation-delay: .3s;">
     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-      <tbody id="backups-list">
-        <tr class="bg-white dark:bg-gray-800 glassmorphed">
-          <th
-            scope="row"
-            class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-          >
-            <div class="flex flex-col justify-center">
-              <span class="text-black dark:text-white text-3xl font-semibold">Название бэкапа</span>
-              <span class="text-gray-600 dark:text-gray-400 text-md font-light"><i class="ri-instance-fill mr-2"></i>{{status}}: <span class="text-gray-900 dark:text-white">Готов</span></span>
-              <span class="text-gray-600 dark:text-gray-400 text-md font-light"><i class="ri-pie-chart-2-fill mr-2"></i>{{tb-size-fm}}: <span class="text-gray-900 dark:text-white">Готов</span></span>
-              <span class="text-gray-600 dark:text-gray-400 text-md font-light"><i class="ri-server-fill mr-2"></i>{{selected-sn-sw}}: <span class="text-gray-900 dark:text-white">Готов</span></span>
-            </div>
-          </th>
-          <td class="px-6 py-4" id="kubek-uptime">{{unknown}}</td>
-        </tr>
-      </tbody>
+      <tbody id="backups-list"></tbody>
     </table>
   </div>
 </div>

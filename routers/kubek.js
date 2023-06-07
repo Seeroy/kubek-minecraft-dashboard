@@ -13,6 +13,7 @@ const nodeDiskInfo = require("node-disk-info");
 const path = require("path");
 const os = require("os");
 const auth_manager = require("./../my_modules/auth_manager");
+const { textToHtml } = require('@sfirew/minecraft-motd-parser');
 
 const ACCESS_PERMISSION = "kubek_settings";
 
@@ -34,6 +35,10 @@ router.use(function (req, res, next) {
       res.redirect("/login.html");
     }
   }
+});
+
+router.get("/testmotd", function (req, res) {
+  res.send(textToHtml("§aHypixel Network §7§c1.8/1.9/1.10/1.11/1.12 §e§lNEW PTL GAME:§b§l THE BRIDGE"));
 });
 
 router.get("/javaVersions", function (req, res) {

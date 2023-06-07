@@ -7,6 +7,7 @@ var serverController = require("./../my_modules/servers");
 var treekill = require("tree-kill");
 const auth_manager = require("./../my_modules/auth_manager");
 const tgbot_manager = require("./../my_modules/tgbot");
+const request = require("request");
 
 const ACCESS_PERMISSION = "server_settings";
 const ACCESS_PERMISSION_2 = "console";
@@ -83,7 +84,12 @@ router.get("/completion", function (req, res) {
         }
       });
       if (jl != null) {
-        args_path = jl.split(" ").slice(1).join(" ").replace(/\\r/gmi, "").trim();
+        args_path = jl
+          .split(" ")
+          .slice(1)
+          .join(" ")
+          .replace(/\\r/gim, "")
+          .trim();
         fs.writeFileSync(
           "./servers/" + req.query.server + "/start.bat",
           "@echo off\nchcp 65001>nul\ncd servers\ncd " +
@@ -123,7 +129,12 @@ router.get("/completion", function (req, res) {
         }
       });
       if (jl != null) {
-        args_path = jl.split(" ").slice(1).join(" ").replace(/\\r/gmi, "").trim();
+        args_path = jl
+          .split(" ")
+          .slice(1)
+          .join(" ")
+          .replace(/\\r/gim, "")
+          .trim();
         fs.writeFileSync(
           "./servers/" + req.query.server + "/start.sh",
           "cd servers\ncd " +
@@ -197,6 +208,58 @@ router.get("/statuses", function (req, res) {
   res.set("Content-Type", "application/json");
   res.send(serverController.getStatuses());
 });
+
+router.get("/checkBEVersion", function (req, res) {
+  bever = req.query.version;
+  jsn = {
+    exists: false,
+    url: "",
+  };
+  synt_check = false;
+
+  split = bever.split(".");
+  split.forEach(function (v, i) {
+    v = parseInt(v);
+    if (v != NaN) {
+      split[i] = v;
+    } else {
+      split[i] = -1;
+    }
+  });
+  if (split[0] == 1 || split[0] == 0) {
+    if (split[1] > -1 && split[2] > -1 && split[3] > -1) {
+      synt_check = true;
+    }
+  }
+  if (synt_check == true) {
+    chk_url =
+      "https://minecraft.azureedge.net/bin-linux/bedrock-server-" +
+      bever +
+      ".zip";
+    checkBEVersionByURL(
+      chk_url,
+      function (result) {
+        jsn["exists"] = result;
+        if (result == true) {
+          jsn["url"] = chk_url;
+        }
+        res.send(jsn);
+      }
+    );
+  } else {
+    res.json(jsn);
+  }
+});
+
+function checkBEVersionByURL(url, cb) {
+  request(url, function (err, resp) {
+    if (resp.statusCode === 200) {
+      return cb(true);
+    }
+
+    return cb(false);
+  });
+}
 
 router.get("/saveStopCommand", function (req, res) {
   serverjson_cfg[req.query.server]["stopCommand"] = req.query.cmd;

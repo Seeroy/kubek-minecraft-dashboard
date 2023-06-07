@@ -30,6 +30,7 @@
 
   <link rel="stylesheet" href="/css/globals.css" />
   <link rel="stylesheet" href="/main.css" />
+  <link rel="stylesheet" href="/css/mobile.css" />
   <link rel="stylesheet" href="/css/simplify.css" />
 
   <!-- Icons and font -->
@@ -63,7 +64,10 @@
         <div class="flex justify-between items-center">
           <div class="flex justify-start items-center w-full">
             <!-- Kubek logo -->
-            <div class="flex flex-row items-center justify-center">
+            <div
+              class="flex flex-row items-center justify-center hide-on-mobile"
+              id="kubek-logo-box"
+            >
               <div class="p-2">
                 <img src="assets/icon.png" style="height: 32px" />
               </div>
@@ -114,7 +118,9 @@
             >
               <i class="ri-notification-2-fill"></i>
               <div
-                class="absolute inline-flex items-center justify-center w-4 h-4 font-bold text-white bg-red-500 rounded-full -top-2 -right-2 hidden" id="notifications-badge" style="font-size: 7pt;"
+                class="absolute inline-flex items-center justify-center w-4 h-4 font-bold text-white bg-red-500 rounded-full -top-2 -right-2 hidden"
+                id="notifications-badge"
+                style="font-size: 7pt"
               >
                 0
               </div>
@@ -184,21 +190,6 @@
                     </div>
                   </button>
                 </li>
-                <li data-lang="nl">
-                  <button
-                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
-                    role="menuitem"
-                  >
-                    <div class="inline-flex items-center">
-                      <img
-                        src="/assets/flags/nl.svg"
-                        style="width: 16px"
-                        class="mr-2"
-                      />
-                      Nederlands
-                    </div>
-                  </button>
-                </li>
                 <li data-lang="ru">
                   <button
                     class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
@@ -261,7 +252,10 @@
       </nav>
 
       <!-- Tabs menu -->
-      <div class="bg-gray-100 border-gray-200 px-4 lg:px-6 dark:bg-gray-700">
+      <div
+        class="bg-gray-100 border-gray-200 px-4 lg:px-6 dark:bg-gray-700"
+        id="tabs-menu-bg"
+      >
         <div class="flex flex-wrap justify-between items-center">
           <div class="border-b border-transparent">
             <ul
@@ -349,6 +343,19 @@
               </li>
             </ul>
           </div>
+          <!-- Open mobile nav menu button -->
+          <button
+            id="mobile-nav-button"
+            data-drawer-target="drawer-mobile-navigation"
+            data-drawer-show="drawer-mobile-navigation"
+            aria-controls="drawer-mobile-navigation"
+            data-drawer-backdrop="true"
+            class="text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+            type="button"
+          >
+            <i class="ri-menu-2-line text-xl font-light"></i>
+          </button>
+          <div class="grow"></div>
           <div class="flex items-center justify-center order-2">
             <!-- New server button -->
             <button
@@ -406,63 +413,8 @@
     </div>
   </div>
 
-  <!-- Main background image -->
-  <img
-    id="blurry-bg-img-1"
-    src="/assets/backgrounds/1.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-2"
-    src="/assets/backgrounds/2.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-3"
-    src="/assets/backgrounds/3.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-4"
-    src="/assets/backgrounds/4.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-5"
-    src="/assets/backgrounds/5.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-6"
-    src="/assets/backgrounds/6.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-7"
-    src="/assets/backgrounds/7.png"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-8"
-    src="/assets/backgrounds/8.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
-  <img
-    id="blurry-bg-img-9"
-    src="/assets/backgrounds/9.jpg"
-    style="display: none"
-    class="blurry-bg-img"
-  />
   <!-- Background image overlap -->
-  <div id="blurry-bg-img-bg" class="img-1 bg-gray-100 dark:bg-gray-900"></div>
+  <div id="blurry-bg-img" class="bg-gray-100 dark:bg-gray-900"></div>
   <!-- Loading progress bar on top -->
   <div class="w-full h-1" id="topbar">
     <div
@@ -1037,13 +989,25 @@
       disabled
       style="display: none"
       class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white mt-2"
-    >
-test text</textarea
-    >
+    ></textarea>
   </div>
   <!-- Main form layout -->
   <div class="main-form">
     <div class="space-y-4">
+      <!-- Game type -->
+      <div>
+        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
+          {{gametype-sw}}
+        </p>
+
+        <select
+          id="game-type"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        >
+          <option value="java" selected>Minecraft: Java Edition (PC)</option>
+          <option value="bedrock">Minecraft: Bedrock Edition (PE)</option>
+        </select>
+      </div>
       <!-- Server name -->
       <div>
         <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
@@ -1056,8 +1020,23 @@ test text</textarea
           placeholder="{{enter-new-sn-sw}}"
         />
       </div>
+      <!-- Select game version (Bedrock Only) -->
+      <div class="bedrock-edition-only">
+        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
+          {{select-core-sw}}
+        </p>
+
+        <input type="text" id="be-game-version" placeholder="{{bedrock-ent-version-sw}}" class="bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white">
+        <button
+          type="button"
+          onclick="checkBEVersion()"
+          class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none w-full"
+        >
+          {{check-be-ver-sw}}
+        </button>
+      </div>
       <!-- Core properties -->
-      <div>
+      <div class="java-edition-only">
         <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
           {{select-core-sw}}
         </p>
@@ -1088,7 +1067,7 @@ test text</textarea
         </form>
       </div>
       <!-- Step 2 -->
-      <div>
+      <div class="java-edition-only">
         <p
           class="inline-flex items-center mb-2 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400"
         >
@@ -1100,7 +1079,7 @@ test text</textarea
         ></div>
       </div>
       <!-- Java version select -->
-      <div>
+      <div class="java-edition-only">
         <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
           Java
         </p>
@@ -1110,7 +1089,7 @@ test text</textarea
         ></select>
       </div>
       <!-- Startup command -->
-      <div>
+      <div class="java-edition-only">
         <textarea
           id="fsc"
           rows="8"
@@ -1118,11 +1097,11 @@ test text</textarea
         ></textarea>
       </div>
       <p
-        class="req-java"
+        class="req-java java-edition-only"
         style="color: rgb(130, 130, 130); font-size: 11pt"
       ></p>
       <!-- Checkboxes and inputs -->
-      <div>
+      <div class="java-edition-only">
         <div class="flex items-center">
           <input
             checked
@@ -1148,11 +1127,11 @@ test text</textarea
           <label
             for="onlinemodeCheckbox"
             class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >online-mode</label
+            >{{onlinemode-sw}}</label
           >
         </div>
       </div>
-      <div>
+      <div class="java-edition-only">
         <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
           {{memory}} (-Xmx)
         </p>
@@ -1166,7 +1145,7 @@ test text</textarea
           placeholder="{{memory}} (-Xmx)"
         />
       </div>
-      <div>
+      <div class="java-edition-only">
         <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
           {{server-port}}
         </p>
@@ -1181,503 +1160,629 @@ test text</textarea
           placeholder="{{server-port}}"
         />
       </div>
-    </div>
-    <!-- Buttons -->
-    <div class="bottom-0 left-0 flex justify-center w-full pb-4 mt-4 space-x-4">
-      <button
-        type="button"
-        onclick="createServerV2()"
-        class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none w-full"
-      >
-        {{create}}
-      </button>
-      <button
-        type="button"
-        disabled
-        class="text-white bg-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 focus:outline-none w-full disabled-btn"
-      >
-        {{create}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Need to save auth modal -->
-<div
-  class="modal-black-bg"
-  id="needtosave-auth-warn-modal"
-  style="display: none"
->
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
+      <!-- Buttons -->
       <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
+        class="bottom-0 left-0 flex justify-center w-full pb-4 mt-4 space-x-4"
       >
-        <i class="ri-save-2-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <div class="inner-content text-black dark:text-white my-2 text-center">
-        {{need-to-save-ks}}
-      </div>
-
-      <button
-        class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Backup info modal -->
-<div class="modal-black-bg" id="backup-info-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-cloudy-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p
-        class="caption text-2xl font-semibold text-black dark:text-white my-2"
-      ></p>
-      <div class="inner-content text-black dark:text-white my-2"></div>
-
-      <button
-        class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- New backup modal -->
-<div class="modal-black-bg" id="new-backup-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
-      {{backups-crb-btn}}
-    </h1>
-
-    <input
-      type="text"
-      placeholder="{{backups-backupname}}"
-      style="margin-bottom: -8px"
-      id="bcname-input"
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-    <input
-      type="text"
-      placeholder="{{backups-backupdesc}}"
-      style="margin-bottom: -8px"
-      id="bcdesc-input"
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-
-    <label
-      for="steps-range"
-      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >{{backups-compress}}</label
-    >
-    <input
-      type="range"
-      min="0"
-      max="9"
-      id="backupCompressRatio"
-      class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700"
-    />
-    <div class="flex flex-row mb-3" style="margin-top: -12px">
-      <span class="grow text-gray-900 dark:text-white">0</span>
-      <span class="text-gray-900 dark:text-white">9</span>
-    </div>
-
-    <span class="text-gray-900 dark:text-white" style="margin-top: -18px"
-      >{{backups-seltype-capt}}</span
-    >
-
-    <div class="flex items-center" style="margin-top: -16px">
-      <input
-        checked
-        id="backupTypeRadio1"
-        type="radio"
-        value="full"
-        name="backupTypeRadio"
-        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-      />
-      <label
-        for="backupTypeRadio1"
-        class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
-        >{{backups-types-full}}</label
-      >
-    </div>
-    <div class="flex items-center" style="margin-top: -16px">
-      <input
-        id="backupTypeRadio2"
-        type="radio"
-        value="selected"
-        name="backupTypeRadio"
-        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-      />
-      <label
-        for="backupTypeRadio2"
-        class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
-        >{{backups-types-selfiles}}</label
-      >
-    </div>
-
-    <div
-      style="
-        height: max-content;
-        max-height: 300px;
-        overflow-y: auto;
-        display: none;
-      "
-      class="flt-parent px-2"
-    >
-      <table class="table" id="fl-table">
-        <thead>
-          <tr>
-            <th scope="col" style="width: 32px"></th>
-            <th scope="col" style="width: 32px"></th>
-            <th scope="col"></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="flex items-center justify-center">
-      <button
-        type="button"
-        class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        onclick="$('#new-backup-modal').hide()"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-      >
-        {{cancel}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<div
-  class="modal bottom"
-  id="restoreBackupModal"
-  tabindex="-1"
-  aria-labelledby="restoreBackupModalLabel"
-  aria-hidden="true"
-  data-mdb-backdrop="static"
-  data-mdb-keyboard="false"
->
-  <div class="modal-dialog modal-frame modal-bottom">
-    <div class="modal-content">
-      <div class="modal-body"></div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="ask-restore-backup-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-red-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-cloudy-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <div class="inner-content text-black dark:text-white my-2">
-        {{backup-candestroy}}
-      </div>
-
-      <div class="flex items-center justify-center">
         <button
           type="button"
-          class="clsbtn ml-2 text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none"
-        >
-          {{ok}}
-        </button>
-        <button
-          type="button"
-          onclick="$('#ask-restore-backup-modal').hide()"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- FILE MANAGER MODALS -->
-<div class="modal-black-bg" id="delete-fm-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-red-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-delete-bin-6-fill text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center text-black dark:text-white mb-3"></p>
-
-      <div class="flex flex-row items-center w-100 justify-center">
-        <button
-          type="button"
-          class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
-        >
-          {{delete}}
-        </button>
-        <button
-          type="button"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-          onclick="hideModal('delete-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="rename-fm-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-edit-2-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center text-black dark:text-white mb-3"></p>
-      <input
-        type="text"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
-      />
-
-      <div class="flex flex-row items-center w-100 justify-center">
-        <button
-          type="button"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-        >
-          {{rename}}
-        </button>
-        <button
-          type="button"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-          onclick="hideModal('rename-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="newdir-fm-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-folder-add-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center text-black dark:text-white mb-3">
-        {{new-directory-fm}}
-      </p>
-      <input
-        type="text"
-        placeholder="{{new-directory-fm}}"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
-      />
-
-      <div class="flex flex-row items-center w-100 justify-center">
-        <button
-          type="button"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+          onclick="createServerV2()"
+          class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none w-full"
         >
           {{create}}
         </button>
         <button
           type="button"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-          onclick="hideModal('newdir-fm-modal')"
+          disabled
+          class="text-white bg-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 focus:outline-none w-full disabled-btn"
+        >
+          {{create}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Need to save auth modal -->
+  <div
+    class="modal-black-bg"
+    id="needtosave-auth-warn-modal"
+    style="display: none"
+  >
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-save-2-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <div class="inner-content text-black dark:text-white my-2 text-center">
+          {{need-to-save-ks}}
+        </div>
+
+        <button
+          class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup info modal -->
+  <div class="modal-black-bg" id="backup-info-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-cloudy-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p
+          class="caption text-2xl font-semibold text-black dark:text-white my-2"
+        ></p>
+        <div class="inner-content text-black dark:text-white my-2"></div>
+
+        <button
+          class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New backup modal -->
+  <div class="modal-black-bg" id="new-backup-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
+        {{backups-crb-btn}}
+      </h1>
+
+      <input
+        type="text"
+        placeholder="{{backups-backupname}}"
+        style="margin-bottom: -8px"
+        id="bcname-input"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+      <input
+        type="text"
+        placeholder="{{backups-backupdesc}}"
+        style="margin-bottom: -8px"
+        id="bcdesc-input"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+
+      <label
+        for="steps-range"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >{{backups-compress}}</label
+      >
+      <input
+        type="range"
+        min="0"
+        max="9"
+        id="backupCompressRatio"
+        class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700"
+      />
+      <div class="flex flex-row mb-3" style="margin-top: -12px">
+        <span class="grow text-gray-900 dark:text-white">0</span>
+        <span class="text-gray-900 dark:text-white">9</span>
+      </div>
+
+      <span class="text-gray-900 dark:text-white" style="margin-top: -18px"
+        >{{backups-seltype-capt}}</span
+      >
+
+      <div class="flex items-center" style="margin-top: -16px">
+        <input
+          checked
+          id="backupTypeRadio1"
+          type="radio"
+          value="full"
+          name="backupTypeRadio"
+          class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        />
+        <label
+          for="backupTypeRadio1"
+          class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
+          >{{backups-types-full}}</label
+        >
+      </div>
+      <div class="flex items-center" style="margin-top: -16px">
+        <input
+          id="backupTypeRadio2"
+          type="radio"
+          value="selected"
+          name="backupTypeRadio"
+          class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        />
+        <label
+          for="backupTypeRadio2"
+          class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
+          >{{backups-types-selfiles}}</label
+        >
+      </div>
+
+      <div
+        style="
+          height: max-content;
+          max-height: 300px;
+          overflow-y: auto;
+          display: none;
+        "
+        class="flt-parent px-2"
+      >
+        <table class="table" id="fl-table">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 32px"></th>
+              <th scope="col" style="width: 32px"></th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-center">
+        <button
+          type="button"
+          class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+        >
+          {{save}}
+        </button>
+        <button
+          type="button"
+          onclick="$('#new-backup-modal').hide()"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
         >
           {{cancel}}
         </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- FILE MANAGER FILES EDIT MODAL -->
-<div class="modal-black-bg" id="newfile-fm-modal" style="display: none">
   <div
-    class="modal-layout bg-gray-100 dark:bg-gray-900"
-    style="width: 55%; height: max-content"
+    class="modal bottom"
+    id="restoreBackupModal"
+    tabindex="-1"
+    aria-labelledby="restoreBackupModalLabel"
+    aria-hidden="true"
+    data-mdb-backdrop="static"
+    data-mdb-keyboard="false"
   >
-    <div class="header flex flex-row items-center">
-      <input
-        class="w-full bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white"
-        id="nfeModalEdit"
-        autocomplete="off"
-        placeholder="{{newfile-name-fm}}"
-      />
-    </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="newFileEditArea"
-        class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-        spellcheck="false"
-        rows="18"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-
-    <div class="flex flex-row items-center w-100 justify-center">
-      <button
-        type="button"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-        onclick="hideModal('newfile-fm-modal')"
-      >
-        {{cancel}}
-      </button>
+    <div class="modal-dialog modal-frame modal-bottom">
+      <div class="modal-content">
+        <div class="modal-body"></div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="modal-black-bg" id="editfile-fm-modal" style="display: none">
   <div
-    class="modal-layout bg-gray-100 dark:bg-gray-900"
-    style="width: 55%; height: max-content"
+    class="modal-black-bg"
+    id="ask-restore-backup-modal"
+    style="display: none"
   >
-    <div class="header flex flex-row items-center">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-red-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-cloudy-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <div class="inner-content text-black dark:text-white my-2">
+          {{backup-candestroy}}
+        </div>
+
+        <div class="flex items-center justify-center">
+          <button
+            type="button"
+            class="clsbtn ml-2 text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none"
+          >
+            {{ok}}
+          </button>
+          <button
+            type="button"
+            onclick="$('#ask-restore-backup-modal').hide()"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILE MANAGER MODALS -->
+  <div class="modal-black-bg" id="delete-fm-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-red-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-delete-bin-6-fill text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-center text-black dark:text-white mb-3"></p>
+
+        <div class="flex flex-row items-center w-100 justify-center">
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
+          >
+            {{delete}}
+          </button>
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+            onclick="hideModal('delete-fm-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-black-bg" id="rename-fm-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-edit-2-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-center text-black dark:text-white mb-3"></p>
+        <input
+          type="text"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
+        />
+
+        <div class="flex flex-row items-center w-100 justify-center">
+          <button
+            type="button"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+          >
+            {{rename}}
+          </button>
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+            onclick="hideModal('rename-fm-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-black-bg" id="newdir-fm-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-folder-add-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-center text-black dark:text-white mb-3">
+          {{new-directory-fm}}
+        </p>
+        <input
+          type="text"
+          placeholder="{{new-directory-fm}}"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
+        />
+
+        <div class="flex flex-row items-center w-100 justify-center">
+          <button
+            type="button"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+          >
+            {{create}}
+          </button>
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+            onclick="hideModal('newdir-fm-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILE MANAGER FILES EDIT MODAL -->
+  <div class="modal-black-bg" id="newfile-fm-modal" style="display: none">
+    <div
+      class="modal-layout bg-gray-100 dark:bg-gray-900"
+      style="width: 55%; height: max-content"
+    >
+      <div class="header flex flex-row items-center">
+        <input
+          class="w-full bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white"
+          id="nfeModalEdit"
+          autocomplete="off"
+          placeholder="{{newfile-name-fm}}"
+        />
+      </div>
+      <div class="contentt p-3" style="overflow: hidden">
+        <textarea
+          id="newFileEditArea"
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+          spellcheck="false"
+          rows="18"
+          style="overflow-y: auto"
+        ></textarea>
+      </div>
+
+      <div class="flex flex-row items-center w-100 justify-center">
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+        >
+          {{save}}
+        </button>
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('newfile-fm-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-black-bg" id="editfile-fm-modal" style="display: none">
+    <div
+      class="modal-layout bg-gray-100 dark:bg-gray-900"
+      style="width: 55%; height: max-content"
+    >
+      <div class="header flex flex-row items-center">
+        <span
+          class="text-black dark:text-white text-2xl"
+          id="feModalLabel"
+        ></span>
+      </div>
+      <div class="contentt p-3" style="overflow: hidden">
+        <textarea
+          id="fileEditArea"
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+          spellcheck="false"
+          rows="18"
+          style="overflow-y: auto"
+        ></textarea>
+      </div>
+
+      <div class="flex flex-row items-center w-100 justify-center">
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+        >
+          {{save}}
+        </button>
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('editfile-fm-modal')"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="editModalBg" style="display: none" id="feModal">
+    <div class="sub-block console card border border-1 shadow-0">
+      <div class="header flex flex-row items-center">
+        <span class="grow" id="feModalLabel"></span>
+      </div>
+      <div class="contentt p-3" style="overflow: hidden">
+        <textarea
+          id="fileEditArea"
+          class="w-100 h-100"
+          spellcheck="false"
+          style="overflow-y: auto"
+        ></textarea>
+      </div>
+      <div class="footer flex items-center justify-content-end">
+        <button
+          type="button"
+          class="btn btn-teritary"
+          onclick="$('#feModal').hide()"
+        >
+          {{cancel}}
+        </button>
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+          onclick="saveFile(); $('#feModal').hide()"
+        >
+          {{save}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS HISTORY DRAWER -->
+  <div
+    id="drawer-toasts-list"
+    class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
+    style="width: 25%; overflow: hidden"
+    tabindex="-1"
+    aria-labelledby="drawer-label"
+  >
+    <h5
+      id="drawer-label"
+      class="inline-flex items-center mb-4 text-black dark:text-white text-md font-semibold"
+    >
+      {{toasts-list-tooltip}}
+    </h5>
+    <button
+      type="button"
+      data-drawer-hide="drawer-toasts-list"
+      aria-controls="drawer-toasts-list"
+      class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="sr-only">Close menu</span>
+    </button>
+    <div
+      id="toasts-history-list"
+      class="flex flex-col mt-2 p-1 w-full"
+      style="overflow: auto"
+    ></div>
+  </div>
+
+  <!-- Mobile nav drawer -->
+  <div
+    id="drawer-mobile-navigation"
+    class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800"
+    tabindex="-1"
+  >
+    <div class="flex">
+      <div class="p-1">
+        <img src="assets/icon.png" style="height: 32px" />
+      </div>
+      <div class="p-1 ms-3 text-black dark:text-white text-3xl font-semibold">
+        Kubek
+      </div>
       <span
-        class="text-black dark:text-white text-2xl"
-        id="feModalLabel"
+        class="kbk-ver text-gray-700 dark:text-gray-300 text-sm pb-3"
       ></span>
     </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="fileEditArea"
-        class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-        spellcheck="false"
-        rows="18"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-
-    <div class="flex flex-row items-center w-100 justify-center">
-      <button
-        type="button"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-        onclick="hideModal('editfile-fm-modal')"
-      >
-        {{cancel}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="editModalBg" style="display: none" id="feModal">
-  <div class="sub-block console card border border-1 shadow-0">
-    <div class="header flex flex-row items-center">
-      <span class="grow" id="feModalLabel"></span>
-    </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="fileEditArea"
-        class="w-100 h-100"
-        spellcheck="false"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-    <div class="footer flex items-center justify-content-end">
-      <button
-        type="button"
-        class="btn btn-teritary"
-        onclick="$('#feModal').hide()"
-      >
-        {{cancel}}
-      </button>
-      <button
-        type="button"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
-        onclick="saveFile(); $('#feModal').hide()"
-      >
-        {{save}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- TOASTS HISTORY DRAWER -->
-<div
-  id="drawer-toasts-list"
-  class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
-  style="width: 25%; overflow: hidden"
-  tabindex="-1"
-  aria-labelledby="drawer-label"
->
-  <h5
-    id="drawer-label"
-    class="inline-flex items-center mb-4 text-black dark:text-white text-md font-semibold"
-  >
-    {{toasts-list-tooltip}}
-  </h5>
-  <button
-    type="button"
-    data-drawer-hide="drawer-toasts-list"
-    aria-controls="drawer-toasts-list"
-    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-  >
-    <svg
-      aria-hidden="true"
-      class="w-5 h-5"
-      fill="currentColor"
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
+    <button
+      type="button"
+      data-drawer-hide="drawer-mobile-navigation"
+      aria-controls="drawer-mobile-navigation"
+      class="close-menu text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
     >
-      <path
-        fill-rule="evenodd"
-        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-        clip-rule="evenodd"
-      ></path>
-    </svg>
-    <span class="sr-only">Close menu</span>
-  </button>
-  <div
-    id="toasts-history-list"
-    class="flex flex-col mt-2 p-1 w-full"
-    style="overflow: auto"
-  ></div>
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="sr-only">Close menu</span>
+    </button>
+    <div class="flex items-center mt-3">
+      <ul class="space-y-2 font-medium">
+        <button
+          type="button"
+          data-page="console"
+          data-perm="console"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-terminal-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{console}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="file_manager"
+          data-perm="filemanager"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-folders-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{file-manager}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="mods"
+          data-perm="plugins"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-window-2-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{plugins-and-mods}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="backups"
+          data-perm="backups"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-hard-drive-3-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{backups-capt}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="server_settings"
+          data-perm="server_settings"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-settings-2-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{server-settings}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="speditor"
+          data-perm="server_settings"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-list-settings-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >server.properties</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="sysmon"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-bug-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{system-monitor}}</span
+          >
+        </button>
+      </ul>
+    </div>
+  </div>
 </div>

@@ -48,9 +48,6 @@ $(document).ready(function () {
       "background",
       $(this).find("option:selected").val()
     );
-    $(".blurry-bg-img").each(function () {
-      $(this).hide();
-    });
     refreshBackgroundImage();
   });
   $("#toastspos-select").change(function () {
