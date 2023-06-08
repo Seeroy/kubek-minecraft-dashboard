@@ -248,7 +248,7 @@ class ServerWizardUI {
       check_1 = true;
     }
 
-    if ($("#new-server-wizard-drawer #core-brands").css("display") != "none") {
+    if ($("#new-server-wizard-drawer .java-edition-only").css("display") != "none") {
       if (
         $("#new-server-wizard-drawer #core-brands option:selected").val() ==
         "own"

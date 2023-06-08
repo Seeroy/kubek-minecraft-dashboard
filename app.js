@@ -164,7 +164,7 @@ global.last_servers_query = {};
 global.otp_tg = null;
 
 // Kubek version
-global.kubek_version = "v2.1.3";
+global.kubek_version = "v2.1.3-fix";
 
 app.use(
   fileUpload({
