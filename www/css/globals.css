@@ -60,7 +60,7 @@ html.dark .glassmorphed {
   left: 0;
   top: 0;
   bottom: 0;
-  z-index: 3;
+  z-index: 50;
 }
 
 table * {
@@ -133,6 +133,7 @@ table * {
   height: max-content;
   width: max-content;
   overflow: hidden;
+  z-index: 51;
 }
 
 #toasts-list.left-top {

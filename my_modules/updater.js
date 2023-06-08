@@ -5,6 +5,7 @@ const request = require("request");
 const config = require("./config").readConfig();
 const additional = require("./additional");
 const translator = require("./translator");
+const statsCollector = require("./statistics");
 
 exports.checkForUpdates = (cb) => {
   options = {
@@ -58,6 +59,9 @@ exports.setCheckingForUpdatesByInterval = (updatesInterval) => {
     translator.translateHTML("{{consolemsg-update1h}}", cfg["lang"])
   );
   setInterval(function () {
+    statsCollector.collectStats(cfg, kubek_version, function (stats) {
+      statsCollector.sendStats(stats, false);
+    });
     checkForUpdates_fc(function (upd) {
       if (
         upd != 0 &&

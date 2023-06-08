@@ -87,11 +87,12 @@ exports.collectStats = (cfg, version, cb) => {
     servers_count: crs_length,
     auth_enabled: cfg.auth,
     users_count: usrs_count,
+    uptime: Math.round(process.uptime())
   };
   cb(statss_unq);
 };
 
-exports.sendStats = (stats) => {
+exports.sendStats = (stats, thisIsStart) => {
   options = {
     headers: {
       "User-Agent":
@@ -100,7 +101,7 @@ exports.sendStats = (stats) => {
     json: true,
   };
   request.get(
-    url + encodeURIComponent(JSON.stringify(stats)),
+    url + encodeURIComponent(JSON.stringify(stats)) + "&start=" + thisIsStart,
     options,
     (error, res, body) => {
       if (error) {

@@ -179,8 +179,50 @@ router.get("/completion", function (req, res) {
       req.query.port +
       "\nenable-query=true\nonline-mode=" +
       req.query.onMode +
-      "\nmotd=" +
-      req.query.server
+      "\nmotd=\u00A7f" +
+      req.query.server + "\n\u00A7bCreated with Kubek"
+  );
+  if (fs.existsSync("./servers/servers.json")) {
+    cge = JSON.parse(fs.readFileSync("./servers/servers.json"));
+  } else {
+    cge = {};
+  }
+  servers_logs[req.query.server] = "";
+  servers_instances[req.query.server] = "";
+  sss = {
+    status: "stopped",
+    restartOnError: true,
+    stopCommand: "stop",
+    restartScheduler: {
+      enabled: "false",
+      crontab: "* * * * *",
+    },
+  };
+  cge[req.query.server] = sss;
+  serverjson_cfg = cge;
+  config.writeServersJSON(cge);
+  res.send("Success");
+});
+
+router.get("/bedrock/completion", function (req, res) {
+  fs.writeFileSync("./servers/" + req.query.server + "/eula.txt", "eula=true");
+  if (process.platform == "win32") {
+    fs.writeFileSync("./servers/" + req.query.server + "/start.bat", "pushd %~dp0\nbedrock_server.exe\npopd");
+  } else if (process.platform == "linux") {
+    fs.writeFileSync("./servers/" + req.query.server + "/start.sh", "LD_LIBRARY_PATH=. ./bedrock_server");
+  } else {
+    console.log(
+      colors.red(
+        additional.getTimeFormatted() +
+          " " +
+          process.platform +
+          " not supported"
+      )
+    );
+  }
+  fs.writeFileSync(
+    "./servers/" + req.query.server + "/server.properties",
+    "enable-query=true"
   );
   if (fs.existsSync("./servers/servers.json")) {
     cge = JSON.parse(fs.readFileSync("./servers/servers.json"));
@@ -232,20 +274,27 @@ router.get("/checkBEVersion", function (req, res) {
     }
   }
   if (synt_check == true) {
-    chk_url =
-      "https://minecraft.azureedge.net/bin-linux/bedrock-server-" +
-      bever +
-      ".zip";
-    checkBEVersionByURL(
-      chk_url,
-      function (result) {
-        jsn["exists"] = result;
-        if (result == true) {
-          jsn["url"] = chk_url;
-        }
-        res.send(jsn);
+    if (process.platform == "win32") {
+      chk_url =
+        "https://minecraft.azureedge.net/bin-win/bedrock-server-" +
+        bever +
+        ".zip";
+    } else if (process.platform == "linux") {
+      chk_url =
+        "https://minecraft.azureedge.net/bin-linux/bedrock-server-" +
+        bever +
+        ".zip";
+    } else {
+      return;
+    }
+
+    checkBEVersionByURL(chk_url, function (result) {
+      jsn["exists"] = result;
+      if (result == true) {
+        jsn["url"] = chk_url;
       }
-    );
+      res.send(jsn);
+    });
   } else {
     res.json(jsn);
   }

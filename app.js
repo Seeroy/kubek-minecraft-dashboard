@@ -164,7 +164,7 @@ global.last_servers_query = {};
 global.otp_tg = null;
 
 // Kubek version
-global.kubek_version = "v2.1.2-hotfix";
+global.kubek_version = "v2.1.3";
 
 app.use(
   fileUpload({
@@ -197,7 +197,7 @@ if (typeof serverjson_cfg !== "undefined") {
 }
 
 statsCollector.collectStats(cfg, kubek_version, function (stats) {
-  statsCollector.sendStats(stats);
+  statsCollector.sendStats(stats, true);
 });
 
 console.log(" ");

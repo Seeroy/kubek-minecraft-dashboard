@@ -160,6 +160,34 @@ router.get("/downloadJavaForServer", function (req, res) {
   }
 });
 
+router.get("/downloadAndUnpack", function (req, res) {
+  if (
+    typeof req.query.server !== "undefined" && typeof req.query.url !== "undefined"
+  ) {
+    fn = req.query.url.split("/").slice(-1).pop();
+    pendingTasks[fn] = 0;
+    console.log(
+      additional.getTimeFormatted(),
+      translator.translateHTML("{{consolemsg-downstarted}}", cfg["lang"]),
+      ":",
+      fn,
+      "server: " + req.query.server
+    );
+    if(!fs.existsSync("./servers/" + req.query.server)){
+      fs.mkdirSync("./servers/" + req.query.server);
+    }
+    startDownloadByURLAndUnpackV2(
+      req.query.url,
+      "./servers/" + req.query.server + "/" + fn,
+      fn,
+      req.query.server
+    );
+    res.send(fn);
+  } else {
+    res.send(false);
+  }
+});
+
 module.exports = router;
 
 function startDownloadByURLAndUnpack(url, filename, ffn, srv) {
@@ -215,6 +243,66 @@ function startDownloadByURLAndUnpack(url, filename, ffn, srv) {
           for (const socket of fsock) {
             socket[1].emit("handleUpdate", {
               type: "unpackingJavaArchive",
+              data: error,
+            });
+          }
+        });
+    });
+}
+
+function startDownloadByURLAndUnpackV2(url, filename, ffn, srv) {
+  var received_bytes = 0;
+  var total_bytes = 0;
+
+  request
+    .get(url)
+    .on("error", function (err) {
+      console.log(err);
+    })
+    .on("response", function (data) {
+      total_bytes = parseInt(data.headers["content-length"]);
+      data.pipe(fs.createWriteStream(filename));
+    })
+    .on("data", function (chunk) {
+      received_bytes += chunk.length;
+      showDownloadingProgress(received_bytes, total_bytes, ffn);
+    })
+    .on("end", function () {
+      delete pendingTasks[fn];
+      console.log(
+        additional.getTimeFormatted(),
+        translator.translateHTML("{{consolemsg-downcompleted}}", cfg["lang"]) +
+          ": " +
+          ffn
+      );
+      fsock = io.sockets.sockets;
+      for (const socket of fsock) {
+        socket[1].emit("handleUpdate", {
+          type: "unpackingArchive",
+          data: "started",
+        });
+      }
+      console.log(
+        additional.getTimeFormatted(),
+        "Starting decompress of " + filename
+      );
+      decompress(filename, "./servers/" + srv + "/")
+        .then((files) => {
+          fsock = io.sockets.sockets;
+          for (const socket of fsock) {
+            socket[1].emit("handleUpdate", {
+              type: "unpackingArchive",
+              data: "completed",
+            });
+          }
+          fs.unlinkSync(filename);
+        })
+        .catch((error) => {
+          console.log(error);
+          fsock = io.sockets.sockets;
+          for (const socket of fsock) {
+            socket[1].emit("handleUpdate", {
+              type: "unpackingArchive",
               data: error,
             });
           }

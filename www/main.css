@@ -8,11 +8,15 @@
   height: 100%;
   margin: auto;
   z-index: -99999;
-  filter: blur(16px) brightness(40%) saturate(112%);
+  filter: blur(16px) brightness(80%) saturate(112%);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
   transform: scale(1.1);
+}
+
+html.dark #blurry-bg-img {
+  filter: blur(16px) brightness(40%) saturate(112%);
 }
 
 #drawer-mobile-navigation button.active * {
@@ -22,3 +26,9 @@
 #mobile-nav-button {
   display: none;
 }
+
+#new-server-wizard-drawer input[type="text"],
+#new-server-wizard-drawer input[type="number"],
+#new-server-wizard-drawer textarea {
+  box-shadow: none !important;
+} 

@@ -123,7 +123,10 @@ $(document).ready(function () {
         $(parent).remove();
       }
     });
-    $("#drawer-mobile-navigation button:not(.close-menu)").each(function (i, item) {
+    $("#drawer-mobile-navigation button:not(.close-menu)").each(function (
+      i,
+      item
+    ) {
       perm = $(item).data("perm");
       if (typeof perm !== "undefined" && !perms.includes(perm)) {
         $(item).remove();
@@ -173,9 +176,15 @@ $(document).ready(function () {
                 false,
                 "update",
                 function () {
-                  Toaster("<span class='update-downloader'>{{toasts-downloading-update}} <span class='percent'></span></span>", -1, false, "clock");
+                  Toaster(
+                    "<span class='update-downloader'>{{toasts-downloading-update}} <span class='percent'></span></span>",
+                    -1,
+                    false,
+                    "clock"
+                  );
                   $.get("/kubek/updates/downloadLatest");
-                }, true
+                },
+                true
               );
             } else {
               updateIsReady();
@@ -207,7 +216,6 @@ $(document).ready(function () {
       }
     }
   });
-
 
   $.get("/kubek/version", function (data) {
     $(".kbk-ver").html(data.replace("v", "").trim());
@@ -341,7 +349,7 @@ $(document).ready(function () {
           updateServersStatuses_ui(data);
           break;
         case "server_status_changed":
-          Toaster(data.message, 1500, false, data.type, function(){}, true)
+          Toaster(data.message, 1500, false, data.type, function () {}, true);
           break;
         case "backups_list":
           if (data == "progress") {
@@ -371,171 +379,24 @@ $(document).ready(function () {
           keys.forEach(function (key) {
             value = data[key];
             if (key == "update.tmp" && value != "ready") {
-              $(".update-downloader .percent").text(
-                "(" + value + "%)"
-              );
+              $(".update-downloader .percent").text("(" + value + "%)");
             } else if (key == "update.tmp" && value == "ready") {
               $(".update-downloader").parent().parent().remove();
               updateIsReady();
             }
           });
 
-          /* For new server wizard */
-          if (trackDownloadTasks2_enabled) {
-            if (typeof data[trackDownloadTasks2_filename] !== "undefined") {
-              $("#progress-card .progress").show();
-              $("#progress-card .progress-bar").css(
-                "width",
-                data[trackDownloadTasks2_filename] + "%"
-              );
-              $("#progress-card p").html(
-                "{{downing-core-sw}} " +
-                  trackDownloadTasks2_filename +
-                  " (" +
-                  data[trackDownloadTasks2_filename] +
-                  "%)"
-              );
-            } else {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{downloading-compl-java-sw}}");
-              trackDownloadTasks2_enabled = false;
-              trackDownloadTasks2_completed = true;
-              trackJavaUnpack_enabled = true;
-            }
-          }
-
-          if (trackDownloadTasks_enabled) {
-            if (typeof data[trackDownloadTasks_filename] !== "undefined") {
-              $("#progress-card .progress").show();
-              $("#progress-card .progress-bar").css(
-                "width",
-                data[trackDownloadTasks_filename] + "%"
-              );
-              $("#progress-card p").html(
-                "{{downing-core-sw}} " +
-                  trackDownloadTasks_filename +
-                  " (" +
-                  data[trackDownloadTasks_filename] +
-                  "%)"
-              );
-            } else {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{unpacking-java-sw}}");
-              if ($("#java-vers").val() == "usedetect") {
-                ver = $("#srv-ver-detected").data("ver");
-
-                $.get(
-                  "/downloader/downloadJavaForServer?serverVersion=" +
-                    selectedCore_version +
-                    "&server=" +
-                    $("#server-name-input").val(),
-                  function (ret) {
-                    trackDownloadTasks2_filename = ret;
-                    trackDownloadTasks2_enabled = true;
-                  }
-                );
-                trackDownloadTasks_enabled = false;
-              } else {
-                trackDownloadTasks2_enabled = false;
-                trackDownloadTasks_enabled = false;
-                pathh = $("#java-vers").val();
-
-                $("#progress-card .progress-bar").css("width", "100%");
-                $("#progress-card p").html("{{unpacking-java-sw}}");
-                startLine = '"' + pathh + '"' + " " + $("#fsc").val();
-                $.get(
-                  "/server/completion?server=" +
-                    encodeURI($("#server-name-input").val()) +
-                    "&jf=" +
-                    trackDownloadTasks_filename +
-                    "&startcmd=" +
-                    btoa(startLine) +
-                    "&port=" +
-                    sv_port +
-                    "&onMode=" +
-                    sv_onmode,
-                  function (data) {
-                    if (data == "Success") {
-                      window.localStorage.setItem(
-                        "selectedServer",
-                        $("#server-name-input").val()
-                      );
-                      window.location = "/";
-                    }
-                  }
-                );
-              }
-            }
+          if (typeof ServerWizardHandlers !== "undefined") {
+            ServerWizardHandlers.handleDownloadTask(data);
           }
           break;
-        /* For new server wizard */
         case "unpackingJavaArchive":
-          if (trackJavaUnpack_enabled) {
-            if (data == "started") {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{unpacking-java-sw}}");
-            } else if (data == "completed") {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html("{{unpacking-java-compl-sw}}");
-              $.get(
-                "/downloader/getPathToJava?server=" +
-                  $("#server-name-input").val(),
-                function (path) {
-                  startLine = '"' + path + '"' + " " + $("#fsc").val();
-                  if (
-                    trackDownloadTasks2_type == "forge" ||
-                    trackDownloadTasks2_type == "other_own"
-                  ) {
-                    $.get(
-                      "/server/completion?server=" +
-                        encodeURI($("#server-name-input").val()) +
-                        "&jf=" +
-                        selectedCore_filename.replace(/-installer/gm, "") +
-                        "&startcmd=" +
-                        btoa(startLine) +
-                        "&port=" +
-                        sv_port +
-                        "&onMode=" +
-                        sv_onmode,
-                      function (data) {
-                        if (data == "Success") {
-                          window.localStorage.setItem(
-                            "selectedServer",
-                            $("#server-name-input").val()
-                          );
-                          window.location = "/";
-                        }
-                      }
-                    );
-                  } else {
-                    $.get(
-                      "/server/completion?server=" +
-                        encodeURI($("#server-name-input").val()) +
-                        "&jf=" +
-                        trackDownloadTasks_filename +
-                        "&startcmd=" +
-                        btoa(startLine) +
-                        "&port=" +
-                        sv_port +
-                        "&onMode=" +
-                        sv_onmode,
-                      function (data) {
-                        if (data == "Success") {
-                          window.localStorage.setItem(
-                            "selectedServer",
-                            $("#server-name-input").val()
-                          );
-                          window.location = "/";
-                        }
-                      }
-                    );
-                  }
-                }
-              );
-            } else {
-              $("#progress-card .progress").hide();
-              $("#progress-card p").html(data);
-            }
+          if (typeof ServerWizardHandlers !== "undefined") {
+            ServerWizardHandlers.handleUnpackingJavaArchive(data);
+          }
+        case "unpackingArchive":
+          if (typeof ServerWizardHandlers !== "undefined") {
+            ServerWizardHandlers.handleUnpackingArchive(data);
           }
       }
     });

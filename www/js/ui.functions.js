@@ -294,12 +294,21 @@ function refreshBackgroundImage() {
 
 function refreshBlurRange() {
   if (typeof window.localStorage.blurrange !== "undefined") {
-    $("#blurry-bg-img").css(
-      "filter",
-      "blur(" +
-        window.localStorage.blurrange +
-        "px) brightness(45%) saturate(110%)"
-    );
+    if ($("html").hasClass("dark")) {
+      $("#blurry-bg-img").css(
+        "filter",
+        "blur(" +
+          window.localStorage.blurrange +
+          "px) brightness(40%) saturate(110%)"
+      );
+    } else {
+      $("#blurry-bg-img").css(
+        "filter",
+        "blur(" +
+          window.localStorage.blurrange +
+          "px) brightness(80%) saturate(110%)"
+      );
+    }
   } else {
     window.localStorage.setItem("blurrange", "16");
   }
