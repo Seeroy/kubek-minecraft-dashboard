@@ -77,10 +77,16 @@ $(document).ready(function () {
     refreshNoRounded();
   });
   $("#nolowpriority-checkbox").change(function () {
-    window.localStorage.setItem("nolowpriority", $(this).is(":checked").toString());
+    window.localStorage.setItem(
+      "nolowpriority",
+      $(this).is(":checked").toString()
+    );
   });
   $("#nobackdrop-checkbox").change(function () {
-    window.localStorage.setItem("nobackdrop", $(this).is(":checked").toString());
+    window.localStorage.setItem(
+      "nobackdrop",
+      $(this).is(":checked").toString()
+    );
     refreshNoBackdrop();
   });
   $("#simplify-checkbox").change(function () {
@@ -120,15 +126,17 @@ function loadKubekSettings() {
       $("#nolowpriority-checkbox").attr("checked", true);
     }
 
-    $.get("/kubek/bgList", function(bgList){
-      bgList.forEach(function(bg, i){
+    $.get("/kubek/bgList", function (bgList) {
+      bgList.forEach(function (bg, i) {
         iv = i + 1;
-        $("#backgrounds-select").append("<option value='" + bg + "'>Image " + iv +"</option>")
+        $("#backgrounds-select").append(
+          "<option value='" + bg + "'>Image " + iv + "</option>"
+        );
       });
-      if (window.localStorage.getItem("background") != null) {
+      if (window.localStorage.background != null) {
         $(
           "#backgrounds-select option[value='" +
-            window.localStorage.getItem("background") +
+            window.localStorage.background +
             "']"
         ).prop("selected", true);
       }

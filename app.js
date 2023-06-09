@@ -285,6 +285,44 @@ updater.checkForUpdates(function (upd, body) {
         req.cookies["kbk__hash"],
         req.cookies["kbk__login"]
       );
+      perms = auth_manager.getUserPermissions(req);
+      if (
+        req["_parsedUrl"].pathname.match(/pages\/console/gim) != null &&
+        !perms.includes("console")
+      ) {
+        res.redirect("/pages/access_blocked.html");
+      }
+      if (
+        req["_parsedUrl"].pathname.match(/pages\/mods/gim) != null ||
+        (req["_parsedUrl"].pathname.match(/pages\/plugins_repo/gim) != null &&
+          !perms.includes("plugins"))
+      ) {
+        res.redirect("/pages/access_blocked.html");
+      }
+      if (
+        req["_parsedUrl"].pathname.match(/pages\/file_manager/gim) != null &&
+        !perms.includes("filemanager")
+      ) {
+        res.redirect("/pages/access_blocked.html");
+      }
+      if (
+        req["_parsedUrl"].pathname.match(/pages\/server_settings/gim) != null &&
+        !perms.includes("server_settings")
+      ) {
+        res.redirect("/pages/access_blocked.html");
+      }
+      if (
+        req["_parsedUrl"].pathname.match(/pages\/kubek_settings/gim) != null &&
+        !perms.includes("kubek_settings")
+      ) {
+        res.redirect("/pages/access_blocked.html");
+      }
+      if (
+        req["_parsedUrl"].pathname.match(/pages\/backups/gim) != null &&
+        !perms.includes("backups")
+      ) {
+        res.redirect("/pages/access_blocked.html");
+      }
     }
     if (
       authsucc == true ||
