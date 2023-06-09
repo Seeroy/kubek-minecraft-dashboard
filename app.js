@@ -1,5 +1,5 @@
 // Kubek version
-global.kubek_version = "v2.1.4";
+global.kubek_version = "v2.1.4-fix";
 
 // My modules
 const ftpd = require("./my_modules/ftpd_new");
@@ -294,10 +294,12 @@ updater.checkForUpdates(function (upd, body) {
       }
       if (
         req["_parsedUrl"].pathname.match(/pages\/mods/gim) != null ||
-        (req["_parsedUrl"].pathname.match(/pages\/plugins_repo/gim) != null &&
-          !perms.includes("plugins"))
+        (req["_parsedUrl"].pathname.match(/pages\/plugins_repo/gim) != null)
       ) {
-        res.redirect("/pages/access_blocked.html");
+        if(
+          !perms.includes("plugins")){
+            res.redirect("/pages/access_blocked.html");
+          }
       }
       if (
         req["_parsedUrl"].pathname.match(/pages\/file_manager/gim) != null &&
