@@ -1,3 +1,53 @@
+// Theme switch button script (DISCONTINUED)
+/*$(document).ready(function () {
+  if (
+    localStorage.getItem("currentTheme") === "dark" ||
+    (!("currentTheme" in localStorage) &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+  ) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+
+  var themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon");
+  var themeToggleLightIcon = document.getElementById("theme-toggle-light-icon");
+
+  if (
+    localStorage.getItem("currentTheme") === "dark" ||
+    (!("currentTheme" in localStorage) &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+  ) {
+    themeToggleLightIcon.classList.remove("hidden");
+  } else {
+    themeToggleDarkIcon.classList.remove("hidden");
+  }
+
+  var themeToggleBtn = document.getElementById("theme-toggle");
+
+  themeToggleBtn.addEventListener("click", function () {
+    themeToggleDarkIcon.classList.toggle("hidden");
+    themeToggleLightIcon.classList.toggle("hidden");
+    if (localStorage.getItem("currentTheme")) {
+      if (localStorage.getItem("currentTheme") === "light") {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("currentTheme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("currentTheme", "light");
+      }
+    } else {
+      if (document.documentElement.classList.contains("dark")) {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("currentTheme", "light");
+      } else {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("currentTheme", "dark");
+      }
+    }
+  });
+});*/
+
 // Main script
 console.log("[UI] Starting Kubek UI...");
 const queryString = window.location.search;

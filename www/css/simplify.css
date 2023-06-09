@@ -24,6 +24,10 @@ html.simplify.dark .glassmorphed {
   background: #4b5563 !important;
 }
 
+html.simplify:not(.dark) * {
+  color: black !important;
+}
+
 html.simplify button.glassmorphed {
   border: 1px solid rgb(150, 150, 150) !important;
 }
