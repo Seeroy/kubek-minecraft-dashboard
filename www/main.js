@@ -1,53 +1,3 @@
-// Theme switch button script
-$(document).ready(function () {
-  if (
-    localStorage.getItem("currentTheme") === "dark" ||
-    (!("currentTheme" in localStorage) &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  ) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
-
-  var themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon");
-  var themeToggleLightIcon = document.getElementById("theme-toggle-light-icon");
-
-  if (
-    localStorage.getItem("currentTheme") === "dark" ||
-    (!("currentTheme" in localStorage) &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  ) {
-    themeToggleLightIcon.classList.remove("hidden");
-  } else {
-    themeToggleDarkIcon.classList.remove("hidden");
-  }
-
-  var themeToggleBtn = document.getElementById("theme-toggle");
-
-  themeToggleBtn.addEventListener("click", function () {
-    themeToggleDarkIcon.classList.toggle("hidden");
-    themeToggleLightIcon.classList.toggle("hidden");
-    if (localStorage.getItem("currentTheme")) {
-      if (localStorage.getItem("currentTheme") === "light") {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("currentTheme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("currentTheme", "light");
-      }
-    } else {
-      if (document.documentElement.classList.contains("dark")) {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("currentTheme", "light");
-      } else {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("currentTheme", "dark");
-      }
-    }
-  });
-});
-
 // Main script
 console.log("[UI] Starting Kubek UI...");
 const queryString = window.location.search;
@@ -290,44 +240,9 @@ $(document).ready(function () {
           if (
             $(".console-container").length > 0 &&
             data.server == window.localStorage.selectedServer &&
-            $("#autoupdateConsoleCheckbox").is(":checked")
+            $("#autoupdateConsoleCheckbox").is(":checked") && typeof refreshConsole == "function"
           ) {
-            split = data.data.split(/\r?\n/);
-            $("#console-text").html("");
-
-            split.forEach(function (line) {
-              line = mineParse(line.replaceAll("<", "&lt;")).parsed.innerHTML;
-
-              htmlObject = document.createElement("div");
-              htmlObject.innerHTML = line;
-              if (htmlObject.firstChild.firstChild != null) {
-                html_text =
-                  htmlObject.firstChild.firstChild.wholeText.replaceAll(
-                    "<",
-                    "&lt;"
-                  ) + "<br>";
-                if (htmlObject.firstChild.style.color != "") {
-                  stl =
-                    "color:" +
-                    htmlObject.firstChild.style.color +
-                    " !important;";
-                } else {
-                  stl = "";
-                }
-                html_text = linkify(html_text);
-                html_text =
-                  "<span class='text-black dark:text-white' style='" +
-                  stl +
-                  "'>" +
-                  html_text +
-                  "</span>";
-
-                $("#console-text").html($("#console-text").html() + html_text);
-              }
-            });
-            if ($("#autoscrollConsoleCheckbox").is(":checked")) {
-              $("#console-text").scrollTop($("#console-text")[0].scrollHeight);
-            }
+            refreshConsole(data.data);
           }
           break;
         case "usage":

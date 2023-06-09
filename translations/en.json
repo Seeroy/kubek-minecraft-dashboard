@@ -36,6 +36,7 @@
   "{{change-theme}}": "Switch theme",
   "{{disconnect-notify}}": "Connection to server lost",
   "{{reconnect-notify}}": "Connection to server re-established",
+  "{{plugins-repo}}": "Plug-ins repository",
 
   "{{sc-start}}": "Start",
   "{{sc-stop}}": "Stop",
@@ -305,5 +306,9 @@
   "{{toasts-list-tooltip}}": "Toasts history",
   "{{toasts-start-success}}": " started successfully",
   "{{toasts-stop-success}}": " shut down successfully",
-  "{{toasts-stop-code}}": " closed with code "
+  "{{toasts-stop-code}}": " closed with code ",
+
+  "{{search-pl-repo}}": "Search",
+  "{{search-placeholder-pl-repo}}": "Add-on name or keywords",
+  "{{nodl-pl-repo}}": "Currently it's not possible to implement automatic downloads, sorry :)"
 }

@@ -1,8 +1,12 @@
+// Kubek version
+global.kubek_version = "v2.1.4";
+
 // My modules
 const ftpd = require("./my_modules/ftpd_new");
 const updater = require("./my_modules/updater");
 const statsCollector = require("./my_modules/statistics");
 const config = require("./my_modules/config");
+config.makeBaseDirs();
 const translator = require("./my_modules/translator");
 const kubek = require("./my_modules/kubek");
 const additional = require("./my_modules/additional");
@@ -162,9 +166,6 @@ global.servers_restart_count = {};
 global.restart_after_stop = {};
 global.last_servers_query = {};
 global.otp_tg = null;
-
-// Kubek version
-global.kubek_version = "v2.1.3-fix";
 
 app.use(
   fileUpload({

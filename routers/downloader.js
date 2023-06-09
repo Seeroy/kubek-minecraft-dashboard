@@ -165,7 +165,13 @@ router.get("/downloadAndUnpack", function (req, res) {
     typeof req.query.server !== "undefined" && typeof req.query.url !== "undefined"
   ) {
     fn = req.query.url.split("/").slice(-1).pop();
-    pendingTasks[fn] = 0;
+    pendingTasks[req.query.filename] = 0;
+    if (!fs.existsSync("./servers")) {
+      fs.mkdirSync("./servers");
+    }
+    if (!fs.existsSync("./servers/" + req.query.server)) {
+      fs.mkdirSync("./servers/" + req.query.server);
+    }
     console.log(
       additional.getTimeFormatted(),
       translator.translateHTML("{{consolemsg-downstarted}}", cfg["lang"]),
@@ -173,9 +179,6 @@ router.get("/downloadAndUnpack", function (req, res) {
       fn,
       "server: " + req.query.server
     );
-    if(!fs.existsSync("./servers/" + req.query.server)){
-      fs.mkdirSync("./servers/" + req.query.server);
-    }
     startDownloadByURLAndUnpackV2(
       req.query.url,
       "./servers/" + req.query.server + "/" + fn,

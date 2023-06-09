@@ -120,13 +120,19 @@ function loadKubekSettings() {
       $("#nolowpriority-checkbox").attr("checked", true);
     }
 
-    if (window.localStorage.getItem("background") != null) {
-      $(
-        "#backgrounds-select option[value='" +
-          window.localStorage.getItem("background") +
-          "']"
-      ).prop("selected", true);
-    }
+    $.get("/kubek/bgList", function(bgList){
+      bgList.forEach(function(bg, i){
+        iv = i + 1;
+        $("#backgrounds-select").append("<option value='" + bg + "'>Image " + iv +"</option>")
+      });
+      if (window.localStorage.getItem("background") != null) {
+        $(
+          "#backgrounds-select option[value='" +
+            window.localStorage.getItem("background") +
+            "']"
+        ).prop("selected", true);
+      }
+    });
 
     if (window.localStorage.getItem("toastspos") != null) {
       $(

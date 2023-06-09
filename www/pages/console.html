@@ -128,11 +128,23 @@
           </label>
         </div>
 
-        <div class="flex items-center mb-1">
-          <input id="ctmonofontCheck" type="checkbox"
-            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-          <label for="ctmonofontCheck"
-            class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300">{{monofont-console}}</label>
+        <div class="flex items-center">
+          <input type="radio" name="ctfontfamilyRadio" value="default" id="ctfontfamilyRadio_default"
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="ctfontfamilyRadio_default" class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"> Default
+          </label>
+        </div>
+        <div class="flex items-center">
+          <input type="radio" name="ctfontfamilyRadio" value="mono-font" id="ctfontfamilyRadio_mono-font"
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="ctfontfamilyRadio_mono-font" class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"> Roboto Mono
+          </label>
+        </div>
+        <div class="flex items-center mb-2">
+          <input type="radio" name="ctfontfamilyRadio" value="consolas-font" id="ctfontfamilyRadio_consolas-font"
+            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="ctfontfamilyRadio_consolas-font" class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"> Consolas
+          </label>
         </div>
       </div>
 

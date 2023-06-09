@@ -4,6 +4,7 @@ const defaultConfig =
   '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"internet-access":true,"save-logs":true,"config-version":1,"tgbot-enabled":false,"tgbot-token":null,"tgbot-chatid":[],"webserver-port":3000,"socket-port":3001}';
 const defaultUsersConfig =
   '{"kubek": {"username": "kubek","password": "72ba608dbfac8d46d4aaf40f428badf85af1f929fece7480e56602b4452a71fe","mail": "","hash": "","permissions": ["console", "plugins", "filemanager", "server_settings", "kubek_settings"]}}';
+const BASE_DIRS = ["backups", "logs", "servers"];
 var SHA256 = require("crypto-js/sha256");
 var crypto = require("crypto");
 
@@ -53,6 +54,14 @@ exports.readConfig = () => {
     }
     return parse;
   }
+};
+
+exports.makeBaseDirs = () => {
+  BASE_DIRS.forEach(function (dir) {
+    if (!fs.existsSync("./" + dir)) {
+      fs.mkdirSync("./" + dir);
+    }
+  });
 };
 
 exports.readUsersConfig = () => {

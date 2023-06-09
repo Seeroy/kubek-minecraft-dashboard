@@ -76,10 +76,12 @@
     "icon percent";
 }
 
-.mono-console-text {
-  font-family: 'Roboto Mono Regular';
+.mono-font,
+.mono-font span {
+  font-family: 'Roboto Mono Regular' !important;
 }
 
-.mono-console-text span {
-  font-family: 'Roboto Mono Regular';
+.consolas-font,
+.consolas-font span {
+  font-family: 'Consolas' !important;
 }

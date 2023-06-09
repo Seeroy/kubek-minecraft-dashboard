@@ -104,6 +104,13 @@ router.get("/version", function (req, res) {
   res.send(kubek_version);
 });
 
+router.get("/bgList", function (req, res) {
+  bgListRead = fs.readdirSync(
+    path.join(__dirname, "./../www/assets/backgrounds")
+  );
+  res.json(bgListRead);
+});
+
 router.get("/translate", function (req, res) {
   cfgg = config.readConfig();
   lang = cfgg["lang"];
@@ -201,7 +208,7 @@ router.get("/support-uid", function (req, res) {
 router.get("/socket-port", function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   cfg = config.readConfig();
-  jsn = {port: cfg['socket-port']};
+  jsn = { port: cfg["socket-port"] };
   res.json(jsn);
 });
 

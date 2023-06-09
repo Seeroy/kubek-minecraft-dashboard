@@ -3,25 +3,16 @@
     display: none !important;
   }
 
-  .glassmorphed {
-    backdrop-filter: blur(0px) !important;
-    background: rgba(255, 255, 255, 0.5) !important;
-  }
-
-  html.dark .glassmorphed {
-    background: rgba(75, 75, 75, 0.5) !important;
-  }
-
-  .drawer-backdrop {
-    backdrop-filter: blur(0px) !important;
-  }
-
   #mobile-nav-button {
     display: block;
   }
 
   #tabs-menu-bg {
     padding: 6px 16px;
+  }
+
+  #content-place {
+    width: 87% !important;
   }
 }
 
@@ -138,5 +129,18 @@
 
   .drawer-backdrop {
     display: none !important;
+  }
+
+  .glassmorphed {
+    backdrop-filter: blur(0px) !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  html.dark .glassmorphed {
+    background: rgba(75, 75, 75, 0.5) !important;
+  }
+
+  .drawer-backdrop {
+    backdrop-filter: blur(0px) !important;
   }
 }

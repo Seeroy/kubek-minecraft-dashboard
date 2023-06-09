@@ -29,7 +29,7 @@
   <script src="/js/classes/ServerWizardStepper.js"></script>
   <script src="/js/classes/JavaServerCreator.js"></script>
   <script src="/js/classes/BedrockServerCreator.js"></script>
-  
+
   <script src="/js/new_server.wizard.js"></script>
 
   <script src="/js/simply.functions.js"></script>
@@ -66,1693 +66,1699 @@
 </form>
 
 <!-- Let`s start it :lol: -->
-<body style="overflow: hidden">
-  <div class="flex flex-col h-screen w-screen">
-    <header>
-      <nav class="bg-white border-gray-200 px-4 lg:px-6 dark:bg-gray-800 py-1">
-        <div class="flex justify-between items-center">
-          <div class="flex justify-start items-center w-full">
-            <!-- Kubek logo -->
-            <div
-              class="flex flex-row items-center justify-center hide-on-mobile"
-              id="kubek-logo-box"
-            >
-              <div class="p-2">
-                <img src="assets/icon.png" style="height: 32px" />
-              </div>
+<html class="dark">
+  <body style="overflow: hidden">
+    <div class="flex flex-col h-screen w-screen">
+      <header>
+        <nav
+          class="bg-white border-gray-200 px-4 lg:px-6 dark:bg-gray-800 py-1"
+        >
+          <div class="flex justify-between items-center">
+            <div class="flex justify-start items-center w-full">
+              <!-- Kubek logo -->
               <div
-                class="p-2 ms-3 text-black dark:text-white text-3xl font-semibold"
+                class="flex flex-row items-center justify-center hide-on-mobile"
+                id="kubek-logo-box"
               >
-                Kubek
+                <div class="p-2">
+                  <img src="assets/icon.png" style="height: 32px" />
+                </div>
+                <div
+                  class="p-2 ms-3 text-black dark:text-white text-3xl font-semibold"
+                >
+                  Kubek
+                </div>
+                <span
+                  class="kbk-ver text-gray-700 dark:text-gray-300 text-sm pb-3"
+                ></span>
               </div>
-              <span
-                class="kbk-ver text-gray-700 dark:text-gray-300 text-sm pb-3"
-              ></span>
-            </div>
 
-            <!-- Server status badge -->
-            <div class="flex items-center justify-center grow">
-              <span id="status-text"></span>
+              <!-- Server status badge -->
+              <div class="flex items-center justify-center grow">
+                <span id="status-text"></span>
+              </div>
+            </div>
+            <div class="flex items-center lg:order-2">
+              <!-- Logout button with tooltip -->
+              <button
+                data-tooltip-target="tooltip-logout"
+                id="logout-button"
+                onclick="logoutUser()"
+                class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
+              >
+                <i class="ri-logout-box-line"></i>
+              </button>
+              <div
+                id="tooltip-logout"
+                role="tooltip"
+                class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+              >
+                {{logout-account}}
+                <div class="tooltip-arrow" data-popper-arrow></div>
+              </div>
+
+              <!-- Notifications history button with tooltip -->
+              <button
+                type="button"
+                data-tooltip-target="tooltip-toasts-list"
+                id="toasts-list-button"
+                data-drawer-target="drawer-toasts-list"
+                data-drawer-show="drawer-toasts-list"
+                aria-controls="drawer-toasts-list"
+                onclick="$('#notifications-badge').addClass('hidden'); $('#notifications-badge').text('0')"
+                class="relative inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
+              >
+                <i class="ri-notification-2-fill"></i>
+                <div
+                  class="absolute inline-flex items-center justify-center w-4 h-4 font-bold text-white bg-red-500 rounded-full -top-2 -right-2 hidden"
+                  id="notifications-badge"
+                  style="font-size: 7pt"
+                >
+                  0
+                </div>
+              </button>
+              <div
+                id="tooltip-toasts-list"
+                role="tooltip"
+                class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+              >
+                {{toasts-list-tooltip}}
+                <div class="tooltip-arrow" data-popper-arrow></div>
+              </div>
+
+              <!-- Kubek Settings button with tooltip -->
+              <button
+                data-tooltip-target="tooltip-settings"
+                id="kubek-settings-button"
+                class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
+              >
+                <i class="ri-settings-2-fill"></i>
+              </button>
+              <div
+                id="tooltip-settings"
+                role="tooltip"
+                class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+              >
+                {{kubek-settings}}
+                <div class="tooltip-arrow" data-popper-arrow></div>
+              </div>
+
+              <!-- Language button with tooltip and dropdown -->
+              <button
+                type="button"
+                data-tooltip-target="tooltip-language"
+                data-dropdown-toggle="language-dropdown"
+                id="language-dropdown-btn"
+                class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer dark:hover:text-white dark:text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-600 w-10 mr-2"
+              >
+                <img class="h-6 w-6 mt-0.5" src="" />
+              </button>
+              <div
+                id="tooltip-language"
+                role="tooltip"
+                class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
+              >
+                {{softLang-ks}}
+                <div class="tooltip-arrow" data-popper-arrow></div>
+              </div>
+              <!-- Dropdown -->
+              <div
+                class="hidden z-50 my-4 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700"
+                id="language-dropdown"
+              >
+                <ul class="py-1" role="none">
+                  <li data-lang="en">
+                    <button
+                      class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:text-white dark:text-gray-300 dark:hover:bg-gray-600"
+                      role="menuitem"
+                    >
+                      <div class="inline-flex items-center">
+                        <img
+                          src="/assets/flags/en.svg"
+                          style="width: 16px"
+                          class="mr-2"
+                        />
+                        English (US)
+                      </div>
+                    </button>
+                  </li>
+                  <li data-lang="ru">
+                    <button
+                      class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
+                      role="menuitem"
+                    >
+                      <div class="inline-flex items-center">
+                        <img
+                          src="/assets/flags/ru.svg"
+                          style="width: 16px"
+                          class="mr-2"
+                        />
+                        Русский
+                      </div>
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-          <div class="flex items-center lg:order-2">
-            <!-- Logout button with tooltip -->
-            <button
-              data-tooltip-target="tooltip-logout"
-              id="logout-button"
-              onclick="logoutUser()"
-              class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
-            >
-              <i class="ri-logout-box-line"></i>
-            </button>
-            <div
-              id="tooltip-logout"
-              role="tooltip"
-              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
-            >
-              {{logout-account}}
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
+        </nav>
 
-            <!-- Notifications history button with tooltip -->
-            <button
-              type="button"
-              data-tooltip-target="tooltip-toasts-list"
-              id="toasts-list-button"
-              data-drawer-target="drawer-toasts-list"
-              data-drawer-show="drawer-toasts-list"
-              aria-controls="drawer-toasts-list"
-              onclick="$('#notifications-badge').addClass('hidden'); $('#notifications-badge').text('0')"
-              class="relative inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
-            >
-              <i class="ri-notification-2-fill"></i>
-              <div
-                class="absolute inline-flex items-center justify-center w-4 h-4 font-bold text-white bg-red-500 rounded-full -top-2 -right-2 hidden"
-                id="notifications-badge"
-                style="font-size: 7pt"
+        <!-- Tabs menu -->
+        <div
+          class="bg-gray-100 border-gray-200 px-4 lg:px-6 dark:bg-gray-700"
+          id="tabs-menu-bg"
+        >
+          <div class="flex flex-wrap justify-between items-center">
+            <div class="border-b border-transparent">
+              <ul
+                class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+                id="menu-tabs-list"
               >
-                0
-              </div>
-            </button>
-            <div
-              id="tooltip-toasts-list"
-              role="tooltip"
-              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
-            >
-              {{toasts-list-tooltip}}
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-
-            <!-- Kubek Settings button with tooltip -->
-            <button
-              data-tooltip-target="tooltip-settings"
-              id="kubek-settings-button"
-              class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
-            >
-              <i class="ri-settings-2-fill"></i>
-            </button>
-            <div
-              id="tooltip-settings"
-              role="tooltip"
-              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
-            >
-              {{kubek-settings}}
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-
-            <!-- Language button with tooltip and dropdown -->
-            <button
-              type="button"
-              data-tooltip-target="tooltip-language"
-              data-dropdown-toggle="language-dropdown"
-              id="language-dropdown-btn"
-              class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer dark:hover:text-white dark:text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-600 w-10 mr-2"
-            >
-              <img class="h-6 w-6 mt-0.5" src="" />
-            </button>
-            <div
-              id="tooltip-language"
-              role="tooltip"
-              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
-            >
-              {{softLang-ks}}
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-            <!-- Dropdown -->
-            <div
-              class="hidden z-50 my-4 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700"
-              id="language-dropdown"
-            >
-              <ul class="py-1" role="none">
-                <li data-lang="en">
+                <li class="mr-2">
                   <button
-                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:text-white dark:text-gray-300 dark:hover:bg-gray-600"
-                    role="menuitem"
+                    data-page="console"
+                    data-perm="console"
+                    class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
                   >
-                    <div class="inline-flex items-center">
-                      <img
-                        src="/assets/flags/en.svg"
-                        style="width: 16px"
-                        class="mr-2"
-                      />
-                      English (US)
-                    </div>
+                    <i
+                      class="ri-terminal-fill w-6 h-6 transition duration-75"
+                    ></i>
+                    <span class="ml-3">{{console}}</span>
                   </button>
                 </li>
-                <li data-lang="ru">
+                <li class="mr-2">
                   <button
-                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-600"
-                    role="menuitem"
+                    data-page="file_manager"
+                    data-perm="filemanager"
+                    class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
                   >
-                    <div class="inline-flex items-center">
-                      <img
-                        src="/assets/flags/ru.svg"
-                        style="width: 16px"
-                        class="mr-2"
-                      />
-                      Русский
-                    </div>
+                    <i
+                      class="ri-folders-fill w-6 h-6 transition duration-75"
+                    ></i>
+                    <span class="ml-3">{{file-manager}}</span>
+                  </button>
+                </li>
+                <li class="mr-2">
+                  <button
+                    data-page="mods"
+                    data-perm="plugins"
+                    class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                  >
+                    <i
+                      class="ri-window-2-fill w-6 h-6 transition duration-75"
+                    ></i>
+                    <span class="ml-3">{{plugins-and-mods}}</span>
+                  </button>
+                </li>
+                <li class="mr-2">
+                  <button
+                    data-page="backups"
+                    data-perm="backups"
+                    class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                  >
+                    <i
+                      class="ri-hard-drive-3-fill w-6 h-6 transition duration-75"
+                    ></i>
+                    <span class="ml-3">{{backups-capt}}</span>
+                  </button>
+                </li>
+                <li class="mr-2">
+                  <button
+                    data-page="server_settings"
+                    data-perm="server_settings"
+                    class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                  >
+                    <i
+                      class="ri-settings-2-fill w-6 h-6 transition duration-75"
+                    ></i>
+                    <span class="ml-3">{{server-settings}}</span>
+                  </button>
+                </li>
+                <li class="mr-2">
+                  <button
+                    data-page="speditor"
+                    data-perm="server_settings"
+                    class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                  >
+                    <i
+                      class="ri-list-settings-fill w-6 h-6 transition duration-75"
+                    ></i>
+                    <span class="ml-3">server.properties</span>
+                  </button>
+                </li>
+                <li class="mr-2">
+                  <button
+                    data-page="sysmon"
+                    class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+                  >
+                    <i class="ri-bug-fill w-6 h-6 transition duration-75"></i>
+                    <span class="ml-3">{{system-monitor}}</span>
                   </button>
                 </li>
               </ul>
             </div>
-
-            <!-- Theme switch with tooltip -->
+            <!-- Open mobile nav menu button -->
             <button
-              id="theme-toggle"
-              data-tooltip-target="tooltip-theme"
-              onclick="setTimeout(refreshAllUI,110)"
-              class="inline-flex justify-center items-center text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 w-10 h-10 mr-2"
-            >
-              <svg
-                id="theme-toggle-dark-icon"
-                class="hidden w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
-                ></path>
-              </svg>
-              <svg
-                id="theme-toggle-light-icon"
-                class="hidden w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                ></path>
-              </svg>
-            </button>
-            <div
-              id="tooltip-theme"
-              role="tooltip"
-              class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
-            >
-              {{change-theme}}
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <!-- Tabs menu -->
-      <div
-        class="bg-gray-100 border-gray-200 px-4 lg:px-6 dark:bg-gray-700"
-        id="tabs-menu-bg"
-      >
-        <div class="flex flex-wrap justify-between items-center">
-          <div class="border-b border-transparent">
-            <ul
-              class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400"
-              id="menu-tabs-list"
-            >
-              <li class="mr-2">
-                <button
-                  data-page="console"
-                  data-perm="console"
-                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
-                >
-                  <i
-                    class="ri-terminal-fill w-6 h-6 transition duration-75"
-                  ></i>
-                  <span class="ml-3">{{console}}</span>
-                </button>
-              </li>
-              <li class="mr-2">
-                <button
-                  data-page="file_manager"
-                  data-perm="filemanager"
-                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
-                >
-                  <i class="ri-folders-fill w-6 h-6 transition duration-75"></i>
-                  <span class="ml-3">{{file-manager}}</span>
-                </button>
-              </li>
-              <li class="mr-2">
-                <button
-                  data-page="mods"
-                  data-perm="plugins"
-                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
-                >
-                  <i
-                    class="ri-window-2-fill w-6 h-6 transition duration-75"
-                  ></i>
-                  <span class="ml-3">{{plugins-and-mods}}</span>
-                </button>
-              </li>
-              <li class="mr-2">
-                <button
-                  data-page="backups"
-                  data-perm="backups"
-                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
-                >
-                  <i
-                    class="ri-hard-drive-3-fill w-6 h-6 transition duration-75"
-                  ></i>
-                  <span class="ml-3">{{backups-capt}}</span>
-                </button>
-              </li>
-              <li class="mr-2">
-                <button
-                  data-page="server_settings"
-                  data-perm="server_settings"
-                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
-                >
-                  <i
-                    class="ri-settings-2-fill w-6 h-6 transition duration-75"
-                  ></i>
-                  <span class="ml-3">{{server-settings}}</span>
-                </button>
-              </li>
-              <li class="mr-2">
-                <button
-                  data-page="speditor"
-                  data-perm="server_settings"
-                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
-                >
-                  <i
-                    class="ri-list-settings-fill w-6 h-6 transition duration-75"
-                  ></i>
-                  <span class="ml-3">server.properties</span>
-                </button>
-              </li>
-              <li class="mr-2">
-                <button
-                  data-page="sysmon"
-                  class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
-                >
-                  <i class="ri-bug-fill w-6 h-6 transition duration-75"></i>
-                  <span class="ml-3">{{system-monitor}}</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-          <!-- Open mobile nav menu button -->
-          <button
-            id="mobile-nav-button"
-            data-drawer-target="drawer-mobile-navigation"
-            data-drawer-show="drawer-mobile-navigation"
-            aria-controls="drawer-mobile-navigation"
-            data-drawer-backdrop="true"
-            class="text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-            type="button"
-          >
-            <i class="ri-menu-2-line text-xl font-light"></i>
-          </button>
-          <div class="grow"></div>
-          <div class="flex items-center justify-center order-2">
-            <!-- New server button -->
-            <button
-              id="new-server-button"
-              data-drawer-target="new-server-wizard-drawer"
-              data-drawer-show="new-server-wizard-drawer"
-              aria-controls="new-server-wizard-drawer"
-              data-drawer-backdrop="false"
-              onclick="$('.drawer-backdrop').show()"
+              id="mobile-nav-button"
+              data-drawer-target="drawer-mobile-navigation"
+              data-drawer-show="drawer-mobile-navigation"
+              aria-controls="drawer-mobile-navigation"
+              data-drawer-backdrop="true"
               class="text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
               type="button"
             >
-              <i class="ri-add-line text-xl font-light"></i>
+              <i class="ri-menu-2-line text-xl font-light"></i>
             </button>
+            <div class="grow"></div>
+            <div class="flex items-center justify-center order-2">
+              <!-- New server button -->
+              <button
+                id="new-server-button"
+                data-drawer-target="new-server-wizard-drawer"
+                data-drawer-show="new-server-wizard-drawer"
+                aria-controls="new-server-wizard-drawer"
+                data-drawer-backdrop="false"
+                onclick="$('.drawer-backdrop').show()"
+                class="text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                type="button"
+              >
+                <i class="ri-add-line text-xl font-light"></i>
+              </button>
 
-            <!-- Edit server button -->
-            <button
-              id="edit-server-button"
-              onclick="showModal('edit-server-modal', 'fadeIn')"
-              class="ml-2 text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-              type="button"
-            >
-              <i class="ri-edit-box-line text-xl font-light"></i>
-            </button>
+              <!-- Edit server button -->
+              <button
+                id="edit-server-button"
+                onclick="showModal('edit-server-modal', 'fadeIn')"
+                class="ml-2 text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm h-11 w-11 text-center inline-flex items-center justify-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                type="button"
+              >
+                <i class="ri-edit-box-line text-xl font-light"></i>
+              </button>
 
-            <!-- Servers list open dropdown button -->
-            <button
-              id="servers-list-dropdown"
-              data-dropdown-toggle="servers-list"
-              class="ml-2 text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-              type="button"
-            >
-              <div></div>
-            </button>
+              <!-- Servers list open dropdown button -->
+              <button
+                id="servers-list-dropdown"
+                data-dropdown-toggle="servers-list"
+                class="ml-2 text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                type="button"
+              >
+                <div></div>
+              </button>
 
-            <!-- Servers list dropdown -->
-            <div
-              id="servers-list"
-              class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-60 dark:bg-gray-700 dark:divide-gray-600"
-            >
-              <ul
-                class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200"
-                aria-labelledby="servers-list-dropdown"
-              ></ul>
+              <!-- Servers list dropdown -->
+              <div
+                id="servers-list"
+                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-60 dark:bg-gray-700 dark:divide-gray-600"
+              >
+                <ul
+                  class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200"
+                  aria-labelledby="servers-list-dropdown"
+                ></ul>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </header>
-    <div
-      class="flex w-full h-full items-center justify-center"
-      style="overflow: hidden"
-    >
-      <main id="content-place" style="width: 70%; height: 90%"></main>
-    </div>
-  </div>
-
-  <!-- Background image overlap -->
-  <div id="blurry-bg-img" class="bg-gray-100 dark:bg-gray-900"></div>
-  <!-- Loading progress bar on top -->
-  <div class="w-full h-1" id="topbar">
-    <div
-      class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 h-1"
-      style="width: 0"
-    ></div>
-  </div>
-</body>
-
-<!-- K SETTINGS MODALS -->
-<!-- ADMIN EDIT MODAL -->
-<div class="modal-black-bg" id="admin-edit-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
-      {{edit-adm-acc-ks}}
-    </h1>
-
-    <input
-      type="text"
-      placeholder="{{oldpass-ks}}"
-      class="opassword-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-    <input
-      type="text"
-      placeholder="{{newpass-ks}}"
-      class="npassword-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-
-    <div class="flex items-center justify-center mt-3">
-      <button
-        type="button"
-        class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        onclick="$('#admin-edit-modal').hide()"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-      >
-        {{cancel}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- TOASTS LIST -->
-<div id="toasts-list" class="flex flex-col"></div>
-
-<!-- NEW ACCOUNT MODAL -->
-<div class="modal-black-bg" id="user-edit-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <h1
-      class="text-black dark:text-white text-2xl font-semibold mb-1"
-      id="user-edit-modal-label"
-    ></h1>
-
-    <input
-      type="text"
-      placeholder="{{user}}"
-      style="margin-bottom: -8px"
-      class="usrname-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-    <input
-      type="text"
-      placeholder="E-mail"
-      style="margin-bottom: -8px"
-      class="mail-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-    <input
-      type="text"
-      placeholder="{{password}}"
-      style="margin-bottom: -8px"
-      class="password-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-    <p class="passwd-err text-red-500">{{passwd-err-ks}}</p>
-    <label
-      class="relative inline-flex items-center"
-      style="margin-bottom: -8px"
-    >
-      <input
-        type="checkbox"
-        id="serverControlCheckedDisabled"
-        checked
-        disabled
-        class="sr-only peer"
-      />
+      </header>
       <div
-        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-      ></div>
-      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >{{server-control-ks}}</span
+        class="flex w-full h-full items-center justify-center"
+        style="overflow: hidden"
       >
-    </label>
-
-    <label
-      class="relative inline-flex items-center cursor-pointer"
-      style="margin-bottom: -8px"
-    >
-      <input
-        type="checkbox"
-        id="consolePermCheckedDisabled"
-        data-perm="console"
-        class="sr-only peer"
-      />
-      <div
-        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-      ></div>
-      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >{{console-acc-ks}}</span
-      >
-    </label>
-
-    <span class="text-black dark:text-white mt-1">{{sect-acc-ks}}</span>
-
-    <label
-      class="relative inline-flex items-center cursor-pointer"
-      style="margin-bottom: -8px"
-    >
-      <input
-        type="checkbox"
-        id="pluginsPermCheckedDisabled"
-        data-perm="plugins"
-        class="sr-only peer"
-      />
-      <div
-        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-      ></div>
-      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >{{plugins-and-mods}}</span
-      >
-    </label>
-
-    <label
-      class="relative inline-flex items-center cursor-pointer"
-      style="margin-bottom: -8px"
-    >
-      <input
-        type="checkbox"
-        id="filemanPermCheckedDisabled"
-        data-perm="filemanager"
-        class="sr-only peer"
-      />
-      <div
-        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-      ></div>
-      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >{{file-manager}}</span
-      >
-    </label>
-
-    <label
-      class="relative inline-flex items-center cursor-pointer"
-      style="margin-bottom: -8px"
-    >
-      <input
-        type="checkbox"
-        id="serversettPermCheckedDisabled"
-        data-perm="server_settings"
-        class="sr-only peer"
-      />
-      <div
-        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-      ></div>
-      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >{{server-settings}}</span
-      >
-    </label>
-
-    <label
-      class="relative inline-flex items-center cursor-pointer"
-      style="margin-bottom: -8px"
-    >
-      <input
-        type="checkbox"
-        id="backupsPermCheckedDisabled"
-        data-perm="backups"
-        class="sr-only peer"
-      />
-      <div
-        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-      ></div>
-      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >{{backups-capt}}</span
-      >
-    </label>
-
-    <label class="relative inline-flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        id="kubeksettPermCheckedDisabled"
-        data-perm="backups"
-        class="sr-only peer"
-      />
-      <div
-        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-      ></div>
-      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >{{kubek-settings}}</span
-      >
-    </label>
-
-    <div class="flex items-center justify-center mt-2 buttons-cont">
-      <button
-        type="button"
-        id="logoutAccButton"
-        onclick="regenCurrUserHash()"
-        class="ml-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none"
-      >
-        {{logout-all-ks}}
-      </button>
-      <button
-        type="button"
-        onclick="deleteCurrUserAccount()"
-        class="focus:outline-none text-white bg-yellow-700 hover:bg-yellow-800 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-900"
-      >
-        {{del-acc-ks}}
-      </button>
-    </div>
-
-    <div class="flex items-center justify-center">
-      <button
-        type="button"
-        class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        onclick="$('#user-edit-modal').hide()"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-      >
-        {{cancel}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- About OTP -->
-<div class="modal-black-bg" id="about-otp-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-keyboard-line text-white text-2xl"></i>
+        <main id="content-place" style="width: 70%; height: 90%"></main>
       </div>
     </div>
-    <div class="modal-contentt">
-      <p class="caption text-black dark:text-white">{{tgbot-otp-capt-ks}}</p>
-      <p class="text-black dark:text-white">{{tgbot-otp-desc-ks}}</p>
 
-      <button
-        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Kubek turn off alert -->
-<div class="modal-black-bg" id="turnoff-warn-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
+    <!-- Background image overlap -->
+    <div id="blurry-bg-img" class="bg-gray-100 dark:bg-gray-900"></div>
+    <!-- Loading progress bar on top -->
+    <div class="w-full h-1" id="topbar">
       <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-shut-down-line text-white text-2xl"></i>
-      </div>
+        class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 h-1"
+        style="width: 0"
+      ></div>
     </div>
-    <div class="modal-contentt">
-      <p class="caption text-black dark:text-white">{{shutdown-kubek-ks}}</p>
-      <p class="text-black dark:text-white">{{turnoff-warn-ks}}</p>
+  </body>
 
-      <div class="flex flex-row items-center w-100 justify-center mt-3">
+  <!-- K SETTINGS MODALS -->
+  <!-- ADMIN EDIT MODAL -->
+  <div class="modal-black-bg" id="admin-edit-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
+        {{edit-adm-acc-ks}}
+      </h1>
+
+      <input
+        type="text"
+        placeholder="{{oldpass-ks}}"
+        class="opassword-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+      <input
+        type="text"
+        placeholder="{{newpass-ks}}"
+        class="npassword-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+
+      <div class="flex items-center justify-center mt-3">
         <button
           type="button"
-          class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
+          class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
         >
-          {{shutdown-kubek-ks}}
+          {{save}}
         </button>
         <button
           type="button"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none ms-3"
-          onclick="hideModal('turnoff-warn-modal')"
+          onclick="$('#admin-edit-modal').hide()"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
         >
           {{cancel}}
         </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Other IP alert -->
-<div class="modal-black-bg" id="othip-need-res-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
+  <!-- TOASTS LIST -->
+  <div id="toasts-list" class="flex flex-col"></div>
+
+  <!-- NEW ACCOUNT MODAL -->
+  <div class="modal-black-bg" id="user-edit-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <h1
+        class="text-black dark:text-white text-2xl font-semibold mb-1"
+        id="user-edit-modal-label"
+      ></h1>
+
+      <input
+        type="text"
+        placeholder="{{user}}"
+        style="margin-bottom: -8px"
+        class="usrname-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+      <input
+        type="text"
+        placeholder="E-mail"
+        style="margin-bottom: -8px"
+        class="mail-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+      <input
+        type="text"
+        placeholder="{{password}}"
+        style="margin-bottom: -8px"
+        class="password-input bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+      <p class="passwd-err text-red-500">{{passwd-err-ks}}</p>
+      <label
+        class="relative inline-flex items-center"
+        style="margin-bottom: -8px"
       >
-        <i class="ri-cloud-line text-white text-2xl"></i>
+        <input
+          type="checkbox"
+          id="serverControlCheckedDisabled"
+          checked
+          disabled
+          class="sr-only peer"
+        />
+        <div
+          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+        ></div>
+        <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >{{server-control-ks}}</span
+        >
+      </label>
+
+      <label
+        class="relative inline-flex items-center cursor-pointer"
+        style="margin-bottom: -8px"
+      >
+        <input
+          type="checkbox"
+          id="consolePermCheckedDisabled"
+          data-perm="console"
+          class="sr-only peer"
+        />
+        <div
+          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+        ></div>
+        <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >{{console-acc-ks}}</span
+        >
+      </label>
+
+      <span class="text-black dark:text-white mt-1">{{sect-acc-ks}}</span>
+
+      <label
+        class="relative inline-flex items-center cursor-pointer"
+        style="margin-bottom: -8px"
+      >
+        <input
+          type="checkbox"
+          id="pluginsPermCheckedDisabled"
+          data-perm="plugins"
+          class="sr-only peer"
+        />
+        <div
+          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+        ></div>
+        <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >{{plugins-and-mods}}</span
+        >
+      </label>
+
+      <label
+        class="relative inline-flex items-center cursor-pointer"
+        style="margin-bottom: -8px"
+      >
+        <input
+          type="checkbox"
+          id="filemanPermCheckedDisabled"
+          data-perm="filemanager"
+          class="sr-only peer"
+        />
+        <div
+          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+        ></div>
+        <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >{{file-manager}}</span
+        >
+      </label>
+
+      <label
+        class="relative inline-flex items-center cursor-pointer"
+        style="margin-bottom: -8px"
+      >
+        <input
+          type="checkbox"
+          id="serversettPermCheckedDisabled"
+          data-perm="server_settings"
+          class="sr-only peer"
+        />
+        <div
+          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+        ></div>
+        <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >{{server-settings}}</span
+        >
+      </label>
+
+      <label
+        class="relative inline-flex items-center cursor-pointer"
+        style="margin-bottom: -8px"
+      >
+        <input
+          type="checkbox"
+          id="backupsPermCheckedDisabled"
+          data-perm="backups"
+          class="sr-only peer"
+        />
+        <div
+          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+        ></div>
+        <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >{{backups-capt}}</span
+        >
+      </label>
+
+      <label class="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          id="kubeksettPermCheckedDisabled"
+          data-perm="backups"
+          class="sr-only peer"
+        />
+        <div
+          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+        ></div>
+        <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >{{kubek-settings}}</span
+        >
+      </label>
+
+      <div class="flex items-center justify-center mt-2 buttons-cont">
+        <button
+          type="button"
+          id="logoutAccButton"
+          onclick="regenCurrUserHash()"
+          class="ml-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none"
+        >
+          {{logout-all-ks}}
+        </button>
+        <button
+          type="button"
+          onclick="deleteCurrUserAccount()"
+          class="focus:outline-none text-white bg-yellow-700 hover:bg-yellow-800 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-900"
+        >
+          {{del-acc-ks}}
+        </button>
+      </div>
+
+      <div class="flex items-center justify-center">
+        <button
+          type="button"
+          class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+        >
+          {{save}}
+        </button>
+        <button
+          type="button"
+          onclick="$('#user-edit-modal').hide()"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+        >
+          {{cancel}}
+        </button>
       </div>
     </div>
-    <div class="modal-contentt">
-      <p class="caption text-black dark:text-white">{{allowintacc-ks}}</p>
-      <p class="text-black dark:text-white">{{fullres-othip-need-ks}}</p>
-
-      <button
-        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
-    </div>
   </div>
-</div>
 
-<!-- Other port alert -->
-<div class="modal-black-bg" id="othport-need-res-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-cloud-line text-white text-2xl"></i>
+  <!-- About OTP -->
+  <div class="modal-black-bg" id="about-otp-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-keyboard-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-black dark:text-white">{{tgbot-otp-capt-ks}}</p>
+        <p class="text-black dark:text-white">{{tgbot-otp-desc-ks}}</p>
+
+        <button
+          class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
       </div>
     </div>
-    <div class="modal-contentt">
-      <p class="caption text-black dark:text-white">{{allowintacc-ks}}</p>
-      <p class="text-black dark:text-white">{{fullres-othport-need-ks}}</p>
-
-      <button
-        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
-    </div>
   </div>
-</div>
 
-<!-- FTP restart alert -->
-<div class="modal-black-bg" id="ftp-need-res-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-shut-down-line text-white text-2xl"></i>
+  <!-- Kubek turn off alert -->
+  <div class="modal-black-bg" id="turnoff-warn-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-shut-down-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-black dark:text-white">{{shutdown-kubek-ks}}</p>
+        <p class="text-black dark:text-white">{{turnoff-warn-ks}}</p>
+
+        <div class="flex flex-row items-center w-100 justify-center mt-3">
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
+          >
+            {{shutdown-kubek-ks}}
+          </button>
+          <button
+            type="button"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none ms-3"
+            onclick="hideModal('turnoff-warn-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
       </div>
     </div>
-    <div class="modal-contentt">
-      <p class="caption text-black dark:text-white">{{ftpserver-ks}}</p>
-      <p class="text-black dark:text-white">{{fullres-need-ks}}</p>
+  </div>
 
-      <button
-        class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
+  <!-- Other IP alert -->
+  <div class="modal-black-bg" id="othip-need-res-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-cloud-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-black dark:text-white">{{allowintacc-ks}}</p>
+        <p class="text-black dark:text-white">{{fullres-othip-need-ks}}</p>
+
+        <button
+          class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- MODALS SECTION -->
-<!-- Edit server modal -->
-<div class="modal-black-bg" id="edit-server-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-contentt">
-      <div class="flex flex-col">
-        <div class="flex flex-row items-center justify-center mb-4">
-          <div class="icon-changer">
-            <img height="48px" onclick="changeServerIcon()" />
+  <!-- Other port alert -->
+  <div class="modal-black-bg" id="othport-need-res-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-cloud-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-black dark:text-white">{{allowintacc-ks}}</p>
+        <p class="text-black dark:text-white">{{fullres-othport-need-ks}}</p>
+
+        <button
+          class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FTP restart alert -->
+  <div class="modal-black-bg" id="ftp-need-res-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-shut-down-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-black dark:text-white">{{ftpserver-ks}}</p>
+        <p class="text-black dark:text-white">{{fullres-need-ks}}</p>
+
+        <button
+          class="mt-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS SECTION -->
+  <!-- Edit server modal -->
+  <div class="modal-black-bg" id="edit-server-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-contentt">
+        <div class="flex flex-col">
+          <div class="flex flex-row items-center justify-center mb-4">
+            <div class="icon-changer">
+              <img height="48px" onclick="changeServerIcon()" />
+            </div>
+            <div class="text-black dark:text-white">
+              {{use-64-for-better-look-ss}}
+            </div>
           </div>
-          <div class="text-black dark:text-white">
-            {{use-64-for-better-look-ss}}
-          </div>
+
+          <input
+            type="text"
+            id="serverNameModalEdit"
+            placeholder="{{selected-sn-sw}}"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          />
+          <p
+            class="mt-2 mb-0 text-gray-800 dark:text-gray-300"
+            style="font-size: 10pt"
+          >
+            * {{change-only-sp}}
+          </p>
         </div>
 
-        <input
-          type="text"
-          id="serverNameModalEdit"
-          placeholder="{{selected-sn-sw}}"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        />
-        <p
-          class="mt-2 mb-0 text-gray-800 dark:text-gray-300"
-          style="font-size: 10pt"
+        <div class="flex flex-row items-center w-100 justify-center mt-3">
+          <button
+            type="button"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+            onclick="saveServerEdits()"
+          >
+            {{save}}
+          </button>
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+            onclick="hideModal('edit-server-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restart server alert -->
+  <div class="modal-black-bg" id="restart-server-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-yellow-500"
+          style="width: 64px; height: 64px; border-radius: 50%"
         >
-          * {{change-only-sp}}
+          <i class="ri-restart-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="text-center text-black dark:text-white">
+          {{really-restart-srv}}
         </p>
+
+        <div class="flex items-center w-full justify-center mt-3">
+          <button
+            type="button"
+            class="text-white bg-yellow-600 hover:bg-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-yellow-500 dark:hover:bg-yellow-600 focus:outline-none clsbtn"
+          >
+            {{sc-restart}}
+          </button>
+          <button
+            type="button"
+            class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
+            onclick="hideModal('restart-server-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stop server alert -->
+  <div class="modal-black-bg" id="stop-server-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-shut-down-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="text-center text-black dark:text-white">
+          {{really-stop-srv}}
+        </p>
+
+        <div class="flex items-center w-full justify-center mt-3">
+          <button
+            type="button"
+            class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+          >
+            {{sc-stop}}
+          </button>
+          <button
+            type="button"
+            class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
+            onclick="hideModal('stop-server-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Force stop server alert -->
+  <div class="modal-black-bg" id="kill-server-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-red-500"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-error-warning-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="text-center text-black dark:text-white">
+          {{really-kill-srv}}
+        </p>
+
+        <div class="flex items-center w-full justify-center mt-3">
+          <button
+            type="button"
+            class="text-white bg-red-600 hover:bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none clsbtn"
+          >
+            {{sc-kill}}
+          </button>
+          <button
+            type="button"
+            class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
+            onclick="hideModal('kill-server-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" style="display: none"></div>
+
+  <!-- New server wizard -->
+  <div
+    id="new-server-wizard-drawer"
+    class="fixed top-0 left-0 z-40 w-full h-screen max-w-2xl p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
+    tabindex="-1"
+    aria-labelledby="drawer-label"
+    aria-hidden="true"
+  >
+    <h5
+      id="drawer-label"
+      class="inline-flex items-center mb-6 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400"
+    >
+      {{first-server-welcome}}
+    </h5>
+    <button
+      type="button"
+      data-drawer-dismiss="new-server-wizard-drawer"
+      aria-controls="new-server-wizard-drawer"
+      onclick="$('.drawer-backdrop').hide()"
+      class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="sr-only">Close menu</span>
+    </button>
+    <!-- Progress card layout -->
+    <div
+      class="hidden flex flex-col items-center justify-center"
+      id="progress-card"
+      style="height: 80%"
+    ></div>
+    <!-- Main form layout -->
+    <div class="main-form">
+      <div class="space-y-4">
+        <!-- Game type -->
+        <div>
+          <p
+            class="block mb-3 text-sm font-semibold text-black dark:text-white"
+          >
+            {{gametype-sw}}
+          </p>
+
+          <select
+            id="game-type"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <option value="java" selected>Minecraft: Java Edition (PC)</option>
+            <option value="bedrock">Minecraft: Bedrock Edition (PE)</option>
+          </select>
+        </div>
+        <!-- Server name -->
+        <div>
+          <p
+            class="block mb-3 text-sm font-semibold text-black dark:text-white"
+          >
+            {{ns-name-sw}}
+          </p>
+          <input
+            type="text"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            id="server-name-input"
+            placeholder="{{enter-new-sn-sw}}"
+          />
+        </div>
+        <!-- Select game version (Bedrock Only) -->
+        <div class="bedrock-edition-only">
+          <p
+            class="block mb-3 text-sm font-semibold text-black dark:text-white"
+          >
+            {{server-version-sw}}
+          </p>
+
+          <input
+            type="text"
+            id="be-game-version"
+            placeholder="{{bedrock-ent-version-sw}}"
+            class="bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white"
+          />
+        </div>
+        <!-- Core properties -->
+        <div class="java-edition-only">
+          <p
+            class="block mb-3 text-sm font-semibold text-black dark:text-white"
+          >
+            {{select-core-sw}}
+          </p>
+
+          <select
+            id="core-brands"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <option selected disabled>{{select-core-sw}}</option>
+            <option value="paper">Paper</option>
+            <option value="spigot">Spigot</option>
+            <option value="own">{{upload}}</option>
+          </select>
+
+          <select
+            id="core-versions"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mt-3"
+          ></select>
+
+          <form id="g-core-form" enctype="multipart/form-data">
+            <input
+              class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 mt-3 hidden"
+              id="g-core-input"
+              name="g-core-input"
+              type="file"
+              accept=".jar"
+            />
+          </form>
+        </div>
+        <!-- Step 2 -->
+        <div class="java-edition-only">
+          <p
+            class="inline-flex items-center mb-2 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400"
+          >
+            {{finalize-new-sn-sw}}
+          </p>
+          <div
+            class="block mb-3 text-sm font-light text-black dark:text-white"
+            id="srv-ver-detected"
+          ></div>
+        </div>
+        <!-- Java version select -->
+        <div class="java-edition-only">
+          <p
+            class="block mb-3 text-sm font-semibold text-black dark:text-white"
+          >
+            Java
+          </p>
+          <select
+            id="java-vers"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          ></select>
+        </div>
+        <!-- Startup command -->
+        <div class="java-edition-only">
+          <textarea
+            id="fsc"
+            rows="8"
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          ></textarea>
+        </div>
+        <p
+          class="req-java java-edition-only"
+          style="color: rgb(130, 130, 130); font-size: 11pt"
+        ></p>
+        <!-- Checkboxes and inputs -->
+        <div class="java-edition-only">
+          <div class="flex items-center">
+            <input
+              checked
+              id="javaOptiflagsCheckbox"
+              type="checkbox"
+              value=""
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <label
+              for="javaOptiflagsCheckbox"
+              class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+              >{{add-opti-java-flags-sw}}</label
+            >
+          </div>
+          <div class="flex items-center mt-2">
+            <input
+              checked
+              id="onlinemodeCheckbox"
+              type="checkbox"
+              value=""
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <label
+              for="onlinemodeCheckbox"
+              class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+              >{{onlinemode-sw}}</label
+            >
+          </div>
+        </div>
+        <div class="java-edition-only">
+          <p
+            class="block mb-3 text-sm font-semibold text-black dark:text-white"
+          >
+            {{memory}} (-Xmx)
+          </p>
+          <input
+            type="number"
+            min="0.5"
+            max="4"
+            step="0.5"
+            id="xmx"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            placeholder="{{memory}} (-Xmx)"
+          />
+        </div>
+        <div class="java-edition-only">
+          <p
+            class="block mb-3 text-sm font-semibold text-black dark:text-white"
+          >
+            {{server-port}}
+          </p>
+          <input
+            type="number"
+            value="25565"
+            min="20000"
+            max="65000"
+            step="1"
+            id="serverport"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            placeholder="{{server-port}}"
+          />
+        </div>
+        <!-- Buttons -->
+        <div class="bottom-0 left-0 flex justify-center w-full pb-4 mt-4">
+          <button
+            type="button"
+            onclick="ServerWizardFrontback.initCreation()"
+            class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none w-full create-btn hidden"
+          >
+            {{create}}
+          </button>
+          <button
+            type="button"
+            disabled
+            class="text-white bg-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 outline-none w-full disabled-btn cursor-not-allowed"
+          >
+            {{create}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Need to save auth modal -->
+  <div
+    class="modal-black-bg"
+    id="needtosave-auth-warn-modal"
+    style="display: none"
+  >
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-save-2-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <div class="inner-content text-black dark:text-white my-2 text-center">
+          {{need-to-save-ks}}
+        </div>
+
+        <button
+          class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup info modal -->
+  <div class="modal-black-bg" id="backup-info-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-cloudy-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p
+          class="caption text-2xl font-semibold text-black dark:text-white my-2"
+        ></p>
+        <div class="inner-content text-black dark:text-white my-2"></div>
+
+        <button
+          class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
+        >
+          {{ok}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New backup modal -->
+  <div class="modal-black-bg" id="new-backup-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
+        {{backups-crb-btn}}
+      </h1>
+
+      <input
+        type="text"
+        placeholder="{{backups-backupname}}"
+        style="margin-bottom: -8px"
+        id="bcname-input"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+      <input
+        type="text"
+        placeholder="{{backups-backupdesc}}"
+        style="margin-bottom: -8px"
+        id="bcdesc-input"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+      />
+
+      <label
+        for="steps-range"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >{{backups-compress}}</label
+      >
+      <input
+        type="range"
+        min="0"
+        max="9"
+        id="backupCompressRatio"
+        class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700"
+      />
+      <div class="flex flex-row mb-3" style="margin-top: -12px">
+        <span class="grow text-gray-900 dark:text-white">0</span>
+        <span class="text-gray-900 dark:text-white">9</span>
       </div>
 
-      <div class="flex flex-row items-center w-100 justify-center mt-3">
+      <span class="text-gray-900 dark:text-white" style="margin-top: -18px"
+        >{{backups-seltype-capt}}</span
+      >
+
+      <div class="flex items-center" style="margin-top: -16px">
+        <input
+          checked
+          id="backupTypeRadio1"
+          type="radio"
+          value="full"
+          name="backupTypeRadio"
+          class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        />
+        <label
+          for="backupTypeRadio1"
+          class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
+          >{{backups-types-full}}</label
+        >
+      </div>
+      <div class="flex items-center" style="margin-top: -16px">
+        <input
+          id="backupTypeRadio2"
+          type="radio"
+          value="selected"
+          name="backupTypeRadio"
+          class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        />
+        <label
+          for="backupTypeRadio2"
+          class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
+          >{{backups-types-selfiles}}</label
+        >
+      </div>
+
+      <div
+        style="
+          height: max-content;
+          max-height: 300px;
+          overflow-y: auto;
+          display: none;
+        "
+        class="flt-parent px-2"
+      >
+        <table class="table" id="fl-table">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 32px"></th>
+              <th scope="col" style="width: 32px"></th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-center">
+        <button
+          type="button"
+          class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+        >
+          {{save}}
+        </button>
+        <button
+          type="button"
+          onclick="$('#new-backup-modal').hide()"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+        >
+          {{cancel}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="modal-black-bg"
+    id="ask-restore-backup-modal"
+    style="display: none"
+  >
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-red-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-cloudy-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <div class="inner-content text-black dark:text-white my-2">
+          {{backup-candestroy}}
+        </div>
+
+        <div class="flex items-center justify-center">
+          <button
+            type="button"
+            class="clsbtn ml-2 text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none"
+          >
+            {{ok}}
+          </button>
+          <button
+            type="button"
+            onclick="$('#ask-restore-backup-modal').hide()"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILE MANAGER MODALS -->
+  <div class="modal-black-bg" id="delete-fm-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-red-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-delete-bin-6-fill text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-center text-black dark:text-white mb-3"></p>
+
+        <div class="flex flex-row items-center w-100 justify-center">
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
+          >
+            {{delete}}
+          </button>
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+            onclick="hideModal('delete-fm-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-black-bg" id="rename-fm-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-edit-2-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-center text-black dark:text-white mb-3"></p>
+        <input
+          type="text"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
+        />
+
+        <div class="flex flex-row items-center w-100 justify-center">
+          <button
+            type="button"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+          >
+            {{rename}}
+          </button>
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+            onclick="hideModal('rename-fm-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-black-bg" id="newdir-fm-modal" style="display: none">
+    <div class="modal-layout bg-gray-100 dark:bg-gray-900">
+      <div class="modal-icon">
+        <div
+          class="flex items-center justify-center bg-blue-600"
+          style="width: 64px; height: 64px; border-radius: 50%"
+        >
+          <i class="ri-folder-add-line text-white text-2xl"></i>
+        </div>
+      </div>
+      <div class="modal-contentt">
+        <p class="caption text-center text-black dark:text-white mb-3">
+          {{new-directory-fm}}
+        </p>
+        <input
+          type="text"
+          placeholder="{{new-directory-fm}}"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
+        />
+
+        <div class="flex flex-row items-center w-100 justify-center">
+          <button
+            type="button"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
+          >
+            {{create}}
+          </button>
+          <button
+            type="button"
+            class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+            onclick="hideModal('newdir-fm-modal')"
+          >
+            {{cancel}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILE MANAGER FILES EDIT MODAL -->
+  <div class="modal-black-bg" id="newfile-fm-modal" style="display: none">
+    <div
+      class="modal-layout bg-gray-100 dark:bg-gray-900"
+      style="width: 55%; height: max-content"
+    >
+      <div class="header flex flex-row items-center">
+        <input
+          class="w-full bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white"
+          id="nfeModalEdit"
+          autocomplete="off"
+          placeholder="{{newfile-name-fm}}"
+        />
+      </div>
+      <div class="contentt p-3" style="overflow: hidden">
+        <textarea
+          id="newFileEditArea"
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+          spellcheck="false"
+          rows="18"
+          style="overflow-y: auto"
+        ></textarea>
+      </div>
+
+      <div class="flex flex-row items-center w-100 justify-center">
         <button
           type="button"
           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-          onclick="saveServerEdits()"
         >
           {{save}}
         </button>
         <button
           type="button"
           class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-          onclick="hideModal('edit-server-modal')"
+          onclick="hideModal('newfile-fm-modal')"
         >
           {{cancel}}
         </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Restart server alert -->
-<div class="modal-black-bg" id="restart-server-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-yellow-500"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-restart-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="text-center text-black dark:text-white">
-        {{really-restart-srv}}
-      </p>
-
-      <div class="flex items-center w-full justify-center mt-3">
-        <button
-          type="button"
-          class="text-white bg-yellow-600 hover:bg-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-yellow-500 dark:hover:bg-yellow-600 focus:outline-none clsbtn"
-        >
-          {{sc-restart}}
-        </button>
-        <button
-          type="button"
-          class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
-          onclick="hideModal('restart-server-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Stop server alert -->
-<div class="modal-black-bg" id="stop-server-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-shut-down-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="text-center text-black dark:text-white">{{really-stop-srv}}</p>
-
-      <div class="flex items-center w-full justify-center mt-3">
-        <button
-          type="button"
-          class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-        >
-          {{sc-stop}}
-        </button>
-        <button
-          type="button"
-          class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
-          onclick="hideModal('stop-server-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Force stop server alert -->
-<div class="modal-black-bg" id="kill-server-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-red-500"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-error-warning-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="text-center text-black dark:text-white">{{really-kill-srv}}</p>
-
-      <div class="flex items-center w-full justify-center mt-3">
-        <button
-          type="button"
-          class="text-white bg-red-600 hover:bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none clsbtn"
-        >
-          {{sc-kill}}
-        </button>
-        <button
-          type="button"
-          class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 ml-3"
-          onclick="hideModal('kill-server-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="drawer-backdrop" style="display: none"></div>
-
-<!-- New server wizard -->
-<div
-  id="new-server-wizard-drawer"
-  class="fixed top-0 left-0 z-40 w-full h-screen max-w-2xl p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
-  tabindex="-1"
-  aria-labelledby="drawer-label"
-  aria-hidden="true"
->
-  <h5
-    id="drawer-label"
-    class="inline-flex items-center mb-6 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400"
-  >
-    {{first-server-welcome}}
-  </h5>
-  <button
-    type="button"
-    data-drawer-dismiss="new-server-wizard-drawer"
-    aria-controls="new-server-wizard-drawer"
-    onclick="$('.drawer-backdrop').hide()"
-    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-  >
-    <svg
-      aria-hidden="true"
-      class="w-5 h-5"
-      fill="currentColor"
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
+  <div class="modal-black-bg" id="editfile-fm-modal" style="display: none">
+    <div
+      class="modal-layout bg-gray-100 dark:bg-gray-900"
+      style="width: 55%; height: max-content"
     >
-      <path
-        fill-rule="evenodd"
-        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-        clip-rule="evenodd"
-      ></path>
-    </svg>
-    <span class="sr-only">Close menu</span>
-  </button>
-  <!-- Progress card layout -->
-  <div
-    class="hidden flex flex-col items-center justify-center"
-    id="progress-card"
-    style="height: 80%"
-  ></div>
-  <!-- Main form layout -->
-  <div class="main-form">
-    <div class="space-y-4">
-      <!-- Game type -->
-      <div>
-        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
-          {{gametype-sw}}
-        </p>
-
-        <select
-          id="game-type"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        >
-          <option value="java" selected>Minecraft: Java Edition (PC)</option>
-          <option value="bedrock">Minecraft: Bedrock Edition (PE)</option>
-        </select>
+      <div class="header flex flex-row items-center">
+        <span
+          class="text-black dark:text-white text-2xl"
+          id="feModalLabel"
+        ></span>
       </div>
-      <!-- Server name -->
-      <div>
-        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
-          {{ns-name-sw}}
-        </p>
-        <input
-          type="text"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-          id="server-name-input"
-          placeholder="{{enter-new-sn-sw}}"
-        />
-      </div>
-      <!-- Select game version (Bedrock Only) -->
-      <div class="bedrock-edition-only">
-        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
-          {{server-version-sw}}
-        </p>
-
-        <input
-          type="text"
-          id="be-game-version"
-          placeholder="{{bedrock-ent-version-sw}}"
-          class="bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white"
-        />
-      </div>
-      <!-- Core properties -->
-      <div class="java-edition-only">
-        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
-          {{select-core-sw}}
-        </p>
-
-        <select
-          id="core-brands"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        >
-          <option selected disabled>{{select-core-sw}}</option>
-          <option value="paper">Paper</option>
-          <option value="spigot">Spigot</option>
-          <option value="own">{{upload}}</option>
-        </select>
-
-        <select
-          id="core-versions"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mt-3"
-        ></select>
-
-        <form id="g-core-form" enctype="multipart/form-data">
-          <input
-            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 mt-3 hidden"
-            id="g-core-input"
-            name="g-core-input"
-            type="file"
-            accept=".jar"
-          />
-        </form>
-      </div>
-      <!-- Step 2 -->
-      <div class="java-edition-only">
-        <p
-          class="inline-flex items-center mb-2 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400"
-        >
-          {{finalize-new-sn-sw}}
-        </p>
-        <div
-          class="block mb-3 text-sm font-light text-black dark:text-white"
-          id="srv-ver-detected"
-        ></div>
-      </div>
-      <!-- Java version select -->
-      <div class="java-edition-only">
-        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
-          Java
-        </p>
-        <select
-          id="java-vers"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        ></select>
-      </div>
-      <!-- Startup command -->
-      <div class="java-edition-only">
+      <div class="contentt p-3" style="overflow: hidden">
         <textarea
-          id="fsc"
-          rows="8"
-          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          id="fileEditArea"
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+          spellcheck="false"
+          rows="18"
+          style="overflow-y: auto"
         ></textarea>
       </div>
-      <p
-        class="req-java java-edition-only"
-        style="color: rgb(130, 130, 130); font-size: 11pt"
-      ></p>
-      <!-- Checkboxes and inputs -->
-      <div class="java-edition-only">
-        <div class="flex items-center">
-          <input
-            checked
-            id="javaOptiflagsCheckbox"
-            type="checkbox"
-            value=""
-            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-          />
-          <label
-            for="javaOptiflagsCheckbox"
-            class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >{{add-opti-java-flags-sw}}</label
-          >
-        </div>
-        <div class="flex items-center mt-2">
-          <input
-            checked
-            id="onlinemodeCheckbox"
-            type="checkbox"
-            value=""
-            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-          />
-          <label
-            for="onlinemodeCheckbox"
-            class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >{{onlinemode-sw}}</label
-          >
-        </div>
-      </div>
-      <div class="java-edition-only">
-        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
-          {{memory}} (-Xmx)
-        </p>
-        <input
-          type="number"
-          min="0.5"
-          max="4"
-          step="0.5"
-          id="xmx"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-          placeholder="{{memory}} (-Xmx)"
-        />
-      </div>
-      <div class="java-edition-only">
-        <p class="block mb-3 text-sm font-semibold text-black dark:text-white">
-          {{server-port}}
-        </p>
-        <input
-          type="number"
-          value="25565"
-          min="20000"
-          max="65000"
-          step="1"
-          id="serverport"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-          placeholder="{{server-port}}"
-        />
-      </div>
-      <!-- Buttons -->
-      <div
-        class="bottom-0 left-0 flex justify-center w-full pb-4 mt-4"
-      >
+
+      <div class="flex flex-row items-center w-100 justify-center">
         <button
           type="button"
-          onclick="ServerWizardFrontback.initCreation()"
-          class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none w-full create-btn hidden"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
         >
-          {{create}}
+          {{save}}
         </button>
         <button
           type="button"
-          disabled
-          class="text-white bg-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 outline-none w-full disabled-btn cursor-not-allowed"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('editfile-fm-modal')"
         >
-          {{create}}
+          {{cancel}}
         </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Need to save auth modal -->
-<div
-  class="modal-black-bg"
-  id="needtosave-auth-warn-modal"
-  style="display: none"
->
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-save-2-line text-white text-2xl"></i>
+  <div class="editModalBg" style="display: none" id="feModal">
+    <div class="sub-block console card border border-1 shadow-0">
+      <div class="header flex flex-row items-center">
+        <span class="grow" id="feModalLabel"></span>
       </div>
-    </div>
-    <div class="modal-contentt">
-      <div class="inner-content text-black dark:text-white my-2 text-center">
-        {{need-to-save-ks}}
+      <div class="contentt p-3" style="overflow: hidden">
+        <textarea
+          id="fileEditArea"
+          class="w-100 h-100"
+          spellcheck="false"
+          style="overflow-y: auto"
+        ></textarea>
       </div>
-
-      <button
-        class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
+      <div class="footer flex items-center justify-content-end">
+        <button
+          type="button"
+          class="btn btn-teritary"
+          onclick="$('#feModal').hide()"
+        >
+          {{cancel}}
+        </button>
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
+          onclick="saveFile(); $('#feModal').hide()"
+        >
+          {{save}}
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Backup info modal -->
-<div class="modal-black-bg" id="backup-info-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-cloudy-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p
-        class="caption text-2xl font-semibold text-black dark:text-white my-2"
-      ></p>
-      <div class="inner-content text-black dark:text-white my-2"></div>
-
-      <button
-        class="mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none btn-lg w-100 btn-rounded clsbtn"
-      >
-        {{ok}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- New backup modal -->
-<div class="modal-black-bg" id="new-backup-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <h1 class="text-black dark:text-white text-2xl font-semibold mb-1">
-      {{backups-crb-btn}}
-    </h1>
-
-    <input
-      type="text"
-      placeholder="{{backups-backupname}}"
-      style="margin-bottom: -8px"
-      id="bcname-input"
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-    <input
-      type="text"
-      placeholder="{{backups-backupdesc}}"
-      style="margin-bottom: -8px"
-      id="bcdesc-input"
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-    />
-
-    <label
-      for="steps-range"
-      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >{{backups-compress}}</label
+  <!-- TOASTS HISTORY DRAWER -->
+  <div
+    id="drawer-toasts-list"
+    class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
+    style="width: 25%; overflow: hidden"
+    tabindex="-1"
+    aria-labelledby="drawer-label"
+  >
+    <h5
+      id="drawer-label"
+      class="inline-flex items-center mb-4 text-black dark:text-white text-md font-semibold"
     >
-    <input
-      type="range"
-      min="0"
-      max="9"
-      id="backupCompressRatio"
-      class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700"
-    />
-    <div class="flex flex-row mb-3" style="margin-top: -12px">
-      <span class="grow text-gray-900 dark:text-white">0</span>
-      <span class="text-gray-900 dark:text-white">9</span>
-    </div>
-
-    <span class="text-gray-900 dark:text-white" style="margin-top: -18px"
-      >{{backups-seltype-capt}}</span
+      {{toasts-list-tooltip}}
+    </h5>
+    <button
+      type="button"
+      data-drawer-hide="drawer-toasts-list"
+      aria-controls="drawer-toasts-list"
+      class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
     >
-
-    <div class="flex items-center" style="margin-top: -16px">
-      <input
-        checked
-        id="backupTypeRadio1"
-        type="radio"
-        value="full"
-        name="backupTypeRadio"
-        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-      />
-      <label
-        for="backupTypeRadio1"
-        class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
-        >{{backups-types-full}}</label
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
       >
-    </div>
-    <div class="flex items-center" style="margin-top: -16px">
-      <input
-        id="backupTypeRadio2"
-        type="radio"
-        value="selected"
-        name="backupTypeRadio"
-        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-      />
-      <label
-        for="backupTypeRadio2"
-        class="ml-2 text-md font-medium text-gray-900 dark:text-gray-300"
-        >{{backups-types-selfiles}}</label
-      >
-    </div>
-
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="sr-only">Close menu</span>
+    </button>
     <div
-      style="
-        height: max-content;
-        max-height: 300px;
-        overflow-y: auto;
-        display: none;
-      "
-      class="flt-parent px-2"
-    >
-      <table class="table" id="fl-table">
-        <thead>
-          <tr>
-            <th scope="col" style="width: 32px"></th>
-            <th scope="col" style="width: 32px"></th>
-            <th scope="col"></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="flex items-center justify-center">
-      <button
-        type="button"
-        class="clsbtn ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        onclick="$('#new-backup-modal').hide()"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-      >
-        {{cancel}}
-      </button>
-    </div>
+      id="toasts-history-list"
+      class="flex flex-col mt-2 p-1 w-full"
+      style="overflow: auto"
+    ></div>
   </div>
-</div>
 
-<div class="modal-black-bg" id="ask-restore-backup-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-red-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-cloudy-line text-white text-2xl"></i>
+  <!-- Mobile nav drawer -->
+  <div
+    id="drawer-mobile-navigation"
+    class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800"
+    tabindex="-1"
+  >
+    <div class="flex">
+      <div class="p-1">
+        <img src="assets/icon.png" style="height: 32px" />
       </div>
+      <div class="p-1 ms-3 text-black dark:text-white text-3xl font-semibold">
+        Kubek
+      </div>
+      <span
+        class="kbk-ver text-gray-700 dark:text-gray-300 text-sm pb-3"
+      ></span>
     </div>
-    <div class="modal-contentt">
-      <div class="inner-content text-black dark:text-white my-2">
-        {{backup-candestroy}}
-      </div>
-
-      <div class="flex items-center justify-center">
+    <button
+      type="button"
+      data-drawer-hide="drawer-mobile-navigation"
+      aria-controls="drawer-mobile-navigation"
+      class="close-menu text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="sr-only">Close menu</span>
+    </button>
+    <div class="flex items-center mt-3">
+      <ul class="space-y-2 font-medium">
         <button
           type="button"
-          class="clsbtn ml-2 text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none"
+          data-page="console"
+          data-perm="console"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-terminal-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{console}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="file_manager"
+          data-perm="filemanager"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-folders-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{file-manager}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="mods"
+          data-perm="plugins"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-window-2-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{plugins-and-mods}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="backups"
+          data-perm="backups"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-hard-drive-3-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{backups-capt}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="server_settings"
+          data-perm="server_settings"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-settings-2-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{server-settings}}</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="speditor"
+          data-perm="server_settings"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-list-settings-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >server.properties</span
+          >
+        </button>
+        <button
+          type="button"
+          data-page="sysmon"
+          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        >
+          <i class="ri-bug-fill w-6 h-6 transition duration-75"></i>
+          <span class="flex-1 ml-3 text-left whitespace-nowrap"
+            >{{system-monitor}}</span
+          >
+        </button>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal-black-bg" id="plrepo-nodl-modal" style="display: none">
+    <div
+      class="modal-layout bg-gray-100 dark:bg-gray-900"
+      style="width: 35%; height: max-content"
+    >
+      <p class="text-white dark:text-black">{{nodl-pl-repo}}</p>
+      
+        <button
+          type="button"
+          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
+          onclick="hideModal('plrepo-nodl-modal')"
         >
           {{ok}}
         </button>
-        <button
-          type="button"
-          onclick="$('#ask-restore-backup-modal').hide()"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-        >
-          {{cancel}}
-        </button>
-      </div>
     </div>
   </div>
-</div>
-
-<!-- FILE MANAGER MODALS -->
-<div class="modal-black-bg" id="delete-fm-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-red-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-delete-bin-6-fill text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center text-black dark:text-white mb-3"></p>
-
-      <div class="flex flex-row items-center w-100 justify-center">
-        <button
-          type="button"
-          class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 clsbtn"
-        >
-          {{delete}}
-        </button>
-        <button
-          type="button"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-          onclick="hideModal('delete-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="rename-fm-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-edit-2-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center text-black dark:text-white mb-3"></p>
-      <input
-        type="text"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
-      />
-
-      <div class="flex flex-row items-center w-100 justify-center">
-        <button
-          type="button"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-        >
-          {{rename}}
-        </button>
-        <button
-          type="button"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-          onclick="hideModal('rename-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="newdir-fm-modal" style="display: none">
-  <div class="modal-layout bg-gray-100 dark:bg-gray-900">
-    <div class="modal-icon">
-      <div
-        class="flex items-center justify-center bg-blue-600"
-        style="width: 64px; height: 64px; border-radius: 50%"
-      >
-        <i class="ri-folder-add-line text-white text-2xl"></i>
-      </div>
-    </div>
-    <div class="modal-contentt">
-      <p class="caption text-center text-black dark:text-white mb-3">
-        {{new-directory-fm}}
-      </p>
-      <input
-        type="text"
-        placeholder="{{new-directory-fm}}"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500 mt-5 mb-5"
-      />
-
-      <div class="flex flex-row items-center w-100 justify-center">
-        <button
-          type="button"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-        >
-          {{create}}
-        </button>
-        <button
-          type="button"
-          class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-          onclick="hideModal('newdir-fm-modal')"
-        >
-          {{cancel}}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- FILE MANAGER FILES EDIT MODAL -->
-<div class="modal-black-bg" id="newfile-fm-modal" style="display: none">
-  <div
-    class="modal-layout bg-gray-100 dark:bg-gray-900"
-    style="width: 55%; height: max-content"
-  >
-    <div class="header flex flex-row items-center">
-      <input
-        class="w-full bg-gray-50 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white"
-        id="nfeModalEdit"
-        autocomplete="off"
-        placeholder="{{newfile-name-fm}}"
-      />
-    </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="newFileEditArea"
-        class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-        spellcheck="false"
-        rows="18"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-
-    <div class="flex flex-row items-center w-100 justify-center">
-      <button
-        type="button"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-        onclick="hideModal('newfile-fm-modal')"
-      >
-        {{cancel}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-black-bg" id="editfile-fm-modal" style="display: none">
-  <div
-    class="modal-layout bg-gray-100 dark:bg-gray-900"
-    style="width: 55%; height: max-content"
-  >
-    <div class="header flex flex-row items-center">
-      <span
-        class="text-black dark:text-white text-2xl"
-        id="feModalLabel"
-      ></span>
-    </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="fileEditArea"
-        class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-        spellcheck="false"
-        rows="18"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-
-    <div class="flex flex-row items-center w-100 justify-center">
-      <button
-        type="button"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none clsbtn"
-      >
-        {{save}}
-      </button>
-      <button
-        type="button"
-        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 ms-3"
-        onclick="hideModal('editfile-fm-modal')"
-      >
-        {{cancel}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="editModalBg" style="display: none" id="feModal">
-  <div class="sub-block console card border border-1 shadow-0">
-    <div class="header flex flex-row items-center">
-      <span class="grow" id="feModalLabel"></span>
-    </div>
-    <div class="contentt p-3" style="overflow: hidden">
-      <textarea
-        id="fileEditArea"
-        class="w-100 h-100"
-        spellcheck="false"
-        style="overflow-y: auto"
-      ></textarea>
-    </div>
-    <div class="footer flex items-center justify-content-end">
-      <button
-        type="button"
-        class="btn btn-teritary"
-        onclick="$('#feModal').hide()"
-      >
-        {{cancel}}
-      </button>
-      <button
-        type="button"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none"
-        onclick="saveFile(); $('#feModal').hide()"
-      >
-        {{save}}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- TOASTS HISTORY DRAWER -->
-<div
-  id="drawer-toasts-list"
-  class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
-  style="width: 25%; overflow: hidden"
-  tabindex="-1"
-  aria-labelledby="drawer-label"
->
-  <h5
-    id="drawer-label"
-    class="inline-flex items-center mb-4 text-black dark:text-white text-md font-semibold"
-  >
-    {{toasts-list-tooltip}}
-  </h5>
-  <button
-    type="button"
-    data-drawer-hide="drawer-toasts-list"
-    aria-controls="drawer-toasts-list"
-    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-  >
-    <svg
-      aria-hidden="true"
-      class="w-5 h-5"
-      fill="currentColor"
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        fill-rule="evenodd"
-        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-        clip-rule="evenodd"
-      ></path>
-    </svg>
-    <span class="sr-only">Close menu</span>
-  </button>
-  <div
-    id="toasts-history-list"
-    class="flex flex-col mt-2 p-1 w-full"
-    style="overflow: auto"
-  ></div>
-</div>
-
-<!-- Mobile nav drawer -->
-<div
-  id="drawer-mobile-navigation"
-  class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800"
-  tabindex="-1"
->
-  <div class="flex">
-    <div class="p-1">
-      <img src="assets/icon.png" style="height: 32px" />
-    </div>
-    <div class="p-1 ms-3 text-black dark:text-white text-3xl font-semibold">
-      Kubek
-    </div>
-    <span class="kbk-ver text-gray-700 dark:text-gray-300 text-sm pb-3"></span>
-  </div>
-  <button
-    type="button"
-    data-drawer-hide="drawer-mobile-navigation"
-    aria-controls="drawer-mobile-navigation"
-    class="close-menu text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-  >
-    <svg
-      aria-hidden="true"
-      class="w-5 h-5"
-      fill="currentColor"
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        fill-rule="evenodd"
-        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-        clip-rule="evenodd"
-      ></path>
-    </svg>
-    <span class="sr-only">Close menu</span>
-  </button>
-  <div class="flex items-center mt-3">
-    <ul class="space-y-2 font-medium">
-      <button
-        type="button"
-        data-page="console"
-        data-perm="console"
-        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-      >
-        <i class="ri-terminal-fill w-6 h-6 transition duration-75"></i>
-        <span class="flex-1 ml-3 text-left whitespace-nowrap">{{console}}</span>
-      </button>
-      <button
-        type="button"
-        data-page="file_manager"
-        data-perm="filemanager"
-        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-      >
-        <i class="ri-folders-fill w-6 h-6 transition duration-75"></i>
-        <span class="flex-1 ml-3 text-left whitespace-nowrap"
-          >{{file-manager}}</span
-        >
-      </button>
-      <button
-        type="button"
-        data-page="mods"
-        data-perm="plugins"
-        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-      >
-        <i class="ri-window-2-fill w-6 h-6 transition duration-75"></i>
-        <span class="flex-1 ml-3 text-left whitespace-nowrap"
-          >{{plugins-and-mods}}</span
-        >
-      </button>
-      <button
-        type="button"
-        data-page="backups"
-        data-perm="backups"
-        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-      >
-        <i class="ri-hard-drive-3-fill w-6 h-6 transition duration-75"></i>
-        <span class="flex-1 ml-3 text-left whitespace-nowrap"
-          >{{backups-capt}}</span
-        >
-      </button>
-      <button
-        type="button"
-        data-page="server_settings"
-        data-perm="server_settings"
-        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-      >
-        <i class="ri-settings-2-fill w-6 h-6 transition duration-75"></i>
-        <span class="flex-1 ml-3 text-left whitespace-nowrap"
-          >{{server-settings}}</span
-        >
-      </button>
-      <button
-        type="button"
-        data-page="speditor"
-        data-perm="server_settings"
-        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-      >
-        <i class="ri-list-settings-fill w-6 h-6 transition duration-75"></i>
-        <span class="flex-1 ml-3 text-left whitespace-nowrap"
-          >server.properties</span
-        >
-      </button>
-      <button
-        type="button"
-        data-page="sysmon"
-        class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-      >
-        <i class="ri-bug-fill w-6 h-6 transition duration-75"></i>
-        <span class="flex-1 ml-3 text-left whitespace-nowrap"
-          >{{system-monitor}}</span
-        >
-      </button>
-    </ul>
-  </div>
-</div>
+</html>

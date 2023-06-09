@@ -1,12 +1,11 @@
-html.simplify .blurry-bg-img {
+html.simplify #blurry-bg-img {
   display: none;
   backdrop-filter: blur(0px) !important;
   filter: blur(0px) !important;
 }
 
-html.simplify #blurry-bg-img-bg {
-  backdrop-filter: blur(0px) !important;
-  filter: blur(0px) !important;
+html.simplify.dark {
+  background: rgb(50, 50, 50);
 }
 
 html.simplify .glassmorphed {
@@ -29,15 +28,6 @@ html.simplify button.glassmorphed {
   border: 1px solid rgb(150, 150, 150) !important;
 }
 
-html.simplify:not(.dark) #blurry-bg-img-bg {
-  background: rgba(255, 255, 255, 0.8);
-  opacity: 1;
-}
-
-html.simplify:not(.dark) {
-  background: black;
-}
-
 html.norounded *,
 html.norounded *::after,
 html.norounded *::before {
@@ -51,7 +41,7 @@ html.nobackdrop .glassmorphed {
 html.inter *:not(i),
 html.inter *:not(i):before,
 html.inter *:not(i):after {
-  font-family: 'Inter';
+  font-family: "Inter";
 }
 
 html.sansserif *:not(i),
@@ -63,17 +53,17 @@ html.sansserif *:not(i):after {
 html.segoeui *:not(i),
 html.segoeui *:not(i):before,
 html.segoeui *:not(i):after {
-  font-family: 'Segoe UI';
+  font-family: "Segoe UI";
 }
 
 html.consolas *:not(i),
 html.consolas *:not(i):before,
 html.consolas *:not(i):after {
-  font-family: 'Consolas';
+  font-family: "Consolas";
 }
 
 html.verdana *:not(i),
 html.verdana *:not(i):before,
 html.verdana *:not(i):after {
-  font-family: 'Verdana';
+  font-family: "Verdana";
 }
