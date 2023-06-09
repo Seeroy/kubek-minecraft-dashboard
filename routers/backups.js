@@ -68,7 +68,11 @@ router.get("/delete", function (req, res) {
 });
 
 router.get("/diskStats", function (req, res) {
-  cur_disk = process.cwd().replaceAll(/\\/gm, "/").split("/")[0];
+  if(process.platform == "win32"){
+    cur_disk = process.cwd().replaceAll(/\\/gm, "/").split("/")[0];
+  } else if(process.platform == "linux"){
+    cur_disk = "/";
+  }
   nodeDiskInfo
     .getDiskInfo()
     .then((disks) => {

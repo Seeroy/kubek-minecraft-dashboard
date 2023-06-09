@@ -28,9 +28,9 @@ html.simplify button.glassmorphed {
   border: 1px solid rgb(150, 150, 150) !important;
 }
 
-html.norounded *,
-html.norounded *::after,
-html.norounded *::before {
+html.norounded *:not(.progress-bar):not(.progress),
+html.norounded *:not(.progress-bar):not(.progress)::after,
+html.norounded *:not(.progress-bar):not(.progress)::before {
   border-radius: 0 !important;
 }
 
