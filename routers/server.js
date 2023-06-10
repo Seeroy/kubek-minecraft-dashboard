@@ -222,7 +222,7 @@ router.get("/bedrock/completion", function (req, res) {
   }
   fs.writeFileSync(
     "./servers/" + req.query.server + "/server.properties",
-    "enable-query=true"
+    "server-name=" + req.query.server + " | Kubek\ngamemode=survival\ndifficulty=easy\nallow-cheats=false\nmax-players=100\nonline-mode=false\nwhite-list=false\nserver-port=19132\nserver-portv6=19133\nview-distance=10\ntick-distance=4\nplayer-idle-timeout=30"
   );
   if (fs.existsSync("./servers/servers.json")) {
     cge = JSON.parse(fs.readFileSync("./servers/servers.json"));
@@ -249,6 +249,22 @@ router.get("/bedrock/completion", function (req, res) {
 router.get("/statuses", function (req, res) {
   res.set("Content-Type", "application/json");
   res.send(serverController.getStatuses());
+});
+
+router.get("/type", function (req, res) {
+  if(typeof req.query.server !== "undefined"){
+    if(fs.existsSync("./servers/" + req.query.server)){
+      if(fs.existsSync("./servers/" + req.query.server + "/bedrock_server.exe") || fs.existsSync("./servers/" + req.query.server + "/bedrock_server")){
+        res.send("bedrock");
+      } else {
+        res.send("java");
+      }
+    } else {
+      res.send(false);
+    }
+  } else {
+    res.send(false);
+  }
 });
 
 router.get("/checkBEVersion", function (req, res) {

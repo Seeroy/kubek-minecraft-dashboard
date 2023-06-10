@@ -434,7 +434,7 @@ exports.startServer = (server) => {
         }
       }
       servers_logs[server] = servers_logs[server] + data.toString();
-      if (Date.now() - oldConsoleStamp >= 400 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
+      if (Date.now() - oldConsoleStamp >= 250 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
         fsock = io.sockets.sockets;
         for (const socket of fsock) {
           spl = servers_logs[server].split(/\r?\n/).slice(-100);
@@ -456,34 +456,7 @@ exports.startServer = (server) => {
         statuss = "starting";
         tgbot.changedServerStatus(server, statuss);
       }
-      if (data.indexOf("Done") >= 0) {
-        statuss = "started";
-        tgbot.changedServerStatus(server, statuss);
-        console.log(
-          additional.getTimeFormatted(),
-          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
-          server.green
-        );
-      }
-      if (data.indexOf("Listening on /") >= 0 || data.indexOf("Server Started.") >= 0) {
-        statuss = "started";
-        tgbot.changedServerStatus(server, statuss);
-        console.log(
-          additional.getTimeFormatted(),
-          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
-          server.green
-        );
-      }
-      if (data.match(/\[INFO] Listening on/gim)) {
-        statuss = "started";
-        tgbot.changedServerStatus(server, statuss);
-        console.log(
-          additional.getTimeFormatted(),
-          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
-          server.green
-        );
-      }
-      if (data.match(/\[INFO] Done/gim)) {
+      if (data.indexOf("Listening on /") >= 0 || data.match(/Server started./gmi) != null || data.match(/\[INFO] Listening on/gim) != null || data.match(/\[INFO] Done/gim) != null) {
         statuss = "started";
         tgbot.changedServerStatus(server, statuss);
         console.log(

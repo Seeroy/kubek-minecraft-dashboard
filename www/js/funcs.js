@@ -98,6 +98,11 @@ function gotoPage(page) {
             "src",
             "/server/icon?server=" + window.localStorage.selectedServer
           );
+          $.get("/server/type?server=" + window.localStorage.selectedServer, function(type){
+            if(type == "bedrock"){
+              $(".hide-on-bedrock").hide();
+            }
+          });
           animateTopbar(100, 50);
           setTimeout(() => {
             animateTopbar(0, 50);

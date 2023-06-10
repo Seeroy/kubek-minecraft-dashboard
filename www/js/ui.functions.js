@@ -188,6 +188,7 @@ function afterSocketHandshake() {
     ) {
       socket.emit("update", {
         type: "console",
+        server: window.localStorage.selectedServer
       });
     }
   }, 6000);

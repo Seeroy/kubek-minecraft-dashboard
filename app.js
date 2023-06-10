@@ -1,5 +1,5 @@
 // Kubek version
-global.kubek_version = "v2.1.4-fix";
+global.kubek_version = "v2.1.5";
 
 // My modules
 const ftpd = require("./my_modules/ftpd_new");
