@@ -130,7 +130,7 @@
   "{{weblook-ks}}": "UI Appearance",
   "{{blurrange-ks}}": "Amount of background blur",
   "{{font-ks}}": "Main interface font",
-  "{{need-to-save-ks}}": "Before editing users, you must first save the settings and log in to your account!",
+  "{{need-to-save-ks}}": "Before editing users, you must first save the settings and log in to your account!<br>Standard administrator login - <b>kubek</b><br>Standard administrator password - <b>kubek</b><br><br><p class='text-red-600 text-xl'>Be sure to change your admin password in the future!</p>",
   "{{toastspos-ks}}": "Toasts position",
   "{{toastspos-tl-ks}}": "Top Left",
   "{{toastspos-tr-ks}}": "Top Right",

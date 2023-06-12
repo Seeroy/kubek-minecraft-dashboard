@@ -1,5 +1,6 @@
 var modalModeNewUser = false;
 var currEdit = "";
+var nsatimeout = 5;
 
 var PASSWORD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{6,64}$/g;
 var LOGIN_REGEX = /^[a-zA-Z0-9_.-]{3,16}$/g;
@@ -24,6 +25,7 @@ $(document).ready(function () {
     if ($(this).is(":checked")) {
       $("#auth-users-item").show();
       showModal("needtosave-auth-warn-modal", "fadeIn");
+      startNSAModalTimeout();
     } else {
       $("#auth-users-item").hide();
     }
@@ -487,4 +489,18 @@ function loadUsersList() {
     }
     $("#users-list").append(htmlc);
   });
+}
+
+function startNSAModalTimeout(){
+  $("#needtosave-auth-warn-modal button").hide();
+  $("#needtosave-auth-warn-modal .nsatimeout-span").text(nsatimeout + "s");
+  setInterval(function(){
+    if(nsatimeout > 1){
+      nsatimeout--;
+      $("#needtosave-auth-warn-modal .nsatimeout-span").text(nsatimeout + "s");
+    } else {
+      $("#needtosave-auth-warn-modal .nsatimeout-span").hide();
+      $("#needtosave-auth-warn-modal button").show();
+    }
+  }, 1000);
 }

@@ -105,10 +105,15 @@ router.get("/version", function (req, res) {
 });
 
 router.get("/bgList", function (req, res) {
-  bgListRead = fs.readdirSync(
-    path.join(__dirname, "./../www/assets/backgrounds")
-  );
-  res.json(bgListRead);
+  perms = auth_manager.getUserPermissions(req);
+  if (perms.includes(ACCESS_PERMISSION)) {
+    bgListRead = fs.readdirSync(
+      path.join(__dirname, "./../www/assets/backgrounds")
+    );
+    res.json(bgListRead);
+  } else {
+    res.status(403).send();
+  }
 });
 
 router.get("/translate", function (req, res) {
@@ -202,7 +207,12 @@ router.get("/updates", function (req, res) {
 });
 
 router.get("/support-uid", function (req, res) {
-  res.send(statsCollector.supportUID());
+  perms = auth_manager.getUserPermissions(req);
+  if (perms.includes(ACCESS_PERMISSION)) {
+    res.send(statsCollector.supportUID());
+  } else {
+    res.status(403).send();
+  }
 });
 
 router.get("/socket-port", function (req, res) {
