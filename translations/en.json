@@ -37,6 +37,7 @@
   "{{disconnect-notify}}": "Connection to server lost",
   "{{reconnect-notify}}": "Connection to server re-established",
   "{{plugins-repo}}": "Plug-ins repository",
+  "{{servers-list}}": "Servers list",
 
   "{{sc-start}}": "Start",
   "{{sc-stop}}": "Stop",
@@ -222,7 +223,7 @@
   "{{java-path-error}}": "Server startup file possible contains outdated information. Try to go to the server settings and select the appropriate Java version / change the current one",
   "{{jarfile-access-error}}": "If the server does not start, the kernel file necessary for starting may not be found. Try to return the missing file or recreate the server on a new one",
 
-  "{{consolemsg-update1h}}": "Kubek will check for updates every hour",
+  "{{consolemsg-update1h}}": "Kubek will check for updates every 3 hours",
   "{{consolemsg-noupd}}": "Updates not found",
   "{{consolemsg-yesupd}}": "Update found, download link:",
   "{{consolemsg-usingport}}": "uses port",

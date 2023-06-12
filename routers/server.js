@@ -180,7 +180,7 @@ router.get("/completion", function (req, res) {
       "\nenable-query=true\nonline-mode=" +
       req.query.onMode +
       "\nmotd=\u00A7f" +
-      req.query.server + "\n\u00A7bCreated with Kubek"
+      req.query.server + "\u00A7bCreated with Kubek"
   );
   if (fs.existsSync("./servers/servers.json")) {
     cge = JSON.parse(fs.readFileSync("./servers/servers.json"));

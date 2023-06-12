@@ -7,6 +7,7 @@ const osutils = require("os-utils");
 const os = require("os");
 const errors_parser = require("./../my_modules/errors.mc.parser");
 const translator = require("./../my_modules/translator");
+const sockets = require("./../my_modules/sockets");
 var path = require("path");
 var iconvlite = require("iconv-lite");
 const { spawn } = require("node:child_process");
@@ -20,10 +21,13 @@ exports.getStatuses = () => {
   rd = config.readServersJSON();
   newrd = {};
   Object.keys(rd).forEach(function (key) {
-    rstatus = rd[key]['status'];
-    rtrans = translator.translateHTML("{{status-" + rstatus + "}}", cfg["lang"]);
+    rstatus = rd[key]["status"];
+    rtrans = translator.translateHTML(
+      "{{status-" + rstatus + "}}",
+      cfg["lang"]
+    );
     newrd[key] = rd[key];
-    newrd[key]['statusTranslated'] = rtrans;
+    newrd[key]["statusTranslated"] = rtrans;
   });
   return newrd;
 };
@@ -242,311 +246,264 @@ exports.startServer = (server) => {
       translator.translateHTML("{{consolemsg-starting}} ", cfg["lang"]) + ":",
       server.green
     );
-    statuss = "starting";
-    serverjson_cfg[server].status = statuss;
+    currentStatus = "starting";
+    serverjson_cfg[server].status = currentStatus;
+    // On process close
     servers_instances[server].on("close", (code) => {
-      statuss = "stopped";
-      serverjson_cfg[server].status = statuss;
-      tgbot.changedServerStatus(server, statuss);
+      currentStatus = "stopped";
+      serverjson_cfg[server].status = currentStatus;
+      tgbot.changedServerStatus(server, currentStatus);
       config.writeServersJSON(serverjson_cfg);
-      fsock = io.sockets.sockets;
-      for (const socket of fsock) {
-        socket[1].emit("handleUpdate", {
-          type: "servers",
-          data: this.getStatuses(),
-        });
-      }
-      if (code != 1 && code != null) {
-        if (code != 0) {
-          servers_logs[server] =
-            servers_logs[server] +
-            "§4" +
-            translator.translateHTML(
-              "{{consolemsg-stopwithcode}} ",
-              cfg["lang"]
-            ) +
-            code;
-          console.log(
-            additional.getTimeFormatted(),
-            translator.translateHTML(
-              "{{consolemsg-stopwithcode}} ",
-              cfg["lang"]
-            ) +
-              code +
-              ":",
-            server.red
-          );
-
-          fsock = io.sockets.sockets;
-          for (const socket of fsock) {
-            socket[1].emit("handleUpdate", {
-              type: "server_status_changed",
-              data: {
-                message: translator.translateHTML(
-                  server + "{{toasts-stop-code}}" + code,
-                  cfg["lang"]
-                ),
-                type: "warning"
-              },
-            });
-          }
-
-          if (
-            serverjson_cfg[server]["restartOnError"] == true &&
-            errors_parser.checkStringForErrors(servers_logs[server]) == false
-          ) {
-            if (typeof servers_restart_count[server] == "undefined") {
-              servers_restart_count[server] = 1;
-              console.log(
-                additional.getTimeFormatted(),
-                translator.translateHTML(
-                  "{{consolemsg-restartatt}} ",
-                  cfg["lang"]
-                ) + "1 :",
-                server.red
-              );
-              servers_logs[server] =
-                servers_logs[server] +
-                "\n" +
-                translator.translateHTML(
-                  "{{consolemsg-restartatt}} ",
-                  cfg["lang"]
-                ) +
-                "1";
-              setTimeout(function () {
-                startServer(server);
-              }, 3000);
-            } else {
-              if (servers_restart_count[server] < 3) {
-                servers_restart_count[server]++;
-                console.log(
-                  additional.getTimeFormatted(),
-                  translator.translateHTML(
-                    "{{consolemsg-restartatt}} ",
-                    cfg["lang"]
-                  ) +
-                    servers_restart_count[server] +
-                    " :",
-                  server.red
-                );
-                servers_logs[server] =
-                  servers_logs[server] +
-                  "\n" +
-                  translator.translateHTML(
-                    "{{consolemsg-restartatt}} ",
-                    cfg["lang"]
-                  ) +
-                  servers_restart_count[server];
-                setTimeout(function () {
-                  startServer(server);
-                }, 3000);
-              } else {
-                servers_logs[server] =
-                  servers_logs[server] +
-                  "\n§4" +
-                  translator.translateHTML(
-                    "{{consolemsg-cantbestarted}}",
-                    cfg["lang"]
-                  );
-              }
-            }
-          }
-        } else {
-          console.log(
-            additional.getTimeFormatted(),
-            translator.translateHTML("{{consolemsg-stop}} ", cfg["lang"]) + ":",
-            server.green
-          );
-          if (restart_after_stop[server] == true) {
-            restart_after_stop[server] = null;
-            delete restart_after_stop[server];
-            setTimeout(function () {
-              startServer(server);
-            }, 500);
-          }
-            fsock = io.sockets.sockets;
-            for (const socket of fsock) {
-              socket[1].emit("handleUpdate", {
-                type: "server_status_changed",
-                data: {
-                  message: translator.translateHTML(
-                    server + "{{toasts-stop-success}}",
-                    cfg["lang"]
-                  ),
-                  type: "success"
-                },
-              });
-            }
-        }
-      } else {
-        console.log(
-          additional.getTimeFormatted(),
-          translator.translateHTML(
-            "{{consolemsg-stopwithcode}} ",
-            cfg["lang"]
-          ) +
-            code +
-            ":",
-          server.yellow
-        );
-
-        fsock = io.sockets.sockets;
-        for (const socket of fsock) {
-          socket[1].emit("handleUpdate", {
-            type: "server_status_changed",
-            data: {
-              message: translator.translateHTML(
-                server + "{{toasts-stop-code}}" + code,
-                cfg["lang"]
-              ),
-              type: "warning"
-            },
-          });
-        }
-
-        servers_logs[server] = servers_logs[server] + "\n§bKilled";
-      }
-      if (Date.now() - oldConsoleStamp >= 400 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
-        fsock = io.sockets.sockets;
-        for (const socket of fsock) {
-          spl = servers_logs[server].split(/\r?\n/).slice(-100);
-          socket[1].emit("handleUpdate", {
-            type: "console",
-            data: {
-              server: server,
-              data: spl.join("\r\n"),
-            },
-          });
-        }
-        oldConsoleStamp = Date.now();
-      }
+      sockets.emitPreparedToAllClients(
+        io,
+        "handleUpdate",
+        "servers",
+        this.getStatuses()
+      );
+      serverCloseEventHandler(server, code);
     });
-    servers_instances[server].stdout.on("data", (data) => {
-      data = iconvlite.decode(data, "utf-8");
-      err = errors_parser.checkStringForErrors(data.toString());
-      if (err != false) {
-        fsock = io.sockets.sockets;
-        for (const socket of fsock) {
-          socket[1].emit("handleServerError", {
-            type: "servers",
-            data: err,
-          });
-        }
-      }
-      servers_logs[server] = servers_logs[server] + data.toString();
-      if (Date.now() - oldConsoleStamp >= 250 || serverjson_cfg[server].status == "started" || serverjson_cfg[server].status == "stopped") {
-        fsock = io.sockets.sockets;
-        for (const socket of fsock) {
-          spl = servers_logs[server].split(/\r?\n/).slice(-100);
-          socket[1].emit("handleUpdate", {
-            type: "console",
-            data: {
-              server: server,
-              data: spl.join("\r\n"),
-            },
-          });
-        }
-        oldConsoleStamp = Date.now();
-      }
-      if (
-        data.indexOf("Loading libraries, please wait...") >= 0 ||
-        data.match(/Advanced terminal features are/gim) ||
-        data.match(/Enabled Waterfall version/gim) || data.indexOf("Starting Server") >= 0
-      ) {
-        statuss = "starting";
-        tgbot.changedServerStatus(server, statuss);
-      }
-      if (data.indexOf("Listening on /") >= 0 || data.match(/Server started./gmi) != null || data.match(/\[INFO] Listening on/gim) != null || data.match(/\[INFO] Done/gim) != null) {
-        statuss = "started";
-        tgbot.changedServerStatus(server, statuss);
-        console.log(
-          additional.getTimeFormatted(),
-          translator.translateHTML("{{consolemsg-start}} ", cfg["lang"]) + ":",
-          server.green
-        );
-      }
 
-      if (data.indexOf("Saving players") >= 0 || data.indexOf("Server stop requested.") >= 0) {
-        console.log(
-          additional.getTimeFormatted(),
-          translator.translateHTML("{{consolemsg-stopping}} ", cfg["lang"]) +
-            ":",
-          server.green
-        );
-        statuss = "stopping";
-        tgbot.changedServerStatus(server, statuss);
-      }
-      if(serverjson_cfg[server].status != statuss && statuss == "started"){
-        fsock = io.sockets.sockets;
-        for (const socket of fsock) {
-          socket[1].emit("handleUpdate", {
-            type: "server_status_changed",
-            data: {
-              message: translator.translateHTML(
-                server + "{{toasts-start-success}}",
-                cfg["lang"]
-              ),
-              type: "success"
-            },
-          });
-        }
-      }
-      serverjson_cfg[server].status = statuss;
-      config.writeServersJSON(serverjson_cfg);
-      fsock = io.sockets.sockets;
-      for (const socket of fsock) {
-        socket[1].emit("handleUpdate", {
-          type: "servers",
-          data: this.getStatuses(),
-        });
-      }
+    servers_instances[server].stdout.on("data", (data) => {
+      serverStdoutEventHandler(server, data);
     });
     servers_instances[server].stderr.on("data", (data) => {
-      data = iconvlite.decode(data, "utf-8");
-      err = errors_parser.checkStringForErrors(data.toString());
-      if (err != false) {
-        fsock = io.sockets.sockets;
-        for (const socket of fsock) {
-          socket[1].emit("handleServerError", {
-            type: "servers",
-            data: err,
-          });
-        }
-      }
-      servers_logs[server] = servers_logs[server] + "ERROR: " + data.toString();
-      fsock = io.sockets.sockets;
-      for (const socket of fsock) {
-        spl = servers_logs[server].split(/\r?\n/).slice(-100);
-        socket[1].emit("handleUpdate", {
-          type: "console",
-          data: {
-            server: server,
-            data: spl.join("\r\n"),
-          },
-        });
-      }
-      serverjson_cfg[server].status = statuss;
-      tgbot.changedServerStatus(server, statuss);
-      config.writeServersJSON(serverjson_cfg);
-      fsock = io.sockets.sockets;
-      for (const socket of fsock) {
-        socket[1].emit("handleUpdate", {
-          type: "servers",
-          data: this.getStatuses(),
-        });
-      }
+      serverStdoutEventHandler(server, data);
     });
     config.writeServersJSON(serverjson_cfg);
-    fsock = io.sockets.sockets;
-    for (const socket of fsock) {
-      socket[1].emit("handleUpdate", {
-        type: "servers",
-        data: this.getStatuses(),
-      });
-    }
+    sockets.emitPreparedToAllClients(
+      io,
+      "handleUpdate",
+      "servers",
+      this.getStatuses()
+    );
   }
 };
 
 function startServer(server) {
   module.exports.startServer(server);
+}
+
+const STATUS_DETECTORS = {
+  starting: [
+    /Loading libraries/gim,
+    /Advanced terminal features are/gim,
+    /Enabled Waterfall version/gim,
+    /Starting server/gim,
+  ],
+  started: [/Server started/gim, /Listening on/gim, /Done/gim],
+  stopping: [/Saving players/gim, /Server stop requested/gim],
+};
+
+function serverStdoutEventHandler(server, data) {
+  data = iconvlite.decode(data, "utf-8").toString();
+  err = errors_parser.checkStringForErrors(data);
+  if (err != false) {
+    sockets.emitPreparedToAllClients(io, "handleServerError", "servers", err);
+  }
+  addToServerLogs(server, data.toString());
+  if (Date.now() - oldConsoleStamp >= 150) {
+    sockets.emitPreparedToAllClients(io, "handleUpdate", "console", {
+      server: server,
+      data: getLast100LinesOfLog(server),
+    });
+    oldConsoleStamp = Date.now();
+  }
+  Object.keys(STATUS_DETECTORS).forEach((key) => {
+    value = STATUS_DETECTORS[key];
+    value.forEach(function (rgx) {
+      if (data.match(rgx) != null) {
+        currentStatus = key;
+        tgbot.changedServerStatus(server, currentStatus);
+        return;
+      }
+    });
+  });
+  if (
+    serverjson_cfg[server].status != currentStatus &&
+    currentStatus == "started"
+  ) {
+    sockets.emitPreparedToAllClients(
+      io,
+      "handleUpdate",
+      "server_status_changed",
+      {
+        message: translator.translateHTML(
+          server + "{{toasts-start-success}}",
+          cfg["lang"]
+        ),
+        type: "success",
+      }
+    );
+  }
+  if (serverjson_cfg[server].status != currentStatus) {
+    writeSJ = true;
+  } else {
+    writeSJ = false;
+  }
+  serverjson_cfg[server].status = currentStatus;
+  if (writeSJ == true) {
+    config.writeServersJSON(serverjson_cfg);
+    sockets.emitPreparedToAllClients(
+      io,
+      "handleUpdate",
+      "servers",
+      module.exports.getStatuses()
+    );
+  }
+}
+
+function serverCloseEventHandler(server, code) {
+  if (code != null && code > 1 && code != 127) {
+    // Really error happend
+    tr = translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg["lang"]);
+    addToServerLogs(server, "\n" + servers_logs[server] + "§4" + tr + code);
+    console.log(additional.getTimeFormatted(), tr + code + ":", server.red);
+
+    sockets.emitPreparedToAllClients(
+      io,
+      "handleUpdate",
+      "server_status_changed",
+      {
+        message: translator.translateHTML(
+          server + "{{toasts-stop-code}}" + code,
+          cfg["lang"]
+        ),
+        type: "warning",
+      }
+    );
+
+    if (
+      serverjson_cfg[server]["restartOnError"] == true &&
+      errors_parser.checkStringForErrors(servers_logs[server]) == false
+    ) {
+      if (typeof servers_restart_count[server] == "undefined") {
+        // Auto restart server on crash is starting
+        servers_restart_count[server] = 1;
+        console.log(
+          additional.getTimeFormatted(),
+          translator.translateHTML("{{consolemsg-restartatt}} ", cfg["lang"]) +
+            "1 :",
+          server.red
+        );
+        addToServerLogs(
+          server,
+          "\n" +
+            translator.translateHTML(
+              "{{consolemsg-restartatt}} ",
+              cfg["lang"]
+            ) +
+            "1"
+        );
+        setTimeout(function () {
+          startServer(server);
+        }, 3000);
+      } else {
+        // 3 attempts to restart the server
+        if (servers_restart_count[server] < 3) {
+          servers_restart_count[server]++;
+          console.log(
+            additional.getTimeFormatted(),
+            translator.translateHTML(
+              "{{consolemsg-restartatt}} ",
+              cfg["lang"]
+            ) +
+              servers_restart_count[server] +
+              " :",
+            server.red
+          );
+          addToServerLogs(
+            server,
+            "\n" +
+              translator.translateHTML(
+                "{{consolemsg-restartatt}} ",
+                cfg["lang"]
+              ) +
+              servers_restart_count[server]
+          );
+          setTimeout(function () {
+            startServer(server);
+          }, 3000);
+        } else {
+          addToServerLogs(
+            server,
+            "\n§4" +
+              translator.translateHTML(
+                "{{consolemsg-cantbestarted}} ",
+                cfg["lang"]
+              )
+          );
+        }
+      }
+    }
+  } else if (code == 1 || code == 127) {
+    // Server is killed manually
+    console.log(
+      additional.getTimeFormatted(),
+      translator.translateHTML("{{consolemsg-stopwithcode}} ", cfg["lang"]) +
+        code +
+        ":",
+      server.yellow
+    );
+
+    sockets.emitPreparedToAllClients(
+      io,
+      "handleUpdate",
+      "server_status_changed",
+      {
+        message: translator.translateHTML(
+          server + "{{toasts-stop-code}}" + code,
+          cfg["lang"]
+        ),
+        type: "warning",
+      }
+    );
+
+    addToServerLogs(server, "\n§bKilled");
+  } else {
+    // Graceful shutdown
+    console.log(
+      additional.getTimeFormatted(),
+      translator.translateHTML("{{consolemsg-stop}} ", cfg["lang"]) + ":",
+      server.green
+    );
+    if (restart_after_stop[server] == true) {
+      restart_after_stop[server] = null;
+      delete restart_after_stop[server];
+      setTimeout(function () {
+        startServer(server);
+      }, 500);
+    }
+    sockets.emitPreparedToAllClients(
+      io,
+      "handleUpdate",
+      "server_status_changed",
+      {
+        message: translator.translateHTML(
+          server + "{{toasts-stop-success}}",
+          cfg["lang"]
+        ),
+        type: "success",
+      }
+    );
+  }
+  if (Date.now() - oldConsoleStamp >= 150) {
+    sockets.emitPreparedToAllClients(io, "handleUpdate", "console", {
+      server: server,
+      data: getLast100LinesOfLog(server),
+    });
+    oldConsoleStamp = Date.now();
+  }
+}
+
+function addToServerLogs(server, text) {
+  maxLogsLength = -1000;
+  servers_logs[server] = servers_logs[server] + text;
+  servers_logs[server] = servers_logs[server]
+    .split(/\r?\n/)
+    .slice(maxLogsLength)
+    .join("\r\n");
+}
+
+function getLast100LinesOfLog(server) {
+  return servers_logs[server].split(/\r?\n/).slice(-100).join("\r\n");
 }

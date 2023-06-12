@@ -1,12 +1,30 @@
 // Kubek version
-global.kubek_version = "v2.1.5";
+global.kubek_version = "v2.1.6";
+
+// Variables and constants initialization
+global.pendingTasks = {};
+global.serDeletes = {};
+global.servers_logs = [];
+global.servers_instances = [];
+global.updatesByIntArray = {};
+global.forgesIns = [];
+global.currentFileWritings = [];
+global.currentFileWritingsText = [];
+global.ftpserver;
+global.servers_restart_count = {};
+global.restart_after_stop = {};
+global.last_servers_query = {};
+global.otp_tg = null;
+
+var EXPRESS_PORT = 3000;
+var SIO_PORT = 3001;
+const updatesInterval = 3 * 60 * 60 * 1000; // 3 hours
 
 // My modules
 const ftpd = require("./my_modules/ftpd_new");
 const updater = require("./my_modules/updater");
 const statsCollector = require("./my_modules/statistics");
 const config = require("./my_modules/config");
-config.makeBaseDirs();
 const translator = require("./my_modules/translator");
 const kubek = require("./my_modules/kubek");
 const additional = require("./my_modules/additional");
@@ -17,9 +35,6 @@ const tgbot_manager = require("./my_modules/tgbot");
 // Express initialization
 const express = require("express");
 const app = express();
-var EXPRESS_PORT = 3000;
-var SIO_PORT = 3001;
-const updatesInterval = 3600000; // 5 hours
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 
@@ -71,6 +86,8 @@ if (typeof cfg["webserver-port"] !== "undefined") {
 if (typeof cfg["socket-port"] !== "undefined") {
   SIO_PORT = cfg["socket-port"];
 }
+config.makeBaseDirs();
+
 // Socket.io initialization
 var socket_options;
 if (cfg["internet-access"] == true) {
@@ -117,7 +134,7 @@ io.on("connection", (socket) => {
           type: "console",
           data: {
             server: arg.server,
-            data: servers_logs[arg.server],
+            data: servers_logs[arg.server].split(/\r?\n/).slice(-100).join("\r\n"),
           },
         });
         break;
@@ -151,21 +168,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-
-// Custom vars initialization
-global.pendingTasks = {};
-global.serDeletes = {};
-global.servers_logs = [];
-global.servers_instances = [];
-global.updatesByIntArray = {};
-global.forgesIns = [];
-global.currentFileWritings = [];
-global.currentFileWritingsText = [];
-global.ftpserver;
-global.servers_restart_count = {};
-global.restart_after_stop = {};
-global.last_servers_query = {};
-global.otp_tg = null;
 
 app.use(
   fileUpload({
@@ -221,6 +223,8 @@ setInterval(function () {
   tgbot_manager.regenerateOTP();
 }, 15000);
 tgbot_manager.regenerateOTP();
+
+
 
 updater.checkForUpdates(function (upd, body) {
   if (

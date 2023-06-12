@@ -261,7 +261,6 @@
                 <div class="tooltip-arrow" data-popper-arrow></div>
               </div>
               -->
-              
             </div>
           </div>
         </nav>
@@ -401,23 +400,15 @@
               <!-- Servers list open dropdown button -->
               <button
                 id="servers-list-dropdown"
-                data-dropdown-toggle="servers-list"
+                data-drawer-target="servers-list-drawer"
+                data-drawer-show="servers-list-drawer"
+                data-drawer-placement="right"
+                aria-controls="servers-list-drawer"
                 class="ml-2 text-black bg-gray-300 hover:bg-gray-100 focus:outline-none font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
                 type="button"
               >
                 <div></div>
               </button>
-
-              <!-- Servers list dropdown -->
-              <div
-                id="servers-list"
-                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-60 dark:bg-gray-700 dark:divide-gray-600"
-              >
-                <ul
-                  class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200"
-                  aria-labelledby="servers-list-dropdown"
-                ></ul>
-              </div>
             </div>
           </div>
         </div>
@@ -1674,11 +1665,11 @@
     class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800"
     tabindex="-1"
   >
-    <div class="flex">
-      <div class="p-1">
+    <div class="flex mb-5">
+      <div class="p-1 ml-2">
         <img src="assets/icon.png" style="height: 32px" />
       </div>
-      <div class="p-1 ms-3 text-black dark:text-white text-3xl font-semibold">
+      <div class="p-1 ml-3 text-black dark:text-white text-3xl font-semibold">
         Kubek
       </div>
       <span
@@ -1803,5 +1794,43 @@
         {{ok}}
       </button>
     </div>
+  </div>
+
+  <!-- Servers list drawer -->
+  <div
+    id="servers-list-drawer"
+    class="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-white dark:bg-gray-800"
+    style="width: 21%"
+    tabindex="-1"
+    aria-labelledby="servers-list-label"
+  >
+    <h5
+      id="servers-list-label"
+      class="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400"
+    >
+      <i class="ri-server-fill mr-2"></i>{{servers-list}}
+    </h5>
+    <button
+      type="button"
+      data-drawer-hide="servers-list-drawer"
+      aria-controls="servers-list-drawer"
+      class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="sr-only">Close menu</span>
+    </button>
+    <div class="flex flex-col content"></div>
   </div>
 </html>

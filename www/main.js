@@ -59,9 +59,6 @@ var cs = true;
 var connect_socket_error = false;
 var old_bl_upd = 10;
 
-const SERVERS_LIST_ITEM_BASE =
-  '<li> <div class="flex p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"> <div class="flex items-center h-5"> $1 </div> <div class="ml-2 text-sm"> <div>$2</div> <p class="text-xs font-normal text-gray-500 dark:text-gray-300">$3</p> </div> </div> </li>';
-
 $(document).ready(function () {
   refreshAllUI();
   if (window.localStorage.noupdatenotify == null) {
@@ -197,7 +194,7 @@ $(document).ready(function () {
 
   $("#menu-tabs-list li button").click(function (e) {
     if (!$(this).hasClass("active")) {
-      if ($("#servers-list li").length > 0) {
+      if ($("#servers-list-drawer .content div.bg-gray-300").length > 0) {
         pg = $(this).data("page");
         gotoPage(pg);
       } else {
@@ -208,7 +205,7 @@ $(document).ready(function () {
 
   $("#drawer-mobile-navigation button:not(.close-menu)").click(function (e) {
     if (!$(this).hasClass("active")) {
-      if ($("#servers-list li").length > 0) {
+      if ($("#servers-list-drawer .content div.bg-gray-300").length > 0) {
         pg = $(this).data("page");
         gotoPage(pg);
       } else {
@@ -242,9 +239,9 @@ $(document).ready(function () {
         gotoPage("console", true);
       }
     } else {
-      if ($("#servers-list li").length > 0) {
-        thiss = $("#servers-list li").eq(0);
-        serverName = $(thiss).find(".server-name").text();
+      if ($("#servers-list-drawer .content div.bg-gray-300").length > 0) {
+        thiss = $("#servers-list-drawer .content div.bg-gray-300").eq(0);
+        serverName = $(thiss).find(".grow").text();
         window.localStorage.setItem("selectedServer", serverName);
         window.location.reload();
       } else {

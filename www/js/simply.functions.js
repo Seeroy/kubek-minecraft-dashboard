@@ -1,7 +1,7 @@
 function thisServerExists(sn) {
   r = false;
-  $("#servers-list li").each(function () {
-    if ($(this).find(".server-name").text() == sn) {
+  $("#servers-list-drawer .content div.bg-gray-300").each(function () {
+    if ($(this).find(".grow").text() == sn) {
       r = true;
     }
   });

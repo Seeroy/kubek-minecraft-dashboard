@@ -2,6 +2,8 @@ const VALID_INPUT_CLASSES =
   "bg-green-50 border border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-green-500";
 const INVALID_INPUT_CLASSES =
   "bg-red-50 border border-red-500 text-red-900 placeholder-red-700 dark:bg-gray-700 focus:border-red-500 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500";
+const SERVERS_LIST_ITEM_BASE_V2 =
+  '<div class="mt-2 p-4 bg-gray-300 hover:bg-gray-400 dark:bg-gray-900 dark:hover:bg-gray-700 cursor-pointer rounded-md text-black dark:text-white flex items-center w-full h-full" > <div class="flex-col justify-center w-full"> <div class="flex items-center"> <img src="$1" style="height: 24px" /> <div class="flex justify-center ml-3 w-full"> <span class="text-lg font-semibold text-black dark:text-white grow" >$2</span > </div> </div> </div> <span class="$4" style="font-size: 9pt; padding: 4px; height: max-content !important;">$3</span> <i class="ri-arrow-right-s-line"></i> </div>';
 
 function updateMemoryAndCPUUsage_ui(data) {
   if (
@@ -100,43 +102,45 @@ function updateServersStatuses_ui(data) {
 }
 
 function updateServersDropdownList_ui(preparedData, cbf) {
-  $("#servers-list li").unbind("click");
-  $("#servers-list ul").html("");
+  $("#servers-list-drawer .content div.bg-gray-300").unbind("click");
+  $("#servers-list-drawer .content").html("");
+
   for (const [key, value] of Object.entries(preparedData)) {
-    clr = "text-black dark:text-white";
+    clr = "";
     switch (value.status) {
       case "stopped":
-        clr = "text-red-500";
+        clr =
+          "dark:bg-red-900 dark:text-red-300 bg-red-100 text-red-800 text-sm font-medium rounded mr-2";
         break;
       case "started":
-        clr = "text-green-500";
+        clr =
+          "dark:bg-green-900 dark:text-green-300 bg-green-100 text-green-800 text-sm font-medium rounded mr-2";
         break;
       case "starting":
-        clr = "text-yellow-500";
+        clr =
+          "dark:bg-yellow-900 dark:text-yellow-300 bg-yellow-100 text-yellow-800 text-sm font-medium rounded mr-2";
         break;
       case "stopping":
-        clr = "text-yellow-500";
+        clr =
+          "dark:bg-yellow-900 dark:text-yellow-300 bg-yellow-100 text-yellow-800 text-sm font-medium rounded mr-2";
         break;
     }
-    $("#servers-list ul").prepend(
-      SERVERS_LIST_ITEM_BASE.replace(
-        /\$1/gim,
-        '<img src="/server/icon?server=' + key + '" style="height: 24px;">'
-      )
-        .replace(/\$2/gim, "<span class='server-name'>" + key + "</span>")
-        .replace(
-          /\$3/gim,
-          "<span class='" + clr + "'>" + value["statusTranslated"] + "</span>"
-        )
+
+    $("#servers-list-drawer .content").prepend(
+      SERVERS_LIST_ITEM_BASE_V2.replace(/\$1/gim, "/server/icon?server=" + key)
+        .replace(/\$2/gim, key)
+        .replace(/\$3/gim, value["statusTranslated"])
+        .replace(/\$4/gim, clr)
     );
   }
-  $("#servers-list li").click(function () {
-    serverName = $(this).find(".server-name").text();
+
+  $("#servers-list-drawer .content div.bg-gray-300").click(function () {
+    serverName = $(this).find(".grow").text();
     window.localStorage.setItem("selectedServer", serverName);
     window.location.reload();
   });
 
-  if ($("#servers-list li").length == 0) {
+  if ($("#servers-list-drawer .content div.bg-gray-300").length == 0) {
     $("#status-text").hide();
     $("#logout-button").hide();
     $("#menu-tabs-list").hide();
@@ -188,10 +192,10 @@ function afterSocketHandshake() {
     ) {
       socket.emit("update", {
         type: "console",
-        server: window.localStorage.selectedServer
+        server: window.localStorage.selectedServer,
       });
     }
-  }, 6000);
+  }, 3500);
   console.log("[WS]", "Setup`ed 'console' update interval");
 
   queryUpdInterval = setInterval(function () {

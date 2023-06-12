@@ -32,7 +32,8 @@
   }
 
   #new-server-wizard-drawer,
-  #drawer-toasts-list {
+  #drawer-toasts-list,
+  #servers-list-drawer {
     width: 100vw !important;
     height: 100vh !important;
   }
