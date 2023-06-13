@@ -220,9 +220,10 @@ exports.showMyMessageInLogs = (req, res, msg) => {
 
 exports.validatePath = (path) => {
   if (
-    path.match(/\.\./gim) == null &&
-    path.match(/\%2e/gim) == null &&
-    path.match(/\%2f/gim) == null
+    path.match(/\%2e\./gim) == null &&
+    path.match(/\%2e\%2e/gim) == null &&
+    path.match(/\.\%2e/gim) == null &&
+    path.match(/\.\./gim) == null
   ) {
     return true;
   } else {
