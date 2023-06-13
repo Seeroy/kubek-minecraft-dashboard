@@ -131,7 +131,7 @@ function saveServerSettings() {
       .next()
       .text()
       .trim()
-      .replace('"', "") +
+      .replace(/\"/gmi, "") +
     startScript_save;
 
   if ($("#resschd-crontab-input").val() != null) {

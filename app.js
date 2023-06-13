@@ -1,5 +1,5 @@
 // Kubek version
-global.kubek_version = "v2.1.6-fix";
+global.kubek_version = "v2.1.7";
 
 // Variables and constants initialization
 global.pendingTasks = {};
@@ -72,7 +72,7 @@ const authLimiter2 = rateLimit({
   legacyHeaders: false,
 });
 const authLimiter3 = rateLimit({
-  windowMs: 1000,
+  windowMs: 600,
   max: 3,
   standardHeaders: true,
   legacyHeaders: false,
@@ -180,9 +180,9 @@ app.use("/auth/login", authLimiter);
 app.use("/upload", authLimiter2);
 app.use("/kubek/saveConfig", authLimiter2);
 app.use("/downloader/download", authLimiter3);
-
-app.use("/plugins/delete", authLimiter3);
-app.use("/plugins/deleteMod", authLimiter3);
+app.use("/server/completion", authLimiter3);
+app.use("/server/bedrock/completion", authLimiter3);
+app.use("/plugins", authLimiter3);
 
 global.serverjson_cfg = config.readServersJSON();
 for (var i in serverjson_cfg) {

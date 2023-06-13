@@ -30,6 +30,10 @@ router.use(function (req, res, next) {
 });
 
 router.get("/download", function (req, res) {
+  if(additional.validatePath(req.query.filename) != true && additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   pendingTasks[req.query.filename] = 0;
   if (!fs.existsSync("./servers")) {
     fs.mkdirSync("./servers");
@@ -70,6 +74,10 @@ router.get("/download", function (req, res) {
 });
 
 router.get("/getPathToJava", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   if (typeof req.query.server !== "undefined") {
     if (fs.existsSync("./servers/" + req.query.server + "/javabin")) {
       rd = fs.readdirSync("./servers/" + req.query.server + "/javabin");
@@ -88,6 +96,10 @@ router.get("/getPathToJava", function (req, res) {
 });
 
 router.get("/downloadJavaForServer", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   if (
     typeof req.query.serverVersion !== "undefined" &&
     typeof req.query.server !== "undefined"
@@ -161,6 +173,10 @@ router.get("/downloadJavaForServer", function (req, res) {
 });
 
 router.get("/downloadAndUnpack", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   if (
     typeof req.query.server !== "undefined" && typeof req.query.url !== "undefined"
   ) {

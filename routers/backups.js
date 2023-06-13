@@ -36,6 +36,10 @@ router.get("/list", function (req, res) {
 });
 
 router.get("/restore", function (req, res) {
+  if(additional.validatePath(req.query.filename) != true){
+    res.status(403).send();
+    return;
+  }
   if (req.query.filename.match(/\.\.\//gm) == null) {
     if (fs.existsSync("./backups/" + req.query.filename)) {
       backups.restoreBackup(
@@ -54,6 +58,10 @@ router.get("/restore", function (req, res) {
 });
 
 router.get("/delete", function (req, res) {
+  if(additional.validatePath(req.query.filename) != true){
+    res.status(403).send();
+    return;
+  }
   if (req.query.filename.match(/\.\.\//gm) == null) {
     if (fs.existsSync("./backups/" + req.query.filename)) {
       fs.unlinkSync("./backups/" + req.query.filename);
@@ -91,6 +99,10 @@ router.get("/diskStats", function (req, res) {
 });
 
 router.get("/download", function (req, res) {
+  if(additional.validatePath(req.query.filename) != true){
+    res.status(403).send();
+    return;
+  }
   if (req.query.filename.match(/\.\.\//gm) == null) {
     if (fs.existsSync("./backups/" + req.query.filename)) {
       res.download("./backups/" + req.query.filename);

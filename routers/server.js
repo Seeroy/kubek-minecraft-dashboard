@@ -35,7 +35,7 @@ router.use(function (req, res, next) {
 });
 
 router.get("/icon", function (req, res) {
-  if (typeof req.query.server !== "undefined") {
+  if (typeof req.query.server !== "undefined" && additional.validatePath(req.query.server) == true) {
     if (fs.existsSync("./servers/" + req.query.server + "/server-icon.png")) {
       res.sendFile("servers/" + req.query.server + "/server-icon.png", {
         root: "./",
@@ -58,6 +58,10 @@ router.get("/icon", function (req, res) {
 });
 
 router.get("/completion", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   fs.writeFileSync("./servers/" + req.query.server + "/eula.txt", "eula=true");
   newForgeInstalling = false;
   jfn = req.query.jf;
@@ -205,6 +209,10 @@ router.get("/completion", function (req, res) {
 });
 
 router.get("/bedrock/completion", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   fs.writeFileSync("./servers/" + req.query.server + "/eula.txt", "eula=true");
   if (process.platform == "win32") {
     fs.writeFileSync("./servers/" + req.query.server + "/start.bat", "pushd %~dp0\nbedrock_server.exe\npopd");
@@ -252,6 +260,10 @@ router.get("/statuses", function (req, res) {
 });
 
 router.get("/type", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   if(typeof req.query.server !== "undefined"){
     if(fs.existsSync("./servers/" + req.query.server)){
       if(fs.existsSync("./servers/" + req.query.server + "/bedrock_server.exe") || fs.existsSync("./servers/" + req.query.server + "/bedrock_server")){
@@ -345,6 +357,10 @@ router.get("/saveRestartScheduler", function (req, res) {
 });
 
 router.get("/getStartScript", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof serverjson_cfg[req.query.server] !== "undefined") {
@@ -358,6 +374,10 @@ router.get("/getStartScript", function (req, res) {
 });
 
 router.get("/saveStartScript", (req, res) => {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof serverjson_cfg[req.query.server] !== "undefined") {
@@ -377,6 +397,10 @@ router.get("/saveStartScript", (req, res) => {
 });
 
 router.get("/getServerPropertiesFile", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof serverjson_cfg[req.query.server] !== "undefined") {
@@ -391,6 +415,10 @@ router.get("/getServerPropertiesFile", function (req, res) {
 });
 
 router.get("/saveServerPropertiesFile", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof serverjson_cfg[req.query.server] !== "undefined") {
@@ -406,6 +434,10 @@ router.get("/saveServerPropertiesFile", function (req, res) {
 });
 
 router.get("/log", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (typeof serverjson_cfg[req.query.server] !== "undefined") {
@@ -420,6 +452,10 @@ router.get("/log", function (req, res) {
 });
 
 router.get("/delete", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     if (typeof serverjson_cfg[req.query.server] !== "undefined") {

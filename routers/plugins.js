@@ -30,6 +30,10 @@ router.use(function (req, res, next) {
 });
 
 router.get("/installed", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   res.set("content-type", "application/json");
   if (fs.existsSync("./servers/" + req.query.server + "/plugins")) {
     res.send(plugins.getInstalledPlugins(req.query.server));
@@ -39,6 +43,10 @@ router.get("/installed", function (req, res) {
 });
 
 router.get("/installedMods", function (req, res) {
+  if(additional.validatePath(req.query.server) != true){
+    res.status(403).send();
+    return;
+  }
   res.set("content-type", "application/json");
   if (fs.existsSync("./servers/" + req.query.server + "/mods")) {
     res.send(plugins.getInstalledMods(req.query.server));
@@ -48,6 +56,10 @@ router.get("/installedMods", function (req, res) {
 });
 
 router.get("/deleteMod", function (req, res) {
+  if(additional.validatePath(req.query.server) != true && additional.validatePath(req.query.file) != true){
+    res.status(403).send();
+    return;
+  }
   plugins.deleteInstalledMod(req.query.server, req.query.file);
   res.send("Success");
 });
@@ -63,6 +75,10 @@ router.get("/changeStatus", function (req, res) {
 });
 
 router.get("/delete", function (req, res) {
+  if(additional.validatePath(req.query.server) != true && additional.validatePath(req.query.file) != true){
+    res.status(403).send();
+    return;
+  }
   plugins.deleteInstalledPlugin(req.query.server, req.query.file);
   res.send("Success");
 });

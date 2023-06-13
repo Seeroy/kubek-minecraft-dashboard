@@ -217,3 +217,15 @@ exports.showMyMessageInLogs = (req, res, msg) => {
     fs.writeFileSync("./logs/" + fname, rf);
   }
 };
+
+exports.validatePath = (path) => {
+  if (
+    path.match(/\.\./gim) == null &&
+    path.match(/\%2e/gim) == null &&
+    path.match(/\%2f/gim) == null
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+};

@@ -34,6 +34,13 @@ router.use(function (req, res, next) {
 });
 
 router.post("/icon", function (req, res) {
+  if (
+    additional.validatePath(req.query.server) != true &&
+    additional.validatePath(req.files["g-img-input"]["name"]) != true
+  ) {
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {
     let sampleFile;
@@ -61,6 +68,13 @@ router.post("/icon", function (req, res) {
 });
 
 router.post("/core", function (req, res) {
+  if (
+    additional.validatePath(req.query.server) != true &&
+    additional.validatePath(req.files["g-core-input"]["name"]) != true
+  ) {
+    res.status(403).send();
+    return;
+  }
   if (!fs.existsSync("./servers")) {
     fs.mkdirSync("./servers");
   }
@@ -87,6 +101,13 @@ router.post("/core", function (req, res) {
 });
 
 router.post("/plugin", function (req, res) {
+  if (
+    additional.validatePath(req.query.server) != true &&
+    additional.validatePath(req.files["g-plugin-input"]["name"]) != true
+  ) {
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (!fs.existsSync("./servers/" + req.query["server"] + "/plugins")) {
@@ -118,6 +139,13 @@ router.post("/plugin", function (req, res) {
 });
 
 router.post("/mod", function (req, res) {
+  if (
+    additional.validatePath(req.query.server) != true &&
+    additional.validatePath(req.files["g-mod-input"]["name"]) != true
+  ) {
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_2)) {
     if (!fs.existsSync("./servers/" + req.query["server"] + "/mods")) {
@@ -149,6 +177,13 @@ router.post("/mod", function (req, res) {
 });
 
 router.post("/file", (req, res) => {
+  if (
+    additional.validatePath(req.query.server) != true &&
+    additional.validatePath(req.files["g-file-input"]["name"]) != true
+  ) {
+    res.status(403).send();
+    return;
+  }
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION_3)) {
     let sampleFile;
@@ -194,6 +229,10 @@ router.post("/file", (req, res) => {
 });
 
 router.post("/with_progress", (req, res) => {
+  if (additional.validatePath(req.files["g-sbrk-input"]["name"]) != true) {
+    res.status(403).send();
+    return;
+  }
   let sampleFile;
   let uploadPath;
 
