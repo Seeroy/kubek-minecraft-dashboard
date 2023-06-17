@@ -3,14 +3,14 @@ Kubek - Web Minecraft servers dashboard
 
 **Features:**
 - Linux and Windows supported
-- Pure Web UI with dark and light themes
+- Pure SPA UI
 - Plugins and mods manager
 - Real-time console
 - Server.properties editor
 - FTP server included
 - Web file manager
 - Users and roles system
-- Integration with Telegram bots
+- Integration with Telegram bot
 
 **Tested and working cores**:
 - **NEW** Bedrock Edition servers supported
@@ -18,10 +18,6 @@ Kubek - Web Minecraft servers dashboard
 - Spigot 1.8 - 1.18.2 (not included all versions)
 - Forge 1.12.2 - 1.19.2 (not included all versions)
 - Velocity 1.19.3
-
-**Not tested/not working properly/not supported cores:**
-- BungeeCord (_working with problems_)
-- TCauldron/Magma and other hybrid cores (_not tested_)
 
 **Natively supported cores:**
 - PaperMC
