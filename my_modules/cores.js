@@ -6,55 +6,76 @@ var options = {
   },
 };
 
-exports.getCoreURL = (core, cb) => {
-  core_ver = core.split(" ")[1];
-  core_name = core.split(" ")[0];
-  if (core_name == "Paper") {
-    request.get(
-      "https://papermc.io/api/v2/projects/paper/versions/" + core_ver,
-      options,
-      (error, res, body) => {
-        if (error) {
-          console.log(error);
-        }
+exports.getCoreURL_externalMethod = (url, version, cb) => {
+  request.get(url, options, (error, res, body) => {
+    if (error) {
+      return console.log(error);
+    }
 
-        if (!error && res.statusCode == 200) {
-          jsn = JSON.parse(body);
-          lastbuild = Math.max.apply(null, jsn.builds);
-          request.get(
-            "https://papermc.io/api/v2/projects/paper/versions/" +
-              core_ver +
-              "/builds/" +
-              lastbuild,
-            options,
-            (error, res, body) => {
-              if (error) {
-                console.log(error);
-              }
-
-              if (!error && res.statusCode == 200) {
-                jsn = JSON.parse(body);
-                url =
-                  "https://papermc.io/api/v2/projects/paper/versions/" +
-                  core_ver +
-                  "/builds/" +
-                  lastbuild +
-                  "/downloads/" +
-                  jsn.downloads.application.name;
-                cb(url);
-              }
-            }
-          );
-        }
-      }
-    );
-  }
+    if (!error && res.statusCode == 200) {
+      bparse = JSON.parse(body);
+      cb(bparse[version]);
+    }
+  });
 };
 
-exports.getPaperCores = (cb) => {
+exports.getCoreURL_purpurMethod = (version, cb) => {
+  cb("https://api.purpurmc.org/v2/purpur/" + version + "/latest/download");
+};
+
+exports.getCoreURL_magmaMethod = (version, cb) => {
+  cb("https://api.magmafoundation.org/api/v2/" + version + "/latest/download");
+};
+
+exports.getCoreURL_paperMethod = (core, version, cb) => {
+  request.get(
+    "https://papermc.io/api/v2/projects/" + core + "/versions/" + version,
+    options,
+    (error, res, body) => {
+      if (error) {
+        console.log(error);
+      }
+
+      if (!error && res.statusCode == 200) {
+        jsn = JSON.parse(body);
+        lastbuild = Math.max.apply(null, jsn.builds);
+        request.get(
+          "https://papermc.io/api/v2/projects/" +
+            core +
+            "/versions/" +
+            version +
+            "/builds/" +
+            lastbuild,
+          options,
+          (error, res, body) => {
+            if (error) {
+              console.log(error);
+            }
+
+            if (!error && res.statusCode == 200) {
+              jsn = JSON.parse(body);
+              url =
+                "https://papermc.io/api/v2/projects/" +
+                core +
+                "/versions/" +
+                version +
+                "/builds/" +
+                lastbuild +
+                "/downloads/" +
+                jsn.downloads.application.name;
+              cb(url);
+            }
+          }
+        );
+      }
+    }
+  );
+};
+
+exports.paperVersionsMethod = (core, cb) => {
   var jsona = [];
   request.get(
-    "https://papermc.io/api/v2/projects/paper",
+    "https://papermc.io/api/v2/projects/" + core,
     options,
     (error, res, body) => {
       if (error) {
@@ -62,20 +83,18 @@ exports.getPaperCores = (cb) => {
       }
 
       if (!error && res.statusCode == 200) {
-        coreName = "Paper";
         body = JSON.parse(body);
-        body.versions.forEach((version) => {
-          jsona.push(coreName + " " + version.split("-")[0]);
-        });
+        jsona = body.versions;
+        jsona.reverse();
         cb(jsona);
       }
     }
   );
 };
 
-exports.getSpigotCores = (cb) => {
+exports.magmaVersionsMethod = (cb) => {
   request.get(
-    "https://seeroy.github.io/spigots.json",
+    "https://api.magmafoundation.org/api/v2/allVersions",
     options,
     (error, res, body) => {
       if (error) {
@@ -83,8 +102,46 @@ exports.getSpigotCores = (cb) => {
       }
 
       if (!error && res.statusCode == 200) {
-        cb(JSON.parse(body));
+        body = JSON.parse(body);
+        cb(body);
       }
     }
   );
+};
+
+exports.purpurVersionsMethod = (cb) => {
+  var jsona = [];
+  request.get(
+    "https://api.purpurmc.org/v2/purpur/",
+    options,
+    (error, res, body) => {
+      if (error) {
+        return console.log(error);
+      }
+
+      if (!error && res.statusCode == 200) {
+        body = JSON.parse(body);
+        jsona = body.versions;
+        jsona.reverse();
+        cb(jsona);
+      }
+    }
+  );
+};
+
+exports.externalURLVersionsMethod = (url, cb) => {
+  var jsona = [];
+  request.get(url, options, (error, res, body) => {
+    if (error) {
+      return console.log(error);
+    }
+
+    if (!error && res.statusCode == 200) {
+      body = JSON.parse(body);
+      for (const [key, value] of Object.entries(body)) {
+        jsona.push(key);
+      }
+      cb(jsona);
+    }
+  });
 };

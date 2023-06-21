@@ -4,7 +4,7 @@ const JE_FORGEINS_START_URL = "/forgeInstaller/start";
 const JE_FORGEINS_PROGRESS_URL = "/forgeInstaller/progress";
 const JE_JAVA_DL_URL = "/downloader/downloadJavaForServer";
 const JE_JAVA_PATH_URL = "/downloader/getPathToJava";
-const JE_COMPLETION_URL = "/server/completion"
+const JE_COMPLETION_URL = "/server/completion";
 
 const JAVA_OPTIMIZE_LINE =
   "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=15";
@@ -82,7 +82,8 @@ class JavaServerCreator {
             true
           );
           $.get(
-            JE_FORGEINS_START_URL + "?server=" +
+            JE_FORGEINS_START_URL +
+              "?server=" +
               encodeURI(serverName) +
               "&filename=" +
               coreFileName
@@ -105,7 +106,8 @@ class JavaServerCreator {
 
                   if (javaEnabled == true) {
                     $.get(
-                      JE_JAVA_DL_URL + "?serverVersion=" +
+                      JE_JAVA_DL_URL +
+                        "?serverVersion=" +
                         gameVersion +
                         "&server=" +
                         serverName,
@@ -133,7 +135,8 @@ class JavaServerCreator {
         } else {
           if (javaEnabled == true) {
             $.get(
-              JE_JAVA_DL_URL + "?serverVersion=" +
+              JE_JAVA_DL_URL +
+                "?serverVersion=" +
                 gameVersion +
                 "&server=" +
                 serverName,
@@ -165,7 +168,13 @@ class JavaServerCreator {
   }
 
   static startTasks(url) {
-    coreFileName = url.split("/").slice(-1).pop();
+    if(selectedCoreBrand != "purpur" && selectedCoreBrand != "magma"){
+      coreFileName = url.split("/").slice(-1).pop();
+    } else if(selectedCoreBrand == "purpur"){
+      coreFileName = "Purpur-" + gameVersion + ".jar";
+    } else if(selectedCoreBrand == "magma"){
+      coreFileName = "Magma-" + gameVersion + ".jar";
+    }
     ServerWizardStepper.setActiveItemByID(
       JAVA_STEPPER_BLOCKS["downloading-core"]["id"],
       true
@@ -194,7 +203,8 @@ class JavaServerCreator {
     /* Creating Java download task (if needed) */
     if (javaEnabled == true) {
       $.get(
-        JE_JAVA_DL_URL + "?serverVersion=" +
+        JE_JAVA_DL_URL +
+          "?serverVersion=" +
           gameVersion +
           "&server=" +
           serverName,
@@ -216,13 +226,7 @@ class JavaServerCreator {
 
   static searchCore(cb) {
     $.get(
-      "/cores/" +
-        coreType +
-        "/search?core=" +
-        coreType.charAt(0).toUpperCase() +
-        coreType.slice(1) +
-        " " +
-        gameVersion,
+      "/cores/url?core=" + selectedCoreBrand + "&version=" + gameVersion,
       function (data) {
         if (data != "") {
           cb(data);
@@ -234,13 +238,10 @@ class JavaServerCreator {
   static taskCompleted(filename) {
     if (javaEnabled == true) {
       if (filename == "unpacking-java") {
-        $.get(
-          JE_JAVA_PATH_URL + "?server=" + serverName,
-          function (path) {
-            startLine = '"' + path + '"' + " " + $("#fsc").val();
-            JavaServerCreator.completeServerCreation();
-          }
-        );
+        $.get(JE_JAVA_PATH_URL + "?server=" + serverName, function (path) {
+          startLine = '"' + path + '"' + " " + $("#fsc").val();
+          JavaServerCreator.completeServerCreation();
+        });
       }
     } else {
       JavaServerCreator.completeServerCreation();
@@ -253,7 +254,8 @@ class JavaServerCreator {
       true
     );
     $.get(
-      JE_COMPLETION_URL + "?server=" +
+      JE_COMPLETION_URL +
+        "?server=" +
         encodeURI(serverName) +
         "&jf=" +
         coreFileName +

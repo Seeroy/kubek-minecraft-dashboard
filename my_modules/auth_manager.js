@@ -1,4 +1,5 @@
 var config = require("./config");
+//var serverController = require("./servers");
 var usersConfig = config.readUsersConfig();
 var SHA256 = require("crypto-js/sha256");
 var crypto = require("crypto");
@@ -223,6 +224,41 @@ exports.editUser = (login, permissions, mail) => {
   }
   return success;
 };
+
+/*exports.getUserServersAccessible = (req) => {
+  cfggg = config.readConfig();
+  if (cfggg.auth == true) {
+    hash = req.cookies["kbk__hash"];
+    login = req.cookies["kbk__login"];
+
+    auth = this.authorize(hash, login);
+    if (
+      auth == true &&
+      typeof login !== "undefined" &&
+      typeof hash !== "undefined" &&
+      login.length > 0 &&
+      hash.length > 0
+    ) {
+      if (
+        typeof usersConfig[login] !== "undefined" &&
+        typeof usersConfig[login].servers !== "undefined"
+      ) {
+        return usersConfig[login].servers;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  } else {
+    arr = [];
+    statuses = serverController.getStatuses();
+    Object.keys(statuses).forEach(key => {
+      arr.push(key);
+    });
+    return arr;
+  }
+};*/
 
 exports.getUserPermissions = (req) => {
   cfggg = config.readConfig();

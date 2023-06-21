@@ -1,9 +1,58 @@
+// Cores versions methods: 0 - papermc api, 1 - external url, 2 - purpurmc api, 3 - magma api
+// Cores url get method: 0 - papermc api, 1 - external url, 2 - purpurmc api, 3 - magma api
 var express = require("express");
 var router = express.Router();
 var additional = require("./../my_modules/additional");
 var cores = require("./../my_modules/cores");
 const auth_manager = require("./../my_modules/auth_manager");
 var config = require("./../my_modules/config");
+
+const CORES_CONFIG = {
+  vanilla: {
+    name: "vanilla",
+    displayName: "Mojang Vanilla Server",
+    versionsMethod: 1,
+    versionsUrl: "https://seeroy.github.io/vanilla.json",
+    urlGetMethod: 1
+  },
+  paper: {
+    name: "paper",
+    displayName: "PaperMC",
+    versionsMethod: 0,
+    urlGetMethod: 0
+  },
+  waterfall: {
+    name: "waterfall",
+    displayName: "Waterfall (Proxy)",
+    versionsMethod: 0,
+    urlGetMethod: 0
+  },
+  velocity: {
+    name: "velocity",
+    displayName: "Velocity (Proxy)",
+    versionsMethod: 0,
+    urlGetMethod: 0
+  },
+  purpur: {
+    name: "purpur",
+    displayName: "Purpur (PaperMC Fork)",
+    versionsMethod: 2,
+    urlGetMethod: 2
+  },
+  magma: {
+    name: "magma",
+    displayName: "Magma (Plugins + Mods)",
+    versionsMethod: 3,
+    urlGetMethod: 3
+  },
+  spigot: {
+    name: "spigot",
+    displayName: "Spigot",
+    versionsMethod: 1,
+    versionsUrl: "https://seeroy.github.io/spigots.json",
+    urlGetMethod: 1
+  },
+};
 
 router.use(function (req, res, next) {
   additional.showRequestInLogs(req, res);
@@ -25,47 +74,87 @@ router.use(function (req, res, next) {
   }
 });
 
-router.get("/paper/search", function (req, res) {
-  cores.getCoreURL(req.query.core, function (url) {
-    res.send(url);
-  });
-});
-
-router.get("/spigot/search", function (req, res) {
-  cv = req.query.core.split(" ")[1];
-  cores.getSpigotCores(function (cores) {
-    res.send(cores[cv]);
-  });
-});
-
-router.get("/spigot/list", function (req, res) {
-  cores.getSpigotCores(function (cores) {
-    res.send(cores);
-  });
-});
-
 router.get("/list", function (req, res) {
-  res.set("Content-Type", "application/json");
-  possbileCores = ["Spigot", "Paper"];
-  paperVers = [];
-  spigotVers = [];
-  cores.getPaperCores(function (cores_p) {
-    cores_p = cores_p.reverse();
-    cores_p.forEach(function (core) {
-      paperVers.push(core.split(" ")[1]);
-    });
-    cores.getSpigotCores(function (cores_s) {
-      Object.keys(cores_s).forEach(function (key, index) {
-        spigotVers.push(key);
-      }, cores_s);
-      let jsn = {
-        possible: possbileCores,
-        paper: paperVers,
-        spigot: spigotVers,
-      };
-      res.send(jsn);
-    });
-  });
+  res.json(CORES_CONFIG);
+});
+
+router.get("/versions", function (req, res) {
+  if (
+    typeof req.query.core !== "undefined" &&
+    typeof CORES_CONFIG[req.query.core] !== "undefined"
+  ) {
+    if (CORES_CONFIG[req.query.core].versionsMethod == 0) {
+      cores.paperVersionsMethod(
+        CORES_CONFIG[req.query.core].name,
+        function (versions) {
+          res.json(versions);
+        }
+      );
+    } else if (CORES_CONFIG[req.query.core].versionsMethod == 1) {
+      cores.externalURLVersionsMethod(
+        CORES_CONFIG[req.query.core].versionsUrl,
+        function (versions) {
+          res.json(versions);
+        }
+      );
+    } else if (CORES_CONFIG[req.query.core].versionsMethod == 2) {
+      cores.purpurVersionsMethod(
+        function (versions) {
+          res.json(versions);
+        }
+      );
+    } else if (CORES_CONFIG[req.query.core].versionsMethod == 3) {
+      cores.magmaVersionsMethod(
+        function (versions) {
+          res.json(versions);
+        }
+      );
+    }
+  } else {
+    res.send(false);
+  }
+});
+
+router.get("/url", function (req, res) {
+  if (
+    typeof req.query.core !== "undefined" &&
+    typeof CORES_CONFIG[req.query.core] !== "undefined" &&
+    typeof req.query.version !== "undefined"
+  ) {
+    if (CORES_CONFIG[req.query.core].urlGetMethod == 0) {
+      cores.getCoreURL_paperMethod(
+        CORES_CONFIG[req.query.core].name,
+        req.query.version,
+        function (url) {
+          res.send(url);
+        }
+      );
+    } else if (CORES_CONFIG[req.query.core].urlGetMethod == 1) {
+      cores.getCoreURL_externalMethod(
+        CORES_CONFIG[req.query.core].versionsUrl,
+        req.query.version,
+        function (url) {
+          res.send(url);
+        }
+      );
+    } else if (CORES_CONFIG[req.query.core].urlGetMethod == 2) {
+      cores.getCoreURL_purpurMethod(
+        req.query.version,
+        function (url) {
+          res.send(url);
+        }
+      );
+    } else if (CORES_CONFIG[req.query.core].urlGetMethod == 3) {
+      cores.getCoreURL_magmaMethod(
+        req.query.version,
+        function (url) {
+          res.send(url);
+        }
+      );
+    }
+  } else {
+    res.send(false);
+  }
 });
 
 module.exports = router;

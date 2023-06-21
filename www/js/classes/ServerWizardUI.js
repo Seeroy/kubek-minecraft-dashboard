@@ -1,4 +1,6 @@
 const GET_CORES_URL = "/cores/list";
+const CORES_BRANDS_URL = "/cores/list";
+const CORES_VERSIONS_URL = "/cores/versions";
 
 // UI CONTROLS CLASS
 
@@ -52,6 +54,36 @@ class ServerWizardUI {
     return true;
   }
 
+  static loadCoresBrands() {
+    $.get(CORES_BRANDS_URL, function (cores) {
+      $("#core-brands").append(
+        "<option selected disabled>{{select-core-sw}}</option>"
+      );
+      Object.entries(cores).forEach((entry) => {
+        const [codename, core] = entry;
+        $("#core-brands").append(
+          '<option value="' + core.name + '">' + core.displayName + "</option>"
+        );
+      });
+      $("#core-brands").append('<option value="own">{{upload}}</option>');
+    });
+  }
+
+  static loadCoreVersions() {
+    ServerWizardUI.setSpinnerVisible(true);
+    $.get(
+      CORES_VERSIONS_URL + "?core=" + selectedCoreBrand,
+      function (versions) {
+        $("#core-versions").html("");
+        versions.forEach(function (version) {
+          $("#core-versions").append("<option>" + version + "</option>");
+        });
+        gameVersion = versions[0];
+        ServerWizardUI.setSpinnerVisible(false);
+      }
+    );
+  }
+
   static setProgressCardText(text) {
     $("#progress-card p").html(text);
     return true;
@@ -88,12 +120,6 @@ class ServerWizardUI {
     }
   }
 
-  static getCoresList(cb) {
-    $.get(GET_CORES_URL, function (response) {
-      cb(response);
-    });
-  }
-
   static setupBinds() {
     $(
       "#new-server-wizard-drawer input:not(#xmx), #new-server-wizard-drawer textarea"
@@ -126,10 +152,18 @@ class ServerWizardUI {
     $("#core-brands").change(function () {
       ServerWizardUI.validateInputs();
       coreType = $("#core-brands option:selected").val();
-      if (coreType != "own") {
+      selectedCoreBrand = coreType;
+      if (selectedCoreBrand != "own") {
+        if (selectedCoreBrand == "magma") {
+          $("#magma-info-badge").removeClass("hidden");
+        } else {
+          $("#magma-info-badge").addClass("hidden");
+        }
         $("#core-versions").removeClass("hidden");
         $("#g-core-input").addClass("hidden");
-        ServerWizardUI.loadCores(coreType);
+        ServerWizardUI.loadCoreVersions(
+          $("#core-brands option:selected").val()
+        );
       } else {
         $("#core-versions").addClass("hidden");
         $("#g-core-input").removeClass("hidden");
@@ -138,7 +172,7 @@ class ServerWizardUI {
 
     $("#core-versions").change(function () {
       ServerWizardUI.validateInputs();
-      gameVersion = $("#core-versions option:selected").val();
+      gameVersion = $("#core-versions option:selected").text();
       $.get("/kubek/verToJava?version=" + gameVersion, function (jv) {
         $("#new-server-wizard-drawer .req-java").text(
           "{{recomm-java-msg-sw}} " + jv
@@ -197,21 +231,6 @@ class ServerWizardUI {
     $("#fsc").val(sl);
   }
 
-  static loadCores(coreType) {
-    $("#core-versions").html("");
-    console.log("[UI]", "Loading cores versions for " + coreType);
-    ServerWizardUI.getCoresList(function (cores) {
-      var crl = cores[coreType];
-      crl.forEach((ver) => {
-        $("#core-versions").append(
-          "<option value='" + ver + "'>" + ver + "</option>"
-        );
-      });
-      gameVersion = crl[0];
-      console.log("[UI]", "Successfully loaded cores list");
-    });
-  }
-
   static validateInputs() {
     var check_1 = false;
     var check_1_items = 0;
@@ -248,7 +267,9 @@ class ServerWizardUI {
       check_1 = true;
     }
 
-    if ($("#new-server-wizard-drawer .java-edition-only").css("display") != "none") {
+    if (
+      $("#new-server-wizard-drawer .java-edition-only").css("display") != "none"
+    ) {
       if (
         $("#new-server-wizard-drawer #core-brands option:selected").val() ==
         "own"
@@ -316,6 +337,15 @@ class ServerWizardUI {
         "#new-server-wizard-drawer button.text-gray-400.bg-transparent"
       ).removeClass("hidden");
       $("#progress-card").addClass("hidden");
+    }
+    ServerWizardUI.validateInputs();
+  }
+
+  static setSpinnerVisible(isVisible) {
+    if (isVisible == true) {
+      $("#new-server-wizard-drawer #sw-spinner").removeClass("hidden");
+    } else {
+      $("#new-server-wizard-drawer #sw-spinner").addClass("hidden");
     }
     ServerWizardUI.validateInputs();
   }

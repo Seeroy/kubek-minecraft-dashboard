@@ -73,20 +73,7 @@ router.get("/login", function (req, res) {
 });
 
 router.get("/permissions", function (req, res) {
-  cfg = config.readConfig();
-  if (cfg["auth"] == true) {
-    perms = auth_manager.getUserPermissions(req);
-    res.send(perms);
-  } else {
-    res.send([
-      "console",
-      "plugins",
-      "filemanager",
-      "server_settings",
-      "kubek_settings",
-      "backups",
-    ]);
-  }
+  res.send(auth_manager.getUserPermissions(req));
 });
 
 router.get("/listUsers", function (req, res) {

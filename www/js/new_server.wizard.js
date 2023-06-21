@@ -1,6 +1,7 @@
 var trackingDownloads = {};
 var snameRegex = /^[a-zA-Z0-9_.-]*$/gm;
 var selectedGameType = "java";
+var selectedCoreBrand = "";
 var serverName,
   onlineMode,
   port,
@@ -14,6 +15,7 @@ var serverName,
   $(document).ready(function () {
     ServerWizardUI.setDefaultValues();
     ServerWizardUI.setupBinds();
+    ServerWizardUI.loadCoresBrands();
   });
   
   /* OTHER USEFUL FUNCTIONS */

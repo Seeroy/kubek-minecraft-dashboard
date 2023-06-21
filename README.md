@@ -20,9 +20,13 @@ Kubek - Web Minecraft servers dashboard
 - Velocity 1.19.3
 
 **Natively supported cores:**
+- Official Vanilla Server
 - PaperMC
 - Spigot
-- CraftBukkit
+- Waterfall
+- Velocity
+- Purpur
+- Magma
 - Forge (upload installer)
 
 # Installation

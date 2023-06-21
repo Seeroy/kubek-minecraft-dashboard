@@ -398,3 +398,7 @@ function uploadSbrk() {
     request.send(formData);
   });
 }
+
+function recountServers(){
+  $("#servers-count").text("(" + $("#servers-list-drawer .flex .mt-2.p-4.bg-gray-300").length + ")");
+}

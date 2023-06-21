@@ -218,6 +218,7 @@
   "{{ver-notexist-sw}}": "No server exists for this version",
   "{{unpacking-core-sw}}": "Unpacking core files",
   "{{checking-core-sw}}": "Verifying core",
+  "{{magma-api-info-sw}}": "Sometimes there are problems accessing the Magma API",
 
   "{{java-incomp-error}}": "Perhaps you have a version of Java that is incompatible with this version of the server, you can change the version of Java in the server settings",
   "{{java-path-error}}": "Server startup file possible contains outdated information. Try to go to the server settings and select the appropriate Java version / change the current one",
