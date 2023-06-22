@@ -193,7 +193,7 @@ $(document).ready(function () {
   }
 
   $("#menu-tabs-list li button").click(function (e) {
-    if (!$(this).hasClass("active")) {
+    if (!$(this).hasClass("active") && typeof $(this).data("page") !== "undefined") {
       if ($("#servers-list-drawer .content div.bg-gray-300").length > 0) {
         pg = $(this).data("page");
         gotoPage(pg);

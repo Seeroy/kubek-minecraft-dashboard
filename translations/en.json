@@ -312,5 +312,9 @@
 
   "{{search-pl-repo}}": "Search",
   "{{search-placeholder-pl-repo}}": "Add-on name or keywords",
-  "{{nodl-pl-repo}}": "Currently it's not possible to implement automatic downloads, sorry :)"
+  "{{nodl-pl-repo}}": "Currently it's not possible to implement automatic downloads, sorry :)",
+  
+  "{{modulesys-failed}}": "Failed to load module ",
+  "{{modulesys-success}}": "Successfully loaded module ",
+  "{{modulesys}}": "Extensions"
 }

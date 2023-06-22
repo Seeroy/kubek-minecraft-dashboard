@@ -1,4 +1,4 @@
-// Kubek version
+ // Kubek version
 global.kubek_version = "v2.1.8";
 
 // Variables and constants initialization
@@ -31,10 +31,11 @@ const additional = require("./my_modules/additional");
 const serverController = require("./my_modules/servers");
 const auth_manager = require("./my_modules/auth_manager");
 const tgbot_manager = require("./my_modules/tgbot");
+const modulesys = require("./my_modules/modulesys");
 
 // Express initialization
 const express = require("express");
-const app = express();
+global.app = express();
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 
@@ -50,6 +51,7 @@ var upload_router = require("./routers/upload");
 var fmapi_router = require("./routers/fmapi");
 var forgeInstaller_router = require("./routers/forgeInstaller");
 var backups_router = require("./routers/backups");
+var extensions_router = require("./routers/extensions");
 
 // Other modules init
 var mime = require("mime");
@@ -183,6 +185,7 @@ app.use("/downloader/download", authLimiter3);
 app.use("/server/completion", authLimiter3);
 app.use("/server/bedrock/completion", authLimiter3);
 app.use("/plugins", authLimiter3);
+
 
 global.serverjson_cfg = config.readServersJSON();
 for (var i in serverjson_cfg) {
@@ -421,3 +424,6 @@ app.use("/fmapi", fmapi_router);
 app.use("/upload", upload_router);
 app.use("/forgeInstaller", forgeInstaller_router);
 app.use("/backups", backups_router);
+app.use("/extensions", extensions_router);
+
+modulesys.loadAllModules();

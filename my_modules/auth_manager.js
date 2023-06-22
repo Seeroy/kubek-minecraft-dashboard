@@ -293,6 +293,7 @@ exports.getUserPermissions = (req) => {
       "server_settings",
       "kubek_settings",
       "backups",
+      "ext_manager"
     ];
     return arr;
   }
