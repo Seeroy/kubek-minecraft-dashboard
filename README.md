@@ -29,6 +29,10 @@ Kubek - Web Minecraft servers dashboard
 - Magma
 - Forge (upload installer)
 
+# Extensions system
+
+To create your own extension use [this example repo](https://github.com/Seeroy/kubek-extension-example)
+
 # Installation
 
 Download and launch [latest release](https://github.com/Seeroy/kubek-minecraft-dashboard/releases/latest)
