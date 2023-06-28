@@ -316,5 +316,8 @@
   
   "{{modulesys-failed}}": "Failed to load module ",
   "{{modulesys-success}}": "Successfully loaded module ",
-  "{{modulesys}}": "Extensions"
+  "{{modulesys}}": "Extensions",
+  
+  "{{eula-accept-chk}}": "I agree to all clauses of the above license agreement",
+  "{{eula-title}}": "Please read this license agreement carefully"
 }

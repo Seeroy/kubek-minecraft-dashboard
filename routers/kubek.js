@@ -104,6 +104,25 @@ router.get("/version", function (req, res) {
   res.send(kubek_version);
 });
 
+router.get("/acceptEULA", function (req, res) {
+  cfg = config.readConfig();
+  if(typeof cfg['eula'] !== "undefined" && cfg.eula == false){
+    cfg.eula = true;
+    config.writeConfig(cfg);
+  }
+});
+
+router.get("/eula", function (req, res) {
+  cfgg = config.readConfig();
+  lang = cfgg["lang"];
+  lfpath = path.join(__dirname, "./../translations/license_" + lang + ".lic");
+  if(fs.existsSync(lfpath)){
+    res.send(fs.readFileSync(lfpath).toString());
+  } else {
+    res.send("There is no license file for `" + lang + "` language");
+  }
+});
+
 router.get("/bgList", function (req, res) {
   perms = auth_manager.getUserPermissions(req);
   if (perms.includes(ACCESS_PERMISSION)) {

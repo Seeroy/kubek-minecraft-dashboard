@@ -1,53 +1,3 @@
-// Theme switch button script (DISCONTINUED)
-/*$(document).ready(function () {
-  if (
-    localStorage.getItem("currentTheme") === "dark" ||
-    (!("currentTheme" in localStorage) &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  ) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
-
-  var themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon");
-  var themeToggleLightIcon = document.getElementById("theme-toggle-light-icon");
-
-  if (
-    localStorage.getItem("currentTheme") === "dark" ||
-    (!("currentTheme" in localStorage) &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  ) {
-    themeToggleLightIcon.classList.remove("hidden");
-  } else {
-    themeToggleDarkIcon.classList.remove("hidden");
-  }
-
-  var themeToggleBtn = document.getElementById("theme-toggle");
-
-  themeToggleBtn.addEventListener("click", function () {
-    themeToggleDarkIcon.classList.toggle("hidden");
-    themeToggleLightIcon.classList.toggle("hidden");
-    if (localStorage.getItem("currentTheme")) {
-      if (localStorage.getItem("currentTheme") === "light") {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("currentTheme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("currentTheme", "light");
-      }
-    } else {
-      if (document.documentElement.classList.contains("dark")) {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("currentTheme", "light");
-      } else {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("currentTheme", "dark");
-      }
-    }
-  });
-});*/
-
 // Main script
 console.log("[UI] Starting Kubek UI...");
 const queryString = window.location.search;
@@ -81,6 +31,14 @@ $(document).ready(function () {
       }
     }
   );
+
+  $("#eula-accept-modal input").prop("checked", false);
+
+  $("#eula-accept-modal input").change(function () {
+    $("#eula-accept-modal input").is(":checked") == true
+      ? $("#eula-accept-modal button").removeClass("hidden")
+      : $("#eula-accept-modal button").addClass("hidden");
+  });
 
   if ($("#g-img-input")[0].value != "") {
     var formData = new FormData($("#g-img-form")[0]);
@@ -138,6 +96,12 @@ $(document).ready(function () {
     if (data.auth == false) {
       $("#logout-button").hide();
     }
+    if (data.eula == false) {
+      $.get("/kubek/eula", function (data) {
+        $("#eula-accept-modal .eula-fill").text(data);
+      });
+      showModal("eula-accept-modal", "fadeIn");
+    }
   });
 
   $("#kubek-settings-button").click(function () {
@@ -193,7 +157,10 @@ $(document).ready(function () {
   }
 
   $("#menu-tabs-list li button").click(function (e) {
-    if (!$(this).hasClass("active") && typeof $(this).data("page") !== "undefined") {
+    if (
+      !$(this).hasClass("active") &&
+      typeof $(this).data("page") !== "undefined"
+    ) {
       if ($("#servers-list-drawer .content div.bg-gray-300").length > 0) {
         pg = $(this).data("page");
         gotoPage(pg);
@@ -287,7 +254,8 @@ $(document).ready(function () {
           if (
             $(".console-container").length > 0 &&
             data.server == window.localStorage.selectedServer &&
-            $("#autoupdateConsoleCheckbox").is(":checked") && typeof refreshConsole == "function"
+            $("#autoupdateConsoleCheckbox").is(":checked") &&
+            typeof refreshConsole == "function"
           ) {
             refreshConsole(data.data);
           }
@@ -399,6 +367,13 @@ function uploadSbrk() {
   });
 }
 
-function recountServers(){
-  $("#servers-count").text("(" + $("#servers-list-drawer .flex .mt-2.p-4.bg-gray-300").length + ")");
+function recountServers() {
+  $("#servers-count").text(
+    "(" + $("#servers-list-drawer .flex .mt-2.p-4.bg-gray-300").length + ")"
+  );
+}
+
+function acceptEULA() {
+  hideModal("eula-accept-modal");
+  $.get("/kubek/acceptEULA");
 }

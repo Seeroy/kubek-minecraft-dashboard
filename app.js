@@ -1,5 +1,5 @@
  // Kubek version
-global.kubek_version = "v2.1.8";
+global.kubek_version = "v2.1.9";
 
 // Variables and constants initialization
 global.pendingTasks = {};

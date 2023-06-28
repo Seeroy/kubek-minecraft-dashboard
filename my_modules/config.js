@@ -1,7 +1,7 @@
 const fs = require("fs");
 const CONFIG_VERSION = 1;
 const defaultConfig =
-  '{"lang":"en", "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"internet-access":true,"save-logs":true,"config-version":1,"tgbot-enabled":false,"tgbot-token":null,"tgbot-chatid":[],"webserver-port":3000,"socket-port":3001}';
+  '{"lang":"en", "eula":false, "ftpd":false,"ftpd-user":"kubek","ftpd-password":"kubek","auth":false,"internet-access":true,"save-logs":true,"config-version":1,"tgbot-enabled":false,"tgbot-token":null,"tgbot-chatid":[],"webserver-port":3000,"socket-port":3001}';
 const defaultUsersConfig =
   '{"kubek": {"username": "kubek","password": "72ba608dbfac8d46d4aaf40f428badf85af1f929fece7480e56602b4452a71fe","mail": "","hash": "","permissions": ["console", "plugins", "filemanager", "server_settings", "kubek_settings", "backups", "ext_manager"]}}';
 const BASE_DIRS = ["backups", "logs", "servers"];
@@ -16,6 +16,9 @@ exports.readConfig = () => {
   } else {
     parse = JSON.parse(fs.readFileSync("config.json"));
     // FOR BACKWARD COMPABILITY
+    if (typeof parse["eula"] === "undefined") {
+      parse["eula"] = false;
+    }
     if (typeof parse["internet-access"] === "undefined") {
       parse["internet-access"] = false;
     }
@@ -47,11 +50,11 @@ exports.readConfig = () => {
       parse["owner-user"] = "";
       delete parse["owner-password"];
       delete parse["owner-user"];
-      this.writeConfig(parse);
     }
     if (typeof parse["save-logs"] === "undefined") {
       parse["save-logs"] = false;
     }
+    this.writeConfig(parse);
     return parse;
   }
 };

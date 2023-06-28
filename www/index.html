@@ -1912,3 +1912,25 @@
     <div class="flex flex-col content"></div>
   </div>
 </html>
+
+<div class="modal-black-bg" id="eula-accept-modal" style="display: none">
+  <div
+    class="modal-layout bg-gray-100 dark:bg-gray-900"
+    style="width: 35%; height: max-content"
+  >
+  <p class="text-black dark:text-white text-xl mb-2">{{eula-title}}</p>
+    <textarea id="message" rows="24" class="eula-fill block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" readonly></textarea>
+
+    <div class="flex items-center mb-1 mt-1">
+      <input id="eula-accept-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
+      <label for="eula-accept-checkbox" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{eula-accept-chk}}</label>
+  </div>
+    <button
+      type="button"
+      class="hidden focus:outline-none text-white bg-purple-700 hover:bg-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 ms-3"
+      onclick="acceptEULA()"
+    >
+      {{save}}
+    </button>
+  </div>
+</div>
