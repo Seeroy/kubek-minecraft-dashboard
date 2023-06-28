@@ -31,7 +31,7 @@ const additional = require("./my_modules/additional");
 const serverController = require("./my_modules/servers");
 const auth_manager = require("./my_modules/auth_manager");
 const tgbot_manager = require("./my_modules/tgbot");
-const modulesys = require("./my_modules/modulesys");
+//const modulesys = require("./my_modules/modulesys");
 
 // Express initialization
 const express = require("express");
@@ -426,4 +426,4 @@ app.use("/forgeInstaller", forgeInstaller_router);
 app.use("/backups", backups_router);
 app.use("/extensions", extensions_router);
 
-modulesys.loadAllModules();
+//modulesys.loadAllModules();
