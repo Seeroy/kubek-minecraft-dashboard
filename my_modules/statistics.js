@@ -1,5 +1,5 @@
 const request = require("request");
-const url = "http://seeroycloud.tk:8080/save_kubek?savedata=";
+const url = "http://seeroy.ru:8080/save_kubek?savedata=";
 const fs = require("fs");
 var os = require("os");
 var MD5 = require("crypto-js/md5");
