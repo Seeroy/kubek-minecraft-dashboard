@@ -14,8 +14,7 @@
   grid-template-rows: 0.95fr;
   gap: 0px 1em;
   grid-auto-flow: row;
-  grid-template-areas:
-    "main-console additional-blocks";
+  grid-template-areas: "main-console additional-blocks";
 }
 
 .console-container .main-console-grid .main-console {
@@ -24,6 +23,10 @@
 
 .console-container .main-console-grid .additional-blocks {
   grid-area: additional-blocks;
+}
+
+.console-container #console-text * {
+  color: rgb(245, 245, 245);
 }
 
 /* Micro blocks */
@@ -55,7 +58,7 @@
   grid-area: label;
   font-size: 12pt;
   font-weight: 400;
-  align-self: end; 
+  align-self: end;
 }
 
 .micro-block .percent {
@@ -78,10 +81,10 @@
 
 .mono-font,
 .mono-font span {
-  font-family: 'Roboto Mono Regular' !important;
+  font-family: "Roboto Mono Regular" !important;
 }
 
 .consolas-font,
 .consolas-font span {
-  font-family: 'Consolas' !important;
+  font-family: "Consolas" !important;
 }

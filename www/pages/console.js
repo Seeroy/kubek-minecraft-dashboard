@@ -96,31 +96,10 @@ function setCTFontFamily(fs) {
 function refreshConsole(data) {
   split = data.split(/\r?\n/);
   $("#console-text").html("");
-
+  
   split.forEach(function (line) {
-    line = mineParse(line.replaceAll("<", "&lt;")).parsed.innerHTML;
-
-    htmlObject = document.createElement("div");
-    htmlObject.innerHTML = line;
-    if (htmlObject.firstChild.firstChild != null) {
-      html_text =
-        htmlObject.firstChild.firstChild.wholeText.replaceAll("<", "&lt;") +
-        "<br>";
-      if (htmlObject.firstChild.style.color != "") {
-        stl = "color:" + htmlObject.firstChild.style.color + " !important;";
-      } else {
-        stl = "";
-      }
-      html_text = linkify(html_text);
-      html_text =
-        "<span class='text-black dark:text-white' style='" +
-        stl +
-        "'>" +
-        html_text +
-        "</span>";
-
-      $("#console-text").html($("#console-text").html() + html_text);
-    }
+    html_text = linkify(mineParse(line).raw) + "<br>";
+    $("#console-text").html($("#console-text").html() + html_text);
   });
   if ($("#autoscrollConsoleCheckbox").is(":checked")) {
     $("#console-text").scrollTop($("#console-text")[0].scrollHeight);
