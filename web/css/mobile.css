@@ -30,6 +30,10 @@
                 ". content-header ."
                 ". content ." !important;
     }
+
+    .ksettings-container table {
+        width: 90vw !important;
+    }
 }
 
 @media (max-width: 600px) {

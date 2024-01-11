@@ -18,7 +18,7 @@
 }
 
 .ksettings-container table {
-    width: 50vw;
+    width: 63vw;
     table-layout: fixed;
     margin: 12px 0;
 }
@@ -44,6 +44,7 @@
     max-height: 350px;
     min-width: 140px;
     max-width: 327px;
+    font-family: "Roboto Mono", monospace;
 }
 
 .ksettings-container tr td .flexWrapper {

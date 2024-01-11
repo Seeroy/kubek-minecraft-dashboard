@@ -3,17 +3,15 @@ Kubek - Web Minecraft servers dashboard
 
 **Features:**
 - Linux and Windows supported
-- Pure SPA UI
+- Pure single-page UI
 - Plugins and mods manager
 - Real-time console
 - Server.properties editor
-- FTP server included
-- Web file manager
-- Users and roles system
-- Integration with Telegram bot
+- FTP server
+- File manager with syntax highlighting
+- Users and roles system with servers access restriction
 
 **Tested and working cores**:
-- **NEW** Bedrock Edition servers supported
 - All popular PaperMC versions (all PaperMC forks (Tuinity, Airplane, Purpur, etc.) more likely will be work too)
 - Spigot 1.8 - 1.18.2 (not included all versions)
 - Forge 1.12.2 - 1.19.2 (not included all versions)
@@ -27,11 +25,6 @@ Kubek - Web Minecraft servers dashboard
 - Velocity
 - Purpur
 - Magma
-- Forge (upload installer)
-
-# Extensions system
-
-To create your own extension use [this example repo](https://github.com/Seeroy/kubek-extension-example)
 
 # Installation
 
@@ -49,11 +42,5 @@ npm install
 
 Start after installation
 ```
-node app.js
+npm start
 ```
-
-# Used frameworks/technologies
-- Node.js
-- Express
-- Socket.io
-- Flowbite

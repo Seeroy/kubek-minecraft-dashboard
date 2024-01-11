@@ -11,7 +11,7 @@ exports.createNewAccount = (login, password, permissions = [], email = "", serve
             if (email === "" || email.match(PREDEFINED.EMAIL_REGEX) != null) {
                 // Создаём недостающие переменные
                 let serversRestricted = false;
-                let userHash = crypto.randomUUID().toString();
+                let userHash = SECURITY.generateSecureID();
                 if (servers.length > 0) {
                     serversRestricted = true;
                 }
@@ -55,7 +55,7 @@ exports.updateAccount = (login, password = "", permissions = [], email = "", ser
                 usersConfig[login].serversAllowed = servers;
                 if (password !== "") {
                     usersConfig[login].password = SHA256(password).toString();
-                    usersConfig[login].secret = crypto.randomUUID().toString();
+                    usersConfig[login].secret = SECURITY.generateSecureID();
                 }
                 CONFIGURATION.writeUsersConfig(usersConfig);
                 return true;
@@ -69,7 +69,7 @@ exports.updateAccount = (login, password = "", permissions = [], email = "", ser
 exports.regenUserHash = (login) => {
     CONFIGURATION.reloadAllConfigurations();
     if (SECURITY.isUserExists(login)) {
-        usersConfig[login].secret = crypto.randomUUID().toString();
+        usersConfig[login].secret = SECURITY.generateSecureID();
         CONFIGURATION.writeUsersConfig(usersConfig);
         return true;
     }
