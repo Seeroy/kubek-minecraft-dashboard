@@ -1,0 +1,42 @@
+/* RadioButton - ряд кнопок с поведением radio */
+.radioButtons {
+    display: flex;
+    border-radius: 4px;
+    padding: 8px;
+    flex-direction: row;
+    min-height: 36px;
+    background: var(--bg-dark);
+}
+
+.radioButtons .item {
+    margin: 0 3px;
+    min-height: 36px;
+    min-width: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    border-radius: 4px;
+}
+
+.radioButtons .item.active {
+    background: var(--bg-dark-accent-light);
+}
+
+.radioButtons .item.active * {
+    color: var(--text-color);
+}
+
+.radioButtons .item:not(.active) * {
+    color: var(--bg-primary-900);
+}
+
+.radioButtons .item:not(.active) {
+    cursor: pointer;
+}
+
+.radioButtons .item:not(.active):hover {
+    background: var(--bg-dark-accent-light);
+}
+
+/* Developed by Seeroy */

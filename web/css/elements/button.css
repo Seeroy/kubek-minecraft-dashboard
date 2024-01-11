@@ -1,0 +1,54 @@
+button {
+  appearance: none;
+  outline: none;
+  border: 0;
+  padding: 12px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: 14pt;
+  cursor: pointer;
+}
+
+button.dark-btn {
+  background: var(--bg-dark-accent);
+}
+
+button.dark-btn:hover {
+  background: var(--bg-dark-accent-light);
+}
+
+button.primary-btn:hover {
+  background: var(--bg-primary-600);
+}
+
+button.primary-btn {
+  background: var(--bg-primary-500);
+}
+
+button.icon-only {
+  padding: 8px;
+}
+
+button.icon-only * {
+  font-size: 22pt;
+}
+
+button span:last-child:not(.material-symbols-rounded) {
+  margin-left: 8px;
+  margin-right: 4px;
+  font-size: 12pt;
+}
+
+button:disabled,
+button:disabled:hover,
+button:disabled:focus {
+  cursor: not-allowed !important;
+  background: var(--bg-dark-accent) !important;
+}
+
+/* Developed by Seeroy */

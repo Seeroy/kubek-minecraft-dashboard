@@ -1,0 +1,102 @@
+<link rel="stylesheet" href="/pages/newServer.css"/>
+
+<!-- Форма для загрузки своего ядра -->
+<form id="server-core-form" enctype="multipart/form-data">
+    <input
+            name="server-core-input"
+            id="server-core-input"
+            class="superHide"
+            type="file"
+            accept=".jar"
+    />
+</form>
+
+<!-- Главный контейнер -->
+<div class="new-server-container animate__animated animate__fadeIn animate__faster">
+    <h2>{{newServerWizard.title}}</h2>
+
+    <!-- Первый этап: Название сервера -->
+    <div class="stage">
+        <div class="stage-header">
+            <div class="stage-circle">1</div>
+            <h3>{{newServerWizard.enterServerName}}</h3>
+        </div>
+        <label>
+            <input type="text" placeholder="{{newServerWizard.serverNameInput}}" id="server-name-input">
+        </label>
+    </div>
+
+    <!-- Второй этап: Выбор ядра -->
+    <div class="stage">
+        <div class="stage-header">
+            <div class="stage-circle">2</div>
+            <h3>{{newServerWizard.selectCore}}</h3>
+        </div>
+        <!-- Выбор категории ядра -->
+        <div class="radioButtons" id="core-category">
+            <div class="item active" data-item="list">{{newServerWizard.fromList}}</div>
+            <div class="item" data-item="upload">{{newServerWizard.uploadOwn}}</div>
+        </div>
+        <!-- Список ядер -->
+        <div class="cardsGrid" id="cores-grid"></div>
+        <!-- Список версии ядра -->
+        <div id="cores-versions-parent">
+            <h3>{{newServerWizard.coreVersion}}</h3>
+            <div id="cores-versions"></div>
+        </div>
+        <!-- Загрузка своего ядра -->
+        <div id="core-upload" onclick="uploadCore()" style="display: none">
+            <span class="material-symbols-rounded">cloud_upload</span>
+            <h2>{{commons.uploadFile}}</h2>
+            <h4>{{commons.supportedFileTypes}} .jar</h4>
+            <h5 id="uploaded-file-name"></h5>
+        </div>
+    </div>
+
+    <!-- Третий этап: Завершающие настройки -->
+    <div class="stage">
+        <div class="stage-header">
+            <div class="stage-circle">3</div>
+            <h3>{{newServerWizard.finalSettings}}</h3>
+        </div>
+        <!-- Список версий Java -->
+        <h3>{{newServerWizard.javaVersion}}</h3>
+        <div id="java-list-placeholder">
+            <div class="lds-spinner"><div></div><div></div><div></div></div>
+        </div>
+        <div class="checksList developed-by-seeeroy" id="javas-list" style="display: none"></div>
+
+        <div style="display: flex;">
+            <!-- Выбор количества памяти -->
+            <div style="display: flex; flex-direction: column; width: 100%; margin: 0 6px;">
+                <h3>{{newServerWizard.ramSelect}}</h3>
+                <label style="display: flex; align-items: center;">
+                    <input type="number" min="0.5" step="0.5" id="server-mem" style="width: max-content;">
+                    <h3 style="margin-left: 8px;">GB</h3>
+                </label>
+            </div>
+
+            <!-- Выбор порта -->
+            <div style="display: flex; flex-direction: column; width: 100%; margin: 0 6px;">
+                <h3>{{newServerWizard.serverPort}}</h3>
+                <label>
+                    <input type="number" min="1025" step="1" max="60000" value="25565" id="server-port" style="width: max-content;">
+                </label>
+            </div>
+        </div>
+
+        <!-- Применять ли флаги оптимизации? -->
+        <input type="checkbox" style="display: none;" class="checkbox" id="add-aikar-flags" name="add-aikar-flags">
+        <label for="add-aikar-flags" style=" margin: 12px 0;">{{newServerWizard.useAikarFlags}}</label>
+
+        <button class="primary-btn" id="create-server-btn" onclick="prepareServerCreation()">
+            <span class="material-symbols-rounded">build</span>
+            <span class="material-symbols-rounded spinning" style="display: none">settings</span>
+            <span class="text">Неверное имя сервера</span>
+        </button>
+
+        <div style="text-align: center; display: flex; align-items: center; justify-content: center; margin: 24px 0;">
+            <h3 id="after-creation-text" style="display: none;"></h3>
+        </div>
+    </div>
+</div>

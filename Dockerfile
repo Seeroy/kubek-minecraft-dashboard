@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:21
 
 # Create app directory
 WORKDIR /usr/kubek
@@ -11,5 +11,5 @@ RUN npm install
 COPY . .
 
 # Add using ports
-EXPOSE 3000 3001
+EXPOSE 3000
 CMD ["npm", "start"]

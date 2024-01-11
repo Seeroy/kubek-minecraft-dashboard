@@ -1,86 +1,62 @@
-var express = require("express");
-var router = express.Router();
-var fs = require("fs");
-var additional = require("./../my_modules/additional");
-var config = require("./../my_modules/config");
-var plugins = require("./../my_modules/plugins");
-const auth_manager = require("./../my_modules/auth_manager");
+const FILE_MANAGER = require("./../modules/fileManager");
+const SERVERS_MANAGER = require("./../modules/serversManager");
+const COMMONS = require("./../modules/commons");
+const WEBSERVER = require("../modules/webserver");
 
-const ACCESS_PERMISSION = "plugins";
+const express = require("express");
+const router = express.Router();
 
-router.use(function (req, res, next) {
-  additional.showRequestInLogs(req, res);
-  cfg = config.readConfig();
-  ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-  ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
-  if (cfg["internet-access"] == false && ip != "127.0.0.1") {
-    res.send("Cannot be accessed from the internet");
-  } else {
-    authsucc = auth_manager.authorize(
-      req.cookies["kbk__hash"],
-      req.cookies["kbk__login"]
-    );
-    perms = auth_manager.getUserPermissions(req);
-    if (perms.includes(ACCESS_PERMISSION)) {
-      next();
+// Endpoint списка плагинов
+router.get("/:server", WEBSERVER.serversRouterMiddleware, function (req, res) {
+    let q = req.params;
+    if (COMMONS.isObjectsValid(q.server) && SERVERS_MANAGER.isServerExists(q.server)) {
+        FILE_MANAGER.scanDirectory(q.server, "/plugins", (result) => {
+            if (result === false) {
+                return res.send([]);
+            }
+            let resultArray = [];
+            result.forEach((item) => {
+                if (item.type === "file") {
+                    resultArray.push(item.name);
+                }
+            });
+            res.send(resultArray);
+        });
     } else {
-      res.redirect("/login.html");
+        res.sendStatus(400);
     }
-  }
 });
 
-router.get("/installed", function (req, res) {
-  if(additional.validatePath(req.query.server) != true){
-    res.status(403).send();
-    return;
-  }
-  res.set("content-type", "application/json");
-  if (fs.existsSync("./servers/" + req.query.server + "/plugins")) {
-    res.send(plugins.getInstalledPlugins(req.query.server));
-  } else {
-    res.send(JSON.stringify([]));
-  }
+// Endpoint для загрузки плагина
+router.post("/:server", WEBSERVER.serversRouterMiddleware, function (req, res) {
+    let q = req.params;
+    let sourceFile;
+    // Проверяем присутствие файлов в запросе
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).send("No files were uploaded.");
+    }
+
+    sourceFile = req.files["server-plugin-input"];
+    // DEVELOPED by seeeroy
+
+    COMMONS.moveUploadedFile(q.server, sourceFile, "/plugins/" + sourceFile.name, (result) => {
+        if (result === true) {
+            return res.send(true);
+        }
+        console.log(result);
+        res.sendStatus(400);
+    })
 });
 
-router.get("/installedMods", function (req, res) {
-  if(additional.validatePath(req.query.server) != true){
-    res.status(403).send();
-    return;
-  }
-  res.set("content-type", "application/json");
-  if (fs.existsSync("./servers/" + req.query.server + "/mods")) {
-    res.send(plugins.getInstalledMods(req.query.server));
-  } else {
-    res.send(JSON.stringify([]));
-  }
+// Endpoint удаления плагина
+router.delete("/:server", WEBSERVER.serversRouterMiddleware, function (req, res) {
+    let q = req.params;
+    let q2 = req.query;
+    if (COMMONS.isObjectsValid(q.server, q2.plugin) && SERVERS_MANAGER.isServerExists(q.server)) {
+        let delResult = FILE_MANAGER.deleteFile(q.server, "/plugins/" + q2.plugin);
+        return res.send(delResult);
+    }
+    res.sendStatus(400);
 });
 
-router.get("/deleteMod", function (req, res) {
-  if(additional.validatePath(req.query.server) != true && additional.validatePath(req.query.file) != true){
-    res.status(403).send();
-    return;
-  }
-  plugins.deleteInstalledMod(req.query.server, req.query.file);
-  res.send("Success");
-});
-
-router.get("/changeStatus", function (req, res) {
-  plugins.changeStatus(
-    req.query.server,
-    req.query.type,
-    req.query.file,
-    req.query.status
-  );
-  res.send("Success");
-});
-
-router.get("/delete", function (req, res) {
-  if(additional.validatePath(req.query.server) != true && additional.validatePath(req.query.file) != true){
-    res.status(403).send();
-    return;
-  }
-  plugins.deleteInstalledPlugin(req.query.server, req.query.file);
-  res.send("Success");
-});
-
-module.exports = router;
+module.exports.router = router;

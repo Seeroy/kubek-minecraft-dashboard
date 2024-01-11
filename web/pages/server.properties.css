@@ -1,0 +1,26 @@
+.speditor-container {
+  width: 100%;
+  height: 62vh;
+}
+
+.speditor-container .tableWrapper {
+  overflow: auto;
+  height: 61vh;
+  margin: 12px 0;
+  width: max-content;
+}
+
+#sp-table {
+  width: 50vw;
+  table-layout: fixed;
+}
+
+#sp-table,
+#sp-table tr,
+#sp-table td {
+  background: var(--bg-dark-accent);
+}
+
+#sp-table input {
+  background: var(--bg-dark);
+}

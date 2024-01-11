@@ -1,0 +1,50 @@
+table * {
+    border: none !important;
+}
+
+table {
+    border-radius: 8px;
+    border-spacing: 0;
+}
+
+table th,
+table td,
+table tr {
+    padding: 12px;
+    text-align: left;
+    color: white;
+}
+
+table tr:not(:last-child) td,
+table tr:not(:last-child) th {
+    border-bottom: 1px solid var(--bg-dark-accent-light) !important;
+}
+
+table th {
+    background: var(--bg-dark-accent-light);
+}
+
+table tr,
+table td {
+    background: var(--bg-dark-accent);
+}
+
+table tr:first-child td:first-child,
+table tr:first-child th:first-child {
+    border-top-left-radius: 8px;
+}
+
+table tr:first-child td:last-child,
+table tr:first-child th:last-child {
+    border-top-right-radius: 8px;
+}
+
+table tr:last-child td:first-child,
+table tr:last-child th:first-child {
+    border-bottom-left-radius: 8px;
+}
+
+table tr:last-child td:last-child,
+table tr:last-child th:last-child {
+    border-bottom-right-radius: 8px;
+}

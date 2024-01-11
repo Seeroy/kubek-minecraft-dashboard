@@ -1,0 +1,69 @@
+.notify-modal {
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    display: block;
+}
+
+.notify-modal .notify-window {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: max-content;
+    max-width: 48vw;
+    min-width: 19vw;
+    height: max-content;
+    padding: 32px;
+    border-radius: 16px;
+    z-index: 11;
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+}
+
+.notify-modal .notify-window .notify-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark-accent-light);
+    border-radius: 8px;
+}
+
+.notify-modal .notify-window .notify-icon div {
+    height: 64px;
+    width: 64px;
+}
+
+.notify-modal .notify-window .notify-icon svg {
+    height: 32px;
+    width: 32px;
+}
+
+.notify-modal .notify-window .notify-caption {
+    font-weight: 700;
+    font-size: 15pt;
+    color: white;
+    margin: 12px 0;
+    text-align: center;
+}
+
+.notify-modal .notify-window .notify-description {
+    font-weight: 500;
+    font-size: 14pt;
+    color: rgb(210, 210, 210);
+    text-align: center;
+}
+
+.notify-modal .notify-window button {
+    width: 100%;
+    margin-top: 18px;
+}
+
+/* Developed by Seeroy */

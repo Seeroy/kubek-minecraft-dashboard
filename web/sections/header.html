@@ -1,0 +1,125 @@
+<div class="header" id="main-header">
+    <button class="dark-btn icon-only" id="menu-btn" onclick="KubekUI.toggleSidebar()"><span class="material-symbols-rounded">menu</span></button>
+    <div class="logo">
+        <img src="/assets/kubek_icon.png" style="height: 32px" alt="Main icon"/>
+        <img src="/assets/kubek_logo_text.svg" style="height: 20px; margin-left: 12px" alt="Kubek" />
+    </div>
+
+    <div class="account">
+        <div class="bg-circle">
+            <span class="material-symbols-rounded">person</span>
+        </div>
+        <div class="login"></div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        // Получаем статус авторизации
+        KubekRequests.get("/auth/isEnabled", (isAuthEnabled) => {
+            if (isAuthEnabled === false) {
+                // Если выключена - скрываем item аккаунта
+                $(".header .account").hide();
+            } else {
+                // Если включена - загружаем логин
+                KubekRequests.get("/auth/login", (myLogin) => {
+                    $(".header .account .login").text(myLogin);
+                });
+            }
+        })
+
+        $("#main-header .account").on("click", (e) => {
+            // Выход из аккаунта
+            openAccountDropdown(e);
+        });
+    });
+
+    function openAccountDropdown(e){
+        let accountDrpData = [{
+            "icon": "logout",
+            "text": "{{commons.logout}}",
+            "data": "logout"
+        }]
+        KubekDropdowns.addDropdown(accountDrpData, e.clientX, e.clientY, 5, (clickResult) => {
+            if(clickResult === "logout"){
+                KubekRequests.get("/auth/logout", () => {
+                   console.log("User logged out!");
+                   window.location = "/login.html";
+                });
+            }
+        });
+    }
+</script>
+
+<style>
+    #main-header {
+        grid-area: header;
+        background: var(--bg-dark-accent);
+        width: 100%;
+        height: 72px;
+        align-items: center;
+
+        display: grid;
+        grid-template-columns: 0.37fr max-content 1fr max-content 0.37fr;
+        grid-template-rows: 1fr;
+        grid-auto-columns: 1fr;
+        gap: 0 0;
+        grid-auto-flow: row;
+        grid-template-areas: ". logo . account .";
+        justify-items: center;
+    }
+
+    #main-header .logo {
+        grid-area: logo;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #main-header .logo .text {
+        font-size: 17pt;
+        font-weight: 800;
+        margin-left: 16px;
+    }
+
+    #main-header .account {
+        grid-area: account;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 6px 8px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    #main-header .account:hover {
+        background: var(--bg-dark);
+    }
+
+    #main-header .account .bg-circle {
+        background: var(--bg-dark-accent-light);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 16px;
+    }
+
+    #main-header .account .bg-circle * {
+        font-size: 18pt;
+    }
+
+    #main-header #menu-btn {
+        display: none;
+        position: absolute;
+        left: 12px;
+        right: 0;
+        bottom: 0;
+        top: 12px;
+        width: max-content;
+        height: max-content;
+        z-index: 2;
+    }
+</style>

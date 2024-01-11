@@ -1,0 +1,35 @@
+.uiPool {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    position: absolute;
+    z-index: 3000000;
+
+    max-height: 100vh;
+    max-width: 45vw;
+    height: max-content;
+    width: max-content;
+
+    overflow: hidden;
+}
+
+.uiPool.top {
+    top: 16px;
+}
+
+.uiPool.bottom {
+    bottom: 16px;
+}
+
+.uiPool.left {
+    left: 16px;
+}
+
+.uiPool.right {
+    right: 16px;
+}
+
+.uiPool .alert {
+    margin: 8px 0;
+}

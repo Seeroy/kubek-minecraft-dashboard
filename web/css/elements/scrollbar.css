@@ -1,0 +1,16 @@
+* {
+    scrollbar-color: var(--bg-dark-accent) var(--bg-dark-accent-light);
+    scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar, ::-webkit-scrollbar {
+    width: 8px;
+}
+
+*::-webkit-scrollbar-track, ::-webkit-scrollbar-track {
+    background: var(--bg-dark-accent);
+}
+
+*::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb {
+    background: var(--bg-dark-accent-light);
+}

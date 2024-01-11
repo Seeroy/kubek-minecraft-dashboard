@@ -1,0 +1,64 @@
+<link rel="stylesheet" href="/pages/systemMonitor.css"/>
+
+<div class="sysmon-container animate__animated animate__fadeIn animate__faster">
+    <!-- Заголовок -->
+    <h2>{{sections.systemMonitor}}</h2>
+
+    <!-- Первая таблица -->
+    <h3>{{systemMonitor.briefInfo}}</h3>
+    <table>
+        <tr>
+            <th>{{systemMonitor.kubekUptime}}</th>
+            <td id="kubek-uptime"></td>
+        </tr>
+        <tr>
+            <th>{{systemMonitor.os}}</th>
+            <td id="os-name"></td>
+        </tr>
+        <tr>
+            <th>{{systemMonitor.osBuild}}</th>
+            <td id="os-build"></td>
+        </tr>
+    </table>
+
+    <!-- Таблица сетевых интерфейсов -->
+    <h3>{{systemMonitor.networkInterfaces}}</h3>
+    <table id="networks-table">
+
+    </table>
+
+    <!-- Таблица о процессоре -->
+    <h3>{{systemMonitor.cpuInfo}}</h3>
+    <table>
+        <tr>
+            <th class="developed-by-seeeroy">{{systemMonitor.totalRam}}</th>
+            <td id="total-ram"></td>
+        </tr>
+        <tr>
+            <th>{{systemMonitor.cpuModel}}</th>
+            <td id="cpu-model"></td>
+        </tr>
+        <tr>
+            <th>{{systemMonitor.cpuSpeed}}</th>
+            <td id="cpu-speed"></td>
+        </tr>
+    </table>
+
+    <!-- Таблица с дисками -->
+    <h3>{{systemMonitor.environment}}</h3>
+    <table id="disks-table">
+        <tr>
+            <th>{{systemMonitor.mountPoint}}</th>
+            <th>{{systemMonitor.diskUsed}}</th>
+            <th>{{systemMonitor.diskFree}}</th>
+            <th>{{systemMonitor.diskTotal}}</th>
+            <th>{{systemMonitor.diskUsed}} (%)</th>
+        </tr>
+    </table>
+
+    <!-- Таблица с переменными -->
+    <h3>{{systemMonitor.environment}}</h3>
+    <table id="enviroment-table">
+
+    </table>
+</div>

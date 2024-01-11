@@ -1,0 +1,161 @@
+<!-- Форма для отправки иконки -->
+<form id="server-icon-form" enctype="multipart/form-data">
+    <input
+            name="server-icon-input"
+            id="server-icon-input"
+            class="superHide"
+            type="file"
+            accept="image/png, image/jpeg"
+    />
+</form>
+
+<div class="content-header">
+    <div class="icon-bg" onclick="uploadServerIcon()">
+        <img src="/assets/icons/icon_v2.png" alt="Server icon"/>
+        <span class="material-symbols-rounded" style="display: none">upload</span>
+    </div>
+    <div class="caption"></div>
+    <div class="status">
+        <div class="circle green"></div>
+        <span class="text">Запущен</span>
+    </div>
+    <div class="actions">
+        <button class="dark-btn icon-only hide-on-change" id="server-start-btn"
+                onclick="KubekServers.startServer(selectedServer)">
+            <span class="material-symbols-rounded"> play_arrow </span>
+            <span>{{commons.start}}</span>
+        </button>
+        <button class="dark-btn icon-only hide-on-change" id="server-stop-btn"
+                onclick="KubekServers.stopServer(selectedServer)">
+            <span class="material-symbols-rounded"> stop </span>
+            <span>{{commons.stop}}</span>
+        </button>
+        <button class="dark-btn icon-only hide-on-change" id="server-restart-btn"
+                onclick="KubekServers.restartServer(selectedServer)">
+            <span class="material-symbols-rounded"> restart_alt </span>
+        </button>
+        <button class="dark-btn icon-only" id="server-more-btn" onclick="KubekServerHeaderUI.generateDropdown(this)">
+            <span class="material-symbols-rounded"> more_horiz </span>
+        </button>
+    </div>
+</div>
+
+<style>
+    .main-layout .content-header {
+        grid-area: content-header;
+        padding: 6px 8px 14px 8px;
+        width: 100%;
+        height: max-content;
+
+        display: grid;
+        grid-template-columns: 64px 1fr max-content;
+        grid-template-rows: 1fr 1fr;
+        gap: 0em 1.6em;
+        grid-template-areas:
+      "icon-bg caption actions"
+      "icon-bg status actions";
+    }
+
+    .main-layout .content-header .icon-bg {
+        grid-area: icon-bg;
+
+        width: 64px;
+        height: 64px;
+        border-radius: 9999px;
+        background: var(--bg-dark-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-layout .content-header .icon-bg img {
+        height: 36px;
+    }
+
+    .main-layout .content-header .caption {
+        grid-area: caption;
+
+        font-size: 18pt;
+        font-weight: 700;
+    }
+
+    .main-layout .content-header .actions {
+        grid-area: actions;
+        justify-self: center;
+        align-self: center;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-layout .content-header .actions button {
+        margin: 0 6px;
+        border-radius: 12px;
+    }
+
+    /* Content header status styling */
+    .main-layout .content-header .status {
+        grid-area: status;
+
+        display: flex;
+        align-items: center;
+    }
+
+    .main-layout .content-header .status .circle {
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+        background: var(--bg-dark-accent);
+    }
+
+    .main-layout .content-header .status .circle.green {
+        background: #0e9f6e;
+    }
+
+    .main-layout .content-header .status .circle.yellow {
+        background: #faca15;
+    }
+
+    .main-layout .content-header .status .circle.red {
+        background: #e02424;
+    }
+
+    .main-layout .content-header .status .text {
+        margin-left: 10px;
+        font-size: 11pt;
+        font-weight: 300;
+    }
+
+    .main-layout .content-header .icon-bg {
+        cursor: pointer;
+    }
+
+    .main-layout .content-header .icon-bg:hover {
+        background: var(--bg-dark-accent-light);
+    }
+
+    .main-layout .content-header .icon-bg:hover img {
+        display: none;
+    }
+
+    .main-layout .content-header .icon-bg:hover .material-symbols-rounded {
+        display: block !important;
+    }
+</style>
+
+<script>
+    function uploadServerIcon() {
+        let inputElement = $("#server-icon-input");
+        inputElement.trigger("click");
+        inputElement.off("change");
+        inputElement.on("change", () => {
+            let formData = new FormData($("#server-icon-form")[0]);
+            KubekRequests.post("/servers/" + selectedServer + "/icon", () => {
+                KubekServerHeaderUI.loadServerByName(selectedServer, () => {
+                    KubekUI.loadServersList();
+                })
+            }, formData);
+        });
+    }
+</script>

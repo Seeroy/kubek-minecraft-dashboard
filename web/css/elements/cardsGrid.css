@@ -1,0 +1,65 @@
+.cardsGrid {
+    display: grid;
+    grid-auto-rows: 1fr;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-flow: row;
+    gap: 12px;
+}
+
+.cardsGrid .card {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-template-columns: 1fr;
+    justify-items: start;
+    grid-template-rows: 1fr max-content max-content;
+    gap: 0.6em 0;
+    grid-template-areas:
+    "icon"
+    "title"
+    "description";
+
+    padding: 12px;
+    border-radius: 12px;
+    width: 180px;
+    height: 180px;
+    border: 3px dashed var(--bg-dark-accent);
+}
+
+.cardsGrid .card .icon {
+    grid-area: icon;
+    height: 100px;
+}
+
+.cardsGrid .card .title {
+    align-self: center;
+    grid-area: title;
+    font-weight: 600;
+}
+
+.cardsGrid .card .description {
+    align-self: center;
+    grid-area: description;
+    font-weight: 500;
+    color: var(--bg-dark-accent-lighter);
+}
+
+.cardsGrid .card.centered {
+    justify-items: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.cardsGrid .card:not(.active) {
+    background: transparent;
+    cursor: pointer;
+}
+
+.cardsGrid .card:not(.active):hover {
+    background: var(--bg-dark-accent);
+    border-color: var(--bg-dark-accent);
+}
+
+.cardsGrid .card.active {
+    background: var(--bg-dark-accent-light);
+    border-color: var(--bg-dark-accent-light);
+}

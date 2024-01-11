@@ -1,0 +1,267 @@
+.ksettings-container {
+    width: 100%;
+}
+
+.ksettings-container .tablesWrapper {
+    height: 65vh;
+    overflow-y: auto;
+}
+
+/* RadioButtons */
+.ksettings-container .radioButtons {
+    background: var(--bg-dark-accent);
+    margin: 12px 0;
+}
+
+.ksettings-container .radioButtons .item {
+    width: 100%;
+}
+
+.ksettings-container table {
+    width: 50vw;
+    table-layout: fixed;
+    margin: 12px 0;
+}
+
+.ksettings-container table,
+.ksettings-container table tr,
+.ksettings-container table td {
+    background: var(--bg-dark-accent);
+}
+
+.ksettings-container table input,
+.ksettings-container table textarea {
+    background: var(--bg-dark);
+}
+
+.ksettings-container table input[type="text"],
+.ksettings-container table textarea {
+    width: 100%;
+}
+
+.ksettings-container table textarea {
+    min-height: 128px;
+    max-height: 350px;
+    min-width: 140px;
+    max-width: 327px;
+}
+
+.ksettings-container tr td .flexWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+
+.ksettings-container .iconBg {
+    background: var(--bg-dark);
+    width: 42px;
+    height: 42px;
+    border-radius: 9999px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.ksettings-container .iconBg * {
+    font-size: 24px;
+}
+
+.ksettings-container .primary-btn {
+    margin-top: 16px;
+}
+
+.ksettings-container #accounts-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.ksettings-container #accounts-list .item {
+    padding: 8px;
+    background: var(--bg-dark-accent-light);
+}
+
+.ksettings-container #accounts-list .item .iconBg {
+    width: 30px;
+    height: 30px;
+}
+
+.ksettings-container #accounts-list .item .iconBg * {
+    font-size: 16px;
+}
+
+/* Footer styling */
+.ksettings-container .footer {
+    margin: 16px 0;
+    border-radius: 8px;
+    padding: 16px 32px;
+    background: var(--bg-dark-accent);
+    width: 100%;
+    height: max-content;
+
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 0 2em;
+    grid-template-areas:
+    "avatar title"
+    "avatar version"
+    "avatar developer";
+}
+
+.ksettings-container .footer .icon {
+    grid-area: avatar;
+    height: 64px;
+    align-self: center;
+}
+
+.ksettings-container .footer .title {
+    align-self: center;
+    grid-area: title;
+}
+
+.ksettings-container .footer .version {
+    align-self: center;
+    grid-area: version;
+    color: var(--bg-dark-accent-lighter);
+}
+
+.ksettings-container .footer .developer {
+    align-self: center;
+    grid-area: developer;
+    color: var(--bg-dark-accent-lighter);
+}
+
+/* Modal styling */
+.userEditModal h3 {
+    margin: 8px 0;
+}
+
+.userEditModal {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    z-index: 4;
+    width: 30vw;
+    height: max-content;
+    max-height: 98vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--bg-dark);
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.userEditModal .header {
+    margin: 16px 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0 1em;
+    grid-template-areas:
+    "avatar username"
+    "avatar email";
+}
+
+.userEditModal .header .avatar {
+    grid-area: avatar;
+    width: 64px;
+    height: 64px;
+    background: var(--bg-dark-accent-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.userEditModal .header .username {
+    align-self: center;
+    grid-area: username;
+    font-size: 16pt;
+    font-weight: 600;
+}
+
+.userEditModal .header .email {
+    align-self: center;
+    grid-area: email;
+    font-size: 12pt;
+    font-weight: 400;
+}
+
+.userEditModal .header .username,
+.userEditModal .header .email {
+    background: transparent;
+    padding: 0;
+}
+
+.userEditModal .header .email:focus,
+.userEditModal .header .username:focus {
+    background: var(--bg-dark-accent);
+}
+
+.userEditModal .permissions {
+    display: flex;
+    flex-direction: column;
+}
+
+.userEditModal .permissions label {
+    margin: 6px 0;
+}
+
+.userEditModal .restrictServersHeader {
+    display: flex;
+    align-items: center;
+}
+
+.userEditModal .restrictServersHeader h3 {
+    flex-grow: 1;
+}
+
+.userEditModal .footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.userEditModal .footer button {
+    margin: 12px;
+}
+
+.userEditModal .header input {
+    margin: 0 !important;
+}
+
+.userEditModal input {
+    width: 100%;
+    margin: 4px 0;
+}
+
+.userEditModal #delete-account-btn {
+    color: var(--error);
+    cursor: pointer;
+    margin: 6px 0;
+    width: max-content;
+    height: max-content;
+}
+
+.userEditModal #delete-account-btn:hover {
+    border-bottom: 1px solid var(--error);
+}
+
+.userEditModal #allowed-servers-list .item {
+    padding: 8px 16px;
+}
+
+.userEditModal #allowed-servers-list {
+    height: 170px;
+    overflow-y: auto;
+}
+
+.userEditModal #password-rules {
+    font-size: 11pt;
+    color: var(--bg-dark-accent-lighter);
+    text-wrap: normal;
+}

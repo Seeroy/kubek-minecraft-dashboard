@@ -1,0 +1,44 @@
+.plugins-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+}
+
+.plugins-container .panel {
+    width: 50%;
+    margin: 0 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.plugins-container .panel .header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.plugins-container .panel .header h2 {
+    flex-grow: 1;
+}
+
+.plugins-container .list {
+    display: flex;
+    background: var(--bg-dark-accent);
+    border-radius: 8px;
+    width: 100%;
+    flex-direction: column;
+}
+
+.plugins-container .list .item {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: max-content;
+}
+
+.plugins-container .list .item span.filename {
+    margin-left: 12px;
+    flex-grow: 1;
+}

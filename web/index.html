@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<head>
+    <!-- Meta -->
+    <meta charset="utf-8"/>
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Kubek</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/animate.min.css"/>
+    <link rel="stylesheet" href="css/atom-one-dark.css">
+
+    <!-- Elements styles -->
+    <link rel="stylesheet" href="css/elements/button.css"/>
+    <link rel="stylesheet" href="css/elements/input.css"/>
+    <link rel="stylesheet" href="css/elements/switch.css"/>
+    <link rel="stylesheet" href="css/elements/table.css"/>
+    <link rel="stylesheet" href="css/elements/dropdown.css"/>
+    <link rel="stylesheet" href="css/elements/radioButtons.css"/>
+    <link rel="stylesheet" href="css/elements/checkbox.css"/>
+    <link rel="stylesheet" href="css/elements/radio.css"/>
+    <link rel="stylesheet" href="css/elements/alert.css"/>
+    <link rel="stylesheet" href="css/elements/cardsGrid.css"/>
+    <link rel="stylesheet" href="css/elements/checksList.css"/>
+    <link rel="stylesheet" href="css/elements/uiPools.css"/>
+    <link rel="stylesheet" href="css/elements/scrollbar.css"/>
+    <link rel="stylesheet" href="css/elements/circleProgress.css"/>
+    <link rel="stylesheet" href="css/elements/notifyModal.css"/>
+    <link rel="stylesheet" href="css/elements/blurScreen.css"/>
+    <link rel="stylesheet" href="css/elements/badge.css"/>
+    <link rel="stylesheet" href="css/elements/lds-spinner.css"/>
+    <link rel="stylesheet" href="css/elements/lds-ellipsis.css"/>
+
+    <link rel="stylesheet" href="css/preloader.css"/>
+    <link rel="stylesheet" href="css/mobile.css"/>
+    <link rel="stylesheet" href="css/globals.css"/>
+    <link rel="stylesheet" href="css/theme.css"/>
+
+    <link rel="stylesheet" href="assets/fonts/Gilroy/stylesheet.css"/>
+    <link rel="stylesheet" href="assets/fonts/RobotoMono/stylesheet.css"/>
+    <link rel="stylesheet" href="assets/fonts/MSR/stylesheet.css"/>
+
+    <!-- Scripts -->
+    <script src="js/jquery-3.7.0.min.js"></script>
+    <script src="js/moment.min.js"></script>
+    <script src="js/base64.min.js"></script>
+    <script src="js/highlight.min.js"></script>
+    <script src="js/mineParse.js"></script>
+    <script src="js/ANSIParse.js"></script>
+
+    <!-- Classes -->
+    <script src="js/classes/KubekPredefined.js"></script>
+    <script src="js/classes/KubekUI.js"></script>
+    <script src="js/classes/KubekPageManager.js"></script>
+    <script src="js/classes/KubekDropdowns.js"></script>
+    <script src="js/classes/KubekServers.js"></script>
+    <script src="js/classes/KubekServerHeaderUI.js"></script>
+    <script src="js/classes/KubekRequests.js"></script>
+    <script src="js/classes/KubekRefresher.js"></script>
+    <script src="js/classes/KubekAlerts.js"></script>
+    <script src="js/classes/KubekPlugins.js"></script>
+    <script src="js/classes/KubekFileManager.js"></script>
+    <script src="js/classes/KubekUtils.js"></script>
+    <script src="js/classes/KubekHardware.js"></script>
+    <script src="js/classes/KubekCircleProgress.js"></script>
+    <script src="js/classes/KubekCoresManager.js"></script>
+    <script src="js/classes/KubekJavaManager.js"></script>
+    <script src="js/classes/KubekTasksUI.js"></script>
+    <script src="js/classes/KubekNotifyModal.js"></script>
+</head>
+
+<body>
+<div class="main-layout">
+    <div id="content-place" class="content"></div>
+</div>
+
+<div class="preloader" id="main-preloader">
+    <div class="lds-ellipsis">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+</div>
+
+<div class="blurScreen" style="display: none"></div>
+
+<div class="uiPool bottom left" id="alerts-pool"></div>
+<div class="uiPool bottom right" id="tasks-pool"></div>
+</body>
+
+<script>
+    console.log("[UI] Starting Kubek UI...");
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    let act = urlParams.get("act");
+    let selectedServer = "";
+    let consoleRamUsageBar, consoleCpuUsageBar;
+
+    $(function () {
+        // Проверяем EULA, загружаем, если требуется
+        KubekRequests.get("/kubek/settings", (settings) => {
+           if(settings.eulaAccepted === false){
+               KubekUI.loadSection("eula", "body" , () => {
+                  $(".eulaModal").show();
+                  $(".blurScreen").show();
+               });
+           }
+        });
+
+        // Проверяем обновления
+        KubekRequests.get("/updates", (update) => {
+            if(update.hasUpdate === true){
+                KubekAlerts.addAlert("{{commons.updateAvailable}}", "update", update.version.new, 6000, "colored", () => {
+                    KubekNotifyModal.create("<h2>{{commons.updateAvailable}}</h2><div style='display: flex; align-items: center; justify-content: center;'>" + update.version.current + " <span class='material-symbols-rounded' style='font-size: 18pt; margin: 0 12px;'>navigate_next</span> " + update.version.new + "</div>", update.body.replaceAll("\n", "<br>"), "{{commons.goto}}", "update", () => {
+                        window.open(update.url, "_blank");
+                    }, KubekPredefined.MODAL_CANCEL_BTN);
+                });
+            }
+
+        });
+
+        // Загружаем все секции
+        KubekUI.loadSection("content-header", ".main-layout", () => {
+            KubekUI.loadSelectedServer();
+            KubekUI.loadSection("sidebar", ".main-layout", () => {
+                KubekUI.loadServersList();
+
+                KubekServers.getServersList((servers) => {
+                    if(servers.length === 0 && act !== "newServer"){
+                        // Загружаем страницу welcome
+                        KubekPageManager.gotoPage("welcome");
+                        $("#main-menu-sidebar").hide();
+                        $("#servers-list-sidebar .sidebar-item:not(.server-item)").addClass("animate__animated animate__headShake");
+                        $("#servers-list-sidebar .sidebar-item:not(.server-item)").css("animation-iteration-count", "infinite");
+                        $(".content-header").hide();
+                    } else {
+                        // Ищем act и загружаем страницу
+                        if (act !== null) {
+                            console.log("[UI]", "act is not null, trying to load", act);
+                            KubekPageManager.gotoPage(act);
+                        } else {
+                            console.log("[UI]", "act is null, loading console");
+                            KubekPageManager.gotoPage("console");
+                        }
+                    }
+                })
+
+                KubekUI.loadSection("header", ".main-layout", () => {
+                    KubekUI.hidePreloader();
+                    KubekRefresher.refreshConsoleLog();
+                    KubekRefresher.addRefreshServerLogInterval();
+                    KubekRefresher.addRefreshServerHeaderInterval();
+                    KubekRefresher.addRefreshUsageInterval();
+                    KubekRefresher.addRefreshTasksInterval();
+                    // TODO
+                });
+            });
+        })
+    });
+</script>
+
+<style>
+    body,
+    html {
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg-dark);
+    }
+
+    /* Main layout styling */
+    .main-layout {
+        width: 100vw;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: grid;
+        grid-template-columns: 1fr 280px 32px 1024px 1fr;
+        grid-template-rows: max-content max-content 1fr;
+        grid-auto-columns: 1fr;
+        gap: 24px 0em;
+        grid-auto-flow: row;
+        grid-template-areas:
+      "header header header header header"
+      ". sidebar . content-header ."
+      ". sidebar . content .";
+    }
+
+    .main-layout .sidebar {
+        grid-area: sidebar;
+    }
+
+    .main-layout .content {
+        grid-area: content;
+    }
+</style>

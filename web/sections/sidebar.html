@@ -1,0 +1,139 @@
+<div class="sidebar minimized">
+    <!-- Для мобильного режима-->
+    <button class="dark-btn icon-only" id="close-btn" onclick="KubekUI.toggleSidebar()"><span class="material-symbols-rounded">close</span></button>
+
+    <div class="sidebar-box" id="servers-list-sidebar">
+        <div class="sidebar-item" onclick="window.location='/?act=newServer'">
+            <div class="icon-circle-bg bg-primary-500">
+                <span class="material-symbols-rounded"> add </span>
+            </div>
+            <span>{{commons.create}} {{commons.server.lowerCase}}</span>
+        </div>
+    </div>
+    <div class="sidebar-box" id="main-menu-sidebar">
+        <div class="sidebar-item" data-page="console">
+            <span class="material-symbols-rounded"> terminal </span>
+            <span>{{sections.console}}</span>
+        </div>
+        <div class="sidebar-item" data-page="fileManager">
+            <span class="material-symbols-rounded"> folder </span>
+            <span>{{sections.fileManager}}</span>
+        </div>
+        <div class="sidebar-item" data-page="plugins">
+            <span class="material-symbols-rounded"> extension </span>
+            <span>{{sections.plugins}}</span>
+        </div>
+        <div class="sidebar-item" data-page="serverSettings">
+            <span class="material-symbols-rounded"> tune </span>
+            <span>{{sections.serverSettings}}</span>
+        </div>
+        <div class="sidebar-item" data-page="server.properties">
+            <span class="material-symbols-rounded"> settings_ethernet </span>
+            <span>Server.properties</span>
+        </div>
+        <div class="sidebar-item" data-page="kubekSettings">
+            <span class="material-symbols-rounded"> settings </span>
+            <span>{{sections.kubekSettings}}</span>
+        </div>
+        <div class="sidebar-item" data-page="systemMonitor">
+            <span class="material-symbols-rounded"> area_chart </span>
+            <span>{{sections.systemMonitor}}</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#main-menu-sidebar .sidebar-item").on("click", function () {
+        KubekUI.changeItemByPage($(this).data("page"));
+        KubekPageManager.gotoPage($(this).data("page"));
+    });
+</script>
+
+<style>
+    .main-layout .sidebar .sidebar-box,
+    .layout-accent-box {
+        background: var(--bg-dark-accent);
+        border-radius: 10px;
+        padding: 24px;
+        min-height: 164px;
+    }
+
+    .main-layout .sidebar .sidebar-box:not(:first-child) {
+        margin-top: 16px;
+    }
+
+    .main-layout .sidebar .sidebar-box .sidebar-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .main-layout .sidebar .sidebar-box .sidebar-item:not(.active) {
+        cursor: pointer;
+    }
+
+    .main-layout .sidebar .sidebar-box .sidebar-item.active,
+    .main-layout .sidebar .sidebar-box .sidebar-item.active * {
+        color: white;
+        cursor: default;
+    }
+
+    .main-layout .sidebar .sidebar-box .sidebar-item:not(:first-child) {
+        margin-top: 14px;
+    }
+
+    .main-layout .sidebar .sidebar-box .sidebar-item .material-symbols-rounded {
+        margin-right: 10px;
+    }
+
+    .main-layout
+    .sidebar
+    .sidebar-box
+    .sidebar-item
+    span.material-symbols-rounded {
+        font-size: 24px;
+    }
+
+    .main-layout
+    .sidebar
+    .sidebar-box
+    .sidebar-item
+    span:not(.material-symbols-rounded) {
+        font-size: 12pt;
+        font-weight: 600;
+    }
+
+    .main-layout .sidebar .sidebar-box .sidebar-item * {
+        color: var(--bg-dark-accent-lighter);
+    }
+
+    .main-layout .sidebar .sidebar-box .sidebar-item:hover * {
+        color: white;
+    }
+
+    .main-layout .sidebar .sidebar-box .icon-circle-bg {
+        border-radius: 999px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+    .main-layout .sidebar .sidebar-box .icon-circle-bg .material-symbols-rounded {
+        color: white !important;
+        margin: 0;
+        font-size: 12pt;
+    }
+
+    #servers-list-sidebar {
+        max-height: 30vh;
+        overflow-y: auto;
+    }
+
+    .sidebar #close-btn {
+        display: none;
+        width: 100%;
+    }
+</style>

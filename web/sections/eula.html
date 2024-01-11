@@ -1,0 +1,50 @@
+<div class="eulaModal" style="display: none">
+    <textarea class="text">{{commons.eula}}</textarea>
+    <div class="buttons">
+        <button class="primary-btn" id="accept-eula-btn">{{commons.iAccept}}</button>
+    </div>
+</div>
+
+<style>
+    .eulaModal {
+        width: 50vw;
+        height: 70vh;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        margin: auto;
+        z-index: 10000;
+        border-radius: 8px;
+        background: var(--bg-dark-accent);
+        padding: 16px;
+    }
+
+    .eulaModal textarea {
+        width: 100%;
+        height: 87%;
+        background: var(--bg-dark);
+    }
+
+    .eulaModal .buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 20px 0;
+    }
+
+    .eulaModal button {
+        margin: 0 8px;
+    }
+</style>
+
+<script>
+    $(function(){
+        $("#accept-eula-btn").on("click", () => {
+           KubekRequests.get("/kubek/eula/accept", () => {
+                window.location.reload();
+           })
+        });
+    })
+</script>

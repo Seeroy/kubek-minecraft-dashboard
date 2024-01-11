@@ -1,0 +1,294 @@
+<link rel="stylesheet" href="/pages/kubekSettings.css"/>
+
+<div class="ksettings-container animate__animated animate__fadeIn animate__faster h-full" style="overflow: auto;">
+    <!-- Заголовок -->
+    <h2>{{sections.kubekSettings}}</h2>
+    <!-- Основные настройки -->
+    <div class="tablesWrapper">
+        <h4>{{serverSettings.generalSettings}}</h4>
+        <table>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">translate</span>
+                        </div>
+                        {{kubekSettings.language}}
+                    </div>
+                </td>
+                <td>
+                    <div class="checksList" id="language-list">
+                        <div class="item" data-lang="$0">
+                            <div class="text" style="display: flex; justify-content: center; flex-direction: column">
+                                <span>$1 <sup>by $3</sup></span>
+                                <span style="color: var(--bg-dark-accent-lighter)">$2</span>
+                            </div>
+                            <span class='check material-symbols-rounded'>check</span>
+                        </div>
+                        <div class="item" data-lang="en">
+                            <span class="text">English</span>
+                            <span class='check material-symbols-rounded'>check</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">wifi</span>
+                        </div>
+                        {{kubekSettings.port}}
+                    </div>
+                </td>
+                <td>
+                    <input type="number" placeholder="3000" id="server-port-input">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">router</span>
+                        </div>
+                        {{kubekSettings.allowAccessOnlyFromIPsList}}
+                    </div>
+                </td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="ips-access-switch">
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">router</span>
+                        </div>
+                        {{kubekSettings.subnetsList}}
+                    </div>
+                </td>
+                <td>
+                    <textarea id="subnets-list"></textarea>
+                </td>
+            </tr>
+        </table>
+        <!-- Настройки FTP -->
+        <h4>{{kubekSettings.ftpSettings}}</h4>
+        <table>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded developed-by-seeeroy">cloud</span>
+                        </div>
+                        {{kubekSettings.ftpEnabled}}
+                    </div>
+                </td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="ftp-server-enabled">
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">login</span>
+                        </div>
+                        {{commons.login}}
+                    </div>
+                </td>
+                <td>
+                    <input type="text" id="ftp-login-input">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">password</span>
+                        </div>
+                        {{commons.password}}
+                    </div>
+                </td>
+                <td>
+                    <input type="password" id="ftp-password-input">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded developed-by-seeeroy">wifi_tethering</span>
+                        </div>
+                        {{commons.port}}
+                    </div>
+                </td>
+                <td>
+                    <input type="number" id="ftp-port-input">
+                </td>
+            </tr>
+        </table>
+        <!-- Настройки авторизации -->
+        <h4>{{kubekSettings.authSettings}}</h4>
+        <table>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">password</span>
+                        </div>
+                        {{kubekSettings.authEnabled}}
+                    </div>
+                </td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="auth-enabled">
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="flexWrapper">
+                        <div class="iconBg">
+                            <span class="material-symbols-rounded">groups</span>
+                        </div>
+                        {{kubekSettings.usersList}}
+                    </div>
+                </td>
+                <td>
+                    <div class="checksList" id="accounts-list">
+
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Кнопка сохранения -->
+    <button class="primary-btn" onclick="KubekSettingsUI.saveConfig()">{{commons.save}}</button>
+
+    <div class="footer">
+        <img alt="Kubek icon" class="icon" src="/assets/kubek_icon.png">
+        <h2 class="title">Kubek</h2>
+        <h4 class="version" id="kubek-version"></h4>
+        <h4 class="developer">Designed and developed by <a href="https://github.com/Seeroy">Seeroy</a></h4>
+    </div>
+</div>
+
+<!-- Modal создания/редактирования пользователя -->
+<div class="userEditModal" style="display: none">
+    <h2>{{kubekSettings.userEditor}}</h2>
+    <!-- Header -->
+    <div class="header">
+        <div class="avatar">
+            <span class="material-symbols-rounded">person</span>
+        </div>
+        <input type="text" class="username" id="username-input" placeholder="{{kubekSettings.enterUsername}}">
+        <input type="email" class="email" id="email-input" placeholder="{{kubekSettings.enterEmail}}">
+    </div>
+    <!-- Настройка прав -->
+    <h3>{{kubekSettings.permissionsList}}</h3>
+    <div class="permissions">
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-file_manager"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.file_manager}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-manage_servers"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.manage_servers}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-making_servers"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.making_servers}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-monitor_servers"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.monitor_servers}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-manage_java"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.manage_java}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-manage_plugins"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.manage_plugins}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-system_monitoring"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.system_monitoring}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-kubek_settings"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.kubek_settings}}</span>
+        </div>
+
+        <div style="display: flex; align-items: center">
+            <label class="switch"
+            ><input type="checkbox" id="perm-accounts"/><span
+                    class="slider round"
+            ></span></label
+            ><span style="margin-left: 8px">{{permissions.accounts}} (!)</span>
+        </div>
+    </div>
+
+    <!-- Ограничение серверов -->
+    <div class="restrictServersHeader">
+        <h3>{{kubekSettings.restrictServersAccess}}</h3>
+        <label class="switch">
+            <input type="checkbox" id="restrict-servers-access">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="checksList" id="allowed-servers-list"></div>
+
+    <!-- Поле ввода для пароля -->
+    <input type="password" id="password-input" placeholder="{{kubekSettings.enterPassword}}">
+    <span id="password-rules">{{kubekSettings.passwordRules}}</span>
+
+    <!-- Ссылка для удаления аккаунта -->
+    <div class="hideOnNewAccount" id="delete-account-btn">{{kubekSettings.deleteAccount}}</div>
+
+    <!-- Кнопка сохранения -->
+    <div class="footer">
+        <button class="primary-btn" id="save-btn" onclick="KubekSettingsUI.saveUser()">{{commons.save}}</button>
+        <button class="dark-btn" onclick="KubekSettingsUI.hideUserEditor()">{{commons.cancel}}</button>
+    </div>
+</div>

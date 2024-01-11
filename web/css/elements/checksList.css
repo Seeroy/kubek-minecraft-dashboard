@@ -1,0 +1,47 @@
+.checksList {
+    display: flex;
+    padding: 8px;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.checksList .item {
+    display: flex;
+    border-radius: 8px;
+    background: var(--bg-dark-accent);
+    border: 3px solid var(--bg-dark-accent-light);
+    padding: 14px 16px;
+    align-items: center;
+    margin: 4px 0;
+    cursor: pointer;
+}
+
+.checksList .item:not(.active) * {
+    color: white;
+}
+
+.checksList .item:not(.active):hover {
+    filter: brightness(120%);
+}
+
+.checksList .item:not(.active) .check {
+    display: none !important;
+}
+
+.checksList .item.active {
+    background: var(--bg-dark-accent-light);
+    border-color: var(--success);
+}
+
+.checksList .item.active * {
+    color: var(--success);
+}
+
+.checksList .item .text {
+    flex-grow: 1;
+}
+
+.checksList .item .check {
+    font-size: 16px;
+}

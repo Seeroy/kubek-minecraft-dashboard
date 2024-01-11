@@ -1,0 +1,40 @@
+.radio {
+    position: absolute;
+    z-index: -1;
+    opacity: 0;
+}
+
+.radio + label {
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+}
+
+.radio + label::before {
+    content: '';
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    border: 1px solid #adb5bd;
+    border-radius: 50%;
+    margin-right: 0.5em;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 50% 50%;
+}
+
+.radio:focus:not(:checked) + label::before {
+    border-color: var(--bg-primary-300);
+}
+
+.radio:checked + label::before {
+    border-color: var(--bg-primary-600);
+    background-color: var(--bg-primary-600);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+.radio:disabled + label::before {
+    background-color: var(--bg-primary-300);
+}

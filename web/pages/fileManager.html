@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="/pages/fileManager.css"/>
+
+<form id="g-file-form" enctype="multipart/form-data">
+    <input
+            name="g-file-input"
+            id="g-file-input"
+            style="
+      position: absolute;
+      left: -2582px;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: -285;
+    "
+            type="file"
+    />
+</form>
+
+<div class="fileEditor" style="display: none">
+    <!-- Header -->
+    <div class="header">
+        <input type="text" value="testFile" placeholder="{{fileManager.filename}}">
+    </div>
+
+    <!-- Код -->
+    <pre><code contenteditable="true" id="code-edit"></code></pre>
+
+    <!-- Footer -->
+    <div class="footer">
+        <button class="primary-btn" onclick="KubekFileManagerUI.writeFile()">{{commons.save}}</button>
+        <button class="dark-btn" onclick="KubekFileManagerUI.closeEditor()">{{commons.cancel}}</button>
+    </div>
+</div>
+
+<div class="fm-container animate__animated animate__fadeIn animate__faster">
+    <h2 class="title">{{sections.fileManager}}</h2>
+    <div class="actions">
+        <button class="dark-btn icon-only" onclick="KubekFileManagerUI.openEmptyEditor()">
+            <span class="material-symbols-rounded">add_circle</span>
+            <span>{{commons.create}} {{commons.file.lowerCase}}</span>
+        </button>
+        <button class="dark-btn icon-only" onclick="KubekFileManagerUI.refreshDir()">
+            <span class="material-symbols-rounded">refresh</span>
+        </button>
+        <button class="developed-by-seeeroy dark-btn icon-only" onclick="KubekFileManagerUI.newDirectory()">
+            <span class="material-symbols-rounded"> create_new_folder </span>
+        </button>
+        <button class="dark-btn icon-only" onclick="KubekFileManagerUI.uploadFile()">
+            <span class="material-symbols-rounded"> upload_file </span>
+        </button>
+    </div>
+    <div class="breadcrumb" id="fm-breadcrumb"></div>
+    <div class="table-container table">
+        <table id="fm-table">
+            <tbody></tbody>
+        </table>
+    </div>
+</div>

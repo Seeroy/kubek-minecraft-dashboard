@@ -1,0 +1,48 @@
+<link rel="stylesheet" href="/pages/plugins.css"/>
+
+<!-- Формы для отправки файлов -->
+<form id="server-plugin-form" enctype="multipart/form-data">
+    <input
+            name="server-plugin-input"
+            id="server-plugin-input"
+            class="superHide"
+            type="file"
+            accept=".jar"
+    />
+</form>
+
+<form id="server-mod-form" enctype="multipart/form-data">
+    <input
+            name="server-mod-input"
+            id="server-mod-input"
+            class="superHide"
+            type="file"
+            accept=".jar"
+    />
+</form>
+
+<!-- Главный контейнер -->
+<div class="plugins-container animate__animated animate__fadeIn animate__faster">
+    <!-- Панель с плагинами -->
+    <div class="panel">
+        <div class="header">
+            <h2>{{commons.plugins}}</h2>
+            <button class="dark-btn icon-only" onclick="KubekPluginsUI.uploadItem('plugin')">
+                <span class="material-symbols-rounded">upload</span>
+            </button>
+        </div>
+
+        <div id="plugins-list" class="list"></div>
+    </div>
+    <!-- Панель с модификациями -->
+    <div class="panel">
+        <div class="header">
+            <h2>{{commons.mods}}</h2>
+            <button class="dark-btn icon-only" onclick="KubekPluginsUI.uploadItem('mod')">
+                <span class="material-symbols-rounded">upload</span>
+            </button>
+        </div>
+
+        <div id="mods-list" class="list"></div>
+    </div>
+</div>

@@ -1,0 +1,17 @@
+.sysmon-container {
+    width: 50vw;
+    height: 72vh;
+}
+
+.sysmon-container table {
+    width: 50vw;
+    table-layout: fixed;
+}
+
+#enviroment-table * {
+    text-overflow: clip;
+}
+
+.sysmon-container h3 {
+    margin: 12px 0;
+}

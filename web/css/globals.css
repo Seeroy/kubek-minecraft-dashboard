@@ -1,0 +1,47 @@
+* {
+  font-family: "Gilroy", sans-serif;
+}
+
+*:not(.tooltip):not(.modal-console-props) {
+  transition: 0.25s !important;
+}
+
+*,
+*:before,
+*:after {
+  margin: 0;
+  padding: 0;
+
+  -webkit-box-sizing: border-box !important;
+  -moz-box-sizing: border-box !important;
+  -ms-box-sizing: border-box !important;
+  box-sizing: border-box !important;
+
+  color: white;
+}
+
+table * {
+  border: none !important;
+}
+
+.superHide {
+  position: absolute;
+  left: -2582px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: -285;
+}
+
+/* Developed by Seeroy */
+
+#content-preloader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+#content-preloader .lds-spinner * {
+  border-color: var(--bg-dark-accent-light) transparent transparent transparent;
+}

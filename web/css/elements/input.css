@@ -1,0 +1,35 @@
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+textarea{
+  appearance: none;
+  outline: none;
+  border: 0;
+  padding: 12px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: 12pt;
+  background: var(--bg-dark-accent);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+textarea:focus{
+  background: var(--bg-dark-accent-light);
+}
+
+input.error {
+  border: 1px solid #e02424;
+}
+
+input.success {
+  border: 1px solid #0e9f6e;
+}

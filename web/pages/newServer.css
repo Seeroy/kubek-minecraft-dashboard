@@ -1,0 +1,149 @@
+/* Контейнер и стейджи */
+.new-server-container {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    overflow-y: auto;
+    margin-top: -1%;
+}
+
+.content-header {
+    display: none !important;
+}
+
+.new-server-container .stage-header {
+    padding: 12px 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.new-server-container .stage-header .stage-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 9999px;
+    background: var(--bg-dark-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21pt;
+    font-weight: bold;
+    margin-right: 12px;
+    color: var(--bg-dark-accent-lighter);
+}
+
+.new-server-container .stage input {
+    width: 100%;
+    height: 40px;
+    font-size: 15pt;
+}
+
+/* RadioButtons */
+.new-server-container .radioButtons {
+    background: var(--bg-dark-accent);
+}
+
+.new-server-container .radioButtons .item {
+    width: 100%;
+}
+
+/* Список ядер */
+.new-server-container #cores-grid {
+    margin: 16px 0;
+}
+
+/* Список версий */
+.new-server-container #cores-versions {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.new-server-container #cores-versions .item {
+    width: max-content;
+    height: max-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    margin: 8px;
+    border-radius: 4px;
+    border: 3px dashed var(--bg-dark-accent);
+    background: transparent;
+    cursor: pointer;
+}
+
+.new-server-container #cores-versions .item:not(.active):hover {
+    background: var(--bg-dark-accent);
+    border-color: var(--bg-dark-accent);
+}
+
+.new-server-container #cores-versions .item.active {
+    background: var(--bg-dark-accent-light);
+    border-color: var(--bg-dark-accent-light);
+}
+
+/* Контейнер загрузки ядра */
+.new-server-container #core-upload {
+    display: flex;
+    width: 100%;
+    height: max-content;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 64px 0;
+    border: 3px dashed var(--bg-dark-accent);
+    background: transparent;
+    margin: 16px 0;
+    cursor: pointer;
+}
+
+.new-server-container #core-upload:hover {
+    border-color: var(--bg-dark-accent-lighter);
+}
+
+.new-server-container #core-upload * {
+    color: var(--bg-dark-accent-lighter);
+    margin: 6px 0;
+}
+
+/* Список Java */
+.new-server-container #javas-list {
+    height: 256px;
+}
+
+.new-server-container #java-list-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 256px;
+    width: 100%;
+}
+
+/* Отступы для всех заголовков h3 */
+.new-server-container h3 {
+    margin: 6px 0;
+}
+
+/* Кнопка создания */
+.new-server-container #create-server-btn {
+    width: 100%;
+    height: 50px;
+    margin: 16px 0;
+}
+
+.new-server-container .spinning {
+    animation-name: spinning;
+    animation-iteration-count: infinite;
+    animation-duration: 1.2s;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes spinning {
+    from {
+        rotate: 0deg;
+    }
+
+    to {
+        rotate: 360deg;
+    }
+}

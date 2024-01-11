@@ -1,0 +1,11 @@
+.circle-progress {
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle-progress .text {
+    font-size: 14pt;
+    font-weight: 600;
+}

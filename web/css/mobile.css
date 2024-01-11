@@ -1,0 +1,197 @@
+@media (max-width: 1360px) {
+    .main-layout .sidebar {
+        position: absolute;
+        left: 16px;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        z-index: 4;
+        width: max-content;
+        height: max-content;
+        margin: auto 0;
+    }
+
+    .main-layout .sidebar:not(.minimized) #close-btn {
+        display: block !important;
+    }
+
+    .main-layout .sidebar.minimized {
+        display: none;
+    }
+
+    .main-layout .header #menu-btn {
+        display: block !important;
+    }
+
+    .main-layout {
+        grid-template-columns: 8px 1fr 8px !important;
+        grid-template-areas:
+                "header header header"
+                ". content-header ."
+                ". content ." !important;
+    }
+}
+
+@media (max-width: 600px) {
+
+    /* Content-header fixes */
+    .content-header > .icon-bg {
+        display: none !important;
+    }
+
+    .content-header {
+        width: 105vw !important;
+        grid-gap: 0 1em !important;
+        grid-template-columns: max-content 1fr !important;
+        grid-template-areas: "caption actions"
+    "status actions" !important;
+    }
+
+    /* File manager fixes */
+    .fm-container .fileEditor {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .fm-container .table-container {
+        width: 95vw !important;
+    }
+
+    .fm-container #fm-table tr td:nth-child(3),
+    .fm-container #fm-table tr td:nth-child(4) {
+        display: none;
+    }
+
+    .fm-container .title {
+        display: none;
+    }
+
+    .fm-container {
+        grid-template-columns: 1fr;
+        grid-template-areas: "actions"
+    "breadcrumb"
+    "table" !important;
+    }
+
+    /* Plugins page fixes */
+    .plugins-container {
+        flex-direction: column !important;
+        overflow-y: auto;
+    }
+
+    .plugins-container .panel {
+        height: 50vh;
+    }
+
+    .plugins-container .panel .header {
+        width: 80vw;
+    }
+
+    .plugins-container .panel .header h2 {
+        flex-grow: 1;
+    }
+
+    /* Server settings fixes */
+    .ssettings-container table {
+        width: 93vw !important;
+    }
+
+    .ssettings-container table input[type="number"] {
+        width: 30vw !important;
+    }
+
+    /* Server.properties fixes */
+    .speditor-container .tableWrapper,
+    .speditor-container #sp-table {
+        width: 93vw !important;
+    }
+
+    /* Kubek settings fixes */
+    .ksettings-container .tablesWrapper,
+    .ksettings-container table {
+        width: 93vw !important;
+    }
+
+    .ksettings-container table .iconBg {
+        background: transparent !important;
+    }
+
+    .ksettings-container .footer {
+        width: 93vw !important;
+    }
+
+    .userEditModal {
+        width: 100vw !important;
+        height: 100vh !important;
+    }
+
+    /* System monitor fixes */
+    .sysmon-container {
+        width: 100vw !important;
+    }
+
+    .sysmon-container table {
+        width: 93vw !important;
+    }
+
+    /* Console fixes */
+    .console-layout {
+        grid-template-columns: 1fr max-content 1fr !important;
+        grid-template-rows: 60vh max-content max-content !important;
+        grid-template-areas: "console console console"
+    "input input input"
+    ". settings ." !important;
+    }
+
+    .console-layout .settings {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        grid-area: unset     !important;
+    }
+
+    .console-layout .settings .layout-accent-box {
+        width: 40vw !important;
+        height: 200px !important;
+        margin: 0 4px !important;
+    }
+
+    .console-layout .console,
+    .console-layout .input,
+    .console-layout .settings {
+        width: 94vw !important;
+    }
+
+    /* Login page fixes */
+    .login-modal {
+        width: 100vw !important;
+        height: 100vh !important;
+        border-radius: 0 !important;
+    }
+
+    .login-modal .left {
+        width: 100% !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-modal #login-btn {
+        width: 100%;
+    }
+
+    .login-modal .right {
+        display: none !important;
+    }
+
+    .login-modal .grow {
+        display: none !important;
+    }
+
+    /* Alert fixes */
+    .alert {
+        max-width: 90vw;
+    }
+}
+
+/* Developed by Seeroy */

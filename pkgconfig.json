@@ -1,5 +1,6 @@
 {
-  "assets": ["www/**/*", "translations/**/*", "ftpd.js", "my_modules/**/*", "www/assets/**/*"],
-  "targets": ["node18-win-x64", "node18-linux-x64"],
+  "assets": ["web/**/*", "languages/**/*", "web/assets/**/*"],
+  "scripts": ["modules/**/*", "routers/**/*"],
+  "targets": ["latest-win-x64", "latest-linux-x64"],
   "outputPath": "dist"
 }

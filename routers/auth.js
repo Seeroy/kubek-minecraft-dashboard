@@ -1,228 +1,91 @@
-var express = require("express");
-var router = express.Router();
-var additional = require("./../my_modules/additional");
-var config = require("./../my_modules/config");
-const auth_manager = require("./../my_modules/auth_manager");
-var tgbot = require("./../my_modules/tgbot");
+const SECURITY = require("./../modules/security");
+const SERVERS_MANAGER = require("./../modules/serversManager");
+const MULTI_LANGUAGE = require("./../modules/multiLanguage");
+const COMMONS = require("./../modules/commons");
 
-const ACCESS_PERMISSION = "kubek_settings";
+const express = require("express");
+const router = express.Router();
 
-router.use(function (req, res, next) {
-  additional.showRequestInLogs(req, res);
-  if (req["_parsedUrl"].pathname != "/login") {
-    cfg = config.readConfig();
-    ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-    ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
-    if (cfg["internet-access"] == false && ip != "127.0.0.1") {
-      res.send("Cannot be accessed from the internet");
-    } else {
-      authsucc = auth_manager.authorize(
-        req.cookies["kbk__hash"],
-        req.cookies["kbk__login"]
-      );
-      if (authsucc == true) {
-        next();
-      } else {
-        res.redirect("/login.html");
-      }
+// Endpoint для входа в систему
+router.get("/login/:login/:password", function (req, res) {
+    let q = req.params;
+    // Если авторизация отключена в конфигурации
+    if (mainConfig.authorization === false) {
+        return res.send({
+            success: false,
+            error: MULTI_LANGUAGE.translateText(currentLanguage, "{{security.authDisabled}}")
+        });
     }
-  } else {
-    next();
-  }
+    if (COMMONS.isObjectsValid(q.login, q.password)) {
+        let authUser = SECURITY.authorizeUser(q.login, q.password);
+        if (authUser) {
+            let options = {
+                maxAge: 120 * 24 * 60 * 60 * 1000,
+                httpOnly: true,
+            };
+            res.cookie("kbk__hash", usersConfig[q.login].secret, options);
+            res.cookie("kbk__login", usersConfig[q.login].username, options);
+            return res.send({
+                success: true
+            });
+        }
+        return res.send({
+            success: false,
+            error: MULTI_LANGUAGE.translateText(currentLanguage, "{{security.wrongCredentials}}")
+        });
+    }
+    res.sendStatus(400);
 });
 
-router.get("/login", function (req, res) {
-  password = req.query.password;
-  login = req.query.login;
-  additional.showMyMessageInLogs(req, res, "Trying to login into " + login);
-  mainConfig = config.readConfig();
-  if (mainConfig.auth == true) {
-    authsucc = auth_manager.login(password, login);
-    ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-    ip = ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
-    tgbot.sendNewAuth(authsucc, login, ip);
-    if (authsucc == true) {
-      let options = {
-        maxAge: 120 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-      };
-      res.cookie("kbk__hash", users[login].hash, options);
-      res.cookie("kbk__login", users[login].username, options);
-      res.redirect("/");
-      additional.showMyMessageInLogs(
-        req,
-        res,
-        "User " + login + " successfully logged in"
-      );
-    } else {
-      additional.showMyMessageInLogs(
-        req,
-        res,
-        "User " + login + " used wrong credentials"
-      );
-      res.send("Wrong credetinals!");
-    }
-  } else {
-    additional.showMyMessageInLogs(
-      req,
-      res,
-      "Auth is disabled, skipping checks"
-    );
-    res.redirect("/");
-  }
-});
-
+// Endpoint для получения списка своих прав
 router.get("/permissions", function (req, res) {
-  res.send(auth_manager.getUserPermissions(req));
-});
-
-router.get("/listUsers", function (req, res) {
-  perms = auth_manager.getUserPermissions(req);
-  if (perms.includes(ACCESS_PERMISSION)) {
-    users = config.readUsersConfig();
-    res.send(users);
-  } else {
-    res.status(403).send();
-  }
-});
-
-router.get("/getUserInfo", function (req, res) {
-  perms = auth_manager.getUserPermissions(req);
-  if (perms.includes(ACCESS_PERMISSION)) {
-    users = config.readUsersConfig();
-    username = req.query.username;
-    if (typeof username !== "undefined" && username.length > 0) {
-      usrinfo = users[username];
-      res.send(usrinfo);
-    } else {
-      res.send(false);
+    if (SECURITY.isUserHasCookies(req)) {
+        return res.send(SECURITY.getUserDataByUsername(req.cookies["kbk__login"]).permissions);
     }
-  } else {
-    res.status(403).send();
-  }
+    res.sendStatus(403);
 });
 
-router.get("/newUser", function (req, res) {
-  perms = auth_manager.getUserPermissions(req);
-  if (perms.includes(ACCESS_PERMISSION)) {
-    result = false;
-    login = req.query.login;
-    password = req.query.password;
-    mail = req.query.mail;
-    permissions = req.query.permissions;
-    if (
-      typeof login !== "undefined" &&
-      typeof password !== "undefined" &&
-      login.length > 0 &&
-      password.length > 0
-    ) {
-      permissions = permissions.split(",");
-      if (typeof permissions == "object") {
-        result = auth_manager.addNewUser(password, login, permissions, mail);
-      }
-      res.send(result);
-    } else {
-      res.send(false);
+// Endpoint для получения списка своих доступных серверов
+router.get("/servers", function (req, res) {
+    if (SECURITY.isUserHasCookies(req)) {
+        let usrObject = SECURITY.getUserDataByUsername(req.cookies["kbk__login"]);
+        if (usrObject !== false) {
+            if (usrObject.serversAccessRestricted === true) {
+                res.send(usrObject.serversAllowed);
+            } else {
+                res.send(SERVERS_MANAGER.getServersList());
+            }
+            return;
+        }
     }
-  } else {
-    res.status(403).send();
-  }
+    res.sendStatus(403);
 });
 
+// Endpoint для получения своего логина
+router.get("/login", function (req, res) {
+    if (SECURITY.isUserHasCookies(req)) {
+        return res.send(req.cookies["kbk__login"]);
+    }
+    res.sendStatus(403);
+});
+
+// Endpoint для выхода из аккаунта
 router.get("/logout", function (req, res) {
-  cfg = config.readConfig();
-  if (cfg["auth"] == true) {
-    login = req.cookies["kbk__login"];
-    hash = req.cookies["kbk__hash"];
-    if (
-      typeof login !== "undefined" &&
-      typeof hash !== "undefined" &&
-      login.length > 0 &&
-      hash.length > 0
-    ) {
-      res.clearCookie("kbk__login");
-      res.clearCookie("kbk__hash");
-      res.redirect("/login.html");
-      res.end();
-    } else {
-      res.send(false);
+    if (SECURITY.isUserHasCookies(req)) {
+        res.clearCookie("kbk__login");
+        res.clearCookie("kbk__hash");
+        return res.send({
+            success: true
+        })
     }
-  } else {
-    res.redirect("/");
-  }
+    res.send({
+        success: false
+    })
 });
 
-router.get("/editUser", function (req, res) {
-  perms = auth_manager.getUserPermissions(req);
-  if (perms.includes(ACCESS_PERMISSION)) {
-    result = false;
-    login = req.query.login;
-    mail = req.query.mail;
-    permissions = req.query.permissions;
-    if (typeof login !== "undefined" && login.length > 0) {
-      permissions = permissions.split(",");
-      result = auth_manager.editUser(login, permissions, mail);
-      res.send(result);
-    } else {
-      res.send(false);
-    }
-  } else {
-    res.status(403).send();
-  }
+// Endpoint для проверки, включена ли авторизация (для скрытия badge в хидере)
+router.get("/isEnabled", (req, res) => {
+    res.send(mainConfig.authorization);
 });
 
-router.get("/changeAdminPass", function (req, res) {
-  perms = auth_manager.getUserPermissions(req);
-  if (perms.includes(ACCESS_PERMISSION)) {
-    result = false;
-    oldPass = req.query.oldPass;
-    newPass = req.query.newPass;
-    if (
-      typeof oldPass !== "undefined" &&
-      typeof newPass !== "undefined" &&
-      oldPass.length > 0 &&
-      newPass.length > 0
-    ) {
-      result = auth_manager.changeAdminPass(oldPass, newPass);
-      res.send(result);
-    } else {
-      res.send(false);
-    }
-  } else {
-    res.status(403).send();
-  }
-});
-
-router.get("/deleteUser", function (req, res) {
-  perms = auth_manager.getUserPermissions(req);
-  if (perms.includes(ACCESS_PERMISSION)) {
-    result = false;
-    login = req.query.login;
-    if (typeof login !== "undefined" && login.length > 0) {
-      result = auth_manager.deleteUser(login);
-      res.send(result);
-    } else {
-      res.send(false);
-    }
-  } else {
-    res.status(403).send();
-  }
-});
-
-router.get("/regenUserHash", function (req, res) {
-  perms = auth_manager.getUserPermissions(req);
-  if (perms.includes(ACCESS_PERMISSION)) {
-    result = false;
-    login = req.query.login;
-    if (typeof login !== "undefined" && login.length > 0) {
-      result = auth_manager.regenUserHash(login);
-      res.send(result);
-    } else {
-      res.send(false);
-    }
-  } else {
-    res.status(403).send();
-  }
-});
-
-module.exports = router;
+module.exports.router = router;

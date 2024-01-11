@@ -1,0 +1,53 @@
+<link rel="stylesheet" href="/pages/serverSettings.css" />
+
+<div class="ssettings-container animate__animated animate__fadeIn animate__faster h-full" style="overflow: auto;">
+  <!-- Заголовок -->
+  <h2>{{sections.serverSettings}}</h2>
+  <!-- Табы -->
+  <div class="radioButtons">
+    <div class="item active">{{serverSettings.generalSettings}}</div>
+  </div>
+  <!-- Настройки -->
+  <div class="tableWrapper">
+    <table>
+      <tr>
+        <td>
+          {{serverSettings.startScript}}
+        </td>
+        <td>
+          <input type="text" id="start-script">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          {{serverSettings.restartOnError}}
+        </td>
+        <td>
+          <label class="switch">
+            <input type="checkbox" id="restart-on-error">
+            <span class="slider round"></span>
+          </label>
+        </td>
+      </tr>
+      <tr id="restart-attempts-tr">
+        <td>
+          {{serverSettings.restartAttempts}}
+        </td>
+        <td>
+          <input type="number" id="restart-attempts">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          {{serverSettings.stopCommand}}
+        </td>
+        <td>
+          <input type="text" id="stop-command">
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Кнопка сохранения -->
+  <button class="primary-btn" onclick="KubekServerSettingsUI.writeSettings()">{{commons.save}}</button>
+</div>

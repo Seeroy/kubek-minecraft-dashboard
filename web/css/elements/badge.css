@@ -1,0 +1,18 @@
+.badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 12pt;
+}
+
+.badge.dark {
+    background: var(--bg-dark-accent);
+    color: white;
+}
+
+.badge.primary {
+    background: var(--bg-primary-600);
+    color: white;
+}

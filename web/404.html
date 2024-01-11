@@ -1,0 +1,51 @@
+<head>
+    <link rel="stylesheet" href="/css/globals.css"/>
+    <link rel="stylesheet" href="/css/theme.css"/>
+    <link rel="stylesheet" href="/css/fonts.css"/>
+    <title>404</title>
+</head>
+
+<body>
+<div class="layout">
+    <span class="caption">404</span>
+</div>
+</body>
+
+<style>
+    body {
+        padding: 0;
+        margin: 0;
+        background: linear-gradient(0deg, #303b4e, #111921);
+    }
+
+    .layout {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .layout * {
+        color: white;
+    }
+
+    .layout .caption {
+        font-weight: 900;
+        font-size: 211px;
+        color: rgba(255, 255, 255, 0.2);
+    }
+</style>
+
+<script>
+    let currentGradientRotation = 0;
+    setInterval(() => {
+        if (currentGradientRotation === 360) {
+            currentGradientRotation = 0;
+        } else {
+            currentGradientRotation++;
+        }
+        document.querySelector("body").style.background = 'linear-gradient(' + currentGradientRotation + 'deg, #303b4e, #111921)';
+    }, 25);
+</script>

@@ -1,0 +1,39 @@
+<link rel="stylesheet" href="/pages/console.css"/>
+
+<div class="console-container animate__animated animate__fadeIn animate__fast">
+    <!-- Заголовок -->
+    <h2>{{sections.console}}</h2>
+    <!-- Главный контейнер -->
+    <div class="console-layout">
+        <!-- Сама консоль -->
+        <div class="console" id="console-text"></div>
+        <!-- Поле ввода команд -->
+        <div class="input">
+            <input type="text" id="cmd-input" placeholder="{{gameConsole.inputCommand}}"/>
+            <button class="dark-btn icon-only">
+                <span class="material-symbols-rounded"
+                      onclick="KubekServers.sendCommandFromInput(selectedServer)"> send </span>
+            </button>
+        </div>
+        <!-- Доп. блоки -->
+        <div class="settings">
+            <!-- Блок мониторинга CPU -->
+            <div class="layout-accent-box">
+                <div class="lds-spinner flexCentered developed-by-seeeroy" id="cpu-usage-spinner"><div></div><div></div><div></div></div>
+                <div id="cpu-usage-bar"></div>
+                <div class="desc-text">
+                    <h4>CPU</h4>
+                </div>
+            </div>
+            <!-- Блок мониторинга RAM -->
+            <div class="layout-accent-box">
+                <div class="lds-spinner flexCentered" id="ram-usage-spinner"><div></div><div></div><div></div></div>
+                <div id="ram-usage-bar"></div>
+                <div class="desc-text">
+                    <h4>RAM</h4>
+                    <sup id="ram-usage-text">{{commons.loading}}</sup>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

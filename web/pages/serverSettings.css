@@ -1,0 +1,34 @@
+.ssettings-container {
+    width: 100%;
+    height: 62vh;
+}
+
+/* RadioButtons */
+.ssettings-container .radioButtons {
+    background: var(--bg-dark-accent);
+    margin: 12px 0;
+}
+
+.ssettings-container .radioButtons .item {
+    width: 100%;
+}
+
+.ssettings-container table {
+    width: 50vw;
+    table-layout: fixed;
+    margin: 12px 0;
+}
+
+.ssettings-container table,
+.ssettings-container table tr,
+.ssettings-container table td {
+    background: var(--bg-dark-accent);
+}
+
+.ssettings-container table input {
+    background: var(--bg-dark);
+}
+
+.ssettings-container table input[type="text"] {
+    width: 100%;
+}

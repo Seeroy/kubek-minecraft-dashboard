@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<head>
+    <!-- Meta -->
+    <meta charset="utf-8"/>
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Kubek | {{commons.auth}}</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/animate.min.css"/>
+
+    <link rel="stylesheet" href="css/globals.css"/>
+    <link rel="stylesheet" href="css/theme.css"/>
+    <link rel="stylesheet" href="css/mobile.css"/>
+
+    <link rel="stylesheet" href="assets/fonts/Gilroy/stylesheet.css"/>
+    <link rel="stylesheet" href="assets/fonts/MSR/stylesheet.css"/>
+
+    <!-- Elements styles -->
+    <link rel="stylesheet" href="css/elements/button.css"/>
+    <link rel="stylesheet" href="css/elements/input.css"/>
+    <link rel="stylesheet" href="css/elements/switch.css"/>
+    <link rel="stylesheet" href="css/elements/alert.css"/>
+    <link rel="stylesheet" href="css/elements/uiPools.css"/>
+    <link rel="stylesheet" href="css/elements/scrollbar.css"/>
+
+    <link rel="stylesheet" href="css/elements/lds-spinner.css"/>
+    <link rel="stylesheet" href="css/elements/lds-ellipsis.css"/>
+
+    <link rel="stylesheet" href="css/preloader.css"/>
+
+    <script src="js/classes/KubekPredefined.js"></script>
+    <script src="js/classes/KubekRequests.js"></script>
+    <script src="js/classes/KubekAlerts.js"></script>
+
+    <!-- Scripts -->
+    <script src="js/jquery-3.7.0.min.js"></script>
+</head>
+
+<body>
+<div class="main-layout">
+    <div class="login-modal">
+        <div class="left">
+            <div class="logo">
+                <img src="/assets/kubek_icon.png" style="height: 32px" alt="Kubek icon"/>
+                <img src="/assets/kubek_logo_text.svg" style="height: 20px; margin-left: 12px" alt="Kubek"/>
+            </div>
+            <h1>{{commons.auth}}</h1>
+            <input type="text" id="login-input" placeholder="{{commons.login}}">
+            <input type="password" id="password-input" placeholder="{{commons.password}}">
+            <div class="grow"></div>
+            <button class="primary-btn" onclick="login()" id="login-btn">{{commons.goto}}</button>
+        </div>
+        <div class="right"></div>
+    </div>
+</div>
+
+<div class="uiPool bottom left" id="alerts-pool"></div>
+</body>
+
+<script>
+    console.log("[UI] Starting Kubek UI...");
+
+    $(function () {
+        $("input").on("input", () => {
+            verifyInputs();
+        });
+    });
+
+    // Произвести вход
+    function login() {
+        let login = $("#login-input").val();
+        let password = $("#password-input").val();
+        KubekRequests.get("/auth/login/" + login + "/" + password, (result) => {
+            if (result.success === true) {
+                window.location = "/";
+            } else {
+                KubekAlerts.addAlert(result.error, "warning", "", 6000);
+            }
+        });
+    }
+
+    // Проверить значения полей ввода
+    function verifyInputs() {
+        let loginInput = $("#login-input");
+        let passwordInput = $("#password-input");
+        let button = $("#login-btn");
+        if (loginInput.val().match(KubekPredefined.LOGIN_REGEX) !== null) {
+            loginInput.removeClass("error");
+        } else {
+            loginInput.addClass("error");
+            return button.attr("disabled", true);
+        }
+
+        if (passwordInput.val().match(KubekPredefined.PASSWORD_REGEX) !== null) {
+            passwordInput.removeClass("error");
+        } else {
+            passwordInput.addClass("error");
+            return button.attr("disabled", true);
+        }
+
+        button.removeAttr("disabled");
+    }
+</script>
+
+<style>
+    body,
+    html {
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg-dark);
+    }
+
+    /* Main layout styling */
+    .main-layout {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-layout .login-modal {
+        width: 40%;
+        height: 55%;
+        background: var(--bg-dark-accent);
+        border-radius: 8px;
+        display: flex;
+    }
+
+    .main-layout .login-modal .left {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .main-layout .login-modal .left > * {
+        margin: 12px 0;
+    }
+
+    .main-layout .login-modal .right {
+        background-image: url("/assets/sprinkle_bg.svg");
+        background-color: var(--bg-dark-accent);
+        background-size: cover;
+        background-blend-mode: color-dodge;
+    }
+
+    .main-layout .login-modal .left,
+    .main-layout .login-modal .right {
+        width: 50%;
+        height: 100%;
+    }
+
+    .main-layout .login-modal input {
+        background: var(--bg-dark);
+        width: 100%;
+    }
+
+    .main-layout .grow {
+        flex-grow: 1;
+    }
+</style>

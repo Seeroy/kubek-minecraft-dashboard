@@ -1,0 +1,27 @@
+textarea {
+  appearance: none;
+  outline: none;
+  border: 0;
+  padding: 12px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: 12pt;
+  background: var(--bg-dark-accent);
+}
+
+textarea:focus {
+  background: var(--bg-dark-accent-light);
+}
+
+textarea.error {
+  border: 1px solid #e02424;
+}
+
+textarea.success {
+  border: 1px solid #0e9f6e;
+}

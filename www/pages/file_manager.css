@@ -1,7 +1,0 @@
-html:not(.simplify):not(.dark) #fm-table tr.glassmorphed:hover {
-  background: rgba(175, 175, 175, 0.55);
-}
-
-html.dark:not(.simplify) #fm-table tr.glassmorphed:hover {
-  background: rgba(135, 135, 135, 0.4) !important;
-}
