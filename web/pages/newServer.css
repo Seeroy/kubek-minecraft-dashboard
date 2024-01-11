@@ -50,6 +50,8 @@
 /* Список ядер */
 .new-server-container #cores-grid {
     margin: 16px 0;
+    grid-template-columns: repeat(auto-fill, 180px);
+    justify-content: center;
 }
 
 /* Список версий */

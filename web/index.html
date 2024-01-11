@@ -14,25 +14,7 @@
     <link rel="stylesheet" href="css/atom-one-dark.css">
 
     <!-- Elements styles -->
-    <link rel="stylesheet" href="css/elements/button.css"/>
-    <link rel="stylesheet" href="css/elements/input.css"/>
-    <link rel="stylesheet" href="css/elements/switch.css"/>
-    <link rel="stylesheet" href="css/elements/table.css"/>
-    <link rel="stylesheet" href="css/elements/dropdown.css"/>
-    <link rel="stylesheet" href="css/elements/radioButtons.css"/>
-    <link rel="stylesheet" href="css/elements/checkbox.css"/>
-    <link rel="stylesheet" href="css/elements/radio.css"/>
-    <link rel="stylesheet" href="css/elements/alert.css"/>
-    <link rel="stylesheet" href="css/elements/cardsGrid.css"/>
-    <link rel="stylesheet" href="css/elements/checksList.css"/>
-    <link rel="stylesheet" href="css/elements/uiPools.css"/>
-    <link rel="stylesheet" href="css/elements/scrollbar.css"/>
-    <link rel="stylesheet" href="css/elements/circleProgress.css"/>
-    <link rel="stylesheet" href="css/elements/notifyModal.css"/>
-    <link rel="stylesheet" href="css/elements/blurScreen.css"/>
-    <link rel="stylesheet" href="css/elements/badge.css"/>
-    <link rel="stylesheet" href="css/elements/lds-spinner.css"/>
-    <link rel="stylesheet" href="css/elements/lds-ellipsis.css"/>
+    <link rel="stylesheet" href="css/elements/elements.css"/>
 
     <link rel="stylesheet" href="css/preloader.css"/>
     <link rel="stylesheet" href="css/mobile.css"/>
@@ -130,9 +112,13 @@
                 KubekUI.loadServersList();
 
                 KubekServers.getServersList((servers) => {
-                    if(servers.length === 0 && act !== "newServer"){
-                        // Загружаем страницу welcome
-                        KubekPageManager.gotoPage("welcome");
+                    if(servers.length === 0){
+                        if(act !== "newServer"){
+                            // Загружаем страницу welcome
+                            KubekPageManager.gotoPage("welcome");
+                        } else {
+                            KubekPageManager.gotoPage("newServer");
+                        }
                         $("#main-menu-sidebar").hide();
                         $("#servers-list-sidebar .sidebar-item:not(.server-item)").addClass("animate__animated animate__headShake");
                         $("#servers-list-sidebar .sidebar-item:not(.server-item)").css("animation-iteration-count", "infinite");
