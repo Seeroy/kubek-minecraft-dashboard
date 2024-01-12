@@ -6,7 +6,10 @@
   "author": "Seeroy",
   "scripts": {
     "start": "node app.js",
-    "build": "pkg --config pkgconfig.json app.js"
+    "build": "pkg --config pkgconfig.json app.js",
+    "dockerBuild": "sudo docker build -t seeroy/kubek-minecraft-dashboard .",
+    "dockerStart": "sudo docker run --restart unless-stopped -dp 3000:3000 -v kubek",
+    "dockerPush": "sudo docker push seeroy/kubek-minecraft-dashboard"
   },
   "repository": {
     "type": "git",

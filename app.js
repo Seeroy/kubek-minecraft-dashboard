@@ -2,13 +2,13 @@
 const COMMONS = require("./modules/commons");
 const CONFIGURATION = require("./modules/configuration");
 
-// Создаём нужные папки (если их не существует)
-COMMONS.makeBaseDirs();
-
 // Загружаем файлы конфигурации в глобальные переменные
 CONFIGURATION.reloadAllConfigurations();
 CONFIGURATION.migrateOldMainConfig();
 CONFIGURATION.migrateOldServersConfig();
+
+// Создаём нужные папки (если их не существует)
+COMMONS.makeBaseDirs();
 
 const LOGGER = require("./modules/logger");
 const MULTI_LANGUAGE = require("./modules/multiLanguage");
@@ -40,3 +40,6 @@ WEBSERVER.startWebServer();
 // Запускаем FTP-сервер
 global.ftpDaemon = null;
 FTP_DAEMON.startFTP();
+
+// Автоматически запустить сервера, которые были запущены при закрытии Kubek
+CONFIGURATION.autoStartServers();

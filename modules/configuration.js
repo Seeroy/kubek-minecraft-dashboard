@@ -5,6 +5,9 @@ const colors = require("colors");
 
 const PREDEFINED = require("./predefined");
 const COMMONS = require("./commons");
+const SERVERS_CONTROLLER = require("./serversController");
+
+global.autoStartedServers = [];
 
 // Мигрировать старый config.json
 exports.migrateOldMainConfig = () => {
@@ -131,13 +134,22 @@ exports.writeUsersConfig = (data) => {
 exports.readServersConfig = () => {
     if (fs.existsSync("./servers/servers.json")) {
         let rdServersCfg = this.readAnyConfig("./servers/servers.json");
-        for (const [key, value] of Object.entries(rdServersCfg)) {
-            rdServersCfg[key].status = PREDEFINED.SERVER_STATUSES.STOPPED;
-        }
         return rdServersCfg;
     } else {
         this.writeAnyConfig("./servers/servers.json", PREDEFINED.CONFIGURATIONS.SERVERS);
         return PREDEFINED.CONFIGURATIONS.SERVERS;
+    }
+};
+
+// Автоматически запустить сервера, которые были запущены при закрытии Kubek
+exports.autoStartServers = () => {
+    for (const [key, value] of Object.entries(serversConfig)) {
+        if(serversConfig[key].status !== PREDEFINED.SERVER_STATUSES.STOPPED && !autoStartedServers.includes(key)){
+            // Запускаем сервер, который был запущен до остановки Kubek
+            serversConfig[key].status = PREDEFINED.SERVER_STATUSES.STOPPED;
+            SERVERS_CONTROLLER.startServer(key);
+            autoStartedServers.push(key);
+        }
     }
 };
 
