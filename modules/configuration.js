@@ -136,6 +136,9 @@ exports.readServersConfig = () => {
         let rdServersCfg = this.readAnyConfig("./servers/servers.json");
         return rdServersCfg;
     } else {
+        if (!fs.existsSync("./servers")) {
+            fs.mkdirSync("./servers");
+        }
         this.writeAnyConfig("./servers/servers.json", PREDEFINED.CONFIGURATIONS.SERVERS);
         return PREDEFINED.CONFIGURATIONS.SERVERS;
     }
