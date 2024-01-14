@@ -17,7 +17,7 @@ router.get("/hardware/usage", function (req, res) {
 });
 
 // Endpoint для получения всей информации о hardware
-router.get("/hardware", function (req, res) {
+router.get("/hardware/summary", function (req, res) {
     HARDWARE_MANAGER.getHardwareInfo((result) => {
         res.send(result);
     })

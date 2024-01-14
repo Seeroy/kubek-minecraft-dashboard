@@ -4,6 +4,7 @@
 
 .ksettings-container .tablesWrapper {
     height: 65vh;
+    width: 100%;
     overflow-y: auto;
 }
 
@@ -18,7 +19,7 @@
 }
 
 .ksettings-container table {
-    width: 63vw;
+    width: 100%;
     table-layout: fixed;
     margin: 12px 0;
 }

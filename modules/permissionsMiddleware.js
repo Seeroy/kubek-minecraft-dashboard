@@ -28,6 +28,19 @@ webServer.use("/api/cores", (req, res, next) => {
     return res.sendStatus(403);
 })
 
+// Проверка permissions для создания сервера
+webServer.use("/api/servers/new", (req, res, next) => {
+    // Проверка URL на разрешённую для пропуска проверки прав
+    if (COMMONS.testForRegexArray(req.originalUrl, PREDEFINED.SKIP_AUTH_URLS)) {
+        return next();
+    }
+
+    if (this.chkUserPermission(req, PREDEFINED.PERMISSIONS.MAKING_SERVERS)) {
+        return next();
+    }
+    return res.sendStatus(403);
+})
+
 // Проверка permissions для управления файлами
 webServer.use("/api/fileManager", (req, res, next) => {
     // Проверка URL на разрешённую для пропуска проверки прав
@@ -75,6 +88,32 @@ webServer.use("/api/plugins", (req, res, next) => {
     }
 
     if (this.chkUserPermission(req, PREDEFINED.PERMISSIONS.MANAGE_PLUGINS)) {
+        return next();
+    }
+    return res.sendStatus(403);
+})
+
+// Проверка permissions для управления настройками Kubek
+webServer.use("/api/kubek/settings", (req, res, next) => {
+    // Проверка URL на разрешённую для пропуска проверки прав
+    if (COMMONS.testForRegexArray(req.originalUrl, PREDEFINED.SKIP_AUTH_URLS)) {
+        return next();
+    }
+
+    if (this.chkUserPermission(req, PREDEFINED.PERMISSIONS.KUBEK_SETTINGS)) {
+        return next();
+    }
+    return res.sendStatus(403);
+})
+
+// Проверка permissions для мониторинга системы
+webServer.use("/api/kubek/hardware/summary", (req, res, next) => {
+    // Проверка URL на разрешённую для пропуска проверки прав
+    if (COMMONS.testForRegexArray(req.originalUrl, PREDEFINED.SKIP_AUTH_URLS)) {
+        return next();
+    }
+
+    if (this.chkUserPermission(req, PREDEFINED.PERMISSIONS.SYSTEM_MONITORING)) {
         return next();
     }
     return res.sendStatus(403);
