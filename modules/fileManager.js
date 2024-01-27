@@ -2,6 +2,8 @@ const fs = require("fs");
 let fileWrites = {};
 const {Base64} = require('js-base64');
 
+const SECURITY = require('./security');
+
 // Получить файлы в директории
 exports.scanDirectory = (server, directory, cb) => {
     let relDirectoryPath = "./servers/" + server + directory;
@@ -161,7 +163,7 @@ exports.startChunkyFileWrite = (server, path) => {
         return false;
     }
 
-    let randomUUID = crypto.randomUUID();
+    let randomUUID = SECURITY.generateSecureID(8);
     fileWrites[randomUUID] = {
         id: randomUUID,
         path: filePath,
