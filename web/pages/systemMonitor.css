@@ -12,6 +12,7 @@
     text-overflow: clip;
 }
 
-.sysmon-container h3 {
+.sysmon-container h4 {
+    font-weight: 300;
     margin: 12px 0;
 }

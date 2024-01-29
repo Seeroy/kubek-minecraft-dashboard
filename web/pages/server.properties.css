@@ -5,14 +5,18 @@
 
 .speditor-container .tableWrapper {
   overflow: auto;
-  height: 61vh;
+  height: 65vh;
   margin: 12px 0;
-  width: max-content;
 }
 
-#sp-table {
-  width: 50vw;
+.speditor-container .tableWrapper table {
+  width: 100%;
   table-layout: fixed;
+  max-height: 50vh;
+}
+
+.speditor-container .primary-btn {
+  width: 100%;
 }
 
 #sp-table,

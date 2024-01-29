@@ -1,5 +1,7 @@
 let refreshIntervals = {};
 let isItFirstLogRefresh = false;
+let previousConsoleUpdateLength = 0;
+let timeStampRegexp = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2}\]/gm;
 
 class KubekRefresher {
     // Добавить рефреш-интервал
@@ -44,6 +46,10 @@ class KubekRefresher {
         if (consoleTextElem.length !== 0) {
             KubekServers.getServerLog(selectedServer, (serverLog) => {
                 let parsedServerLog = serverLog.split(/\r?\n/);
+                if(previousConsoleUpdateLength === serverLog.length){
+                    return;
+                }
+                previousConsoleUpdateLength = serverLog.length;
                 $(consoleTextElem).html("");
                 parsedServerLog.forEach(function (line) {
                     let html_text = "";
@@ -65,6 +71,18 @@ class KubekRefresher {
                         html_text += joinedLine + "<br>";
                     } else {
                         html_text += parsedText[0].text + "<br>";
+                    }
+
+                    // Парсинг timestampов ([00:00:00])
+
+                    let matches;
+                    while(matches = timeStampRegexp.exec(html_text)){
+                        let startIndex = timeStampRegexp.lastIndex - matches[0].length;
+                        let endIndex = timeStampRegexp.lastIndex;
+
+                        let cutTimestamp = html_text.substring(startIndex, endIndex);
+                        let resTimestamp = "<span style='color: var(--bg-dark-accent-lighter);'>" + cutTimestamp + "</span>";
+                        html_text = resTimestamp + html_text.substring(endIndex);
                     }
                     $(consoleTextElem).html($(consoleTextElem).html() + html_text);
                 });

@@ -155,7 +155,13 @@
       "creationStarted": "Server creation started<br>The creation process can be tracked in the task list at the bottom left<br>Once created, you will automatically be taken to the new server console",
       "creationCompleted": "Server creation has been successfully completed!",
       "uploadingFile": "Submitting your core file...",
-      "creationStartedShort": "Making some magic"
+      "creationStartedShort": "Making some magic",
+      "noCoreFile": "You didn't upload core .jar",
+      "noServerName": "Invalid server name",
+      "serverAlreadyExists": "Server already exists",
+      "noMemory": "Invalid memory value",
+      "noPort": "Invalid port value",
+      "noCoreSelected": "No core type/version selected"
     },
     "tasksTypes": {
       "downloading": "Downloading",
@@ -165,6 +171,7 @@
       "updating": "Updating",
       "restarting": "Restarting",
       "creating": "Creating",
+      "deletion": "Deleting",
       "common": "Processing",
       "unknown": "Unknown"
     },
@@ -192,7 +199,8 @@
       "restartOnError": "Restart the server when it crashes",
       "restartAttempts": "Number of restart attempts",
       "startScript": "Launch script",
-      "stopCommand": "Server stop command"
+      "stopCommand": "Server stop command",
+      "deleteServer": "Delete server?"
     },
     "kubekSettings": {
       "language": "Interface language",

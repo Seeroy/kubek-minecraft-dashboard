@@ -1,7 +1,7 @@
 /* Сетка контейнера */
 .fm-container {
     width: 100%;
-    height: 62vh;
+    height: 75vh;
     display: grid;
     grid-template-columns: 1fr max-content;
     grid-template-rows: max-content max-content 1fr;

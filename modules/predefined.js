@@ -58,6 +58,7 @@ exports.TASKS_TYPES = {
     UPDATING: "updating",
     RESTARTING: "restarting",
     CREATING: "creating",
+    DELETION: "deletion",
     COMMON: "common",
     UNKNOWN: "unknown"
 }
@@ -72,10 +73,10 @@ exports.KUBEK_LOGO_ASCII = " /$$                 /$$                 /$$      \n
 exports.UPDATES_URL_API = "https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/releases";
 
 // URL к API для отправки статистики
-exports.STATS_SEND_URL = "http://seeroy.ru:8080/save_kubek?savedata=";
+exports.STATS_SEND_URL = "https://statscol.seeroy.ru/save_kubek?savedata=";
 
 // URL с файлом ядер Spigot
-exports.SPIGOT_JSON_URL = "http://kubek.seeroy.ru/spigots.json";
+exports.SPIGOT_JSON_URL = "https://kubek.seeroy.ru/spigots.json";
 
 // URL со списком доступных версий Java
 exports.JAVA_LIST_URL = "https://api.adoptium.net/v3/info/available_releases";

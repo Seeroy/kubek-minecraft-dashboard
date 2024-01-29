@@ -155,7 +155,13 @@
         "creationStarted": "サーバー作成が開始されました。<br>作成プロセスは左下のタスクリストで追跡できます。<br>作成が完了すると、新しいサーバーコンソールに自動的に移動します。",
         "creationCompleted": "サーバーの作成が正常に完了しました！",
         "uploadingFile": "コアファイルのアップロード中...",
-        "creationStartedShort": "魔法をかけています"
+        "creationStartedShort": "魔法をかけています",
+        "noCoreFile": "コア .jar をアップロードしていません",
+        "noServerName": "無効なサーバー名です",
+        "serverAlreadyExists": "サーバーはすでに存在します",
+        "noMemory": "無効なメモリ値です",
+        "noPort": "無効なポート値",
+        "noCoreSelected": "コアのタイプ/バージョンが選択されていません"
       },
       "tasksTypes": {
         "downloading": "ダウンロード中",
@@ -176,6 +182,7 @@
         "downloadingCore": "コアのダウンロード中",
         "creatingBat": "起動ファイルの準備中",
         "completion": "完了",
+        "deletion": "削除中",
         "completed": "完了",
         "failed": "問題が発生しました"
       },
@@ -192,7 +199,8 @@
         "restartOnError": "クラッシュ時に再起動",
         "restartAttempts": "再起動試行回数",
         "startScript": "起動スクリプト",
-        "stopCommand": "サーバー停止コマンド"
+        "stopCommand": "サーバー停止コマンド",
+        "deleteServer": "サーバーを削除しますか?"
       },
       "kubekSettings": {
         "language": "言語",

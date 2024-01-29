@@ -232,4 +232,13 @@ router.put("/:server/server.properties", WEBSERVER.serversRouterMiddleware, func
     res.sendStatus(400);
 });
 
+// Router для удаления сервера
+router.delete("/:server", (req, res) => {
+    let q = req.params;
+    if (COMMONS.isObjectsValid(q.server)) {
+        return res.send(SERVERS_MANAGER.deleteServer(q.server));
+    }
+    res.sendStatus(400);
+});
+
 module.exports.router = router;

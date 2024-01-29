@@ -124,6 +124,13 @@
                         $("#servers-list-sidebar .sidebar-item:not(.server-item)").css("animation-iteration-count", "infinite");
                         $(".content-header").hide();
                     } else {
+                        // Проверим существование сервера
+                        KubekServers.getServersList((serversList) => {
+                            if(!serversList.includes(selectedServer)){
+                                window.localStorage.selectedServer = serversList[0];
+                                window.location.reload();
+                            }
+                        });
                         // Ищем act и загружаем страницу
                         if (act !== null) {
                             console.log("[UI]", "act is not null, trying to load", act);

@@ -38,7 +38,7 @@ function validateNewServerInputs(){
     // Проверка на выбор файла ядра
     if($(".new-server-container #core-upload").css("display") !== "none" && $("#server-core-input")[0].value === ""){
         $(".new-server-container #create-server-btn").prop("disabled", true);
-        $(".new-server-container #create-server-btn .text").text("Вы не загрузили файл ядра");
+        $(".new-server-container #create-server-btn .text").text("{{newServerWizard.noCoreFile}}");
         return;
     }
 
@@ -46,7 +46,7 @@ function validateNewServerInputs(){
     let sName = $(".new-server-container #server-name-input").val();
     if(!SERVER_NAME_REGEXP.test(sName)){
         $(".new-server-container #create-server-btn").prop("disabled", true);
-        $(".new-server-container #create-server-btn .text").text("Неверное имя сервера");
+        $(".new-server-container #create-server-btn .text").text("{{newServerWizard.noServerName}}");
         $(".new-server-container #server-name-input").addClass("error");
         return;
     } else {
@@ -56,7 +56,7 @@ function validateNewServerInputs(){
     // Проверка имени сервера на существование
     if(allServersList.includes(sName)){
         $(".new-server-container #create-server-btn").prop("disabled", true);
-        $(".new-server-container #create-server-btn .text").text("Такой сервер уже существует");
+        $(".new-server-container #create-server-btn .text").text("{{newServerWizard.serverAlreadyExists}}");
         $(".new-server-container #server-name-input").addClass("error");
         return;
     } else {
@@ -67,7 +67,7 @@ function validateNewServerInputs(){
     let memInput = $(".new-server-container #server-mem");
     if(memInput.val() < memInput.attr("min") && memInput.val() > memInput.attr("max") && memInput !== ""){
         $(".new-server-container #create-server-btn").prop("disabled", true);
-        $(".new-server-container #create-server-btn .text").text("Неверное значение памяти");
+        $(".new-server-container #create-server-btn .text").text("{{newServerWizard.noMemory}}");
         $(".new-server-container #server-mem").addClass("error");
         return;
     } else {
@@ -78,7 +78,7 @@ function validateNewServerInputs(){
     let portInput = $(".new-server-container #server-port");
     if(portInput.val() < portInput.attr("min") && portInput.val() > portInput.attr("max") && portInput !== ""){
         $(".new-server-container #create-server-btn").prop("disabled", true);
-        $(".new-server-container #create-server-btn .text").text("Неверное значение порта");
+        $(".new-server-container #create-server-btn .text").text("{{newServerWizard.noPort}}");
         $(".new-server-container #server-port").addClass("error");
         return;
     } else {
@@ -89,7 +89,7 @@ function validateNewServerInputs(){
     if($(".new-server-container #core-upload").css("display") === "none"){
         if($(".new-server-container #cores-grid .item.active").length === 1 && $(".new-server-container #cores-versions .item.active").length === 1){
             $(".new-server-container #create-server-btn").prop("disabled", true);
-            $(".new-server-container #create-server-btn .text").text("Не выбрано ядро/версия ядра");
+            $(".new-server-container #create-server-btn .text").text("{{newServerWizard.noCoreSelected}}");
             return;
         }
     }

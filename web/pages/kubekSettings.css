@@ -8,6 +8,14 @@
     overflow-y: auto;
 }
 
+.ksettings-container h4 {
+    font-weight: 300;
+}
+
+.ksettings-container h4:first-child {
+    margin-top: 12px;
+}
+
 /* RadioButtons */
 .ksettings-container .radioButtons {
     background: var(--bg-dark-accent);
@@ -70,7 +78,7 @@
 }
 
 .ksettings-container .primary-btn {
-    margin-top: 16px;
+    width: 100%;
 }
 
 .ksettings-container #accounts-list {

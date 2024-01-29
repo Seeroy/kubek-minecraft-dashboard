@@ -1,6 +1,11 @@
 const PREDEFINED = require("./predefined");
 const CONFIGURATION = require("./configuration");
 const COMMONS = require("./commons");
+const TASKMANAGER = require("./taskManager");
+
+const fs = require("fs");
+const TASK_MANAGER = require("./taskManager");
+const path = require("path");
 
 // Проверить сервер на существование
 exports.isServerExists = (serverName) => {
@@ -58,4 +63,31 @@ exports.setServerProperty = (serverName, property, value) => {
 // DEVELOPED by seeeroy
 exports.getServersList = () => {
     return Object.keys(serversConfig);
+};
+
+// Безвозвратно удалить сервер
+exports.deleteServer = (serverName) => {
+    if(this.isServerExists(serverName) && this.getServerStatus(serverName) === PREDEFINED.SERVER_STATUSES.STOPPED){
+        // Добавляем новую таску
+        let serverDelTaskID = TASK_MANAGER.addNewTask({
+            type: PREDEFINED.TASKS_TYPES.DELETION,
+            server: serverName,
+            status: PREDEFINED.SERVER_STATUSES.RUNNING
+        })
+
+        // Запускаем удаление папки
+        fs.rm("./servers/" + serverName, { recursive: true, force: true }, (err) => {
+            if(err){
+                throw err;
+            }
+            // Удаляем сервер из конфигурации и меняем статус таски
+            serversConfig[serverName] = null;
+            delete serversConfig[serverName];
+            CONFIGURATION.writeServersConfig(serversConfig);
+            let tData = TASK_MANAGER.getTaskData(serverDelTaskID);
+            tData.status = PREDEFINED.SERVER_CREATION_STEPS.COMPLETED;
+        });
+        return true;
+    }
+    return false;
 };

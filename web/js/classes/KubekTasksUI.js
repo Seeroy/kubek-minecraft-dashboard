@@ -124,6 +124,13 @@ class KubekTasksUI {
                         icon = "archive";
                         title = "{{tasksTypes.zipping}}";
                         description = task.description;
+                    } else if (task.type === KubekPredefined.TASKS_TYPES.DELETION) {
+                        icon = "delete";
+                        title = "{{tasksTypes.deletion}}";
+                        description = task.server;
+                        if(task.status === KubekPredefined.SERVER_CREATION_STEPS.COMPLETED){
+                            window.location = "/?act=console";
+                        }
                     }
                     this.addTask(id, icon, title, description, true, "symbol", iconBg);
                 }

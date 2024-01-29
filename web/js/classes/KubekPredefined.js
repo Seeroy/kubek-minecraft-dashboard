@@ -39,6 +39,7 @@ class KubekPredefined {
         UPDATING: "updating",
         RESTARTING: "restarting",
         CREATING: "creating",
+        DELETION: "deletion",
         COMMON: "common",
         UNKNOWN: "unknown"
     }

@@ -30,6 +30,10 @@ button.primary-btn {
   background: var(--bg-primary-500);
 }
 
+button.danger-btn {
+  background: var(--error);
+}
+
 button.icon-only {
   padding: 8px;
 }

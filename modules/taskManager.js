@@ -57,9 +57,11 @@ exports.getTaskData = (taskID) => {
 // Удалить все завершённые задачи
 exports.removeCompletedTasks = () => {
     for (const [key, value] of Object.entries(tasks)) {
-        if(typeof value.currentStep !== "undefined" && value.currentStep === PREDEFINED.SERVER_CREATION_STEPS.COMPLETED){
-            tasks[key] = null;
-            delete tasks[key];
+        if (typeof value.currentStep !== "undefined" || typeof value.status !== "undefined") {
+            if (value.currentStep === PREDEFINED.SERVER_CREATION_STEPS.COMPLETED || value.status === PREDEFINED.SERVER_CREATION_STEPS.COMPLETED) {
+                tasks[key] = null;
+                delete tasks[key];
+            }
         }
     }
     return true;
