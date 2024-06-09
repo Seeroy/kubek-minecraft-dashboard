@@ -1,10 +1,10 @@
 const fs = require("fs");
-const crypto = require("crypto");
 const path = require("path");
 const colors = require("colors");
 
 const PREDEFINED = require("./predefined");
 const COMMONS = require("./commons");
+const SECURITY = require("./security");
 const SERVERS_CONTROLLER = require("./serversController");
 
 global.autoStartedServers = [];
@@ -69,7 +69,7 @@ exports.writeDefaultConfig = () => {
 
 // Записать стандартный файл пользователей
 exports.writeDefaultUsersConfig = () => {
-    let newHash = crypto.randomUUID().toString();
+    let newHash = SECURITY.generateSecureID();
     let preparedUsersConfig = PREDEFINED.CONFIGURATIONS.USERS;
     preparedUsersConfig["kubek"]["secret"] = newHash;
     this.writeAnyConfig("users.json", preparedUsersConfig);
@@ -132,15 +132,11 @@ exports.writeUsersConfig = (data) => {
 
 // Прочитать конфиг серверов (записать и отдать дефолтный при отсутствии)
 exports.readServersConfig = () => {
-    if (fs.existsSync("./servers/servers.json")) {
-        let rdServersCfg = this.readAnyConfig("./servers/servers.json");
-        return rdServersCfg;
-    } else {
-        if (!fs.existsSync("./servers")) {
-            fs.mkdirSync("./servers");
-        }
+    if (!fs.existsSync("./servers/servers.json")) {
         this.writeAnyConfig("./servers/servers.json", PREDEFINED.CONFIGURATIONS.SERVERS);
         return PREDEFINED.CONFIGURATIONS.SERVERS;
+    } else {
+        return this.readAnyConfig("./servers/servers.json");
     }
 };
 

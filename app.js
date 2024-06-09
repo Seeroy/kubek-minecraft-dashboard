@@ -2,26 +2,18 @@
 const COMMONS = require("./modules/commons");
 const CONFIGURATION = require("./modules/configuration");
 
+// Создаём нужные папки (если их не существует)
+COMMONS.makeBaseDirs();
+
 // Загружаем файлы конфигурации в глобальные переменные
 CONFIGURATION.reloadAllConfigurations();
 CONFIGURATION.migrateOldMainConfig();
 CONFIGURATION.migrateOldServersConfig();
 
-// Создаём нужные папки (если их не существует)
-COMMONS.makeBaseDirs();
-
 const LOGGER = require("./modules/logger");
 const MULTI_LANGUAGE = require("./modules/multiLanguage");
-const PREDEFINED = require("./modules/predefined");
-const TASK_MANAGER = require("./modules/taskManager");
-const UPDATER = require("./modules/updater");
 const WEBSERVER = require("./modules/webserver");
-const SECURITY = require("./modules/security");
 const STATS_COLLECTION = require("./modules/statsCollection");
-const CORES_MANAGER = require("./modules/coresManager");
-const DOWNLOADS_MANAGER = require("./modules/downloadsManager");
-const JAVA_MANAGER = require("./modules/javaManager");
-const SERVERS_GENERATOR = require("./modules/serversGenerator");
 const FTP_DAEMON = require("./modules/ftpDaemon");
 
 const collStats = STATS_COLLECTION.collectStats();

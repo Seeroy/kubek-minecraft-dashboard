@@ -73,10 +73,10 @@ exports.KUBEK_LOGO_ASCII = " /$$                 /$$                 /$$      \n
 exports.UPDATES_URL_API = "https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/releases";
 
 // URL к API для отправки статистики
-exports.STATS_SEND_URL = "https://statscol.seeroy.ru/save_kubek?savedata=";
+exports.STATS_SEND_URL = "https://statscol.seeeroy.ru/save_kubek?savedata=";
 
 // URL с файлом ядер Spigot
-exports.SPIGOT_JSON_URL = "https://kubek.seeroy.ru/spigots.json";
+exports.SPIGOT_JSON_URL = "https://kubek.seeeroy.ru/spigots.json";
 
 // URL со списком доступных версий Java
 exports.JAVA_LIST_URL = "https://api.adoptium.net/v3/info/available_releases";
@@ -144,7 +144,7 @@ exports.SERVER_CORES = {
         name: "vanilla",
         displayName: "Vanilla",
         versionsMethod: "externalURL",
-        versionsUrl: "https://kubek.seeroy.ru/vanilla.json",
+        versionsUrl: "https://kubek.seeeroy.ru/vanilla.json",
         urlGetMethod: "externalURL"
     },
     paper: {
@@ -175,7 +175,7 @@ exports.SERVER_CORES = {
         name: "spigot",
         displayName: "Spigot",
         versionsMethod: "externalURL",
-        versionsUrl: "https://kubek.seeroy.ru/spigots.json",
+        versionsUrl: "https://kubek.seeeroy.ru/spigots.json",
         urlGetMethod: "externalURL"
     },
 };
