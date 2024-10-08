@@ -144,7 +144,7 @@ exports.SERVER_CORES = {
         name: "vanilla",
         displayName: "Vanilla",
         versionsMethod: "externalURL",
-        versionsUrl: "https://kubek.seeeroy.ru/vanilla.json",
+        versionsUrl: "https://cdn.seeeroy.ru/Kubek/vanilla.json",
         urlGetMethod: "externalURL"
     },
     paper: {
@@ -175,7 +175,7 @@ exports.SERVER_CORES = {
         name: "spigot",
         displayName: "Spigot",
         versionsMethod: "externalURL",
-        versionsUrl: "https://kubek.seeeroy.ru/spigots.json",
+        versionsUrl: "https://cdn.seeeroy.ru/Kubek/spigots.json",
         urlGetMethod: "externalURL"
     },
 };
