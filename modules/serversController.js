@@ -242,7 +242,11 @@ exports.getServerProperties = (serverName) => {
     let spFilePath = "./servers/" + serverName + "/server.properties";
     if (fs.existsSync(spFilePath)) {
         let spFileData = fs.readFileSync(spFilePath).toString();
-        return spParser.parse(spFileData);
+        let parsed = spParser.parse(spFileData);
+        if(parsed['generator-settings']){
+            parsed['generator-settings'] = JSON.stringify(parsed['generator-settings']);
+        }
+        return parsed;
     }
     return false;
 };
