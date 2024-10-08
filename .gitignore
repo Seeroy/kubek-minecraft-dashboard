@@ -3,7 +3,6 @@ users.json
 *.exe
 *.sh
 *.bat
-*old*
 servers/
 node_modules/
 logs/
