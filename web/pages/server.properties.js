@@ -14,8 +14,11 @@ KubekServerPropertiesUI = class {
             for (const [key, value] of Object.entries(result)) {
                 let keyStr = key;
                 let valueStr = value;
-                valueStr === null ? valueStr = "" : valueStr = valueStr;
+                valueStr === null ? valueStr = "" : valueStr;
+
                 let valType = this.getValueType(valueStr);
+                if(keyStr === "server-ip") valType = "string";
+
                 let htmlCode = "";
                 htmlCode += "<tr><td>" + keyStr + "</td><td>";
                 switch (valType) {

@@ -18,10 +18,10 @@
   "dependencies": {
     "axios": "^0.27.2",
     "colors": "^1.4.0",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "crypto-js": "^4.2.0",
     "decompress": "^4.2.1",
-    "express": "^4.21.0",
+    "express": "^4.21.1",
     "express-fileupload": "^1.5.1",
     "ftpd": "^0.2.16",
     "iconv-lite": "^0.6.3",
