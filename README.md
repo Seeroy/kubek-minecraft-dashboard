@@ -49,5 +49,5 @@ npm start
 Replace YOURPORT with the desired port for web interface and YOURDIRECTORY with the path to the host directory where your servers are located
 
 ```
-docker run -d -p YOURPORT:3000 -v YOURDIRECTORY:/usr/kubek/servers --name kubik ghcr.io/rxflex/kubek-minecraft-dashboard:latest
+docker run -d -p YOURPORT:3000 -v YOURDIRECTORY:/usr/kubek/servers --name kubek seeroy/kubek-minecraft-dashboard:latest
 ```
