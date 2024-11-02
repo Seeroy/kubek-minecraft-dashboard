@@ -51,6 +51,7 @@ Replace YOUR_DIRECTORY with your folder path
 
 ```
 docker run -d --name kubek \
+            --restart unless-stopped \
 			-p 3000:3000 \
 			-p 25565:25565 \
 			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
@@ -63,6 +64,7 @@ docker run -d --name kubek \
 If you want to open all ports, then use the command below (with it, Kubek will always work on port 3000, port remapping is not available)
 ```
 docker run -d --name kubek --network host \
+            --restart unless-stopped \
 			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
 			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
 			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
