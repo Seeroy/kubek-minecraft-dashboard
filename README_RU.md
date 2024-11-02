@@ -51,6 +51,7 @@ npm start
 
 ```
 docker run -d --name kubek \
+            --restart unless-stopped \
 			-p 3000:3000 \
 			-p 25565:25565 \
 			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
@@ -63,6 +64,7 @@ docker run -d --name kubek \
 Если вы хотите открыть все порты, то используйте команду ниже (с ней панель всегда будет работать на порту 3000, переназначение портов недоступно)
 ```
 docker run -d --name kubek --network host \
+            --restart unless-stopped \
 			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
 			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
 			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
