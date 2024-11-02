@@ -46,8 +46,26 @@ npm start
 
 ## Use Docker container
 
-Replace YOURPORT with the desired port for web interface and YOURDIRECTORY with the path to the host directory where your servers are located
+If you know all the ports you need to use, you can run Kubek in Docker using a command like this. In this example, port 3000 is used for the panel itself, and 25565 for the server
+Replace YOUR_DIRECTORY with your folder path
 
 ```
-docker run -d -p YOURPORT:3000 -v YOURDIRECTORY:/usr/kubek/servers --name kubek seeroy/kubek-minecraft-dashboard:latest
+docker run -d --name kubek \
+			-p 3000:3000 \
+			-p 25565:25565 \
+			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
+			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
+			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
+			-v /YOUR_DIRECTORY/config.json:/usr/kubek/config.json \
+			seeroy/kubek-minecraft-dashboard
+```
+
+If you want to open all ports, then use the command below (with it, Kubek will always work on port 3000, port remapping is not available)
+```
+docker run -d --name kubek --network host \
+			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
+			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
+			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
+			-v /YOUR_DIRECTORY/config.json:/usr/kubek/config.json \
+			seeroy/kubek-minecraft-dashboard
 ```
