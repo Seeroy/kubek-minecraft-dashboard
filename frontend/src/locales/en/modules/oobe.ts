@@ -27,24 +27,36 @@ export const oobeTranslations: TranslationDictionary = {
   },
   eulaStep: {
     title: "Kubek End User License Agreement",
-    content: `This End User License Agreement ("Agreement") is a legal agreement between you and the Kubek development team for the use of Kubek software ("Software").
+    content: `<p>This End User License Agreement ("Agreement") is a legal agreement between you and the Kubek development team for the use of Kubek software ("Software").</p>
 
-1. License Grant
-Kubek grants you a non-exclusive, non-transferable license to use the Software for personal and commercial purposes, subject to the terms and conditions of this Agreement.
+<h4>1. License Grant</h4>
+<p>Kubek grants you a non-exclusive, non-transferable, royalty-free license to use the Software for personal and commercial purposes, subject to the terms and conditions of this Agreement.</p>
 
-2. Restrictions
-You may not reverse engineer, decompile, or disassemble the Software. You may not modify, adapt, or create derivative works based on the Software without explicit written permission from Kubek.
+<h4>2. Extensions and Modifications</h4>
+<p>You may install extensions and adapt the Software to your own needs. You may not pass off the Software or any of its parts as your own work, nor remove authorship notices.</p>
 
-3. Disclaimer of Warranties
-The Software is provided "as is" without warranty of any kind. Kubek disclaims all warranties, express or implied, including but not limited to the implied warranties of merchantability and fitness for a particular purpose.
+<h4>3. Relation to Mojang</h4>
+<p>The Software is an independent product and is in no way associated with Mojang AB, Microsoft, or Minecraft. All trademarks mentioned belong to their respective owners.</p>
 
-4. Limitation of Liability
-In no event shall Kubek be liable for any damages arising out of the use or inability to use the Software.
+<h4>4. Disclaimer of Warranties</h4>
+<p>The Software is provided "as is" without warranty of any kind. The Kubek team disclaims all warranties, express or implied, including the implied warranties of merchantability and fitness for a particular purpose.</p>
 
-5. Termination
-This Agreement is effective until terminated. You may terminate it at any time by destroying all copies of the Software. Kubek may terminate this Agreement if you fail to comply with its terms.
+<h4>5. Limitation of Liability</h4>
+<p>In no event shall the Kubek team be liable for any damages arising out of the use or inability to use the Software.</p>
 
-By checking the box below, you acknowledge that you have read, understood, and agree to be bound by the terms of this Agreement.`,
+<h4>6. User Responsibility</h4>
+<p>You are solely responsible for the safety of your servers, files, and confidential data, as well as for all actions performed using the Software.</p>
+
+<h4>7. Data Collection</h4>
+<p>On startup and periodically thereafter, the Software automatically sends anonymized technical data to the rights holder's server: a device identifier, CPU details (model, speed, core count), amount of RAM, operating system (name, version, build, architecture), paths to installed Java versions, the Kubek version, the number of servers and added users, the status of integrations (Telegram bot, FTP server), and uptime. This data is used solely to improve and optimize the Software. Telemetry can be disabled in the application settings or via the KUBEK_TELEMETRY=off environment variable.</p>
+
+<h4>8. Changes to the Agreement</h4>
+<p>The Kubek team may change the terms of this Agreement at any time. Continued use of the Software after changes take effect constitutes acceptance of those changes.</p>
+
+<h4>9. Termination</h4>
+<p>This Agreement is effective until terminated. You may terminate it at any time by destroying all copies of the Software. The Kubek team may terminate this Agreement if you fail to comply with its terms.</p>
+
+<p>By checking the box below, you acknowledge that you have read, understood, and agree to be bound by the terms of this Agreement.</p>`,
     acceptLabel: "I have read and agree to the End User License Agreement",
   },
   preferencesStep: {
