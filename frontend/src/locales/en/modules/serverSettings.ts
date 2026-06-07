@@ -1,0 +1,226 @@
+import type { TranslationDictionary } from "../../../locales/types";
+
+export const serverSettingsTranslations: TranslationDictionary = {
+  header: {
+    title: "Server Settings",
+    description: "Manage gameplay, network, and server configuration",
+  },
+  tabs: {
+    general: "General",
+    java: "Java",
+    information: "Information",
+    gameplay: "Gameplay",
+    world: "World",
+    network: "Network",
+    other: "Other",
+    reset: "Reset",
+    saveChanges: "Save Changes",
+    saving: "Saving...",
+    saved: "Saved!",
+    error: "Error!"
+  },
+  modal: {
+    title: "Server Restart Required",
+    description: "Your server settings have been saved successfully, but some changes will only take effect after a server restart",
+    question: "Do you want to restart the server now? You can also restart it later from the server management panel",
+    restartLater: "Restart Later",
+    restartNow: "Restart Server Now"
+  },
+  general: {
+    noServerSelected: "No server selected",
+    basicInformation: {
+      title: "Basic Information",
+      description: "Server name and visual identity",
+      serverIcon: "Server Icon",
+      uploadIcon: "Upload Icon",
+      uploading: "Uploading...",
+      recommendedFormat: "Recommended: 64x64 PNG format",
+      serverName: "Server Name",
+      serverNamePlaceholder: "Enter server name"
+    },
+    performanceSettings: {
+      title: "Performance Settings",
+      description: "Memory allocation and startup parameters",
+      startupArguments: "Startup Arguments",
+      startupArgumentsPlaceholder: "-Xmx2G",
+      startupArgumentsHelp: "Add JVM arguments for memory allocation and performance tuning"
+    },
+    autoRestartSettings: {
+      title: "Auto-Restart Settings",
+      description: "Automatic crash recovery",
+      enableAutoRestart: "Enable Auto-Restart",
+      enableAutoRestartDescription: "Automatically restart server when it crashes",
+      maxRestartAttempts: "Max Restart Attempts",
+      maxRestartAttemptsHelp: "Number of restart attempts before giving up"
+    },
+    stopConfiguration: {
+      title: "Stop Configuration",
+      description: "How to properly stop the server",
+      customCommand: "Custom Command",
+      customCommandDescription: "Send a specific command to stop the server",
+      ctrlCSignal: "Ctrl+C Signal",
+      ctrlCSignalDescription: "Send interrupt signal (recommended for most servers)",
+      stopCommand: "Stop Command",
+      stopCommandPlaceholder: "stop",
+      stopCommandHelp: "Command to send when stopping the server"
+    }
+  },
+  java: {
+    noServerSelected: "No server selected",
+    title: "Java Configuration",
+    description: "Select Java version or use system Java",
+    javaVersion: "Java Version",
+    javaBinaryPath: "Java Binary Path",
+    javaBinaryPathPlaceholder: "C:/Java/bin/java.exe or /usr/bin/java",
+    javaBinaryPathHelp: "Provide the full path to the Java executable",
+    save: "Save"
+  },
+  information: {
+    serverInformation: {
+      title: "Server Information",
+      description: "Basic server configuration and display settings",
+      motd: "Message of the Day (MOTD)",
+      motdPlaceholder: "Enter your server's welcome message",
+      maxPlayers: "Max Players"
+    },
+    securitySettings: {
+      title: "Security Settings",
+      description: "Server access and authentication controls",
+      onlineMode: "Online Mode",
+      onlineModeDescription: "Verify player authentication with Mojang",
+      whitelist: "Whitelist",
+      whitelistDescription: "Only allow whitelisted players to join"
+    }
+  },
+  gameplay: {
+    gameRules: {
+      title: "Game Rules",
+      description: "Configure core gameplay mechanics",
+      difficulty: "Difficulty",
+      difficultyOptions: {
+        peaceful: "Peaceful",
+        easy: "Easy",
+        normal: "Normal",
+        hard: "Hard"
+      },
+      defaultGamemode: "Default Gamemode",
+      gamemodeOptions: {
+        survival: "Survival",
+        creative: "Creative",
+        adventure: "Adventure",
+        spectator: "Spectator"
+      }
+    },
+    playerInteractions: {
+      title: "Player Interactions",
+      description: "Control how players interact with the world and each other",
+      pvp: "PvP",
+      pvpDescription: "Allow player vs player combat",
+      allowFlight: "Allow Flight",
+      allowFlightDescription: "Allow players to fly in survival mode"
+    },
+    worldSettings: {
+      title: "World Settings",
+      description: "World protection and game mode settings",
+      hardcoreMode: "Hardcore Mode",
+      hardcoreModeDescription: "Players are banned on death",
+      spawnProtectionRadius: "Spawn Protection Radius",
+      spawnProtectionRadiusHelp: "Blocks from spawn where only ops can build"
+    }
+  },
+  world: {
+    worldGeneration: {
+      title: "World Generation",
+      description: "Configure world creation and terrain settings",
+      worldSeed: "World Seed",
+      worldSeedPlaceholder: "Leave empty for random seed",
+      maxWorldSize: "Max World Size",
+      maxWorldSizeHelp: "Maximum world border radius in blocks",
+      generateStructures: "Generate Structures",
+      generateStructuresDescription: "Villages, temples, etc"
+    },
+    performanceSettings: {
+      title: "Performance Settings",
+      description: "Optimize world rendering and simulation",
+      viewDistance: "View Distance",
+      viewDistanceHelp: "Chunks (2-32)",
+      simulationDistance: "Simulation Distance",
+      simulationDistanceHelp: "Chunks (3-32)"
+    },
+    dimensionSettings: {
+      title: "Dimension Settings",
+      description: "Manage available dimensions and features",
+      allowNether: "Allow Nether",
+      allowNetherDescription: "Enable the Nether dimension"
+    },
+    spawnSettings: {
+      title: "Spawn Settings",
+      description: "Control entity spawning behavior",
+      spawnAnimals: "Spawn Animals",
+      spawnAnimalsDescription: "Cows, pigs, chickens, etc",
+      spawnMonsters: "Spawn Monsters",
+      spawnMonstersDescription: "Zombies, skeletons, creepers, etc",
+      spawnNpcs: "Spawn NPCs",
+      spawnNpcsDescription: "Villagers"
+    }
+  },
+  network: {
+    connectionSettings: {
+      title: "Connection Settings",
+      description: "Configure server ports and network connectivity",
+      serverPort: "Server Port",
+      serverPortDefault: "Default: 25565",
+      queryPort: "Query Port",
+      queryPortDefault: "Default: 25565"
+    },
+    networkConfiguration: {
+      title: "Network Configuration",
+      description: "Important notes about network settings",
+      importantNotice: "Important Notice",
+      importantNoticeText: "Changing network settings may require a server restart. Make sure to configure your firewall and port forwarding accordingly. If you change the server port, players will need to connect using the new port"
+    }
+  },
+  other: {
+    customProperties: {
+      title: "Custom Properties",
+      description: "Additional server properties not included in main categories",
+      propertyNamePlaceholder: "property-name",
+      propertyValuePlaceholder: "property value",
+      addProperty: "Add Property"
+    },
+    aboutServerProperties: {
+      title: "About Server Properties",
+      description: "Understanding custom property configuration",
+      advancedConfiguration: "Advanced Configuration",
+      advancedConfigurationText: "These properties correspond directly to the server.properties file. Changes made here will be saved to that file when you click \"Save Changes\". Modify these settings with caution as they can affect server stability"
+    },
+    advancedSettings: {
+      title: "Advanced Settings",
+      description: "Proceed with caution",
+      warning: "Warning",
+      warningText: "These are advanced server properties. Incorrect values may cause your server to fail to start or behave unexpectedly. Only modify properties if you know what they do"
+    }
+  },
+  notifications: {
+    selectImageFile: "Please select an image file",
+    serverIconUploaded: "Server icon uploaded successfully",
+    failedToUploadIcon: "Failed to upload icon",
+    settingUpdated: "Setting updated successfully",
+    failedToUpdateSetting: "Failed to update setting",
+    failedToLoadProperties: "Failed to load server properties",
+    serverRestartInitiated: "Server restart initiated",
+    failedToRestartServer: "Failed to restart server",
+    settingsSaved: "Settings saved successfully. Restart server later to apply all changes",
+    settingsReset: "Settings reset to saved values",
+    failedToResetSettings: "Failed to reset settings",
+    noServerSelected: "No server selected",
+    failedToSaveProperties: "Failed to save server properties",
+    javaSettingsUpdated: "Java settings updated",
+    failedToUpdateJavaSettings: "Failed to update Java settings"
+  },
+  status: {
+    saving: "Saving...",
+    saved: "Saved!",
+    error: "Error"
+  }
+};

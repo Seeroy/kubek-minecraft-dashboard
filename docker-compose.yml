@@ -1,0 +1,36 @@
+# Kubek, Minecraft server panel
+#   docker compose up -d   ->   http://localhost:8000
+#
+# Each Minecraft server uses its own port (25565 by default). Publish each one
+# under `ports`, or use `network_mode: host` (Linux) to expose them all.
+
+services:
+  kubek:
+    # Builds from source in this repo. To use the prebuilt image instead,
+    # comment out build and uncomment image
+    build: .
+    # image: seeroy/kubek-minecraft-dashboard:latest
+    container_name: kubek
+    restart: unless-stopped
+
+    environment:
+      - PORT=8000
+      - TZ=UTC
+      # - FTP_PORT=21        # built-in FTP server (off unless you enable it in the UI)
+
+    ports:
+      - "8000:8000"          # Web panel (HTTP + WebSocket)
+      # - "21:21"            # FTP control port (optional)
+      # - "1024-1048:1024-1048"  # FTP passive range — narrow it in the FTP settings first
+      # - "25565:25565"      # one Minecraft server — add a line per server you create
+
+    volumes:
+      - kubek-data:/data
+      # Or bind-mount to keep files on the host:
+      # - ./data:/data
+
+    # Linux: expose all panel + server ports automatically (remove `ports` above if used)
+    # network_mode: host
+
+volumes:
+  kubek-data:
