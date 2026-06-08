@@ -24,7 +24,6 @@ export function CoreFileUploadZone({ form }: CoreFileUploadZoneProps) {
         accept=".jar"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          e.target.value = "";
           if (file)
             form.setValue("customFile", file, {
               shouldValidate: true,

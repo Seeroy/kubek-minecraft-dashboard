@@ -57,7 +57,7 @@ export const newServerModalTranslations: TranslationDictionary = {
     },
     custom: {
       dropzone: "Перетащите ваш файл `.jar` сюда или просмотрите файлы",
-      selected: "Выбран файл: ${name}",
+      selected: ({ name }: { name: string }) => `Выбран файл: ${name}`,
     },
   },
   java: {
