@@ -103,7 +103,7 @@ export class StatsService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async sendStatsCron(): Promise<void> {
     if (!this.isTelemetryEnabled()) return;
     const stats = await this.collectStats();
