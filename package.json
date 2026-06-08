@@ -4,7 +4,9 @@
   "private": true,
   "author": "seeeroy",
   "scripts": {
-    "build": "bun ./scripts/build.ts"
+    "build": "bun ./scripts/build.ts",
+    "docker:build": "docker build -t seeroy/kubek-minecraft-dashboard:$npm_package_version -t seeroy/kubek-minecraft-dashboard:latest .",
+    "docker:push": "bun run docker:build && docker push --all-tags seeroy/kubek-minecraft-dashboard"
   },
   "devDependencies": {
     "@types/bun": "^1.3.14",
