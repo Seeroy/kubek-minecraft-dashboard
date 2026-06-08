@@ -13,6 +13,8 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 
 **English** · [Русский](README.ru.md)
 
+[Features](#-features) · [Roles & permissions](#-roles--permissions-rbac) · [Extensions](#-extensions--blueprints-for-developers) · [Quick start](#-quick-start) · [Migrating](#-migrating-from-a-previous-version-1x---3x) · [Configuration](#-configuration) · [Build from source](#-build-from-source) · [API reference ↗](https://rest.wiki/?https://raw.githubusercontent.com/Seeroy/kubek-minecraft-dashboard/refs/heads/main/openapi.json)
+
 </div>
 
 ---
