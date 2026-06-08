@@ -1,17 +1,37 @@
-config.json
-users.json
-*.exe
-*.sh
-*.bat
-*old*
-servers/
-node_modules/
-logs/
-backups/
-dist/
-binaries/
-.idea/
+# VCS / IDE
+.git
 .gitignore
-.dockerignore
-SCHEDULER_GUIDE.md
+.github
+.vscode
+.idea
+
+# Dependencies (reinstalled inside the image from lockfiles)
+node_modules
+**/node_modules
+
+# Build artifacts (binaries are compiled inside the image)
+dist
+**/dist
+frontend/.next
+frontend/out
+frontend/bundle
+shared/vfs.js
+
+# Runtime data — must never leak into the build context
+data
+servers
+backups
+binaries
+
+# Docs / meta (not needed at build time)
+*.md
 LICENSE
+docker-compose.yml
+.dockerignore
+Dockerfile
+
+# Misc
+*.log
+.DS_Store
+.env
+.env.*

@@ -1,0 +1,26 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "testTimeout": 1800000,
+  "maxWorkers": 1,
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "resolvePackageJsonExports": false,
+          "isolatedModules": true,
+          "esModuleInterop": true,
+          "allowSyntheticDefaultImports": true,
+          "target": "ES2022",
+          "strict": false,
+          "skipLibCheck": true
+        }
+      }
+    ]
+  }
+}
