@@ -27,6 +27,22 @@ export const GameplayTab = ({
   };
   const { t } = useTranslation("modules.serverSettings.gameplay");
 
+  // Base UI's SelectValue renders the raw value unless given a render function,
+  // so map the stored server.properties value back to its human-readable label
+  const difficultyLabel = (value: string) =>
+    value
+      ? t(`gameRules.difficultyOptions.${value}`)
+      : t("gameRules.difficulty");
+
+  const gamemodeLabels: Record<string, string> = {
+    survival: "Survival",
+    creative: "Creative",
+    adventure: "Adventure",
+    spectator: "Spectator",
+  };
+  const gamemodeLabel = (value: string) =>
+    gamemodeLabels[value] ?? t("gameRules.defaultGamemode");
+
   return (
     <div className="space-y-6">
       {/* Game Rules */}
@@ -51,7 +67,9 @@ export const GameplayTab = ({
                 }
               >
                 <SelectTrigger id="difficulty" className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder={t("gameRules.difficulty")}>
+                    {(value) => difficultyLabel(String(value ?? ""))}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="peaceful">
@@ -79,7 +97,9 @@ export const GameplayTab = ({
                 }
               >
                 <SelectTrigger id="gamemode" className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder={t("gameRules.defaultGamemode")}>
+                    {(value) => gamemodeLabel(String(value ?? ""))}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="survival">Survival</SelectItem>

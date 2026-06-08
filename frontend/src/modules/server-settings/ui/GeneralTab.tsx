@@ -11,6 +11,7 @@ import { useServerGeneralSettings } from "../hooks/useServerGeneralSettings";
 import { useServerIconUpload } from "../hooks/useServerIconUpload";
 import { AutoRestartCard } from "./cards/AutoRestartCard";
 import { BasicInformationCard } from "./cards/BasicInformationCard";
+import { ServerCoreCard } from "./cards/ServerCoreCard";
 import { SaveStatusIndicator } from "./SaveStatusIndicator";
 
 export const GeneralTab = () => {
@@ -98,6 +99,8 @@ export const GeneralTab = () => {
           </CardContent>
         </Card>
       )}
+
+      <ServerCoreCard />
 
       <AutoRestartCard
         t={t}

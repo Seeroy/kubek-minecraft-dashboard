@@ -19,6 +19,7 @@ export const AuditAction = {
   SERVER_START: "server.start",
   SERVER_STOP: "server.stop",
   SERVER_RESTART: "server.restart",
+  SERVER_CHANGE_CORE: "server.change_core",
   ACCOUNT_CREATE: "account.create",
   ACCOUNT_UPDATE: "account.update",
   ACCOUNT_DELETE: "account.delete",

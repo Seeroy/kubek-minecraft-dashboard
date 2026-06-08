@@ -1,3 +1,4 @@
+import { Branding } from "@/core/constants/branding";
 import { unpackArchive } from "@/core/utils/archives";
 import { downloadWithProgress } from "@/core/utils/downloadWithProgress";
 import { getServerPath } from "@/core/utils/serverPath";
@@ -5,7 +6,6 @@ import { JavaService } from "@/modules/java/java.service";
 import { TasksService } from "@/modules/tasks/tasks.service";
 import type { InstallStep } from "@kubekpanel/blueprint-sdk";
 import { Injectable, Logger } from "@nestjs/common";
-import { Branding } from "@/core/constants/branding";
 import type { IServer } from "@shared/types/server/server.types";
 import { TaskSteps } from "@shared/types/task.types";
 import fs from "fs";
@@ -13,6 +13,13 @@ import path from "path";
 import { BlueprintResolver } from "./blueprint-resolver.service";
 import type { LoadedBlueprint, ResolveScope } from "./server-types.types";
 import { VersionResolverService } from "./versions/version-resolver.service";
+
+export interface InstallOptions {
+  /**
+   * Skip writeFile/template steps whose target already exists
+   */
+  skipExistingFiles?: boolean;
+}
 
 /**
  * Executes a blueprint's install.steps into the server directory
@@ -33,6 +40,7 @@ export class InstallPipeline {
     blueprint: LoadedBlueprint,
     server: IServer,
     taskId?: string,
+    opts: InstallOptions = {},
   ): Promise<void> {
     const manifest = blueprint.manifest;
     const dir = path.resolve(getServerPath(server.id));
@@ -48,7 +56,7 @@ export class InstallPipeline {
     await this.resolveDownloadUrl(blueprint, scope);
 
     for (const step of manifest.install.steps) {
-      await this.runStep(step, blueprint, dir, scope, taskId);
+      await this.runStep(step, blueprint, dir, scope, taskId, opts);
     }
 
     // Minecraft bootstrap: drop the default favicon when the blueprint targets minecraft
@@ -110,6 +118,7 @@ export class InstallPipeline {
     dir: string,
     scope: ResolveScope,
     taskId?: string,
+    opts: InstallOptions = {},
   ): Promise<void> {
     switch (step.type) {
       case "download":
@@ -119,6 +128,8 @@ export class InstallPipeline {
           dir,
           this.resolver.substitute(step.path, scope),
         );
+        // Preserve user-edited files when re-provisioning an existing server
+        if (opts.skipExistingFiles && fs.existsSync(target)) return;
         fs.writeFileSync(target, this.resolver.substitute(step.content, scope));
         return;
       }
@@ -131,13 +142,14 @@ export class InstallPipeline {
         return;
       }
       case "template": {
-        const src = path.join(
-          blueprint.dir,
-          this.resolver.substitute(step.src, scope),
-        );
         const target = path.join(
           dir,
           this.resolver.substitute(step.dest, scope),
+        );
+        if (opts.skipExistingFiles && fs.existsSync(target)) return;
+        const src = path.join(
+          blueprint.dir,
+          this.resolver.substitute(step.src, scope),
         );
         fs.writeFileSync(
           target,

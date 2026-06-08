@@ -8,6 +8,7 @@ export enum TaskStatus {
 
 export enum TaskType {
   SERVER_CREATE = "server.create",
+  SERVER_CHANGE_CORE = "server.changeCore",
   SERVER_DUPLICATE = "server.duplicate",
   SERVER_IMPORT = "server.import",
   SERVER_START = "server.start",

@@ -8,6 +8,7 @@ import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
 import { BulkDeleteResultDto } from "@/modules/servers/dto/bulk-delete-result.dto";
 import { BulkDeleteServersDto } from "@/modules/servers/dto/bulk-delete-servers.dto";
+import { ChangeServerCoreDto } from "@/modules/servers/dto/change-server-core.dto";
 import { CreateServerDto } from "@/modules/servers/dto/create-server.dto";
 import { DeleteServerDto } from "@/modules/servers/dto/delete-server.dto";
 import { DuplicateServerDto } from "@/modules/servers/dto/duplicate-server.dto";
@@ -493,6 +494,40 @@ export class ServersController {
     @Body() body: UpdateServerSettingsDto,
   ): Promise<ServerEntity> {
     return this.servers.updateServerSettings(id, body);
+  }
+
+  /** Change a server's core (blueprint) and version */
+  @Post(":id/core")
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({ summary: "Change server core/version" })
+  @CheckServerAccess("id")
+  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
+  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
+  @Audit({
+    action: AuditAction.SERVER_CHANGE_CORE,
+    category: AuditCategory.SERVER,
+    resourceType: "server",
+    resolve: ({ req, result }) => ({
+      resourceId: result?.server?.id,
+      resourceName: result?.server?.name,
+      details: {
+        blueprintId: req.body?.blueprintId,
+        version: req.body?.version,
+      },
+    }),
+  })
+  @ApiParam({ name: "id", description: "Server ID" })
+  @ApiAcceptedResponse({
+    type: ServerCreatedResponseDto,
+    description: "Core change started",
+  })
+  @ApiErrorResponses([400, 401, 403, 404])
+  changeCore(
+    @Param("id") id: string,
+    @Body() body: ChangeServerCoreDto,
+    @CurrentUser() user: IUser,
+  ): ServerCreatedResponseDto {
+    return this.servers.changeCore(id, body, user.id);
   }
 
   /** Get server icon */

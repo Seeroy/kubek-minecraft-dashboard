@@ -1,6 +1,6 @@
+import { Branding } from "@/core/constants/branding";
 import { asyncTimeout } from "@/core/utils/asyncTimeout";
 import { getErrorMessage } from "@/core/utils/error";
-import { Branding } from "@/core/constants/branding";
 import chalk from "chalk";
 import ora, { type Color, type Ora } from "ora";
 import * as os from "os";
@@ -23,7 +23,7 @@ export class Startup {
     releaseNotes?: string;
   } | null = null;
   /**
-   * Show welcome message
+   * Show welcome message (banner only)
    */
   static initTerminal() {
     console.clear();
@@ -34,19 +34,12 @@ export class Startup {
         ` • ${getVersion()}`,
     );
     console.log(" ");
-
-    // Waiting for web-server
-    this.createSpinner("webServer", " Starting web-server", "white");
   }
 
-  // Web-server started successfully
-  static async webServerStarted(port: number) {
-    await this.updateSpinnerWithDelay(
-      "webServer",
-      "success",
-      `Started at ${chalk.cyan(`http://localhost:${port}`)}`,
-    );
-
+  /**
+   * Run the pre-boot intro before the application starts logging
+   */
+  static async runIntro() {
     // Check for updates
     await this.checkForUpdates();
 
@@ -55,6 +48,16 @@ export class Startup {
     await asyncTimeout(100);
     await this.startPublicIPSpinner();
     console.log(" ");
+  }
+
+  // Web-server is listening - print the final ready line
+  static async serverStarted(port: number) {
+    this.createSpinner("webServer", " Starting web-server", "white");
+    await this.updateSpinnerWithDelay(
+      "webServer",
+      "success",
+      `Started at ${chalk.cyan(`http://localhost:${port}`)}`,
+    );
   }
 
   /**

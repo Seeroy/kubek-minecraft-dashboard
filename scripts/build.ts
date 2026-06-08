@@ -169,7 +169,11 @@ async function main() {
   // 2️⃣ Build frontend (Next.js) if not skipped
   if (!options.skipFrontend) {
     log("Building frontend (Next.js)...");
-    run("bun run build", frontendDir);
+    // Force the same-origin API/WS fallback into the bundle
+    run("bun run build", frontendDir, {
+      NEXT_PUBLIC_API_URL: "",
+      NEXT_PUBLIC_WS_URL: "",
+    });
 
     log("Creating VFS from frontend output...");
     const bundleDir = path.join(frontendDir, "bundle");
@@ -232,6 +236,8 @@ async function main() {
     log(`Building for: ${t.platform}...`);
     const outFile = path.join(outputDir, `Kubek-${version}-${t.suffix}`);
 
+    const isWindowsTarget = t.platform.includes("windows");
+
     await Bun.build({
       entrypoints: allEntries,
       outdir: outputDir,
@@ -245,8 +251,22 @@ async function main() {
         "process.env.KUBEK_VERSION": JSON.stringify(version),
       },
       target: "bun",
-      compile: t.native ? true : t.platform,
       sourcemap: "none",
+      compile: t.native
+        ? true
+        : {
+            target: t.platform,
+            ...(isWindowsTarget
+              ? {
+                  windows: {
+                    icon: "./frontend/public/favicon.ico",
+                    title: "Kubek",
+                    publisher: "Seeroy",
+                    version,
+                  },
+                }
+              : {}),
+          },
     });
 
     // Rename the compiled binary
@@ -290,15 +310,22 @@ function log(msg: string) {
   console.log(`\n🔹 ${msg}`);
 }
 
-function run(cmd: string, cwd?: string) {
+function run(cmd: string, cwd?: string, env?: Record<string, string>) {
   console.log(`> ${cmd}`);
-  execSync(cmd, { cwd, stdio: "inherit" });
+  execSync(cmd, {
+    cwd,
+    stdio: "inherit",
+    env: env ? { ...process.env, ...env } : process.env,
+  });
 }
 
 function generateVfsFromDirectory(sourceDir: string, outFile: string) {
   const files = listFilesRecursively(sourceDir);
   const rows = files.map((absolutePath) => {
-    const relativePath = path.relative(sourceDir, absolutePath).split(path.sep).join("/");
+    const relativePath = path
+      .relative(sourceDir, absolutePath)
+      .split(path.sep)
+      .join("/");
     const encoded = readFileSync(absolutePath).toString("base64");
     return `  ${JSON.stringify(relativePath)}: ${JSON.stringify(encoded)},`;
   });

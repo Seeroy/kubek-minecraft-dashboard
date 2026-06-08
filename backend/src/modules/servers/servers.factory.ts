@@ -8,6 +8,7 @@ import { InstallPipeline } from "@/modules/server-types/install-pipeline.service
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
 import type { LoadedBlueprint } from "@/modules/server-types/server-types.types";
 import {
+  CUSTOM_BLUEPRINT_ID,
   EXPORT_MANIFEST_FILE,
   EXPORT_MANIFEST_VERSION,
 } from "@/modules/servers/servers.constants";
@@ -132,6 +133,113 @@ export class ServersFactory {
         step: TaskSteps.FAILED,
         error: {
           code: TaskErrorCode.SERVER_CREATE_ERROR,
+          message: getErrorMessage(e),
+        },
+      });
+      throw e;
+    }
+  }
+
+  /**
+   * Switch a stopped server to another core/blueprint (and version)
+   */
+  changeCore(
+    source: IServer,
+    blueprintId: string,
+    version: string | undefined,
+    ownerId: string,
+  ): { server: IServer; taskId: string } {
+    if (blueprintId === CUSTOM_BLUEPRINT_ID) {
+      throw new BadRequestException(
+        "Custom cores require an uploaded jar; recreate the server instead",
+      );
+    }
+
+    const blueprint = this.blueprintRegistry.get(blueprintId);
+    if (!blueprint || !blueprint.valid) {
+      throw new BadRequestException(
+        `Unknown or invalid blueprint: ${blueprintId}`,
+      );
+    }
+    if (!this.blueprintRegistry.isSupportedHere(blueprint.manifest)) {
+      throw new BadRequestException(
+        `Blueprint ${blueprintId} is not supported on this platform (${process.platform})`,
+      );
+    }
+
+    // Carry over the existing variable values
+    const versionVar = this.blueprintResolver.versionVariable(
+      blueprint.manifest,
+    );
+    const incoming: Record<string, unknown> = { ...source.variables };
+    if (versionVar) {
+      if (!version) {
+        throw new BadRequestException("A version is required for this core");
+      }
+      incoming[versionVar.key] = version;
+    }
+    const variables = this.blueprintResolver.validateVariables(
+      blueprint.manifest,
+      incoming,
+    );
+
+    const updated = this.servers.update(source.id, {
+      blueprintId: blueprint.manifest.id,
+      blueprintVersion: blueprint.manifest.version,
+      runtimeKind: blueprint.manifest.runtime.kind,
+      variables,
+    });
+    if (!updated) {
+      throw new NotFoundException("Failed to update server");
+    }
+
+    const taskId = this.tasksService.createTask(
+      TaskType.SERVER_CHANGE_CORE,
+      { serverId: updated.id, serverName: updated.name },
+      ownerId,
+    );
+
+    this.broadcastServersList();
+
+    void this.runCoreChange(blueprint, updated, taskId).catch((e) => {
+      console.error(
+        `[ServersFactory] changeCore failed (task ${taskId}):`,
+        e?.message ?? e,
+      );
+    });
+
+    return { server: updated, taskId };
+  }
+
+  private async runCoreChange(
+    blueprint: LoadedBlueprint,
+    server: IServer,
+    taskId: string,
+  ): Promise<void> {
+    this.tasksService.updateTask(taskId, {
+      status: TaskStatus.RUNNING,
+      progress: 0,
+    });
+
+    try {
+      // skipExistingFiles keeps worlds and configs
+      await this.installPipeline.run(blueprint, server, taskId, {
+        skipExistingFiles: true,
+      });
+
+      this.broadcastServersList();
+      this.tasksService.updateTask(taskId, {
+        status: TaskStatus.SUCCESS,
+        step: TaskSteps.COMPLETED,
+        progress: 100,
+        result: { serverId: server.id },
+      });
+    } catch (e: unknown) {
+      this.tasksService.updateTask(taskId, {
+        status: TaskStatus.FAILED,
+        step: TaskSteps.FAILED,
+        error: {
+          code: TaskErrorCode.SERVER_CHANGE_CORE_ERROR,
           message: getErrorMessage(e),
         },
       });

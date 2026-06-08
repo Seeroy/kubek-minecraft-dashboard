@@ -17,14 +17,16 @@ export const serverSettingsTranslations: TranslationDictionary = {
     saveChanges: "Save Changes",
     saving: "Saving...",
     saved: "Saved!",
-    error: "Error!"
+    error: "Error!",
   },
   modal: {
     title: "Server Restart Required",
-    description: "Your server settings have been saved successfully, but some changes will only take effect after a server restart",
-    question: "Do you want to restart the server now? You can also restart it later from the server management panel",
+    description:
+      "Your server settings have been saved successfully, but some changes will only take effect after a server restart",
+    question:
+      "Do you want to restart the server now? You can also restart it later from the server management panel",
     restartLater: "Restart Later",
-    restartNow: "Restart Server Now"
+    restartNow: "Restart Server Now",
   },
   general: {
     noServerSelected: "No server selected",
@@ -36,22 +38,45 @@ export const serverSettingsTranslations: TranslationDictionary = {
       uploading: "Uploading...",
       recommendedFormat: "Recommended: 64x64 PNG format",
       serverName: "Server Name",
-      serverNamePlaceholder: "Enter server name"
+      serverNamePlaceholder: "Enter server name",
     },
     performanceSettings: {
       title: "Performance Settings",
       description: "Memory allocation and startup parameters",
       startupArguments: "Startup Arguments",
       startupArgumentsPlaceholder: "-Xmx2G",
-      startupArgumentsHelp: "Add JVM arguments for memory allocation and performance tuning"
+      startupArgumentsHelp:
+        "Add JVM arguments for memory allocation and performance tuning",
     },
     autoRestartSettings: {
       title: "Auto-Restart Settings",
       description: "Automatic crash recovery",
       enableAutoRestart: "Enable Auto-Restart",
-      enableAutoRestartDescription: "Automatically restart server when it crashes",
+      enableAutoRestartDescription:
+        "Automatically restart server when it crashes",
       maxRestartAttempts: "Max Restart Attempts",
-      maxRestartAttemptsHelp: "Number of restart attempts before giving up"
+      maxRestartAttemptsHelp: "Number of restart attempts before giving up",
+    },
+    coreSettings: {
+      title: "Server Core",
+      description: "Switch the core (engine) and version this server runs on",
+      core: "Core",
+      version: "Version",
+      currentCore: "Current core",
+      chooseCore: "Choose a core",
+      chooseVersion: "Choose a version",
+      loadingVersions: "Loading versions...",
+      noVersions: "No versions available",
+      apply: "Change core",
+      applying: "Changing...",
+      mustBeStopped: "Stop the server before changing its core",
+      confirmTitle: "Change server core?",
+      confirmDescription:
+        "The selected core will be downloaded and the server.jar replaced. Your worlds and configs are kept, but plugins/mods may be incompatible with the new core.",
+      confirmAction: "Download & apply",
+      cancel: "Cancel",
+      started: "Core change started",
+      failed: "Failed to change core",
     },
     stopConfiguration: {
       title: "Stop Configuration",
@@ -59,11 +84,12 @@ export const serverSettingsTranslations: TranslationDictionary = {
       customCommand: "Custom Command",
       customCommandDescription: "Send a specific command to stop the server",
       ctrlCSignal: "Ctrl+C Signal",
-      ctrlCSignalDescription: "Send interrupt signal (recommended for most servers)",
+      ctrlCSignalDescription:
+        "Send interrupt signal (recommended for most servers)",
       stopCommand: "Stop Command",
       stopCommandPlaceholder: "stop",
-      stopCommandHelp: "Command to send when stopping the server"
-    }
+      stopCommandHelp: "Command to send when stopping the server",
+    },
   },
   java: {
     noServerSelected: "No server selected",
@@ -73,7 +99,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
     javaBinaryPath: "Java Binary Path",
     javaBinaryPathPlaceholder: "C:/Java/bin/java.exe or /usr/bin/java",
     javaBinaryPathHelp: "Provide the full path to the Java executable",
-    save: "Save"
+    save: "Save",
   },
   information: {
     serverInformation: {
@@ -81,7 +107,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       description: "Basic server configuration and display settings",
       motd: "Message of the Day (MOTD)",
       motdPlaceholder: "Enter your server's welcome message",
-      maxPlayers: "Max Players"
+      maxPlayers: "Max Players",
     },
     securitySettings: {
       title: "Security Settings",
@@ -89,8 +115,8 @@ export const serverSettingsTranslations: TranslationDictionary = {
       onlineMode: "Online Mode",
       onlineModeDescription: "Verify player authentication with Mojang",
       whitelist: "Whitelist",
-      whitelistDescription: "Only allow whitelisted players to join"
-    }
+      whitelistDescription: "Only allow whitelisted players to join",
+    },
   },
   gameplay: {
     gameRules: {
@@ -101,15 +127,15 @@ export const serverSettingsTranslations: TranslationDictionary = {
         peaceful: "Peaceful",
         easy: "Easy",
         normal: "Normal",
-        hard: "Hard"
+        hard: "Hard",
       },
       defaultGamemode: "Default Gamemode",
       gamemodeOptions: {
         survival: "Survival",
         creative: "Creative",
         adventure: "Adventure",
-        spectator: "Spectator"
-      }
+        spectator: "Spectator",
+      },
     },
     playerInteractions: {
       title: "Player Interactions",
@@ -117,7 +143,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       pvp: "PvP",
       pvpDescription: "Allow player vs player combat",
       allowFlight: "Allow Flight",
-      allowFlightDescription: "Allow players to fly in survival mode"
+      allowFlightDescription: "Allow players to fly in survival mode",
     },
     worldSettings: {
       title: "World Settings",
@@ -125,8 +151,8 @@ export const serverSettingsTranslations: TranslationDictionary = {
       hardcoreMode: "Hardcore Mode",
       hardcoreModeDescription: "Players are banned on death",
       spawnProtectionRadius: "Spawn Protection Radius",
-      spawnProtectionRadiusHelp: "Blocks from spawn where only ops can build"
-    }
+      spawnProtectionRadiusHelp: "Blocks from spawn where only ops can build",
+    },
   },
   world: {
     worldGeneration: {
@@ -137,7 +163,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       maxWorldSize: "Max World Size",
       maxWorldSizeHelp: "Maximum world border radius in blocks",
       generateStructures: "Generate Structures",
-      generateStructuresDescription: "Villages, temples, etc"
+      generateStructuresDescription: "Villages, temples, etc",
     },
     performanceSettings: {
       title: "Performance Settings",
@@ -145,13 +171,13 @@ export const serverSettingsTranslations: TranslationDictionary = {
       viewDistance: "View Distance",
       viewDistanceHelp: "Chunks (2-32)",
       simulationDistance: "Simulation Distance",
-      simulationDistanceHelp: "Chunks (3-32)"
+      simulationDistanceHelp: "Chunks (3-32)",
     },
     dimensionSettings: {
       title: "Dimension Settings",
       description: "Manage available dimensions and features",
       allowNether: "Allow Nether",
-      allowNetherDescription: "Enable the Nether dimension"
+      allowNetherDescription: "Enable the Nether dimension",
     },
     spawnSettings: {
       title: "Spawn Settings",
@@ -161,8 +187,8 @@ export const serverSettingsTranslations: TranslationDictionary = {
       spawnMonsters: "Spawn Monsters",
       spawnMonstersDescription: "Zombies, skeletons, creepers, etc",
       spawnNpcs: "Spawn NPCs",
-      spawnNpcsDescription: "Villagers"
-    }
+      spawnNpcsDescription: "Villagers",
+    },
   },
   network: {
     connectionSettings: {
@@ -171,35 +197,39 @@ export const serverSettingsTranslations: TranslationDictionary = {
       serverPort: "Server Port",
       serverPortDefault: "Default: 25565",
       queryPort: "Query Port",
-      queryPortDefault: "Default: 25565"
+      queryPortDefault: "Default: 25565",
     },
     networkConfiguration: {
       title: "Network Configuration",
       description: "Important notes about network settings",
       importantNotice: "Important Notice",
-      importantNoticeText: "Changing network settings may require a server restart. Make sure to configure your firewall and port forwarding accordingly. If you change the server port, players will need to connect using the new port"
-    }
+      importantNoticeText:
+        "Changing network settings may require a server restart. Make sure to configure your firewall and port forwarding accordingly. If you change the server port, players will need to connect using the new port",
+    },
   },
   other: {
     customProperties: {
       title: "Custom Properties",
-      description: "Additional server properties not included in main categories",
+      description:
+        "Additional server properties not included in main categories",
       propertyNamePlaceholder: "property-name",
       propertyValuePlaceholder: "property value",
-      addProperty: "Add Property"
+      addProperty: "Add Property",
     },
     aboutServerProperties: {
       title: "About Server Properties",
       description: "Understanding custom property configuration",
       advancedConfiguration: "Advanced Configuration",
-      advancedConfigurationText: "These properties correspond directly to the server.properties file. Changes made here will be saved to that file when you click \"Save Changes\". Modify these settings with caution as they can affect server stability"
+      advancedConfigurationText:
+        'These properties correspond directly to the server.properties file. Changes made here will be saved to that file when you click "Save Changes". Modify these settings with caution as they can affect server stability',
     },
     advancedSettings: {
       title: "Advanced Settings",
       description: "Proceed with caution",
       warning: "Warning",
-      warningText: "These are advanced server properties. Incorrect values may cause your server to fail to start or behave unexpectedly. Only modify properties if you know what they do"
-    }
+      warningText:
+        "These are advanced server properties. Incorrect values may cause your server to fail to start or behave unexpectedly. Only modify properties if you know what they do",
+    },
   },
   notifications: {
     selectImageFile: "Please select an image file",
@@ -210,17 +240,18 @@ export const serverSettingsTranslations: TranslationDictionary = {
     failedToLoadProperties: "Failed to load server properties",
     serverRestartInitiated: "Server restart initiated",
     failedToRestartServer: "Failed to restart server",
-    settingsSaved: "Settings saved successfully. Restart server later to apply all changes",
+    settingsSaved:
+      "Settings saved successfully. Restart server later to apply all changes",
     settingsReset: "Settings reset to saved values",
     failedToResetSettings: "Failed to reset settings",
     noServerSelected: "No server selected",
     failedToSaveProperties: "Failed to save server properties",
     javaSettingsUpdated: "Java settings updated",
-    failedToUpdateJavaSettings: "Failed to update Java settings"
+    failedToUpdateJavaSettings: "Failed to update Java settings",
   },
   status: {
     saving: "Saving...",
     saved: "Saved!",
-    error: "Error"
-  }
+    error: "Error",
+  },
 };

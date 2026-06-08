@@ -6,6 +6,7 @@ import { useBackupTaskNotifications } from "./useBackupTaskNotifications";
 import { useJavaTaskNotifications } from "./useJavaTaskNotifications";
 import { useNotificationRegistry } from "./useNotificationRegistry";
 import { usePluginTaskNotifications } from "./usePluginTaskNotifications";
+import { useServerCoreChangeNotifications } from "./useServerCoreChangeNotifications";
 import { useServerCreateNotifications } from "./useServerCreateNotifications";
 
 /**
@@ -20,6 +21,7 @@ export function useTaskNotificationsBridge() {
   const handleBackupTask = useBackupTaskNotifications(registry);
   const handleJavaTask = useJavaTaskNotifications(registry);
   const handleServerCreateTask = useServerCreateNotifications(registry);
+  const handleServerCoreChangeTask = useServerCoreChangeNotifications(registry);
 
   const handleTaskEvent = useCallback(
     (task: ITask) => {
@@ -43,9 +45,18 @@ export function useTaskNotificationsBridge() {
         case TaskType.SERVER_CREATE:
           handleServerCreateTask(task);
           return;
+        case TaskType.SERVER_CHANGE_CORE:
+          handleServerCoreChangeTask(task);
+          return;
       }
     },
-    [handleBackupTask, handleJavaTask, handlePluginTask, handleServerCreateTask]
+    [
+      handleBackupTask,
+      handleJavaTask,
+      handlePluginTask,
+      handleServerCreateTask,
+      handleServerCoreChangeTask,
+    ]
   );
 
   useEffect(() => {

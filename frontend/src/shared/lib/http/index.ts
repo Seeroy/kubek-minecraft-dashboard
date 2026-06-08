@@ -3,11 +3,13 @@ import ky from "ky";
 import { AuthHttpClient } from "./auth-http-client";
 import { BaseHttpClient } from "./base-http-client";
 
+const API_URL_OVERRIDE = process.env.NEXT_PUBLIC_API_URL?.trim();
 const PREFIX_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  (typeof window !== "undefined"
-    ? `${window.location.origin}/api`
-    : "http://localhost:8000/api");
+  API_URL_OVERRIDE && API_URL_OVERRIDE.length > 0
+    ? API_URL_OVERRIDE
+    : typeof window !== "undefined"
+      ? `${window.location.origin}/api`
+      : "http://localhost:8000/api";
 
 function getAuthToken(): string | null {
   return useAuthStore.getState().getToken();
@@ -47,4 +49,3 @@ export const authHttp = new AuthHttpClient(authKy);
 export * from "./query-params";
 export * from "./types";
 export { AuthHttpClient, BaseHttpClient };
-

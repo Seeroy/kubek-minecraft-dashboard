@@ -22,6 +22,9 @@ async function bootstrap() {
   // Port must be read before Nest init so listen() can use it
   const configuredPort = readPortBeforeNestInit();
 
+  // Run the intro to completion before Nest boots
+  await Startup.runIntro();
+
   const app = await NestFactory.create(AppModule, {
     logger: new LoggerAddon(),
   });
@@ -69,7 +72,7 @@ async function bootstrap() {
   app.enableCors();
 
   await app.listen(process.env.PORT ?? configuredPort);
-  await Startup.webServerStarted(configuredPort);
+  await Startup.serverStarted(configuredPort);
 }
 
 bootstrap();

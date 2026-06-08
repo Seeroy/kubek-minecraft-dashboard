@@ -4,9 +4,9 @@ export const notificationsTranslations: TranslationDictionary = {
   serverStatus: {
     started: "The instance is now running",
     stopped: "The instance has been stopped",
-    startedTitle: (name: string) => `"${ name }" started`,
-    stoppedTitle: (name: string) => `"${ name }" stopped`,
-    crashedTitle: (name: string) => `"${ name }" crashed`,
+    startedTitle: (name: string) => `"${name}" started`,
+    stoppedTitle: (name: string) => `"${name}" stopped`,
+    crashedTitle: (name: string) => `"${name}" crashed`,
     crashed: {
       message: "The instance exited unexpectedly. Check the logs for details",
       action: "Go console",
@@ -40,7 +40,8 @@ export const notificationsTranslations: TranslationDictionary = {
       installMessage: "The plugin has been installed successfully",
       failed: "failed",
       failedSuffix: "failed",
-      errorMessage: "Something went wrong while interacting with Modrinth. Check logs and retry",
+      errorMessage:
+        "Something went wrong while interacting with Modrinth. Check logs and retry",
     },
     backup: {
       creating: "Creating",
@@ -51,16 +52,19 @@ export const notificationsTranslations: TranslationDictionary = {
       deleteMessage: "The backup has been deleted",
       successMessage: "Operation completed successfully",
       errorMessage: "Something went wrong during the backup operation",
-      createInProgressTitle: (name: string) => `Creating backup for ${ name }`,
-      restoreInProgressTitle: (name: string) => `Restoring backup for ${ name }`,
-      deleteInProgressTitle: (name: string) => `Deleting backup for ${ name }`,
+      createInProgressTitle: (name: string) => `Creating backup for ${name}`,
+      restoreInProgressTitle: (name: string) => `Restoring backup for ${name}`,
+      deleteInProgressTitle: (name: string) => `Deleting backup for ${name}`,
       inProgressMessage: "Operation is running in the background…",
-      createdTitle: (name: string) => `Backup for ${ name } created`,
-      restoredTitle: (name: string) => `Backup for ${ name } restored`,
-      deletedTitle: (name: string) => `Backup for ${ name } deleted`,
-      createFailedTitle: (name: string) => `Failed to create backup for ${ name }`,
-      restoreFailedTitle: (name: string) => `Failed to restore backup for ${ name }`,
-      deleteFailedTitle: (name: string) => `Failed to delete backup for ${ name }`,
+      createdTitle: (name: string) => `Backup for ${name} created`,
+      restoredTitle: (name: string) => `Backup for ${name} restored`,
+      deletedTitle: (name: string) => `Backup for ${name} deleted`,
+      createFailedTitle: (name: string) =>
+        `Failed to create backup for ${name}`,
+      restoreFailedTitle: (name: string) =>
+        `Failed to restore backup for ${name}`,
+      deleteFailedTitle: (name: string) =>
+        `Failed to delete backup for ${name}`,
     },
     java: {
       installing: "Installing",
@@ -68,7 +72,8 @@ export const notificationsTranslations: TranslationDictionary = {
       installed: "installed",
       successMessage: "The Java runtime has been installed successfully",
       installFailed: "installation failed",
-      errorMessage: "Something went wrong while installing Java. Check logs and retry",
+      errorMessage:
+        "Something went wrong while installing Java. Check logs and retry",
     },
     server: {
       creating: "Creating",
@@ -77,13 +82,21 @@ export const notificationsTranslations: TranslationDictionary = {
       openMessage: "Open the server view right away",
       openAction: "Open server",
       createFailed: "creation failed",
-      errorMessage: "Provisioning was interrupted. Check the logs and try again",
+      errorMessage:
+        "Provisioning was interrupted. Check the logs and try again",
+      changingCore: "Changing core for",
+      coreChanged: "core changed",
+      coreChangeMessage: "The new core has been installed",
+      coreChangeFailed: "core change failed",
+      coreChangeErrorMessage:
+        "The core change was interrupted. Check the logs and try again",
     },
     defaultProgress: "Provisioning your server…",
   },
   updateAvailable: {
     title: "Update Available",
-    message: (version: string, notes: string) => `New version available: ${ version }`,
+    message: (version: string, notes: string) =>
+      `New version available: ${version}`,
     viewRelease: "View Release",
   },
 };

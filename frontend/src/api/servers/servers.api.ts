@@ -115,6 +115,15 @@ export class ServersApi {
     }
   ): Promise<Server> =>
     this.authHttp.patch<Server>(`servers/${id}/settings`, { json: settings });
+
+  /** Switch a stopped server to another core/blueprint and version */
+  changeCore = (
+    id: string,
+    body: { blueprintId: string; version?: string }
+  ): Promise<ServerCreatedResponse> =>
+    this.authHttp.post<ServerCreatedResponse>(`servers/${id}/core`, {
+      json: body,
+    });
 }
 
 export const serversApi = new ServersApi(authHttp);

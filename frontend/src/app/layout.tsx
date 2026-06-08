@@ -29,13 +29,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={onest.variable}>
-      <head>
-        <link
-          rel="preconnect"
-          href="http://localhost:8000"
-          crossOrigin="use-credentials"
-        />
-      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

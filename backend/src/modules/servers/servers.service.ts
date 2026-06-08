@@ -386,6 +386,36 @@ export class ServersService implements OnModuleInit {
   }
 
   /**
+   * Switch a server to another core/blueprint and version
+   */
+  changeCore(
+    serverId: string,
+    dto: { blueprintId: string; version?: string },
+    ownerId?: string,
+  ): { server: IServer; taskId: string } {
+    const server = this.serversRepo.findById(serverId);
+    if (!server) throw new NotFoundException("Server not found");
+
+    if (server.status !== ServerStatus.STOPPED) {
+      throw new BadRequestException("Stop the server before changing its core");
+    }
+
+    const result = this.serversFactory.changeCore(
+      server,
+      dto.blueprintId,
+      dto.version,
+      ownerId || "",
+    );
+
+    // Drop the cached instance so it is rebuilt from the new blueprint
+    if (this.instancesRepo.getByServerId(serverId)) {
+      this.instancesRepo.delete(serverId);
+    }
+
+    return result;
+  }
+
+  /**
    * Verify whether the given user has access to a specific server
    */
   private userHasServerAccess(user: IUser, serverId: string): boolean {
