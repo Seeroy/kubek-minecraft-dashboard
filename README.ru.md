@@ -90,6 +90,19 @@
 
 ---
 
+## 🧩 Расширения и blueprint`ы (для разработчиков)
+
+Kubek рассчитан на расширение извне, без форка. **Blueprint`ы** описывают типы серверов — как скачивается, настраивается и запускается jar, — а **расширения** добавляют целые функции: новые страницы и UI, маршруты API, обработчики событий и собственные права
+
+Два SDK со стартовыми шаблонами помогут начать за пару минут:
+
+| SDK                                                                            | npm                                                                                | Стартовый шаблон                                                          |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Extension SDK** — функции, UI, маршруты API, события и права                  | [`@kubekpanel/extension-sdk`](https://www.npmjs.com/package/@kubekpanel/extension-sdk) | [KubekPanel/extension-template](https://github.com/KubekPanel/extension-template) |
+| **Blueprint SDK** — описание новых типов серверов (скачивание, конфиг, запуск)  | [`@kubekpanel/blueprint-sdk`](https://www.npmjs.com/package/@kubekpanel/blueprint-sdk) | [KubekPanel/blueprint-template](https://github.com/KubekPanel/blueprint-template) |
+
+---
+
 ## 🚀 Быстрый старт
 
 ### Установка одной командой (Linux / macOS)

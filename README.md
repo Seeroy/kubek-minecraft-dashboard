@@ -92,6 +92,19 @@ And because permissions are just a registry, **extensions can declare their own*
 
 ---
 
+## 🧩 Extensions & blueprints (for developers)
+
+Kubek is built to be extended from the outside, no fork required. **Blueprints** describe server types — how a jar is fetched, configured and launched — and **extensions** bolt on whole features: new pages and UI, API routes, event handlers and their own permissions
+
+Two SDKs with starter templates get you going in minutes:
+
+| SDK                                                                       | npm                                                                                | Starter template                                                          |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Extension SDK** — add features, UI, API routes, events and permissions  | [`@kubekpanel/extension-sdk`](https://www.npmjs.com/package/@kubekpanel/extension-sdk) | [KubekPanel/extension-template](https://github.com/KubekPanel/extension-template) |
+| **Blueprint SDK** — describe new server types (download, config, launch)  | [`@kubekpanel/blueprint-sdk`](https://www.npmjs.com/package/@kubekpanel/blueprint-sdk) | [KubekPanel/blueprint-template](https://github.com/KubekPanel/blueprint-template) |
+
+---
+
 ## 🚀 Quick start
 
 ### One-line install (Linux / macOS)
