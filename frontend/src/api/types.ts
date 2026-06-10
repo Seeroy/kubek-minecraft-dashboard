@@ -505,6 +505,23 @@ export interface paths {
         patch: operations["ServersController_updateSettings"];
         trace?: never;
     };
+    "/api/servers/{id}/core": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change server core/version */
+        post: operations["ServersController_changeCore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/java": {
         parameters: {
             query?: never;
@@ -2352,6 +2369,12 @@ export interface components {
             variables: {
                 [key: string]: string | number | boolean;
             };
+            /**
+             * @description Per-server runtime override, falls back to the global setting
+             * @example docker
+             * @enum {string}
+             */
+            runtime?: "native" | "docker";
         };
         ServerCreatedResponseDto: {
             server: components["schemas"]["ServerEntity"];
@@ -2436,6 +2459,18 @@ export interface components {
             /** @description Partial blueprint variable values to merge */
             variables?: Record<string, never>;
         };
+        ChangeServerCoreDto: {
+            /**
+             * @description Target blueprint (core) id to switch to
+             * @example com.kubek.purpur
+             */
+            blueprintId: string;
+            /**
+             * @description Version to install. Required for cores that offer a version list.
+             * @example 1.21.4
+             */
+            version?: string;
+        };
         JavaVersionEntity: {
             /**
              * @description Java version identifier
@@ -2514,6 +2549,11 @@ export interface components {
              * @example native
              */
             runtimeKind: string;
+            /**
+             * @description Whether this blueprint can run in Docker (has a docker profile)
+             * @example true
+             */
+            dockerCapable: boolean;
             /** @description Declared blueprint variables */
             variables: {
                 [key: string]: unknown;
@@ -2745,6 +2785,12 @@ export interface components {
              * @example 1
              */
             configVersion: number;
+            /**
+             * @description Runtime new servers use, auto prefers docker when available
+             * @example auto
+             * @enum {string}
+             */
+            serverRuntime?: "auto" | "native" | "docker";
         };
         TaskEntity: {
             /**
@@ -2756,7 +2802,7 @@ export interface components {
              * @description Type of task
              * @enum {string}
              */
-            type: "server.create" | "server.duplicate" | "server.import" | "server.start" | "server.stop" | "server.restart" | "plugin.install" | "plugin.update" | "plugin.remove" | "mod.install" | "mod.update" | "mod.remove" | "backup.create" | "backup.restore" | "backup.delete" | "java.install" | "files.delete" | "files.archive" | "files.extract";
+            type: "server.create" | "server.changeCore" | "server.duplicate" | "server.import" | "server.start" | "server.stop" | "server.restart" | "plugin.install" | "plugin.update" | "plugin.remove" | "mod.install" | "mod.update" | "mod.remove" | "backup.create" | "backup.restore" | "backup.delete" | "java.install" | "files.delete" | "files.archive" | "files.extract";
             /**
              * @description Current status of task
              * @enum {string}
@@ -2844,6 +2890,11 @@ export interface components {
              *     ]
              */
             cpus: string[];
+            /**
+             * @description Whether a Docker daemon is reachable from the panel
+             * @example true
+             */
+            dockerAvailable: boolean;
         };
         DiskInfoDto: {
             /**
@@ -5790,6 +5841,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServerEntity"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServersController_changeCore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeServerCoreDto"];
+            };
+        };
+        responses: {
+            /** @description Core change started */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerCreatedResponseDto"];
                 };
             };
             400: {

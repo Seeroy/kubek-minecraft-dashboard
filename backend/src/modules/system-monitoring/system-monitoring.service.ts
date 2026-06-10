@@ -1,3 +1,4 @@
+import { DockerService } from "@/modules/server-types/runtime/docker.service";
 import { Injectable } from "@nestjs/common";
 import { exec } from "child_process";
 import * as os from "os";
@@ -11,6 +12,8 @@ const execAsync = promisify(exec);
 
 @Injectable()
 export class SystemMonitoringService {
+  constructor(private readonly dockerService: DockerService) {}
+
   // Cache public IP
   private publicIpCache: { value: string | null; fetchedAt: number } | null =
     null;
@@ -209,6 +212,7 @@ export class SystemMonitoringService {
     hostname: string;
     release: string;
     uptime: number;
+    dockerAvailable: boolean;
   } {
     return {
       platform: os.platform(),
@@ -218,6 +222,7 @@ export class SystemMonitoringService {
       hostname: os.hostname(),
       release: os.release(),
       uptime: os.uptime(),
+      dockerAvailable: this.dockerService.available(),
     };
   }
 

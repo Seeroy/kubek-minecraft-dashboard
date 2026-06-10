@@ -113,6 +113,12 @@ export const newServerModalTranslations: TranslationDictionary = {
       label: "Aikar's Flags",
       description: "An optimized G1GC flag set for stable server performance. Recommended for most servers",
     },
+    docker: {
+      label: "Run in Docker",
+      beta: "Beta",
+      description: "Launch this server in a Docker container instead of a host process. The choice is fixed once the server is created. Beta feature, expect bugs",
+      unavailable: "Docker daemon is unavailable",
+    },
     startupArguments: {
       label: "Additional Arguments",
       placeholder: "-Dproperty=value",

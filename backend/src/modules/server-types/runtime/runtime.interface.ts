@@ -14,5 +14,16 @@ export interface IServerRuntime {
   writeStdin(data: string): boolean;
   onStdout(cb: (chunk: string) => void): void;
   onExit(cb: (code: number | null) => void): void;
+  /** True while the server is alive, regardless of whether there is a host pid */
+  isRunning(): boolean;
   readonly pid?: number;
+
+  /**
+   * True when the runtime drives a real PTY
+   */
+  readonly interactive?: boolean;
+  /** Write raw keystrokes straight to the PTY, no trailing newline is added */
+  writeTerminal?(data: string): boolean;
+  /** Resize the PTY window so the server line editor reflows correctly */
+  resize?(cols: number, rows: number): void;
 }

@@ -47,6 +47,8 @@ export interface NewServerProps {
   name: string;
   blueprintId: string;
   variables: Record<string, ServerVariableValue>;
+  /** Per-server runtime override, falls back to the global serverRuntime setting when omitted */
+  runtime?: "native" | "docker";
 }
 
 export type ServerRestartProps = {

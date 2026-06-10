@@ -3,7 +3,21 @@
 import { cn } from "@/shared/lib/cn";
 import Anser from "anser";
 import { escapeCarriageReturn } from "escape-carriage";
+import { useTheme } from "next-themes";
 import React from "react";
+
+/**
+ * Flip only the unreadable colors lines, bc ui has themes
+ */
+function adaptColor(rgb: string, isDark: boolean): string {
+  const parts = rgb.split(",").map((n) => parseInt(n.trim(), 10));
+  if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) return rgb;
+  const [r, g, b] = parts;
+  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  if (!isDark && lum > 0.7) return "0,0,0";
+  if (isDark && lum < 0.3) return "255,255,255";
+  return rgb;
+}
 
 // Minecraft color/deco to Tailwind classes map
 const MC_MAP: Record<string, string> = {
@@ -73,13 +87,16 @@ function createClass(bundle: AnserJsonEntry): string | null {
   return classNames;
 }
 
-function createStyle(bundle: AnserJsonEntry): React.CSSProperties | undefined {
+function createStyle(
+  bundle: AnserJsonEntry,
+  isDark: boolean
+): React.CSSProperties | undefined {
   const style: React.CSSProperties = {};
   if (bundle.bg) {
     style.backgroundColor = `rgb(${bundle.bg})`;
   }
   if (bundle.fg) {
-    style.color = `rgb(${bundle.fg})`;
+    style.color = `rgb(${adaptColor(bundle.fg, isDark)})`;
   }
   return Object.keys(style).length ? style : undefined;
 }
@@ -89,9 +106,10 @@ function convertBundleIntoReact(
   useClasses: boolean,
   bundle: AnserJsonEntry,
   key: number,
+  isDark: boolean,
   mcClasses?: string | null
 ): React.ReactNode {
-  const style = useClasses ? undefined : createStyle(bundle);
+  const style = useClasses ? undefined : createStyle(bundle, isDark);
   const className = useClasses ? createClass(bundle) : undefined;
 
   // merge the anser class and the mc class
@@ -193,6 +211,9 @@ export const AnsiText: React.FC<AnsiTextProps> = ({
   parseMinecraft = true,
 }) => {
   const text = String(children);
+  // Only an explicit light theme counts as light, undefined (pre-hydration) stays dark
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme !== "light";
 
   const mcSegments = parseMinecraft
     ? parseMinecraftToSegments(text)
@@ -215,6 +236,7 @@ export const AnsiText: React.FC<AnsiTextProps> = ({
           useClasses,
           b,
           globalKey++,
+          isDark,
           seg.mcClasses
         )
       );

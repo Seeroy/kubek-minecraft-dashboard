@@ -9,6 +9,7 @@ import { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { JavaService } from "@/modules/java/java.service";
 import { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
 import { QueryRegistry } from "@/modules/server-types/query-protocols/query-registry.service";
+import { DockerService } from "@/modules/server-types/runtime/docker.service";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
 import { ServersFactory } from "@/modules/servers/servers.factory";
 import type {
@@ -50,6 +51,7 @@ export class ServersService implements OnModuleInit {
     private readonly blueprintRegistry: ServerTypesRegistry,
     private readonly queryRegistry: QueryRegistry,
     private readonly blueprintResolver: BlueprintResolver,
+    private readonly dockerService: DockerService,
   ) {}
 
   /**
@@ -63,6 +65,11 @@ export class ServersService implements OnModuleInit {
           status: ServerStatus.STOPPED,
         });
       }
+    });
+
+    // Drop containers left over from a previous run, the panel cannot reattach to them
+    void this.dockerService.removeOrphans().catch(() => {
+      // non-fatal, the daemon may simply be unavailable
     });
   }
 
@@ -141,6 +148,7 @@ export class ServersService implements OnModuleInit {
         blueprintRegistry: this.blueprintRegistry,
         queryRegistry: this.queryRegistry,
         blueprintResolver: this.blueprintResolver,
+        dockerService: this.dockerService,
       },
       server,
       server.id,

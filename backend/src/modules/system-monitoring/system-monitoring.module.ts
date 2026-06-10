@@ -1,9 +1,10 @@
+import { ServerTypesModule } from "@/modules/server-types/server-types.module";
 import { Module } from "@nestjs/common";
 import { SystemMonitoringController } from "./system-monitoring.controller";
 import { SystemMonitoringService } from "./system-monitoring.service";
 
 @Module({
-  imports: [],
+  imports: [ServerTypesModule],
   controllers: [SystemMonitoringController],
   providers: [SystemMonitoringService],
   exports: [SystemMonitoringService],

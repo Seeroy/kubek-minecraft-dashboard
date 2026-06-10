@@ -24,6 +24,7 @@ import { AuthService } from "./services/auth.service";
 import { CommandHandlerService } from "./services/command-handler.service";
 import { RoomService } from "./services/room.service";
 import { ServerBroadcastService } from "./services/server-broadcast.service";
+import { TerminalHandlerService } from "./services/terminal-handler.service";
 
 @WebSocketGateway({
   cors: { origin: "*" },
@@ -44,6 +45,7 @@ export class ServerGateway
     private readonly serversRepo: ServersRepository,
     private readonly broadcast: ServerBroadcastService,
     private readonly commandHandler: CommandHandlerService,
+    private readonly terminalHandler: TerminalHandlerService,
   ) {}
 
   afterInit(server: Server) {
@@ -135,5 +137,17 @@ export class ServerGateway
   @SubscribeMessage(WsServerEventTypes.REQUEST_FULL_LOG)
   onClientRequestFullLog(client: Socket, data: { serverId: string }) {
     return this.commandHandler.fetchFullLog(client.data.user, data.serverId);
+  }
+
+  @SubscribeMessage(WsServerEventTypes.REQUEST_COMPLETION)
+  onClientRequestCompletion(
+    client: Socket,
+    data: { serverId: string; line: string },
+  ) {
+    return this.terminalHandler.complete(
+      client.data.user,
+      data.serverId,
+      data.line,
+    );
   }
 }

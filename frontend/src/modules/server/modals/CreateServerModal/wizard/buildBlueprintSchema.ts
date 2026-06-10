@@ -12,6 +12,8 @@ export interface WizardValues {
   port: number;
   variables: Record<string, string | number | boolean>;
   customFile?: File;
+  /** Run the server in Docker, only meaningful when the blueprint is docker-capable */
+  runtimeDocker: boolean;
 }
 
 /** Blank form state before a blueprint is picked */
@@ -21,6 +23,7 @@ export const EMPTY_WIZARD_VALUES: WizardValues = {
   port: 25565,
   variables: {},
   customFile: undefined,
+  runtimeDocker: false,
 };
 
 const CUSTOM_BLUEPRINT_ID = "com.kubek.custom";
@@ -99,6 +102,7 @@ export function buildBlueprintForm(bp: BlueprintSummary): {
     port: z.coerce.number().min(1).max(65535),
     variables: z.object(variableShape),
     customFile: fileSchema,
+    runtimeDocker: z.coerce.boolean().optional(),
   });
 
   // When the blueprint exposes both memory variables, the initial heap must not exceed the max
@@ -127,6 +131,8 @@ export function buildBlueprintForm(bp: BlueprintSummary): {
       port: port?.default ?? 25565,
       variables: variableDefaults,
       customFile: undefined,
+      // Default off, docker runtime is still in beta and opt-in only
+      runtimeDocker: false,
     },
   };
 }

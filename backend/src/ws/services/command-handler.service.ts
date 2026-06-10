@@ -12,7 +12,8 @@ export class CommandHandlerService {
     if (!this.canManageServer(user, serverId)) return;
 
     const instance = this.instancesRegistry.getByServerId(serverId);
-    if (!instance || !instance.pid) return;
+    // Docker servers have no host pid, gate on runtime liveness instead
+    if (!instance || !instance.isRunning()) return;
 
     instance.input(command, user);
   }

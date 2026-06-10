@@ -19,6 +19,20 @@ export const bedrock = {
   runtime: {
     kind: "native",
   },
+  dockerProfile: {
+    image: "itzg/minecraft-bedrock-server",
+    stdinOpen: true,
+    stop: {
+      type: "signal:SIGTERM",
+    },
+    env: {
+      EULA: "TRUE",
+      VERSION: "{{GAME_VERSION}}",
+      SERVER_PORT: "{{SERVER_PORT}}",
+      UID: "{{HOST_UID}}",
+      GID: "{{HOST_GID}}",
+    },
+  },
   variables: [
     {
       key: "GAME_VERSION",

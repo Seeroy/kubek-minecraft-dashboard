@@ -18,6 +18,25 @@ export const waterfall = {
   runtime: {
     kind: "native",
   },
+  dockerProfile: {
+    image: "itzg/minecraft-server:{{JAVA_IMAGE_TAG}}",
+    stdinOpen: true,
+    stop: {
+      type: "signal:SIGTERM",
+    },
+    env: {
+      EULA: "TRUE",
+      TYPE: "WATERFALL",
+      VERSION: "{{GAME_VERSION}}",
+      MAX_MEMORY: "{{XMX}}M",
+      INIT_MEMORY: "{{XMS}}M",
+      JVM_OPTS: "{{JVM_ARGS}}",
+      SERVER_PORT: "{{SERVER_PORT}}",
+      OVERRIDE_SERVER_PROPERTIES: "false",
+      PUID: "{{HOST_UID}}",
+      PGID: "{{HOST_GID}}",
+    },
+  },
   variables: [
     {
       key: "GAME_VERSION",

@@ -6,12 +6,22 @@ import { ErrorRecognizerService } from "@/modules/error-recognition/error-recogn
 import { JavaService } from "@/modules/java/java.service";
 import { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
 import { QueryRegistry } from "@/modules/server-types/query-protocols/query-registry.service";
-import { ProcessRuntime } from "@/modules/server-types/runtime/process.runtime";
+import {
+  containerNameFor,
+  DockerRuntime,
+} from "@/modules/server-types/runtime/docker.runtime";
+import { DockerService } from "@/modules/server-types/runtime/docker.service";
+import {
+  ProcessRuntime,
+  PTY_COLS,
+  PTY_ROWS,
+} from "@/modules/server-types/runtime/process.runtime";
 import type {
   IServerRuntime,
   StopMethod,
 } from "@/modules/server-types/runtime/runtime.interface";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
+import type { ResolveScope } from "@/modules/server-types/server-types.types";
 import { ServerEventsService } from "@/ws/services/server-events.service";
 import type {
   KubekBlueprintManifest,
@@ -27,6 +37,7 @@ import { IUser } from "@shared/types/user.types";
 import fs from "fs/promises";
 import mcPropsParser from "minecraft-server-properties";
 import path from "path";
+import { TerminalCompleter } from "./terminal-completer";
 
 interface CompiledDetection {
   starting: RegExp[];
@@ -43,6 +54,7 @@ export interface ServerInstanceDeps {
   blueprintRegistry: ServerTypesRegistry;
   queryRegistry: QueryRegistry;
   blueprintResolver: BlueprintResolver;
+  dockerService: DockerService;
 }
 
 // Fallback patterns for legacy servers
@@ -60,6 +72,13 @@ const LEGACY_DETECTION: CompiledDetection = {
   ],
   stopping: [/Stopping (the )?server/i, /Saving worlds/i, /Saving players/i],
 };
+
+// Strip ANSI/VT control sequences before feeding the structured (line-based) log
+const ANSI_RE =
+  /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g;
+function stripAnsi(input: string): string {
+  return input.replace(ANSI_RE, "");
+}
 
 export class ServerInstance implements IInstance {
   serverId: string;
@@ -82,6 +101,13 @@ export class ServerInstance implements IInstance {
   private serverRuntime?: IServerRuntime | null;
   private log: IInstanceLog[] = [];
   private diagnostics: IServerDiagnostic[] = [];
+
+  // In-flight partial line held back from the structured log until its newline arrives
+  private termLineBuf: string = "";
+
+  // Headless emulator that drives JLine for server-side completion, native only
+  private completer?: TerminalCompleter;
+
   private restartAttempts: number = 0;
   private config: IServer;
   private readonly blueprint?: KubekBlueprintManifest;
@@ -98,6 +124,7 @@ export class ServerInstance implements IInstance {
   private readonly blueprintRegistry: ServerTypesRegistry;
   private readonly queryRegistry: QueryRegistry;
   private readonly blueprintResolver: BlueprintResolver;
+  private readonly dockerService: DockerService;
 
   constructor(deps: ServerInstanceDeps, config: IServer, serverId?: string) {
     this.javaService = deps.javaService;
@@ -107,6 +134,7 @@ export class ServerInstance implements IInstance {
     this.blueprintRegistry = deps.blueprintRegistry;
     this.queryRegistry = deps.queryRegistry;
     this.blueprintResolver = deps.blueprintResolver;
+    this.dockerService = deps.dockerService;
 
     this.config = config;
     this.serverId = serverId || generateRandomString(16);
@@ -163,9 +191,19 @@ export class ServerInstance implements IInstance {
     this.log = this.log.slice(linesOffset * -1);
   }
 
+  /** isRunning for native and docker */
+  isRunning(): boolean {
+    return this.serverRuntime?.isRunning() ?? false;
+  }
+
   input(cmd: string, byUser?: IUser): boolean {
-    if (this.serverRuntime && this.pid) {
-      this.serverRuntime.writeStdin(cmd);
+    if (this.serverRuntime && this.isRunning()) {
+      // Route through the completer when present
+      if (this.completer) {
+        void this.completer.submitLine(cmd);
+      } else {
+        this.serverRuntime.writeStdin(cmd);
+      }
       if (byUser) {
         this.writeLog({
           type: "kubek",
@@ -185,6 +223,13 @@ export class ServerInstance implements IInstance {
   private onClose(exitCode: number | null): void {
     this.stoppedAt = new Date().toISOString();
     this.pid = undefined;
+
+    // Flush any half-line still held back so the last log line is not dropped
+    if (this.termLineBuf) {
+      this.emitStructuredLine(this.termLineBuf);
+      this.termLineBuf = "";
+    }
+    this.completer = undefined;
 
     this.updateStatus(ServerStatus.STOPPED);
 
@@ -233,15 +278,60 @@ export class ServerInstance implements IInstance {
     }
   }
 
-  private onData(data: string): void {
-    const dataSplit = data.toString().split(/\r\n|\n\r|\r|\n/);
-    for (const item of dataSplit) {
-      if (item.trim()) {
-        this.writeLog(item);
-        this.checkStatusFromLog(item);
-        this.checkForErrors(item);
-      }
+  /** True when the underlying runtime drives a PTY, so server-side completion is possible */
+  isInteractive(): boolean {
+    return this.serverRuntime?.interactive ?? false;
+  }
+
+  /**
+   * Ask the server's own line editor (JLine) to complete a console line
+   */
+  async complete(
+    line: string,
+  ): Promise<{ completion: string; candidates: string[] }> {
+    if (this.completer && this.isRunning()) {
+      return this.completer.complete(line);
     }
+    return { completion: line, candidates: [] };
+  }
+
+  /**
+   * Runtime output sink. The raw stream is teed to the headless completer emulator
+   */
+  private onData(data: string): void {
+    this.completer?.feed(data);
+    if (this.completer?.isBusy()) return;
+    this.feedStructured(data);
+  }
+
+  /** Buffer until a newline, then emit each complete line into the structured log */
+  private feedStructured(chunk: string): void {
+    this.termLineBuf += chunk;
+    const parts = this.termLineBuf.split("\n");
+    this.termLineBuf = parts.pop() ?? "";
+    for (const part of parts) this.emitStructuredLine(part);
+  }
+
+  /**
+   * Normalize one raw line and record it
+   */
+  private emitStructuredLine(rawLine: string): void {
+    // Drop the trailing CR of a CRLF ending first, so the overwrite-collapse below does
+    // not mistake it for a JLine prompt repaint and wipe the whole line
+    let display = rawLine.replace(/[\r\s]+$/, "");
+    // A remaining CR is a real in-line repaint, keep only the final paint
+    const cr = display.lastIndexOf("\r");
+    if (cr >= 0) display = display.slice(cr + 1);
+
+    const clean = stripAnsi(display).replace(/\s+$/, "");
+    if (!clean.trim()) return;
+
+    // Drop JLine's prompt echo of a submitted command, no duplication
+    if (/^>(\s|$)/.test(clean)) return;
+
+    this.writeLog(display);
+    this.checkStatusFromLog(clean);
+    this.checkForErrors(clean);
   }
 
   /** Match a log line against the compiled status patterns and update status */
@@ -312,7 +402,7 @@ export class ServerInstance implements IInstance {
   }
 
   async kill(): Promise<boolean> {
-    if (this.serverRuntime && this.pid) {
+    if (this.serverRuntime && this.isRunning()) {
       await this.serverRuntime.kill();
       return true;
     }
@@ -320,7 +410,7 @@ export class ServerInstance implements IInstance {
   }
 
   async restart(byUser?: IUser): Promise<boolean> {
-    if (this.pid) {
+    if (this.isRunning()) {
       await this.stop(byUser);
       await asyncTimeout(1000);
       return await this.start();
@@ -329,14 +419,25 @@ export class ServerInstance implements IInstance {
   }
 
   async start(): Promise<boolean> {
-    if (this.pid) return false;
+    if (this.isRunning()) return false;
 
     this.cleanupLog();
+    this.termLineBuf = "";
+    this.completer = undefined;
     this.updateStatus(ServerStatus.STARTING);
 
-    const command = await this.resolveLaunchCommand();
+    const kind = this.config.runtimeKind ?? "native";
+    const scope = this.buildLaunchScope();
 
-    this.serverRuntime = new ProcessRuntime();
+    let command: string;
+    if (kind === "docker") {
+      command = this.resolveDockerCommand(scope);
+      this.serverRuntime = await this.createDockerRuntime(scope, command);
+    } else {
+      command = await this.resolveNativeCommand(scope);
+      this.serverRuntime = new ProcessRuntime();
+    }
+
     this.serverRuntime.onStdout((chunk) => this.onData(chunk));
     this.serverRuntime.onExit((code) => this.onClose(code));
     await this.serverRuntime.start({
@@ -345,14 +446,33 @@ export class ServerInstance implements IInstance {
       env: {},
     });
 
+    // A PTY only attaches during start(), so wire the completer once it is up
+    if (this.serverRuntime.interactive && this.serverRuntime.writeTerminal) {
+      const write = this.serverRuntime.writeTerminal.bind(this.serverRuntime);
+      this.completer = new TerminalCompleter(write, PTY_COLS, PTY_ROWS);
+    }
+
     this.pid = this.serverRuntime.pid;
     this.startedAt = new Date().toISOString();
     this.stoppedAt = undefined;
     return true;
   }
 
-  /** Resolve the native launch command from the blueprint */
-  private async resolveLaunchCommand(): Promise<string> {
+  /** Common substitution scope, shared by native and docker, no JAVA_BIN */
+  private buildLaunchScope(): ResolveScope {
+    const blueprint = this.blueprint;
+    if (!blueprint) {
+      throw new Error(`Server ${this.serverId} has no blueprint`);
+    }
+    return this.blueprintResolver.buildScope(blueprint, {
+      serverId: this.serverId,
+      serverName: this.config.name,
+      variables: this.config.variables,
+    });
+  }
+
+  /** Resolve the native launch command, provisioning managed Java on the way */
+  private async resolveNativeCommand(scope: ResolveScope): Promise<string> {
     const blueprint = this.blueprint;
     const startup = blueprint?.startup;
     // Prefer a per-OS command when the blueprint ships one
@@ -365,12 +485,6 @@ export class ServerInstance implements IInstance {
       );
     }
 
-    const scope = this.blueprintResolver.buildScope(blueprint, {
-      serverId: this.serverId,
-      serverName: this.config.name,
-      variables: this.config.variables,
-    });
-
     const version = this.blueprintResolver.javaVersion(blueprint, scope);
     if (version) {
       const javaPath = await this.javaService.getManagedJavaPath(version);
@@ -382,8 +496,71 @@ export class ServerInstance implements IInstance {
     return this.blueprintResolver.substitute(command, scope);
   }
 
+  /**
+   * In-container command, for now left empty
+   */
+  private resolveDockerCommand(_scope: ResolveScope): string {
+    return "";
+  }
+
+  /** Build a DockerRuntime from the blueprint docker profile */
+  private async createDockerRuntime(
+    scope: ResolveScope,
+    command: string,
+  ): Promise<DockerRuntime> {
+    const blueprint = this.blueprint;
+    const profile = blueprint?.dockerProfile;
+    if (!blueprint || !profile) {
+      throw new Error(`Server ${this.serverId} has no docker profile`);
+    }
+    await this.dockerService.assertAvailable();
+
+    const image = this.blueprintResolver.substitute(profile.image, scope);
+    const env = Object.entries(profile.env).map(
+      ([k, v]) => `${k}=${this.blueprintResolver.substitute(v, scope)}`,
+    );
+
+    const mounts = profile.mounts?.length
+      ? profile.mounts
+      : [{ host: "{{SERVER_DIR}}", container: "/data" }];
+    const binds = mounts.map(
+      (m) =>
+        `${this.blueprintResolver.substitute(m.host, scope)}:${m.container}`,
+    );
+
+    return new DockerRuntime(this.dockerService, {
+      image,
+      containerName: containerNameFor(this.serverId),
+      user: profile.user,
+      binds,
+      workdir: "/data",
+      env,
+      portBindings: this.buildPortBindings(blueprint, scope),
+      stdinOpen: profile.stdinOpen,
+      command,
+    });
+  }
+
+  /** Map blueprint ports to docker host-port bindings, publishing host:container 1:1 */
+  private buildPortBindings(
+    blueprint: KubekBlueprintManifest,
+    scope: ResolveScope,
+  ): Record<string, { HostPort: string }[]> {
+    const out: Record<string, { HostPort: string }[]> = {};
+    for (const port of blueprint.ports) {
+      const value = scope[port.key] ?? port.default;
+      const hostPort = String(value);
+      const protocols =
+        port.protocol === "tcp+udp" ? ["tcp", "udp"] : [port.protocol];
+      for (const proto of protocols) {
+        out[`${value}/${proto}`] = [{ HostPort: hostPort }];
+      }
+    }
+    return out;
+  }
+
   async stop(byUser?: IUser): Promise<boolean> {
-    if (!this.serverRuntime || !this.pid) return false;
+    if (!this.serverRuntime || !this.isRunning()) return false;
 
     this.updateStatus(ServerStatus.STOPPING);
 
@@ -412,9 +589,12 @@ export class ServerInstance implements IInstance {
     });
   }
 
-  /** Stop method from the blueprint stop spec */
+  /** Stop method from the blueprint stop spec, docker prefers its own profile stop */
   private resolveStopMethod(): StopMethod {
-    const stop = this.blueprint?.startup?.stop;
+    const stop =
+      (this.config.runtimeKind === "docker"
+        ? this.blueprint?.dockerProfile?.stop
+        : undefined) ?? this.blueprint?.startup?.stop;
     if (stop?.type === "command") return { type: "command", value: stop.value };
     if (stop?.type.startsWith("signal:")) {
       return {
@@ -428,7 +608,7 @@ export class ServerInstance implements IInstance {
   async queryServer(): Promise<unknown> {
     const protocol = this.blueprint?.query?.protocol ?? "minecraft-java";
     const provider = this.queryRegistry.get(protocol);
-    if (!this.pid || !provider) return false;
+    if (!this.isRunning() || !provider) return false;
 
     const port = await this.resolveQueryPort();
     if (!port) return false;

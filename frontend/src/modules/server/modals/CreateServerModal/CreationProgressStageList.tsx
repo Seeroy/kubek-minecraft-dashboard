@@ -100,7 +100,7 @@ export function CreationProgressStageList({
                 </span>
               </div>
               {isActive && message && (
-                <span className="pl-9 text-xs text-muted-foreground">
+                <span className="block truncate pl-9 font-mono text-xs text-muted-foreground">
                   {message}
                 </span>
               )}

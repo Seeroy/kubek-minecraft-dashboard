@@ -1,10 +1,13 @@
 import { TaskErrorCode } from "@/core/errors/error-codes";
+import type { ServerRuntimeSetting } from "@/core/types/config";
 import { unpackArchive } from "@/core/utils/archives";
 import { getErrorMessage } from "@/core/utils/error";
 import { getServerPath } from "@/core/utils/serverPath";
+import { ConfigService } from "@/modules/config/config.service";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
 import { InstallPipeline } from "@/modules/server-types/install-pipeline.service";
+import { DockerService } from "@/modules/server-types/runtime/docker.service";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
 import type { LoadedBlueprint } from "@/modules/server-types/server-types.types";
 import {
@@ -18,6 +21,7 @@ import type {
 } from "@/modules/servers/servers.types";
 import { TasksService } from "@/modules/tasks/tasks.service";
 import { ServerEventsService } from "@/ws/services/server-events.service";
+import type { KubekBlueprintManifest } from "@kubekpanel/blueprint-sdk";
 import {
   BadRequestException,
   Injectable,
@@ -43,7 +47,44 @@ export class ServersFactory {
     private readonly blueprintRegistry: ServerTypesRegistry,
     private readonly blueprintResolver: BlueprintResolver,
     private readonly installPipeline: InstallPipeline,
+    private readonly configService: ConfigService,
+    private readonly dockerService: DockerService,
   ) {}
+
+  private resolveRuntime(
+    manifest: KubekBlueprintManifest,
+    override?: "native" | "docker",
+  ): "native" | "docker" {
+    const hasProfile = !!manifest.dockerProfile;
+    const available = this.dockerService.available();
+    const requireDocker = (reason: string): "docker" => {
+      if (!hasProfile) {
+        throw new BadRequestException(
+          `${reason} but this core has no docker profile`,
+        );
+      }
+      if (!available) {
+        throw new BadRequestException(
+          `${reason} but the daemon is not reachable`,
+        );
+      }
+      return "docker";
+    };
+
+    // docker-only blueprint must run in docker, no matter the override or setting
+    if (manifest.runtime.kind === "docker") {
+      return requireDocker("This core requires Docker");
+    }
+    // explicit per-server override wins over the global setting
+    if (override === "docker") return requireDocker("Docker was requested");
+    if (override === "native") return "native";
+
+    const setting: ServerRuntimeSetting =
+      this.configService.get("serverRuntime") ?? "auto";
+    if (setting === "docker") return requireDocker("serverRuntime is docker");
+    if (setting === "native") return "native";
+    return hasProfile && available ? "docker" : "native";
+  }
 
   /**
    * Resolve the blueprint for a new server, validate its variables against the manifest,
@@ -78,7 +119,7 @@ export class ServersFactory {
       folderId: null,
       blueprintId: blueprint.manifest.id,
       blueprintVersion: blueprint.manifest.version,
-      runtimeKind: blueprint.manifest.runtime.kind,
+      runtimeKind: this.resolveRuntime(blueprint.manifest, props.runtime),
       variables,
     });
 
@@ -167,6 +208,22 @@ export class ServersFactory {
       );
     }
 
+    // changeCore stays within the server's frozen runtime, switching native<->docker is not allowed
+    const sourceKind = source.runtimeKind ?? "native";
+    if (sourceKind === "docker" && !blueprint.manifest.dockerProfile) {
+      throw new BadRequestException(
+        "This core has no docker profile, recreate the server to switch to native",
+      );
+    }
+    if (
+      sourceKind === "native" &&
+      blueprint.manifest.runtime.kind === "docker"
+    ) {
+      throw new BadRequestException(
+        "This core is docker-only, recreate the server to run it in Docker",
+      );
+    }
+
     // Carry over the existing variable values
     const versionVar = this.blueprintResolver.versionVariable(
       blueprint.manifest,
@@ -186,7 +243,7 @@ export class ServersFactory {
     const updated = this.servers.update(source.id, {
       blueprintId: blueprint.manifest.id,
       blueprintVersion: blueprint.manifest.version,
-      runtimeKind: blueprint.manifest.runtime.kind,
+      runtimeKind: sourceKind,
       variables,
     });
     if (!updated) {

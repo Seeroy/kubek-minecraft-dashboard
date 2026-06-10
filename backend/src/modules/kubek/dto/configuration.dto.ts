@@ -103,4 +103,12 @@ export class ConfigurationDto {
 
   @ApiProperty({ description: "Configuration schema version", example: 1 })
   configVersion: number;
+
+  @ApiProperty({
+    description: "Runtime new servers use, auto prefers docker when available",
+    enum: ["auto", "native", "docker"],
+    required: false,
+    example: "auto",
+  })
+  serverRuntime?: "auto" | "native" | "docker";
 }

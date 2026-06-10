@@ -67,9 +67,11 @@ export function ConsoleInfoCards({
 }: ConsoleInfoCardsProps) {
   const { t } = useTranslation("modules.console");
   const statusColors = getStatusColor(serverState);
+  const isRunning = serverState.toLowerCase() === "running";
 
-  const playersLabel =
-    playersMax && playersMax > 0
+  const playersLabel = !isRunning
+    ? "-"
+    : playersMax && playersMax > 0
       ? `${playersOnline} / ${playersMax}`
       : `${playersOnline}`;
 

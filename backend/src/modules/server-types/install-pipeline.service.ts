@@ -11,6 +11,7 @@ import { TaskSteps } from "@shared/types/task.types";
 import fs from "fs";
 import path from "path";
 import { BlueprintResolver } from "./blueprint-resolver.service";
+import { DockerService } from "./runtime/docker.service";
 import type { LoadedBlueprint, ResolveScope } from "./server-types.types";
 import { VersionResolverService } from "./versions/version-resolver.service";
 
@@ -34,6 +35,7 @@ export class InstallPipeline {
     private readonly resolver: BlueprintResolver,
     private readonly javaService: JavaService,
     private readonly tasks: TasksService,
+    private readonly dockerService: DockerService,
   ) {}
 
   async run(
@@ -52,15 +54,31 @@ export class InstallPipeline {
       variables: server.variables,
     });
 
-    await this.ensureJava(blueprint, scope, taskId);
-    await this.resolveDownloadUrl(blueprint, scope);
-
-    for (const step of manifest.install.steps) {
-      await this.runStep(step, blueprint, dir, scope, taskId, opts);
+    // Docker installs pull the image instead of fetching Java and a jar, container runs them itself
+    if (server.runtimeKind === "docker") {
+      for (const step of this.dockerInstallSteps(manifest)) {
+        await this.runStep(step, blueprint, dir, scope, taskId, opts);
+      }
+    } else {
+      await this.ensureJava(blueprint, scope, taskId);
+      await this.resolveDownloadUrl(blueprint, scope);
+      for (const step of manifest.install.steps) {
+        await this.runStep(step, blueprint, dir, scope, taskId, opts);
+      }
     }
 
     // Minecraft bootstrap: drop the default favicon when the blueprint targets minecraft
     if (manifest.game === "minecraft") this.ensureDefaultIcon(dir);
+  }
+
+  /** Install steps for docker mode, defaults to a single dockerPull of the profile image */
+  private dockerInstallSteps(
+    manifest: LoadedBlueprint["manifest"],
+  ): InstallStep[] {
+    const profile = manifest.dockerProfile;
+    if (!profile) return [];
+    if (profile.install) return profile.install;
+    return [{ type: "dockerPull", image: profile.image }];
   }
 
   /** Install the managed Java declared via JAVA_VERSION so it is present before launch */
@@ -157,6 +175,8 @@ export class InstallPipeline {
         );
         return;
       }
+      case "dockerPull":
+        return this.runDockerPull(step, scope, taskId);
       default:
         throw new Error(`Unsupported install step: ${step.type}`);
     }
@@ -191,6 +211,71 @@ export class InstallPipeline {
     if (step.unpack || scope.__downloadUnpack) {
       await unpackArchive(dest, dir, true);
     }
+  }
+
+  /** Pull a docker image, surfacing per-layer progress on the task */
+  private async runDockerPull(
+    step: Extract<InstallStep, { type: "dockerPull" }>,
+    scope: ResolveScope,
+    taskId?: string,
+  ): Promise<void> {
+    await this.dockerService.assertAvailable();
+    const image = this.resolver.substitute(step.image, scope);
+    const docker = this.dockerService.getDocker();
+
+    if (taskId) {
+      this.tasks.updateTask(taskId, {
+        step: TaskSteps.PULLING_IMAGE,
+        progress: 0,
+      });
+    }
+
+    const stream = await docker.pull(image);
+
+    // A pull streams many per-layer events, each with its own phase and counters
+    // TOTALLY VIBECODED
+    const layerStatus = new Map<string, string>();
+    const done = new Set([
+      "Pull complete",
+      "Already exists",
+      "Download complete",
+    ]);
+    let lastUpdate = 0;
+    let lastProgress = 0;
+    let lastLine = "";
+
+    await new Promise<void>((resolve, reject) => {
+      docker.modem.followProgress(
+        stream,
+        (err) => (err ? reject(err) : resolve()),
+        (event: { id?: string; status?: string; progress?: string }) => {
+          if (!taskId || !event.status) return;
+          if (event.id) layerStatus.set(event.id, event.status);
+
+          const shortId = event.id ? event.id.slice(0, 12) : "";
+          lastLine = [event.status, shortId, event.progress]
+            .filter(Boolean)
+            .join(" ");
+
+          const total = layerStatus.size;
+          const completed = [...layerStatus.values()].filter((s) =>
+            done.has(s),
+          ).length;
+          // Cap below 100 until followProgress signals completion, never go backwards
+          const raw = total ? Math.round((completed / total) * 95) : 0;
+          lastProgress = Math.max(lastProgress, raw);
+
+          const now = Date.now();
+          if (now - lastUpdate < InstallPipeline.PROGRESS_INTERVAL) return;
+          lastUpdate = now;
+          this.tasks.updateTask(taskId, {
+            progress: lastProgress,
+            message: lastLine,
+          });
+        },
+      );
+    });
+    if (taskId) this.tasks.updateTask(taskId, { progress: 100 });
   }
 
   /** Write the branding favicon if the server has none yet */

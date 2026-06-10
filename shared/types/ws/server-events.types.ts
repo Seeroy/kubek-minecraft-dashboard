@@ -11,6 +11,8 @@ export enum WsServerEventTypes {
   LIST = "server:list",
   SUBMIT_COMMAND = "server:client:submit_cmd",
   REQUEST_FULL_LOG = `server:client:request_full_log`,
+  // Server-driven console completion: the panel asks JLine to complete a line (ack)
+  REQUEST_COMPLETION = "server:client:request_completion",
 }
 
 export enum WsTelegramEventTypes {

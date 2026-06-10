@@ -113,6 +113,12 @@ export const newServerModalTranslations: TranslationDictionary = {
       label: "Флаги Aikar",
       description: "Оптимизированный набор флагов G1GC для стабильной работы сервера. Рекомендуется для большинства серверов",
     },
+    docker: {
+      label: "Запускать в Docker",
+      beta: "Бета",
+      description: "Запустить сервер в Docker-контейнере вместо процесса на хосте. Выбор фиксируется при создании сервера. Бета-функция, возможны баги",
+      unavailable: "Docker-демон недоступен",
+    },
     startupArguments: {
       label: "Дополнительные аргументы",
       placeholder: "-Dproperty=value",

@@ -35,6 +35,7 @@ export enum TaskSteps {
   DOWNLOADING_JAVA = "downloadingJava",
   UNPACKING_JAVA = "unpackingJava",
   DOWNLOADING_CORE = "downloadingCore",
+  PULLING_IMAGE = "pullingImage",
   CREATING_BAT = "creatingBat",
   COMPLETION = "completion",
   COMPLETED = "completed",

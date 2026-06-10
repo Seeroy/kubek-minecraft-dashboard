@@ -2561,6 +2561,96 @@
         ]
       }
     },
+    "/api/servers/{id}/core": {
+      "post": {
+        "operationId": "ServersController_changeCore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeServerCoreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Core change started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCreatedResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change server core/version",
+        "tags": [
+          "Servers"
+        ],
+        "x-permissions": [
+          "servers_configure"
+        ]
+      }
+    },
     "/api/java": {
       "get": {
         "operationId": "JavaController_getAllJavaVersions",
@@ -10938,6 +11028,15 @@
               "server-port": 25565,
               "pvp": true
             }
+          },
+          "runtime": {
+            "type": "string",
+            "description": "Per-server runtime override, falls back to the global setting",
+            "enum": [
+              "native",
+              "docker"
+            ],
+            "example": "docker"
           }
         },
         "required": [
@@ -11134,6 +11233,24 @@
           }
         }
       },
+      "ChangeServerCoreDto": {
+        "type": "object",
+        "properties": {
+          "blueprintId": {
+            "type": "string",
+            "description": "Target blueprint (core) id to switch to",
+            "example": "com.kubek.purpur"
+          },
+          "version": {
+            "type": "string",
+            "description": "Version to install. Required for cores that offer a version list.",
+            "example": "1.21.4"
+          }
+        },
+        "required": [
+          "blueprintId"
+        ]
+      },
       "JavaVersionEntity": {
         "type": "object",
         "properties": {
@@ -11255,6 +11372,11 @@
             "description": "Runtime kind",
             "example": "native"
           },
+          "dockerCapable": {
+            "type": "boolean",
+            "description": "Whether this blueprint can run in Docker (has a docker profile)",
+            "example": true
+          },
           "variables": {
             "type": "object",
             "description": "Declared blueprint variables",
@@ -11289,6 +11411,7 @@
           "id",
           "name",
           "runtimeKind",
+          "dockerCapable",
           "variables",
           "ports",
           "configFiles",
@@ -11701,6 +11824,16 @@
             "type": "number",
             "description": "Configuration schema version",
             "example": 1
+          },
+          "serverRuntime": {
+            "type": "string",
+            "description": "Runtime new servers use, auto prefers docker when available",
+            "enum": [
+              "auto",
+              "native",
+              "docker"
+            ],
+            "example": "auto"
           }
         },
         "required": [
@@ -11726,6 +11859,7 @@
             "description": "Type of task",
             "enum": [
               "server.create",
+              "server.changeCore",
               "server.duplicate",
               "server.import",
               "server.start",
@@ -11854,6 +11988,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "dockerAvailable": {
+            "type": "boolean",
+            "description": "Whether a Docker daemon is reachable from the panel",
+            "example": true
           }
         },
         "required": [
@@ -11862,7 +12001,8 @@
           "arch",
           "release",
           "uptime",
-          "cpus"
+          "cpus",
+          "dockerAvailable"
         ]
       },
       "DiskInfoDto": {

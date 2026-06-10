@@ -37,4 +37,10 @@ export class SystemInfoDto {
     example: ["Apple M1 Pro", "Apple M1 Pro"],
   })
   cpus: string[];
+
+  @ApiProperty({
+    description: "Whether a Docker daemon is reachable from the panel",
+    example: true,
+  })
+  dockerAvailable: boolean;
 }

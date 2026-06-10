@@ -21,7 +21,11 @@ const STAGE_DEFS: { key: string; steps: TaskSteps[] }[] = [
   },
   {
     key: "core",
-    steps: [TaskSteps.SEARCHING_CORE, TaskSteps.DOWNLOADING_CORE],
+    steps: [
+      TaskSteps.SEARCHING_CORE,
+      TaskSteps.DOWNLOADING_CORE,
+      TaskSteps.PULLING_IMAGE,
+    ],
   },
   {
     key: "finalize",

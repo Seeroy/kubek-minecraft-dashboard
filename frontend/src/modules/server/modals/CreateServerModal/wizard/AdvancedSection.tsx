@@ -81,7 +81,7 @@ export function AdvancedSection({
   ];
 
   return (
-    <div className="space-y-5 rounded-xl border border-border/60 bg-muted/20 p-4">
+    <div className="h-full space-y-5 rounded-xl border border-border/60 bg-muted/20 p-4">
       <div className="flex items-center gap-2">
         <Sparkles className="size-4 text-primary" />
         <span className="font-medium">

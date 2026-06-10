@@ -10,6 +10,10 @@ export function resolveProgressMessage(
   task: ITask,
   t: (key: string) => string
 ): string {
+  // The docker pull mirrors its live log into message, prefer it over a static label
+  if (task.step === TaskSteps.PULLING_IMAGE) {
+    return task.message ?? t("modules.notifications.tasks.steps.pullingImage");
+  }
   switch (task.step) {
     case TaskSteps.SEARCHING_CORE:
       return t("modules.notifications.tasks.steps.searchingCore");

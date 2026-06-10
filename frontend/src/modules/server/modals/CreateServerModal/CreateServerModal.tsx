@@ -6,6 +6,7 @@ import { useNotifications } from "@/modules/notifications";
 import { useServerStore } from "@/modules/server";
 import { useLanguageContext } from "@/shared/context/language-context";
 import { cn } from "@/shared/lib/cn";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -16,8 +17,9 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { Switch } from "@/shared/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Server, SlidersHorizontal, TriangleAlert } from "lucide-react";
+import { Container, Server, SlidersHorizontal, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -95,7 +97,13 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
     versionVarKey,
     versions,
     versionsLoading,
+    dockerAvailable,
   } = useBlueprintSelection({ isOpen, form, schemaRef });
+
+  // The block shows whenever the blueprint can run in docker, the toggle only applies when the daemon is up
+  const blueprintDockerCapable = !!selectedBlueprint?.dockerCapable;
+  const canChooseDocker = blueprintDockerCapable && dockerAvailable;
+  const runtimeDocker = form.watch("runtimeDocker");
 
   const { javaResolving, resolvedJava } = useJavaAutoResolution({
     form,
@@ -143,6 +151,10 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
         blueprintId: bp.id,
         variables: mergedVariables,
       };
+      // Send an explicit runtime only when the user could actually pick one
+      if (canChooseDocker) {
+        payload.runtime = values.runtimeDocker ? "docker" : "native";
+      }
 
       const coreFile = blueprintNeedsCoreFile(bp)
         ? values.customFile
@@ -169,7 +181,7 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
         });
       }
     },
-    [selectedBlueprint, servers, setServers, notify, t]
+    [selectedBlueprint, canChooseDocker, servers, setServers, notify, t]
   );
 
   const handleOpenChange = (open: boolean) => {
@@ -339,10 +351,12 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
               {selectedBlueprint && (
                 <div
                   className={cn(
-                    "grid grid-cols-1 gap-6 lg:items-start",
+                    "grid grid-cols-1 gap-6 lg:items-stretch",
                     hasMemoryVariable && "lg:grid-cols-2"
                   )}
                 >
+                  {/* Left column: parameters and the docker runtime toggle stacked */}
+                  <div className="space-y-6">
                   {/* Zone: parameters - variables, port, optional core file */}
                   <section className="space-y-4 rounded-xl border border-border/60 bg-muted/20 p-4">
                     <div className="flex items-center gap-2">
@@ -422,7 +436,53 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
                     )}
                   </section>
 
-                  {/* Zone: advanced - memory, Aikar flags, extra arguments */}
+                  {/* Runtime: run the server in Docker instead of a host process */}
+                  {blueprintDockerCapable && (
+                    <div
+                      className={cn(
+                        "flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-muted/20 p-4 transition-opacity",
+                        !dockerAvailable &&
+                          "pointer-events-none select-none opacity-50"
+                      )}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Container className="size-4 text-primary" />
+                          <span className="font-medium">
+                            {t("modules.newServerModal.advanced.docker.label")}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                          >
+                            {t("modules.newServerModal.advanced.docker.beta")}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {t(
+                            "modules.newServerModal.advanced.docker.description"
+                          )}
+                        </p>
+                        {!dockerAvailable && (
+                          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                            {t(
+                              "modules.newServerModal.advanced.docker.unavailable"
+                            )}
+                          </p>
+                        )}
+                      </div>
+                      <Switch
+                        disabled={!dockerAvailable}
+                        checked={!!runtimeDocker}
+                        onCheckedChange={(checked) =>
+                          form.setValue("runtimeDocker", checked)
+                        }
+                      />
+                    </div>
+                  )}
+                  </div>
+
+                  {/* Right column: advanced - memory, Aikar flags, extra arguments */}
                   {hasMemoryVariable && (
                     <AdvancedSection
                       key={selectedBlueprint.id}

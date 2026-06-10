@@ -54,7 +54,22 @@ export class BlueprintResolver {
     scope.HOST_OS = process.platform;
     scope.EXE_SUFFIX = process.platform === "win32" ? ".exe" : "";
 
+    // Docker tokens: file ownership and the nearest existing itzg java image tag
+    scope.HOST_UID = process.getuid?.() ?? "";
+    scope.HOST_GID = process.getgid?.() ?? "";
+    const javaTag = this.javaImageTag(scope.JAVA_VERSION);
+    if (javaTag) scope.JAVA_IMAGE_TAG = javaTag;
+
     return scope;
+  }
+
+  /** Map a requested Java version to the nearest itzg image tag that actually exists */
+  private javaImageTag(version: ResolveScope[string]): string | undefined {
+    const tags = [8, 11, 16, 17, 21, 25];
+    const v = Number(version);
+    if (!Number.isFinite(v)) return undefined;
+    const tag = tags.includes(v) ? v : (tags.find((t) => t >= v) ?? 25);
+    return `java${tag}`;
   }
 
   /**

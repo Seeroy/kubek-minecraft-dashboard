@@ -69,18 +69,29 @@ const Console = () => {
 
   const [log, setLog] = useState<IInstanceLog[]>([]);
   const { selectedServer } = useServerStore();
+  // Docker servers run through rcon and have no PTY, so server-side completion is native only
+  const completionAvailable = selectedServer?.runtimeKind !== "docker";
   const serverStatus = useServerStatus(selectedServer?.id);
   const { socket, status, subscribe, unsubscribe } = useSocketStore();
 
-  const playersList = serverStatus?.players?.list || [];
-  const playersOnline =
-    serverStatus?.players?.online ?? serverStatus?.runtime?.playersOnline ?? 0;
-  const playersMax = serverStatus?.players?.max ?? null;
-  const version = serverStatus?.version || selectedServer?.core?.version || "-";
-  const uptime = formatUptime(serverStatus?.runtime?.startedAt);
-  const lastUpdate = formatTime(serverStatus?.timestamp);
   const serverState =
     selectedServer?.status || serverStatus?.status || "unknown";
+  // Live runtime stats are only meaningful while the server is running, the
+  // status store keeps the last sample around after a stop
+  const isRunning = serverState.toLowerCase() === "running";
+
+  const playersList = isRunning ? serverStatus?.players?.list || [] : [];
+  const playersOnline = isRunning
+    ? (serverStatus?.players?.online ??
+      serverStatus?.runtime?.playersOnline ??
+      0)
+    : 0;
+  const playersMax = isRunning ? (serverStatus?.players?.max ?? null) : null;
+  const version = serverStatus?.version || selectedServer?.core?.version || "-";
+  const uptime = isRunning
+    ? formatUptime(serverStatus?.runtime?.startedAt)
+    : "-";
+  const lastUpdate = formatTime(serverStatus?.timestamp);
 
   const virtualizer = useVirtualizer({
     count: log.length,
@@ -148,6 +159,26 @@ const Console = () => {
         serverId: selectedServer.id,
         command,
       });
+    },
+    [selectedServer, socket, status]
+  );
+
+  // Ask the server's own line editor (JLine) to complete the current console line
+  const requestCompletion = useCallback(
+    async (
+      line: string
+    ): Promise<{ completion: string; candidates: string[] }> => {
+      const empty = { completion: line, candidates: [] };
+      if (!selectedServer || !socket || status !== "connected") return empty;
+      try {
+        const result = await socket.emitWithAck(
+          WsServerEventTypes.REQUEST_COMPLETION,
+          { serverId: selectedServer.id, line }
+        );
+        return result ?? empty;
+      } catch {
+        return empty;
+      }
     },
     [selectedServer, socket, status]
   );
@@ -240,6 +271,9 @@ const Console = () => {
           <CommandInput
             onInputSubmit={handleCommand}
             extraSuggestions={playersList}
+            onRequestCompletion={
+              completionAvailable ? requestCompletion : undefined
+            }
           />
         </div>
         <div className="flex w-full shrink-0 flex-col gap-5 md:w-80">

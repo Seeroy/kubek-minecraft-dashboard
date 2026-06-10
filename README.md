@@ -207,6 +207,15 @@ Everything lives in the working directory (`/data` in Docker) — mount it as a 
 
 Each Minecraft server uses its own port (`25565` by default). Publish each one in `docker-compose.yml`, or on Linux use `network_mode: host` to expose them all at once
 
+### Running servers in Docker
+
+Servers can run as Docker containers (`itzg/minecraft-server`) instead of host processes. The bundled cores are dual-capable: the same blueprint runs native or in Docker, and the panel freezes the choice per server at creation.
+
+- Mount the host docker socket into the panel (`/var/run/docker.sock`, see `docker-compose.yml`) or set `DOCKER_HOST`
+- The `serverRuntime` setting controls the default: `auto` (Docker when the daemon is up, else native), `native`, or `docker`
+- Each server keeps using `./servers/<id>` on disk, bind-mounted into the container at `/data`, so files, logs, backups and plugins work unchanged. File ownership is handled via `PUID`/`PGID`
+- The daemon is the host's, so when the panel itself runs in Docker the server data path must match between host and panel container (see the note in `docker-compose.yml`)
+
 ---
 
 ## 🛠️ Build from source

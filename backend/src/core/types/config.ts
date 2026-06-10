@@ -7,9 +7,13 @@ export interface IConfiguration {
   telemetry?: TelemetrySettings;
   port: number;
   configVersion: number;
+  /** Which runtime new servers use, "auto" prefers docker when the daemon is up */
+  serverRuntime?: ServerRuntimeSetting;
 
   [key: string]: any;
 }
+
+export type ServerRuntimeSetting = "auto" | "native" | "docker";
 
 export type TelemetrySettings = {
   enabled: boolean;

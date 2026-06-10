@@ -46,6 +46,12 @@ export class ServerTypeDto {
   runtimeKind: string;
 
   @ApiProperty({
+    description: "Whether this blueprint can run in Docker (has a docker profile)",
+    example: true,
+  })
+  dockerCapable: boolean;
+
+  @ApiProperty({
     description: "Declared blueprint variables",
     additionalProperties: true,
   })

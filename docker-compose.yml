@@ -17,6 +17,7 @@ services:
       - PORT=8000
       - TZ=UTC
       # - FTP_PORT=21        # built-in FTP server (off unless you enable it in the UI)
+      # - DOCKER_HOST=unix:///var/run/docker.sock  # override the docker socket location
 
     ports:
       - "8000:8000"          # Web panel (HTTP + WebSocket)
@@ -28,6 +29,11 @@ services:
       - kubek-data:/data
       # Or bind-mount to keep files on the host:
       # - ./data:/data
+      # Run Minecraft servers in Docker (serverRuntime auto/docker): mount the host docker socket.
+      # The daemon is the host's, so server bind-mounts use host paths. Use a bind mount for /data
+      # whose host path matches the container path (e.g. /opt/kubek/data:/opt/kubek/data) so the
+      # spawned server containers can mount ./servers/<id> from the same path the panel sees
+      # - /var/run/docker.sock:/var/run/docker.sock
 
     # Linux: expose all panel + server ports automatically (remove `ports` above if used)
     # network_mode: host

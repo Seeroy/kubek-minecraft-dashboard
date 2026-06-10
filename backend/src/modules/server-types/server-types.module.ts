@@ -2,6 +2,7 @@ import { JavaModule } from "@/modules/java/java.module";
 import { Module } from "@nestjs/common";
 import { BlueprintResolver } from "./blueprint-resolver.service";
 import { InstallPipeline } from "./install-pipeline.service";
+import { DockerService } from "./runtime/docker.service";
 import { MinecraftJavaQuery } from "./query-protocols/minecraft-java.query";
 import { NoneQuery } from "./query-protocols/none.query";
 import { QueryRegistry } from "./query-protocols/query-registry.service";
@@ -26,6 +27,7 @@ import { VersionResolverService } from "./versions/version-resolver.service";
     MinecraftJavaQuery,
     NoneQuery,
     QueryRegistry,
+    DockerService,
   ],
   exports: [
     ServerTypesRegistry,
@@ -33,6 +35,7 @@ import { VersionResolverService } from "./versions/version-resolver.service";
     VersionResolverService,
     InstallPipeline,
     QueryRegistry,
+    DockerService,
   ],
 })
 export class ServerTypesModule {}

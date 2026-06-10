@@ -34,6 +34,7 @@ import {
   ServerTypeDto,
   ServerTypeInstallResponseDto,
 } from "./dto/server-type.dto";
+import { DockerService } from "./runtime/docker.service";
 import { ServerTypesInstaller } from "./server-types-installer.service";
 import { ServerTypesRegistry } from "./server-types-registry.service";
 import { VersionResolverService } from "./versions/version-resolver.service";
@@ -47,6 +48,7 @@ export class ServerTypesController {
     private readonly registry: ServerTypesRegistry,
     private readonly versions: VersionResolverService,
     private readonly installer: ServerTypesInstaller,
+    private readonly docker: DockerService,
   ) {}
 
   @Get()
@@ -58,7 +60,14 @@ export class ServerTypesController {
   @ApiErrorResponses([401, 403])
   @RequirePermissions(UserPermissions.CREATE_SERVERS)
   list(): ServerTypeDto[] {
-    return this.registry.listValid().map((b) => ({
+    // Hide docker-only blueprints when the daemon is down, dual-capable ones still run native
+    const dockerAvailable = this.docker.available();
+    return this.registry
+      .listValid()
+      .filter(
+        (b) => dockerAvailable || b.manifest.runtime.kind !== "docker",
+      )
+      .map((b) => ({
       id: b.manifest.id,
       name: b.manifest.name,
       shortName: b.manifest.shortName,
@@ -68,6 +77,7 @@ export class ServerTypesController {
       version: b.manifest.version,
       platforms: b.manifest.platforms,
       runtimeKind: b.manifest.runtime.kind,
+      dockerCapable: !!b.manifest.dockerProfile,
       variables: b.manifest.variables,
       ports: b.manifest.ports,
       configFiles: b.manifest.configFiles ?? [],

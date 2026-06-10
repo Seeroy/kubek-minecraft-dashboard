@@ -8,6 +8,7 @@ import { RoomService } from "@/ws/services/room.service";
 import { WsScheduledService } from "@/ws/services/scheduled.service";
 import { ServerBroadcastService } from "@/ws/services/server-broadcast.service";
 import { TasksEventsService } from "@/ws/services/task-events.service";
+import { TerminalHandlerService } from "@/ws/services/terminal-handler.service";
 import { Global, Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ServerEventsService } from "./services/server-events.service";
@@ -29,6 +30,7 @@ import { ServerEventsService } from "./services/server-events.service";
     WsScheduledService,
     ServerBroadcastService,
     CommandHandlerService,
+    TerminalHandlerService,
   ],
   exports: [ServerGateway, ServerEventsService, ServerBroadcastService],
 })

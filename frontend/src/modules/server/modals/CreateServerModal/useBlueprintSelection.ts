@@ -49,6 +49,7 @@ export function useBlueprintSelection({
   schemaRef,
 }: UseBlueprintSelectionOptions) {
   const [serverPlatform, setServerPlatform] = useState<string | null>(null);
+  const [dockerAvailable, setDockerAvailable] = useState(false);
 
   const {
     data: blueprints,
@@ -93,8 +94,14 @@ export function useBlueprintSelection({
     if (!isOpen) return;
     api.systemMonitoring
       .getSystemInfo()
-      .then((info) => setServerPlatform(info.platform))
-      .catch(() => setServerPlatform("unsupported"));
+      .then((info) => {
+        setServerPlatform(info.platform);
+        setDockerAvailable(!!info.dockerAvailable);
+      })
+      .catch(() => {
+        setServerPlatform("unsupported");
+        setDockerAvailable(false);
+      });
   }, [isOpen]);
 
   // Auto-select the first blueprint once the list is available
@@ -126,5 +133,6 @@ export function useBlueprintSelection({
     versionVarKey,
     versions,
     versionsLoading,
+    dockerAvailable,
   };
 }

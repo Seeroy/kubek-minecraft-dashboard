@@ -23,6 +23,7 @@ export const notificationsTranslations: TranslationDictionary = {
     steps: {
       searchingCore: "Finding the latest build…",
       downloadingCore: "Downloading server core…",
+      pullingImage: "Pulling Docker image…",
       checkingJava: "Preparing Java runtime…",
       downloadingJava: "Downloading Java runtime…",
       unpackingJava: "Unpacking Java runtime…",

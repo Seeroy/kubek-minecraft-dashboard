@@ -22,6 +22,10 @@ interface InputWithHistoryProps {
   disabled?: boolean;
   placeholder?: string;
   extraSuggestions?: string[];
+  /** TAB asks the server's own line editor to complete the line, undefined disables it */
+  onRequestCompletion?: (
+    line: string
+  ) => Promise<{ completion: string; candidates: string[] }>;
 }
 
 const InputWithHistory: React.FC<InputWithHistoryProps> = ({
@@ -34,6 +38,7 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
   disabled = false,
   placeholder,
   extraSuggestions = [],
+  onRequestCompletion,
 }) => {
   const { t } = useTranslation("modules.components");
   const [value, setValue] = useState("");
@@ -41,8 +46,25 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  // True while the open dropdown holds server completion candidates (last-token replace)
+  const completionModeRef = useRef(false);
+  // True while a server completion request is in flight, so TAB does not stack requests
+  const completionPendingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Apply a chosen suggestion: server candidates and player names replace the last
+  // word, history entries replace the whole line
+  const applySuggestion = (suggestion: string): string => {
+    const lastWord =
+      completionModeRef.current || extraSuggestions.includes(suggestion);
+    if (lastWord && value.includes(" ")) {
+      const words = value.split(" ");
+      words[words.length - 1] = suggestion;
+      return words.join(" ");
+    }
+    return suggestion;
+  };
 
   useEffect(() => {
     onInputChange(value);
@@ -81,11 +103,34 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
       ...filteredExtra.filter((item) => !filteredHistory.includes(item)),
     ];
 
+    completionModeRef.current = false;
     setSuggestions(combinedSuggestions);
     setIsSuggestionsOpen(
       combinedSuggestions.length > 0 && inputValue.length > 0
     );
     setSelectedSuggestionIndex(-1);
+  };
+
+  // Ask the server to complete the line, apply the inline result and show candidates
+  const runServerCompletion = async () => {
+    if (!onRequestCompletion || completionPendingRef.current) return;
+    completionPendingRef.current = true;
+    try {
+      const current = value;
+      const { completion, candidates } = await onRequestCompletion(current);
+      if (completion && completion !== current) setValue(completion);
+      if (candidates.length > 1) {
+        completionModeRef.current = true;
+        setSuggestions(candidates);
+        setIsSuggestionsOpen(true);
+        setSelectedSuggestionIndex(-1);
+      } else {
+        completionModeRef.current = false;
+        setIsSuggestionsOpen(false);
+      }
+    } finally {
+      completionPendingRef.current = false;
+    }
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -116,23 +161,25 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
     onInputKeydown(e);
 
     if (e.key === "Enter" || e.key === "Tab") {
-      e.preventDefault();
+      // An open dropdown accepts the active (or first) suggestion
       if (isSuggestionsOpen && suggestions.length > 0) {
-        // If suggestions are open, pick the active one or the first
+        e.preventDefault();
         const indexToSelect =
           selectedSuggestionIndex >= 0 ? selectedSuggestionIndex : 0;
-        const selectedSuggestion = suggestions[indexToSelect];
-        const isExtraSuggestion = extraSuggestions.includes(selectedSuggestion);
-        if (isExtraSuggestion && value.includes(" ")) {
-          const words = value.split(" ");
-          words[words.length - 1] = selectedSuggestion;
-          setValue(words.join(" "));
-        } else {
-          setValue(selectedSuggestion);
-        }
+        setValue(applySuggestion(suggestions[indexToSelect]));
+        completionModeRef.current = false;
         setIsSuggestionsOpen(false);
         setSelectedSuggestionIndex(-1);
-      } else if (e.key === "Enter") {
+        return;
+      }
+      // TAB with no dropdown asks the server's line editor to complete
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (onRequestCompletion) void runServerCompletion();
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
         handleInputSubmit();
       }
     } else if (e.key === "ArrowUp") {
@@ -156,15 +203,8 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    // For an extra (player) suggestion, replace the last word
-    const isExtraSuggestion = extraSuggestions.includes(suggestion);
-    if (isExtraSuggestion && value.includes(" ")) {
-      const words = value.split(" ");
-      words[words.length - 1] = suggestion;
-      setValue(words.join(" "));
-    } else {
-      setValue(suggestion);
-    }
+    setValue(applySuggestion(suggestion));
+    completionModeRef.current = false;
     setSuggestions([]);
     setIsSuggestionsOpen(false);
     inputRef.current?.focus();
@@ -176,17 +216,10 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
       selectedSuggestionIndex >= 0 &&
       selectedSuggestionIndex < suggestions.length
     ) {
-      const selectedSuggestion = suggestions[selectedSuggestionIndex];
-      const isExtraSuggestion = extraSuggestions.includes(selectedSuggestion);
-      if (isExtraSuggestion && value.includes(" ")) {
-        const words = value.split(" ");
-        words[words.length - 1] = selectedSuggestion;
-        setValue(words.join(" "));
-      } else {
-        setValue(selectedSuggestion);
-      }
+      setValue(applySuggestion(suggestions[selectedSuggestionIndex]));
     }
-  }, [selectedSuggestionIndex, suggestions, extraSuggestions, value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSuggestionIndex, suggestions, extraSuggestions]);
 
   return (
     <div ref={containerRef} className="relative w-full">

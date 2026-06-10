@@ -11,6 +11,7 @@ const KNOWN_CONFIG_KEYS = new Set([
   "ftpd",
   "subnetsAccessRestriction",
   "telegramBot",
+  "serverRuntime",
 ]);
 
 export abstract class IConfigRepository {
@@ -73,6 +74,7 @@ export class ConfigRepository implements IConfigRepository {
         JSON.stringify(cfg.subnetsAccessRestriction ?? { enabled: false }),
       ],
       ["telegramBot", JSON.stringify(cfg.telegramBot ?? { enabled: false })],
+      ["serverRuntime", String(cfg.serverRuntime ?? "auto")],
     ];
     const extras = this.pickExtras(cfg);
     for (const [k, v] of Object.entries(extras))
@@ -99,6 +101,9 @@ export class ConfigRepository implements IConfigRepository {
         enabled: false,
       }),
       telegramBot: safeJSON(map.get("telegramBot"), { enabled: false }),
+      serverRuntime: (map.get("serverRuntime") as
+        | IConfiguration["serverRuntime"]
+        | undefined) ?? "auto",
       ...this.pickExtrasFromKV(map),
     };
   }

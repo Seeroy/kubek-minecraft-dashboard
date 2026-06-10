@@ -26,6 +26,8 @@ export interface BlueprintSummary {
   /** Restrict to these host OSes; undefined means available everywhere */
   platforms?: KubekPlatform[];
   runtimeKind: "native" | "docker";
+  /** Whether the blueprint can run in Docker (has a docker profile) */
+  dockerCapable?: boolean;
   variables: BlueprintVariable[];
   ports: PortSpec[];
   configFiles: ConfigFileSpec[];
