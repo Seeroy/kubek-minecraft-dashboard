@@ -18,6 +18,7 @@
         "@nestjs/websockets": "^11.1.25",
         "@scalar/nestjs-api-reference": "^1.1.20",
         "@xhmikosr/decompress": "^10.2.1",
+        "@xterm/headless": "^6.0.0",
         "bcryptjs": "^3.0.3",
         "bun-types": "^1.3.14",
         "chalk": "^5.6.2",
@@ -47,7 +48,7 @@
       "devDependencies": {
         "@eslint/eslintrc": "^3.3.5",
         "@eslint/js": "^9.39.4",
-        "@kubekpanel/blueprint-sdk": "^0.1.2",
+        "@kubekpanel/blueprint-sdk": "^0.2.0",
         "@kubekpanel/extension-sdk": "^0.1.1",
         "@nestjs/cli": "^11.0.22",
         "@nestjs/schematics": "^11.1.0",
@@ -361,7 +362,7 @@
 
     "@js-sdsl/ordered-map": ["@js-sdsl/ordered-map@4.4.2", "", {}, "sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw=="],
 
-    "@kubekpanel/blueprint-sdk": ["@kubekpanel/blueprint-sdk@0.1.2", "", {}, "sha512-aKxBXCUY37VKMxfB67hSk4XvXFvfjlMJDaK2OD+rY3ALmKOhzhxpmDcCVMhYo/7RN+Ozo4MYkOBKzQuNVSAd/w=="],
+    "@kubekpanel/blueprint-sdk": ["@kubekpanel/blueprint-sdk@0.2.0", "", {}, "sha512-QYstQ7GLnwFSYdsl9WEVzZJWwET9lDsUOhbytOtztEdrL+u3u7YRhusMfKB7NKkgDnvzD7RnRgUdSU9/l8nTEQ=="],
 
     "@kubekpanel/extension-sdk": ["@kubekpanel/extension-sdk@0.1.1", "", {}, "sha512-O28wGDMix7H5F6SCVakMpmkBciolWotyXZRKNSg4I5pVNt+CRrW3FED2mxU03z0MqDwIECgBPhwBqRtqV+ZRCw=="],
 
@@ -660,6 +661,8 @@
     "@xhmikosr/decompress-targz": ["@xhmikosr/decompress-targz@8.1.0", "", { "dependencies": { "@xhmikosr/decompress-tar": "^8.0.1", "file-type": "^20.5.0", "is-stream": "^2.0.1" } }, "sha512-fhClQ2wTmzxzdz2OhSQNo9ExefrAagw93qaG1YggoIz/QpI7atSRa7eOHv4JZkpHWs91XNn8Hry3CwUlBQhfPA=="],
 
     "@xhmikosr/decompress-unzip": ["@xhmikosr/decompress-unzip@7.1.0", "", { "dependencies": { "file-type": "^20.5.0", "get-stream": "^6.0.1", "yauzl": "^3.1.2" } }, "sha512-oqTYAcObqTlg8owulxFTqiaJkfv2SHsxxxz9Wg4krJAHVzGWlZsU8tAB30R6ow+aHrfv4Kub6WQ8u04NWVPUpA=="],
+
+    "@xterm/headless": ["@xterm/headless@6.0.0", "", {}, "sha512-5Yj1QINYCyzrZtf8OFIHi47iQtI+0qYFPHmouEfG8dHNxbZ9Tb9YGSuLcsEwj9Z+OL75GJqPyJbyoFer80a2Hw=="],
 
     "@xtuc/ieee754": ["@xtuc/ieee754@1.2.0", "", {}, "sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA=="],
 
