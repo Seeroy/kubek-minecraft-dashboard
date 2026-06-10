@@ -18,7 +18,7 @@ RUN bun run build --platform native \
  && cp dist/Kubek-*-native /kubek
 
 # Runtime: binary is self-contained (frontend embedded), Java is downloaded on demand
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
