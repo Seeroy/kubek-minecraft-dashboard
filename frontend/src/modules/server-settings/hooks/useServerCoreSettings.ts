@@ -16,6 +16,9 @@ import { useEffect, useMemo, useState } from "react";
 const versionKeyOf = (blueprint?: BlueprintSummary): string | undefined =>
   blueprint?.variables.find((v) => v.options?.from === "versions")?.key;
 
+/** Blueprint that runs a user-supplied jar and needs an upload */
+const CUSTOM_BLUEPRINT_ID = "com.kubek.custom";
+
 /**
  * State + persistence for changing a server's core (blueprint) and version
  */
@@ -46,11 +49,13 @@ export const useServerCoreSettings = () => {
     currentBlueprintId
   );
   const [version, setVersion] = useState<string | undefined>(currentVersion);
+  const [customFile, setCustomFile] = useState<File | undefined>(undefined);
 
   // Reset the form whenever a different server is selected
   useEffect(() => {
     setBlueprintId(currentBlueprintId);
     setVersion(currentVersion);
+    setCustomFile(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedServer?.id]);
 
@@ -59,12 +64,9 @@ export const useServerCoreSettings = () => {
     [blueprints, blueprintId]
   );
   const hasVersions = !!versionKeyOf(chosenBlueprint);
+  const isCustomChosen = blueprintId === CUSTOM_BLUEPRINT_ID;
 
-  // The custom core can't be selected here bc it needs an upload
-  const selectableBlueprints = useMemo(
-    () => (blueprints ?? []).filter((b) => b.id !== "com.kubek.custom"),
-    [blueprints]
-  );
+  const selectableBlueprints = useMemo(() => blueprints ?? [], [blueprints]);
 
   const { data: versions, isLoading: versionsLoading } = useBlueprintVersions(
     hasVersions ? blueprintId : undefined
@@ -89,19 +91,30 @@ export const useServerCoreSettings = () => {
 
   const isDirty =
     blueprintId !== currentBlueprintId ||
-    (hasVersions && version !== currentVersion);
+    (hasVersions && version !== currentVersion) ||
+    // Re-selecting the custom core with a new jar counts as a change
+    (isCustomChosen && !!customFile);
   const canApply =
-    isStopped && !!blueprintId && (!hasVersions || !!version) && isDirty;
+    isStopped &&
+    !!blueprintId &&
+    (!hasVersions || !!version) &&
+    (!isCustomChosen || !!customFile) &&
+    isDirty;
 
   const mutation = useMutation({
     mutationFn: () =>
-      api.servers.changeCore(selectedServer!.id, {
-        blueprintId: blueprintId!,
-        version: hasVersions ? version : undefined,
-      }),
+      api.servers.changeCore(
+        selectedServer!.id,
+        {
+          blueprintId: blueprintId!,
+          version: hasVersions ? version : undefined,
+        },
+        isCustomChosen ? customFile : undefined
+      ),
     onSuccess: (res) => {
       if (res?.server) updateServer(selectedServer!.id, res.server);
       queryClient.invalidateQueries({ queryKey: qk.servers.all });
+      setCustomFile(undefined);
     },
     onError: (error: { message?: string }) =>
       notify({
@@ -125,6 +138,9 @@ export const useServerCoreSettings = () => {
     currentBlueprint,
     currentVersion,
     isStopped,
+    isCustomChosen,
+    customFile,
+    setCustomFile,
     canApply,
     isApplying: mutation.isPending,
     applyCoreChange: () => mutation.mutate(),

@@ -507,14 +507,53 @@ export class ServersController {
     action: AuditAction.SERVER_CHANGE_CORE,
     category: AuditCategory.SERVER,
     resourceType: "server",
-    resolve: ({ req, result }) => ({
-      resourceId: result?.server?.id,
-      resourceName: result?.server?.name,
-      details: {
-        blueprintId: req.body?.blueprintId,
-        version: req.body?.version,
-      },
+    resolve: ({ req, result }) => {
+      let payload: { blueprintId?: string; version?: string } = {};
+      try {
+        payload = JSON.parse(req.body?.payload ?? "{}");
+      } catch {
+        // ignore: audit details stay empty for a malformed payload
+      }
+      return {
+        resourceId: result?.server?.id,
+        resourceName: result?.server?.name,
+        details: {
+          blueprintId: payload.blueprintId,
+          version: payload.version,
+        },
+      };
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor("coreFile", {
+      storage: memoryStorage(),
+      limits: { fileSize: 1024 * 1024 * 512 },
     }),
+  )
+  @ApiConsumes("multipart/form-data")
+  // The payload field is a JSON-stringified ChangeServerCoreDto
+  @ApiExtraModels(ChangeServerCoreDto)
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        payload: {
+          type: "string",
+          description: "JSON string containing ChangeServerCoreDto payload",
+          example: JSON.stringify({
+            blueprintId: "com.kubek.purpur",
+            version: "1.21.4",
+          }),
+        },
+        coreFile: {
+          type: "string",
+          format: "binary",
+          description:
+            "Custom core JAR file (required for the com.kubek.custom blueprint)",
+        },
+      },
+      required: ["payload"],
+    },
   })
   @ApiParam({ name: "id", description: "Server ID" })
   @ApiAcceptedResponse({
@@ -524,10 +563,35 @@ export class ServersController {
   @ApiErrorResponses([400, 401, 403, 404])
   changeCore(
     @Param("id") id: string,
-    @Body() body: ChangeServerCoreDto,
+    @Body("payload") payload: string,
+    @UploadedFile() coreFile: Express.Multer.File,
     @CurrentUser() user: IUser,
   ): ServerCreatedResponseDto {
-    return this.servers.changeCore(id, body, user.id);
+    if (!payload) {
+      throw new BadRequestException("payload field is required");
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(payload);
+    } catch (error) {
+      throw new BadRequestException("payload must be valid JSON");
+    }
+
+    const dto = plainToInstance(ChangeServerCoreDto, parsed);
+    const errors = validateSync(dto, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    });
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    if (dto.blueprintId === "com.kubek.custom" && !coreFile) {
+      throw new BadRequestException("coreFile is required for custom cores");
+    }
+
+    return this.servers.changeCore(id, dto, user.id, coreFile);
   }
 
   /** Get server icon */

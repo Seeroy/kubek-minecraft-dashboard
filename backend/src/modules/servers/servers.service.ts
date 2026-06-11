@@ -400,6 +400,7 @@ export class ServersService implements OnModuleInit {
     serverId: string,
     dto: { blueprintId: string; version?: string },
     ownerId?: string,
+    customCoreFile?: Express.Multer.File,
   ): { server: IServer; taskId: string } {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
@@ -413,6 +414,7 @@ export class ServersService implements OnModuleInit {
       dto.blueprintId,
       dto.version,
       ownerId || "",
+      customCoreFile,
     );
 
     // Drop the cached instance so it is rebuilt from the new blueprint

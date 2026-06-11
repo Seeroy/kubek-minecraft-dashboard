@@ -2578,9 +2578,24 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/ChangeServerCoreDto"
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "string",
+                    "description": "JSON string containing ChangeServerCoreDto payload",
+                    "example": "{\"blueprintId\":\"com.kubek.purpur\",\"version\":\"1.21.4\"}"
+                  },
+                  "coreFile": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Custom core JAR file (required for the com.kubek.custom blueprint)"
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
               }
             }
           }
@@ -10623,10 +10638,22 @@
             "type": "object",
             "description": "Persisted dashboard layout (opaque structure), or null",
             "nullable": true
+          },
+          "lastSeenWhatsNewVersion": {
+            "type": "string",
+            "description": "Panel version for which the what's-new modal was last seen",
+            "nullable": true,
+            "example": "4.0.0"
+          },
+          "panelVersion": {
+            "type": "string",
+            "description": "Current running panel version",
+            "example": "4.0.0"
           }
         },
         "required": [
-          "notifyTaskResults"
+          "notifyTaskResults",
+          "panelVersion"
         ]
       },
       "UpdatePreferencesDto": {
@@ -10647,6 +10674,11 @@
             "type": "string",
             "nullable": true,
             "description": "Serialized dashboard layout (JSON)"
+          },
+          "lastSeenWhatsNewVersion": {
+            "type": "string",
+            "nullable": true,
+            "description": "Panel version for which the what's-new modal was last seen"
           }
         }
       },

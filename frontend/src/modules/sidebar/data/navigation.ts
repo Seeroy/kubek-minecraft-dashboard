@@ -44,12 +44,6 @@ export const navigation = [
     permission: UserPermissions.SERVERS_CONFIGURE,
   },
   {
-    nameKey: "navigation.panelSettings",
-    href: "/panel-settings",
-    icon: Sliders,
-    permission: UserPermissions.KUBEK_SETTINGS,
-  },
-  {
     nameKey: "navigation.plugins",
     href: "/plugins",
     icon: Puzzle,
@@ -77,6 +71,12 @@ export const navigation = [
 
 // Secondary items grouped under a collapsible "Administration" section
 export const adminNavigation = [
+  {
+    nameKey: "navigation.panelSettings",
+    href: "/panel-settings",
+    icon: Sliders,
+    permission: UserPermissions.KUBEK_SETTINGS,
+  },
   {
     nameKey: "navigation.auditLog",
     href: "/audit-log",
@@ -114,6 +114,17 @@ export const adminNavigation = [
     permission: UserPermissions.MANAGE_JAVA,
   },
 ];
+
+// Routes that only make sense with a selected server
+export const serverScopedRoutes = new Set([
+  "/console",
+  "/files",
+  "/server-settings",
+  "/plugins",
+  "/mods",
+  "/backups",
+  "/scheduler",
+]);
 
 // Combined list for lookups (current-page resolution, loading skeleton)
 export const allNavigation = [...navigation, ...adminNavigation];

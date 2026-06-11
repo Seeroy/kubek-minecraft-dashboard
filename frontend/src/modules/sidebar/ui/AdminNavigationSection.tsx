@@ -53,6 +53,7 @@ export const AdminNavigationSection = ({
         {open && (
           <motion.div
             key="admin-items"
+            className="overflow-hidden"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

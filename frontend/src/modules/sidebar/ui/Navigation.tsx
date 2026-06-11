@@ -7,6 +7,7 @@ import {
   adminNavigation,
   allNavigation,
   navigation,
+  serverScopedRoutes,
   type NavItem,
 } from "@/modules/sidebar/data/navigation";
 import { useTranslation } from "@/shared/hooks/useTranslation";
@@ -64,8 +65,12 @@ const Navigation = () => {
 
   const filteredNavigation = useMemo(() => {
     if (!user) return [];
-    return navigation.filter((item) => allowedByBlueprint(item.href));
-  }, [user, allowedByBlueprint]);
+    return navigation.filter(
+      (item) =>
+        (selectedServer || !serverScopedRoutes.has(item.href)) &&
+        allowedByBlueprint(item.href)
+    );
+  }, [user, selectedServer, allowedByBlueprint]);
 
   const filteredAdminNavigation = useMemo(() => {
     if (!user) return [];

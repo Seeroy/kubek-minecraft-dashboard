@@ -36,8 +36,6 @@ export function routeAllowedByBlueprint(
       return bp.features.includes("mods:fabric");
     case "/java":
       return bp.variables.some((v) => v.key === "JAVA_VERSION");
-    case "/server-settings":
-      return bp.configFiles.some((c) => c.parser === "properties");
     default:
       return true;
   }

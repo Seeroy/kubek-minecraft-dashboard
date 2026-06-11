@@ -2166,6 +2166,16 @@ export interface components {
             telegram2faEnabled?: boolean;
             /** @description Persisted dashboard layout (opaque structure), or null */
             dashboardLayout?: Record<string, never> | null;
+            /**
+             * @description Panel version for which the what's-new modal was last seen
+             * @example 4.0.0
+             */
+            lastSeenWhatsNewVersion?: string | null;
+            /**
+             * @description Current running panel version
+             * @example 4.0.0
+             */
+            panelVersion: string;
         };
         UpdatePreferencesDto: {
             /** @enum {string|null} */
@@ -2173,6 +2183,8 @@ export interface components {
             notifyTaskResults?: boolean;
             /** @description Serialized dashboard layout (JSON) */
             dashboardLayout?: string | null;
+            /** @description Panel version for which the what's-new modal was last seen */
+            lastSeenWhatsNewVersion?: string | null;
         };
         CreateAccountDto: {
             /**
@@ -5889,7 +5901,18 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ChangeServerCoreDto"];
+                "multipart/form-data": {
+                    /**
+                     * @description JSON string containing ChangeServerCoreDto payload
+                     * @example {"blueprintId":"com.kubek.purpur","version":"1.21.4"}
+                     */
+                    payload: string;
+                    /**
+                     * Format: binary
+                     * @description Custom core JAR file (required for the com.kubek.custom blueprint)
+                     */
+                    coreFile?: string;
+                };
             };
         };
         responses: {

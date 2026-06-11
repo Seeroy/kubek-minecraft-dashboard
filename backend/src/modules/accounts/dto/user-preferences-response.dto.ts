@@ -38,4 +38,18 @@ export class UserPreferencesResponseDto {
     type: Object,
   })
   dashboardLayout: unknown;
+
+  @ApiProperty({
+    description: "Panel version for which the what's-new modal was last seen",
+    nullable: true,
+    required: false,
+    example: "4.0.0",
+  })
+  lastSeenWhatsNewVersion: string | null;
+
+  @ApiProperty({
+    description: "Current running panel version",
+    example: "4.0.0",
+  })
+  panelVersion: string;
 }

@@ -14,6 +14,8 @@ export interface IUser {
   notifyTaskResults?: boolean;
   /** Serialized dashboard layout (widget visibility + grid positions per breakpoint) */
   dashboardLayout?: string | null;
+  /** Panel version for which this user last saw the what's-new modal */
+  lastSeenWhatsNewVersion?: string | null;
 }
 
 export type TwoFactorMethod = "totp" | "telegram";

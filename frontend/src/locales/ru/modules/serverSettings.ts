@@ -78,6 +78,8 @@ export const serverSettingsTranslations: TranslationDictionary = {
       cancel: "Отмена",
       started: "Смена ядра запущена",
       failed: "Не удалось сменить ядро",
+      customDropzone: "Перетащите файл .jar сюда или выберите его вручную",
+      customSelected: ({ name }: { name: string }) => `Выбран файл: ${name}`,
     },
     stopConfiguration: {
       title: "Конфигурация остановки",

@@ -189,10 +189,11 @@ export class ServersFactory {
     blueprintId: string,
     version: string | undefined,
     ownerId: string,
+    customCoreFile?: Express.Multer.File,
   ): { server: IServer; taskId: string } {
-    if (blueprintId === CUSTOM_BLUEPRINT_ID) {
+    if (blueprintId === CUSTOM_BLUEPRINT_ID && !customCoreFile) {
       throw new BadRequestException(
-        "Custom cores require an uploaded jar; recreate the server instead",
+        "Custom cores require an uploaded jar file",
       );
     }
 
@@ -239,6 +240,11 @@ export class ServersFactory {
       blueprint.manifest,
       incoming,
     );
+
+    // Replace server.jar before the pipeline runs (it skips existing files)
+    if (blueprintId === CUSTOM_BLUEPRINT_ID && customCoreFile) {
+      this.writeCustomCore(source.id, customCoreFile);
+    }
 
     const updated = this.servers.update(source.id, {
       blueprintId: blueprint.manifest.id,

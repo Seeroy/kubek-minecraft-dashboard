@@ -11,6 +11,7 @@ import {
   ToastBusBridge,
 } from "@/modules/notifications";
 import { ServerCreationBridge, ServerProvider } from "@/modules/server";
+import { WhatsNewBridge } from "@/modules/whats-new";
 import { AuthProvider } from "@/shared/context/auth-context";
 import { LanguageProvider } from "@/shared/context/language-context";
 import { SocketProvider } from "@/shared/context/socket-context";
@@ -39,6 +40,7 @@ const Providers: FC<PropsWithChildren> = ({ children }) => {
                     <ToastBusBridge/>
                     <ModalProvider/>
                     <GlobalModalsRegistration/>
+                    <WhatsNewBridge/>
                     <NotificationCenter/>
                     <TaskNotificationsBridge/>
                     <ServerCreationBridge/>

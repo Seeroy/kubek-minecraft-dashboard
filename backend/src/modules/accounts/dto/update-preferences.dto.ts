@@ -27,4 +27,14 @@ export class UpdatePreferencesDto {
   @IsString()
   @MaxLength(20_000)
   dashboardLayout?: string | null;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    description: "Panel version for which the what's-new modal was last seen",
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  lastSeenWhatsNewVersion?: string | null;
 }

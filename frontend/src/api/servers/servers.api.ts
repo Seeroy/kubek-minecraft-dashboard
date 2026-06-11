@@ -119,11 +119,19 @@ export class ServersApi {
   /** Switch a stopped server to another core/blueprint and version */
   changeCore = (
     id: string,
-    body: { blueprintId: string; version?: string }
-  ): Promise<ServerCreatedResponse> =>
-    this.authHttp.post<ServerCreatedResponse>(`servers/${id}/core`, {
-      json: body,
+    body: { blueprintId: string; version?: string },
+    coreFile?: File
+  ): Promise<ServerCreatedResponse> => {
+    const formData = new FormData();
+    formData.append("payload", JSON.stringify(body));
+    if (coreFile) {
+      formData.append("coreFile", coreFile);
+    }
+
+    return this.authHttp.post<ServerCreatedResponse>(`servers/${id}/core`, {
+      body: formData,
     });
+  };
 }
 
 export const serversApi = new ServersApi(authHttp);

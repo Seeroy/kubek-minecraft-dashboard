@@ -87,8 +87,18 @@ export class SqliteProvider implements OnModuleInit {
       telegram2faEnabled INTEGER NOT NULL DEFAULT 0,
       twofaPrimary TEXT,
       notifyTaskResults INTEGER NOT NULL DEFAULT 0,
-      dashboardLayout TEXT
+      dashboardLayout TEXT,
+      lastSeenWhatsNewVersion TEXT
     );`);
+
+    // Backfill newer user columns on databases created before they existed
+    const userColumns = this.db.query(`PRAGMA table_info(users)`).all() as {
+      name: string;
+    }[];
+    const hasUserColumn = (name: string) =>
+      userColumns.some((c) => c.name === name);
+    if (!hasUserColumn("lastSeenWhatsNewVersion"))
+      this.db.run(`ALTER TABLE users ADD COLUMN lastSeenWhatsNewVersion TEXT`);
 
     // Auth challenges (2FA pending verifications)
     this.db.run(`CREATE TABLE IF NOT EXISTS auth_challenges (

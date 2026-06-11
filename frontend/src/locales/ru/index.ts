@@ -28,6 +28,7 @@ import { sharedTranslations } from "./modules/shared";
 import { sidebarTranslations } from "./modules/sidebar";
 import { socketsTranslations } from "./modules/sockets";
 import { systemMonitoringTranslations } from "./modules/systemMonitoring";
+import { whatsNewTranslations } from "./modules/whatsNew";
 
 export const ruTranslations: TranslationDictionary = {
   common: {
@@ -65,5 +66,6 @@ export const ruTranslations: TranslationDictionary = {
     auditLog: auditLogTranslations,
     extensions: extensionsTranslations,
     serverTypes: serverTypesTranslations,
+    whatsNew: whatsNewTranslations,
   },
 };

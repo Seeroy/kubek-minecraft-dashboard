@@ -82,6 +82,8 @@ export class ErrorRecognizerService {
         /Java version.*not supported/i,
         /Incompatible Java version/i,
         /requires running the server with Java/i,
+        /Unsupported Java detected/i,
+        /Only up to Java \d+ is supported/i,
       ],
     },
     {

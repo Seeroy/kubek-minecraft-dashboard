@@ -77,6 +77,8 @@ export const serverSettingsTranslations: TranslationDictionary = {
       cancel: "Cancel",
       started: "Core change started",
       failed: "Failed to change core",
+      customDropzone: "Drop your `.jar` file here or browse your files",
+      customSelected: ({ name }: { name: string }) => `Selected file: ${name}`,
     },
     stopConfiguration: {
       title: "Stop Configuration",

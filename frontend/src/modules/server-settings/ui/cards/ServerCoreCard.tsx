@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { Boxes, Loader2 } from "lucide-react";
+import { Boxes, Loader2, UploadCloud } from "lucide-react";
+import { Input } from "@/shared/ui/input";
 import { useServerCoreSettings } from "../../hooks/useServerCoreSettings";
 
 // The bundled blueprint id suffix matches the core icon asset name
@@ -39,6 +40,9 @@ export const ServerCoreCard = () => {
     currentBlueprint,
     currentVersion,
     isStopped,
+    isCustomChosen,
+    customFile,
+    setCustomFile,
     canApply,
     isApplying,
     applyCoreChange,
@@ -158,6 +162,29 @@ export const ServerCoreCard = () => {
             </div>
           )}
         </div>
+
+        {/* Custom core needs a user-supplied jar */}
+        {isCustomChosen && (
+          <div className="flex flex-col gap-2 rounded-xl border border-dashed border-muted p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <UploadCloud className="size-4" />
+              {tc("customDropzone")}
+            </div>
+            <Input
+              type="file"
+              accept=".jar"
+              disabled={!isStopped || isApplying}
+              onChange={(e) => setCustomFile(e.target.files?.[0])}
+            />
+            {customFile && (
+              <p className="text-sm text-green-600">
+                {t("general.coreSettings.customSelected", {
+                  name: customFile.name,
+                })}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-3">
           {!isStopped && (

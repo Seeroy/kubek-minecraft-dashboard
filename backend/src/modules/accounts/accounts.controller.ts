@@ -2,6 +2,7 @@ import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorat
 import { PublicUserDto } from "@/core/dto/public-user.dto";
 import { toPublicUser } from "@/core/utils/publicUser";
 import { comparePassword, hashPassword } from "@/core/utils/security";
+import { getVersion } from "@/core/utils/updates";
 import { Audit } from "@/modules/audit-log/audit.decorator";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
@@ -70,6 +71,8 @@ export class AccountsController {
       totpEnabled: !!user.totpEnabled,
       telegram2faEnabled: !!user.telegram2faEnabled,
       dashboardLayout: user.dashboardLayout ?? null,
+      lastSeenWhatsNewVersion: user.lastSeenWhatsNewVersion ?? null,
+      panelVersion: getVersion(),
     };
   }
 
@@ -100,11 +103,16 @@ export class AccountsController {
     if (dto.dashboardLayout !== undefined) {
       next.dashboardLayout = dto.dashboardLayout;
     }
+    if (dto.lastSeenWhatsNewVersion !== undefined) {
+      next.lastSeenWhatsNewVersion = dto.lastSeenWhatsNewVersion;
+    }
     this.accountsService.update(next);
     return {
       twofaPrimary: next.twofaPrimary ?? null,
       notifyTaskResults: !!next.notifyTaskResults,
       dashboardLayout: next.dashboardLayout ?? null,
+      lastSeenWhatsNewVersion: next.lastSeenWhatsNewVersion ?? null,
+      panelVersion: getVersion(),
     };
   }
 

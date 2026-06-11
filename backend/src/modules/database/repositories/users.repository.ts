@@ -46,8 +46,8 @@ export class UsersRepository implements IUsersRepository {
   create(user: IUser): void {
     const stmt = this.sqlite.connection.prepare(`INSERT INTO users
       (id, username, password, secret, permissions, serversRestrictEnabled, serversRestrictAllowed, isAdmin, oobeCompleted,
-       totpSecret, totpEnabled, telegram2faEnabled, twofaPrimary, notifyTaskResults, dashboardLayout)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+       totpSecret, totpEnabled, telegram2faEnabled, twofaPrimary, notifyTaskResults, dashboardLayout, lastSeenWhatsNewVersion)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
     stmt.run(
       user.id,
       user.username,
@@ -64,6 +64,7 @@ export class UsersRepository implements IUsersRepository {
       user.twofaPrimary ?? null,
       user.notifyTaskResults ? 1 : 0,
       user.dashboardLayout ?? null,
+      user.lastSeenWhatsNewVersion ?? null,
     );
   }
 
@@ -71,7 +72,7 @@ export class UsersRepository implements IUsersRepository {
     const stmt = this.sqlite.connection.prepare(`UPDATE users SET
       username = ?, password = ?, secret = ?, permissions = ?,
       serversRestrictEnabled = ?, serversRestrictAllowed = ?, isAdmin = ?, oobeCompleted = ?,
-      totpSecret = ?, totpEnabled = ?, telegram2faEnabled = ?, twofaPrimary = ?, notifyTaskResults = ?, dashboardLayout = ?
+      totpSecret = ?, totpEnabled = ?, telegram2faEnabled = ?, twofaPrimary = ?, notifyTaskResults = ?, dashboardLayout = ?, lastSeenWhatsNewVersion = ?
       WHERE id = ?`);
     stmt.run(
       user.username,
@@ -88,6 +89,7 @@ export class UsersRepository implements IUsersRepository {
       user.twofaPrimary ?? null,
       user.notifyTaskResults ? 1 : 0,
       user.dashboardLayout ?? null,
+      user.lastSeenWhatsNewVersion ?? null,
       user.id,
     );
   }
@@ -115,6 +117,7 @@ export class UsersRepository implements IUsersRepository {
       twofaPrimary: (row.twofaPrimary ?? null) as TwoFactorMethod | null,
       notifyTaskResults: !!row.notifyTaskResults,
       dashboardLayout: row.dashboardLayout ?? null,
+      lastSeenWhatsNewVersion: row.lastSeenWhatsNewVersion ?? null,
     };
   }
 }
