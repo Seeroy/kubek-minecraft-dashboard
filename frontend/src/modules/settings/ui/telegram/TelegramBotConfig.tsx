@@ -20,6 +20,8 @@ export function TelegramBotConfig({ form }: TelegramBotConfigProps) {
     formState: { errors },
   } = form;
   const { t } = useTranslation("modules.settings");
+  // Validation messages are full translation keys from the zod schema
+  const { t: tError } = useTranslation();
   const token = watch("telegramBot.token");
 
   const botInfoQuery = useBotInfoQuery(!!token);
@@ -40,7 +42,8 @@ export function TelegramBotConfig({ form }: TelegramBotConfigProps) {
         />
         {errors.telegramBot?.token && (
           <p className="text-sm text-destructive">
-            {errors.telegramBot.token.message}
+            {errors.telegramBot.token.message &&
+              tError(errors.telegramBot.token.message)}
           </p>
         )}
         <p className="text-xs text-muted-foreground">

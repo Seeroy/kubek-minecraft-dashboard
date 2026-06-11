@@ -38,6 +38,8 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
   const user = useAuthStore((s) => s.user);
   const { language, availableLanguages, setLanguage } = useLanguageContext();
   const { t } = useTranslation("modules.settings");
+  // Validation messages are full translation keys from the zod schema
+  const { t: tError } = useTranslation();
   const [notificationSoundEnabled, setNotificationSoundEnabled] =
     useState(true);
 
@@ -178,7 +180,9 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
               {...register("port", { valueAsNumber: true })}
             />
             {errors.port && (
-              <p className="text-sm text-destructive">{errors.port.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.port.message && tError(errors.port.message)}
+              </p>
             )}
             <p className="text-xs text-muted-foreground">
               {t("general.panelConfiguration.port.description")}
@@ -231,7 +235,8 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
                   />
                   {errors.ftpd?.username && (
                     <p className="text-sm text-destructive">
-                      {errors.ftpd.username.message}
+                      {errors.ftpd.username.message &&
+                        tError(errors.ftpd.username.message)}
                     </p>
                   )}
                 </div>
@@ -249,7 +254,8 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
                   />
                   {errors.ftpd?.password && (
                     <p className="text-sm text-destructive">
-                      {errors.ftpd.password.message}
+                      {errors.ftpd.password.message &&
+                        tError(errors.ftpd.password.message)}
                     </p>
                   )}
                 </div>
@@ -265,7 +271,8 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
                   />
                   {errors.ftpd?.port && (
                     <p className="text-sm text-destructive">
-                      {errors.ftpd.port.message}
+                      {errors.ftpd.port.message &&
+                        tError(errors.ftpd.port.message)}
                     </p>
                   )}
                 </div>
@@ -274,7 +281,8 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
               {/* FTP Root Error */}
               {errors.ftpd?.root && (
                 <div className="text-sm font-medium text-destructive">
-                  {errors.ftpd.root.message}
+                  {errors.ftpd.root.message &&
+                    tError(errors.ftpd.root.message)}
                 </div>
               )}
 

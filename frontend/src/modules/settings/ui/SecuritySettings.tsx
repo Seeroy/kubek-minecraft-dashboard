@@ -23,6 +23,8 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
     formState: { errors },
   } = form;
   const { t } = useTranslation("modules.settings");
+  // Validation messages are full translation keys from the zod schema
+  const { t: tError } = useTranslation();
   const watchSubnetsEnabled = watch("subnetsAccessRestriction.enabled");
   const subnets = watch("subnetsAccessRestriction.subnets") || [];
 
@@ -143,12 +145,16 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
                 {/* Subnets Array Errors */}
                 {errors.subnetsAccessRestriction?.subnets && (
                   <div className="text-sm font-medium text-destructive">
-                    {errors.subnetsAccessRestriction.subnets.message}
+                    {errors.subnetsAccessRestriction.subnets.message &&
+                      tError(errors.subnetsAccessRestriction.subnets.message)}
                   </div>
                 )}
                 {errors.subnetsAccessRestriction?.subnets?.root && (
                   <div className="text-sm font-medium text-destructive">
-                    {errors.subnetsAccessRestriction.subnets.root.message}
+                    {errors.subnetsAccessRestriction.subnets.root.message &&
+                      tError(
+                        errors.subnetsAccessRestriction.subnets.root.message
+                      )}
                   </div>
                 )}
               </div>

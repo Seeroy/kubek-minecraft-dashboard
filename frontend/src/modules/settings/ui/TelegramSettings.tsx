@@ -23,6 +23,8 @@ export default function TelegramSettings({ form }: TelegramSettingsProps) {
     formState: { errors },
   } = form;
   const { t } = useTranslation("modules.settings");
+  // Validation messages are full translation keys from the zod schema
+  const { t: tError } = useTranslation();
   const watchTelegramEnabled = watch("telegramBot.enabled");
 
   return (
@@ -66,7 +68,8 @@ export default function TelegramSettings({ form }: TelegramSettingsProps) {
               {/* Telegram Root Error */}
               {errors.telegramBot?.root && (
                 <div className="text-sm font-medium text-destructive">
-                  {errors.telegramBot.root.message}
+                  {errors.telegramBot.root.message &&
+                    tError(errors.telegramBot.root.message)}
                 </div>
               )}
             </>
