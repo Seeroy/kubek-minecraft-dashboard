@@ -8,8 +8,9 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import LogoMark from "@/shared/ui/logo-mark";
 import { motion, useReducedMotion } from "framer-motion";
-import { ExternalLink, Sparkles } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type React from "react";
 import { findRelease } from "../data/releases";
 
@@ -61,15 +62,15 @@ const WhatsNewModal: React.FC<ModalProps<void> & WhatsNewModalProps> = ({
           {/* Soft accent glow behind the badge */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_top,theme(colors.primary/15),transparent_70%)]"
+            className="pointer-events-none absolute inset-x-0 top-0 h-40 blur-2xl bg-[radial-gradient(ellipse_at_top,theme(colors.primary/8),transparent_70%)]"
           />
           <motion.div
             initial={reduceMotion ? false : { scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 320, damping: 22 }}
-            className="relative mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-sm"
+            className="relative mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-sm"
           >
-            <Sparkles className="size-7" />
+            <LogoMark size={30} />
           </motion.div>
 
           <span className="relative mb-3 inline-flex items-center rounded-full border border-border/60 bg-secondary px-3 py-1 font-mono text-xs font-medium text-muted-foreground">

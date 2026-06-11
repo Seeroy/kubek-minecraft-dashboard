@@ -1,4 +1,10 @@
-import { ConsoleLogger } from "@nestjs/common";
+import { ConsoleLogger, LogLevel } from "@nestjs/common";
+
+// debug/verbose only in dev; dist builds (NODE_ENV unset) stay quiet
+const DEV = process.env.NODE_ENV === "development";
+const LOG_LEVELS: LogLevel[] = DEV
+  ? ["error", "warn", "log", "debug", "verbose", "fatal"]
+  : ["error", "warn", "log", "fatal"];
 
 export class LoggerAddon extends ConsoleLogger {
   static contextsToIgnore = [
@@ -15,6 +21,7 @@ export class LoggerAddon extends ConsoleLogger {
       prefix: "Kubek",
       compact: true,
       timestamp: false,
+      logLevels: LOG_LEVELS,
     });
   }
 
