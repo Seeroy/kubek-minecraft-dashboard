@@ -6,6 +6,7 @@
 @import "./themes/cosmic-night.css";
 @import "./themes/amethyst.css";
 @import "./themes/green.css";
+@import "./themes/aurora.css";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type ColorTheme = "default" | "amethyst" | "cosmic-night" | "green";
+type ColorTheme = "default" | "amethyst" | "cosmic-night" | "green" | "aurora";
 
 interface ColorThemeContextType {
   theme: ColorTheme;
@@ -33,7 +33,8 @@ export function ColorThemeProvider({
     root.classList.remove(
       "theme-amethyst",
       "theme-cosmic-night",
-      "theme-green"
+      "theme-green",
+      "theme-aurora"
     );
     if (theme !== "default") {
       root.classList.add(`theme-${theme}`);

@@ -24,14 +24,22 @@ const themes = [
     name: "Green",
     primary: "oklch(0.6000 0.1600 155)",
   },
+  {
+    id: "aurora" as const,
+    name: "Aurora",
+    primary: "oklch(0.5800 0.1500 162)",
+    gradient: true,
+  },
 ];
 
 function ThemePreview({
   primary,
   isSelected,
+  gradient,
 }: {
   primary: string;
   isSelected: boolean;
+  gradient?: boolean;
 }) {
   return (
     <div
@@ -63,7 +71,13 @@ function ThemePreview({
       />
       <div
         className="col-start-3 row-start-3 rounded-[3px]"
-        style={{ backgroundColor: primary }}
+        style={
+          gradient
+            ? {
+                backgroundImage: `linear-gradient(180deg, color-mix(in oklch, ${primary} 75%, white), ${primary}, color-mix(in oklch, ${primary} 80%, black))`,
+              }
+            : { backgroundColor: primary }
+        }
       />
     </div>
   );
@@ -84,6 +98,7 @@ export function ThemePicker() {
           <ThemePreview
             primary={themeItem.primary}
             isSelected={theme === themeItem.id}
+            gradient={"gradient" in themeItem && themeItem.gradient}
           />
         </div>
       ))}
