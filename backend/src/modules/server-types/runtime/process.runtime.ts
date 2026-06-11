@@ -11,6 +11,15 @@ export const PTY_COLS = 200;
 export const PTY_ROWS = 50;
 
 /**
+ * Opt-out flag: when set the runtime skips the PTY attach entirely and spawns
+ * a plain piped child process, the legacy launch behaviour
+ */
+function ptyDisabled(): boolean {
+  const v = process.env.KUBEK_DISABLE_PTY?.toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+/**
  * Native runtime: the server is spawned attached to a PTY (Bun.Terminal) so it runs
  * exactly as in a real terminal emulator.
  * Bun.Terminal is POSIX plus Windows ConPTY, if the attach fails on the running Bun the
@@ -40,7 +49,7 @@ export class ProcessRuntime implements IServerRuntime {
   }
 
   async start(spec: LaunchSpec): Promise<void> {
-    if (!this.startPty(spec)) {
+    if (ptyDisabled() || !this.startPty(spec)) {
       this.startPiped(spec);
     }
   }
