@@ -56,10 +56,6 @@ export const settingsTranslations: TranslationDictionary = {
   security: {
     title: "Security Settings",
     description: "Configure access control and network restrictions",
-    authorization: {
-      label: "Authorization Required",
-      description: "Require users to log in to access the panel"
-    },
     subnets: {
       label: "Subnet Access Restriction",
       description: "Restrict access to specific IP subnets",
@@ -279,7 +275,8 @@ export const settingsTranslations: TranslationDictionary = {
     save: "Save Changes",
     saving: "Saving...",
     saved: "Saved!",
-    error: "Error!"
+    error: "Error!",
+    invalidHint: "Some fields are filled in incorrectly"
   },
   loading: "Loading settings...",
   themes: {
@@ -298,7 +295,9 @@ export const settingsTranslations: TranslationDictionary = {
       portRange: "Port must be between 1 and 65535"
     },
     subnets: {
-      required: "At least one subnet is required when restriction is enabled"
+      required: "At least one subnet is required when restriction is enabled",
+      itemRequired: "Subnet cannot be empty",
+      itemInvalid: "Enter a valid subnet in CIDR notation (e.g. 192.168.0.0/24)"
     },
     telegram: {
       tokenRequired: "Token is required when Telegram bot is enabled"

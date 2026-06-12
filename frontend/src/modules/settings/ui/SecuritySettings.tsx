@@ -17,9 +17,9 @@ interface SecuritySettingsProps {
 
 export default function SecuritySettings({ form }: SecuritySettingsProps) {
   const {
-    register,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = form;
   const { t } = useTranslation("modules.settings");
@@ -31,23 +31,26 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
   const addSubnet = () => {
     const newSubnets = [...subnets, ""];
     setValue("subnetsAccessRestriction.subnets", newSubnets, {
-      shouldValidate: true,
+      shouldDirty: true,
     });
+    void trigger();
   };
 
   const updateSubnet = (index: number, value: string) => {
     const newSubnets = [...subnets];
     newSubnets[index] = value;
     setValue("subnetsAccessRestriction.subnets", newSubnets, {
-      shouldValidate: true,
+      shouldDirty: true,
     });
+    void trigger();
   };
 
   const removeSubnet = (index: number) => {
     const newSubnets = subnets.filter((_, i) => i !== index);
     setValue("subnetsAccessRestriction.subnets", newSubnets, {
-      shouldValidate: true,
+      shouldDirty: true,
     });
+    void trigger();
   };
 
   return (
@@ -63,23 +66,6 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
           />
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Authorization Required */}
-          <div className="flex flex-row items-center justify-between rounded-xl border border-border/60 bg-muted/30 p-4">
-            <div className="space-y-0.5">
-              <Label className="text-base" htmlFor="authorization">
-                {t("security.authorization.label")}
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                {t("security.authorization.description")}
-              </p>
-            </div>
-            <Switch
-              id="authorization"
-              checked={watch("authorization")}
-              onCheckedChange={(value) => setValue("authorization", value)}
-            />
-          </div>
-
           {/* Subnet Access Restriction */}
           <div className="flex flex-row items-center justify-between rounded-xl border border-border/60 bg-muted/30 p-4">
             <div className="space-y-0.5">
@@ -93,9 +79,12 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
             <Switch
               id="subnets-enabled"
               checked={watchSubnetsEnabled}
-              onCheckedChange={(value) =>
-                setValue("subnetsAccessRestriction.enabled", value)
-              }
+              onCheckedChange={(value) => {
+                setValue("subnetsAccessRestriction.enabled", value, {
+                  shouldDirty: true,
+                });
+                void trigger();
+              }}
             />
           </div>
 
@@ -115,22 +104,36 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
                 </div>
 
                 <div className="space-y-3">
-                  {subnets.map((subnet, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={subnet}
-                        onChange={(e) => updateSubnet(index, e.target.value)}
-                        placeholder={t("security.subnets.example")}
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => removeSubnet(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                  {subnets.map((subnet, index) => {
+                    const subnetError =
+                      errors.subnetsAccessRestriction?.subnets?.[index];
+                    return (
+                      <div key={index} className="space-y-1.5">
+                        <div className="flex gap-2">
+                          <Input
+                            value={subnet}
+                            onChange={(e) =>
+                              updateSubnet(index, e.target.value)
+                            }
+                            placeholder={t("security.subnets.example")}
+                            aria-invalid={!!subnetError}
+                          />
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeSubnet(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {subnetError?.message && (
+                          <p className="text-sm text-destructive">
+                            {tError(subnetError.message)}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                   {subnets.length === 0 && (
                     <div className="py-4 text-center text-muted-foreground">
                       <Network className="mx-auto mb-2 h-8 w-8 opacity-50" />
@@ -142,19 +145,17 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
                   )}
                 </div>
 
-                {/* Subnets Array Errors */}
-                {errors.subnetsAccessRestriction?.subnets && (
+                {/* Subnets array-level error (e.g. none provided) */}
+                {errors.subnetsAccessRestriction?.subnets?.message && (
                   <div className="text-sm font-medium text-destructive">
-                    {errors.subnetsAccessRestriction.subnets.message &&
-                      tError(errors.subnetsAccessRestriction.subnets.message)}
+                    {tError(errors.subnetsAccessRestriction.subnets.message)}
                   </div>
                 )}
-                {errors.subnetsAccessRestriction?.subnets?.root && (
+                {errors.subnetsAccessRestriction?.subnets?.root?.message && (
                   <div className="text-sm font-medium text-destructive">
-                    {errors.subnetsAccessRestriction.subnets.root.message &&
-                      tError(
-                        errors.subnetsAccessRestriction.subnets.root.message
-                      )}
+                    {tError(
+                      errors.subnetsAccessRestriction.subnets.root.message
+                    )}
                   </div>
                 )}
               </div>
@@ -190,9 +191,10 @@ export default function SecuritySettings({ form }: SecuritySettingsProps) {
             <Switch
               id="telemetry-enabled"
               checked={watch("telemetry.enabled")}
-              onCheckedChange={(value) =>
-                setValue("telemetry.enabled", value, { shouldDirty: true })
-              }
+              onCheckedChange={(value) => {
+                setValue("telemetry.enabled", value, { shouldDirty: true });
+                void trigger();
+              }}
             />
           </div>
         </CardContent>

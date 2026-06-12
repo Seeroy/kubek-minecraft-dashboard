@@ -8,16 +8,16 @@ import {
 } from "@/modules/extensions";
 import { useNotifications } from "@/modules/notifications";
 import {
-  MainConfigFormData,
-  mainConfigSchema,
-} from "@/modules/settings/validations/schema";
-import { useTranslation } from "@/shared/hooks/useTranslation";
-import {
   useAccounts,
   useCreateAccountMutation,
   useDeleteAccountMutation,
   useUpdateAccountMutation,
 } from "@/modules/settings/api/accounts.queries";
+import {
+  MainConfigFormData,
+  mainConfigSchema,
+} from "@/modules/settings/validations/schema";
+import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useMainConfig, useUpdateMainConfigMutation } from "@/shared/queries";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { BlockHeader } from "@/shared/ui/BlockHeader";
@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IUser, UserPermissions } from "@shared/types/user.types";
 import {
+  AlertTriangle,
   Blocks,
   Bot,
   Info,
@@ -41,7 +42,7 @@ import {
   Users,
 } from "lucide-react";
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import AboutPanel from "./AboutPanel";
 import GeneralSettings from "./GeneralSettings";
 import SecuritySettings from "./SecuritySettings";
@@ -82,7 +83,6 @@ export default function Settings() {
     resolver: zodResolver(mainConfigSchema),
     defaultValues: {
       ftpd: { enabled: false, username: "admin", password: "", port: 21 },
-      authorization: true,
       subnetsAccessRestriction: { enabled: false, subnets: [] },
       telegramBot: { enabled: false, token: "", chatIds: [] },
       telemetry: { enabled: true },
@@ -91,6 +91,26 @@ export default function Settings() {
     mode: "onChange",
   });
   const { isDirty, isValid } = form.formState;
+
+  // Flag each tab whose fields fail validation
+  const watchedValues = useWatch({ control: form.control });
+  const tabErrors = { general: false, security: false, telegram: false };
+  const parsed = mainConfigSchema.safeParse(watchedValues);
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) {
+      const field = issue.path[0];
+      if (field === "port" || field === "ftpd") {
+        tabErrors.general = true;
+      } else if (
+        field === "subnetsAccessRestriction" ||
+        field === "telemetry"
+      ) {
+        tabErrors.security = true;
+      } else if (field === "telegramBot") {
+        tabErrors.telegram = true;
+      }
+    }
+  }
 
   React.useEffect(() => {
     const config = configQuery.data;
@@ -102,7 +122,6 @@ export default function Settings() {
         password: "",
         port: 21,
       },
-      authorization: config.authorization ?? true,
       subnetsAccessRestriction: config.subnetsAccessRestriction || {
         enabled: false,
         subnets: [],
@@ -115,6 +134,9 @@ export default function Settings() {
       telemetry: config.telemetry ?? { enabled: true },
       port: config.port || 8080,
     });
+    // Surface errors for config loaded from the server that is already invalid
+    // (e.g. Telegram enabled with an empty token) without waiting for an edit
+    void form.trigger();
   }, [configQuery.data, form]);
 
   const users: IUser[] = React.useMemo(
@@ -206,14 +228,23 @@ export default function Settings() {
               <TabsTrigger value="general" className="flex items-center gap-2">
                 <Server className="h-4 w-4" />
                 {t("tabs.general")}
+                {tabErrors.general && (
+                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                )}
               </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 {t("tabs.security")}
+                {tabErrors.security && (
+                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                )}
               </TabsTrigger>
               <TabsTrigger value="telegram" className="flex items-center gap-2">
                 <Bot className="h-4 w-4" />
                 {t("tabs.telegram")}
+                {tabErrors.telegram && (
+                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                )}
               </TabsTrigger>
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -244,16 +275,24 @@ export default function Settings() {
             </TabsList>
           }
           actions={
-            <StatusButton
-              onSave={handleSave}
-              idleText={t("buttons.save")}
-              loadingText={t("buttons.saving")}
-              successText={t("buttons.saved")}
-              errorText={t("buttons.error")}
-              disabled={!isDirty || !isValid}
-              idleIcon={<Save className="h-4 w-4" />}
-              className="flex-shrink-0"
-            />
+            <>
+              {!isValid && (
+                <span className="flex items-center gap-1.5 text-sm text-destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  {t("buttons.invalidHint")}
+                </span>
+              )}
+              <StatusButton
+                onSave={handleSave}
+                idleText={t("buttons.save")}
+                loadingText={t("buttons.saving")}
+                successText={t("buttons.saved")}
+                errorText={t("buttons.error")}
+                disabled={!isDirty || !isValid}
+                idleIcon={<Save className="h-4 w-4" />}
+                className="flex-shrink-0"
+              />
+            </>
           }
         />
 

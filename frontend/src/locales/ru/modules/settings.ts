@@ -56,10 +56,6 @@ export const settingsTranslations: TranslationDictionary = {
   security: {
     title: "Настройки безопасности",
     description: "Настройка контроля доступа и сетевых ограничений",
-    authorization: {
-      label: "Требуется авторизация",
-      description: "Требовать вход в систему для доступа к панели"
-    },
     subnets: {
       label: "Ограничение доступа по подсетям",
       description: "Ограничить доступ к определенным IP подсетям",
@@ -279,7 +275,8 @@ export const settingsTranslations: TranslationDictionary = {
     save: "Сохранить изменения",
     saving: "Сохранение...",
     saved: "Сохранено!",
-    error: "Ошибка!"
+    error: "Ошибка!",
+    invalidHint: "Не все поля заполнены верно"
   },
   loading: "Загрузка настроек...",
   themes: {
@@ -298,7 +295,9 @@ export const settingsTranslations: TranslationDictionary = {
       portRange: "Порт должен быть между 1 и 65535"
     },
     subnets: {
-      required: "Требуется хотя бы одна подсеть при включенном ограничении"
+      required: "Требуется хотя бы одна подсеть при включенном ограничении",
+      itemRequired: "Подсеть не может быть пустой",
+      itemInvalid: "Введите корректную подсеть в нотации CIDR (например, 192.168.0.0/24)"
     },
     telegram: {
       tokenRequired: "Токен требуется при включенном Telegram боте"

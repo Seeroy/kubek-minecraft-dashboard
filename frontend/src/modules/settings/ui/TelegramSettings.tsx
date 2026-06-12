@@ -20,6 +20,7 @@ export default function TelegramSettings({ form }: TelegramSettingsProps) {
   const {
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = form;
   const { t } = useTranslation("modules.settings");
@@ -53,9 +54,10 @@ export default function TelegramSettings({ form }: TelegramSettingsProps) {
             <Switch
               id="telegram-enabled"
               checked={watchTelegramEnabled}
-              onCheckedChange={(value) =>
-                setValue("telegramBot.enabled", value)
-              }
+              onCheckedChange={(value) => {
+                setValue("telegramBot.enabled", value, { shouldDirty: true });
+                void trigger();
+              }}
             />
           </div>
 

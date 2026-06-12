@@ -38,6 +38,7 @@ export function TelegramBotConfig({ form }: TelegramBotConfigProps) {
         <Input
           id="telegram-token"
           placeholder={t("telegram.token.placeholder")}
+          aria-invalid={!!errors.telegramBot?.token}
           {...register("telegramBot.token")}
         />
         {errors.telegramBot?.token && (

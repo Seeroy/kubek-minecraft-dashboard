@@ -27,11 +27,19 @@ interface GeneralSettingsProps {
   form: UseFormReturn<MainConfigFormData>;
 }
 
+// Empty number inputs drops NaN which fails zod. so, this is fix
+const toOptionalNumber = (value: unknown) => {
+  if (value === "" || value === null || value === undefined) return undefined;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? undefined : parsed;
+};
+
 export default function GeneralSettings({ form }: GeneralSettingsProps) {
   const {
     register,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = form;
   const watchFTPEnabled = watch("ftpd.enabled");
@@ -177,7 +185,8 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
               id="port"
               type="number"
               placeholder="8080"
-              {...register("port", { valueAsNumber: true })}
+              aria-invalid={!!errors.port}
+              {...register("port", { setValueAs: toOptionalNumber })}
             />
             {errors.port && (
               <p className="text-sm text-destructive">
@@ -215,7 +224,11 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
             <Switch
               id="ftpd-enabled"
               checked={watchFTPEnabled}
-              onCheckedChange={(value) => setValue("ftpd.enabled", value)}
+              onCheckedChange={(value) => {
+                // Enabling makes sibling fields required
+                setValue("ftpd.enabled", value, { shouldDirty: true });
+                void trigger();
+              }}
             />
           </div>
 
@@ -231,6 +244,7 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
                   <Input
                     id="ftpd-username"
                     placeholder="admin"
+                    aria-invalid={!!errors.ftpd?.username}
                     {...register("ftpd.username")}
                   />
                   {errors.ftpd?.username && (
@@ -250,6 +264,7 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
                     id="ftpd-password"
                     type="password"
                     placeholder={t("general.ftp.passwordPlaceholder")}
+                    aria-invalid={!!errors.ftpd?.password}
                     {...register("ftpd.password")}
                   />
                   {errors.ftpd?.password && (
@@ -267,7 +282,8 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
                     id="ftpd-port"
                     type="number"
                     placeholder="21"
-                    {...register("ftpd.port", { valueAsNumber: true })}
+                    aria-invalid={!!errors.ftpd?.port}
+                    {...register("ftpd.port", { setValueAs: toOptionalNumber })}
                   />
                   {errors.ftpd?.port && (
                     <p className="text-sm text-destructive">
@@ -281,8 +297,7 @@ export default function GeneralSettings({ form }: GeneralSettingsProps) {
               {/* FTP Root Error */}
               {errors.ftpd?.root && (
                 <div className="text-sm font-medium text-destructive">
-                  {errors.ftpd.root.message &&
-                    tError(errors.ftpd.root.message)}
+                  {errors.ftpd.root.message && tError(errors.ftpd.root.message)}
                 </div>
               )}
 

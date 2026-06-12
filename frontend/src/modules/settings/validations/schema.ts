@@ -43,6 +43,10 @@ export const ftpSchema = z
     }
   });
 
+/** IPv4 subnet in CIDR notation, e.g. 192.168.0.0/24 */
+const CIDR_REGEX =
+  /^(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\/(?:3[0-2]|[12]?\d)$/;
+
 /**
  * Subnets restriction schema
  */
@@ -52,15 +56,31 @@ export const subnetSchema = z
     subnets: z.array(z.string()).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.enabled) {
-      if (!data.subnets || data.subnets.length === 0) {
+    if (!data.enabled) return;
+    if (!data.subnets || data.subnets.length === 0) {
+      ctx.addIssue({
+        path: ["subnets"],
+        code: z.ZodIssueCode.custom,
+        message: "modules.settings.validation.subnets.required",
+      });
+      return;
+    }
+    data.subnets.forEach((subnet, index) => {
+      const value = subnet.trim();
+      if (value.length === 0) {
         ctx.addIssue({
-          path: ["subnets"],
+          path: ["subnets", index],
           code: z.ZodIssueCode.custom,
-          message: "modules.settings.validation.subnets.required",
+          message: "modules.settings.validation.subnets.itemRequired",
+        });
+      } else if (!CIDR_REGEX.test(value)) {
+        ctx.addIssue({
+          path: ["subnets", index],
+          code: z.ZodIssueCode.custom,
+          message: "modules.settings.validation.subnets.itemInvalid",
         });
       }
-    }
+    });
   });
 
 /**
@@ -90,7 +110,6 @@ export const telemetrySchema = z.object({
 
 export const mainConfigSchema = z.object({
   ftpd: ftpSchema,
-  authorization: z.boolean(),
   subnetsAccessRestriction: subnetSchema,
   telegramBot: telegramSchema,
   telemetry: telemetrySchema,
