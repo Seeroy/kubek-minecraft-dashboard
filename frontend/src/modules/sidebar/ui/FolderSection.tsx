@@ -1,6 +1,11 @@
 "use client";
 import { useDeleteFolderMutation } from "@/modules/server";
+import {
+  SERVER_DND_MIME,
+  useMoveServerToFolder,
+} from "@/modules/sidebar/hooks/useMoveServerToFolder";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { cn } from "@/shared/lib/cn";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,10 +45,40 @@ const FolderSection: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation("modules.sidebar.serversList");
   const deleteMut = useDeleteFolderMutation();
+  const moveToFolder = useMoveServerToFolder();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const targetFolderId = folder?.id ?? null;
+
+  const handleDrop = (e: React.DragEvent) => {
+    const serverId = e.dataTransfer.getData(SERVER_DND_MIME);
+    setIsDragOver(false);
+    if (serverId) {
+      e.preventDefault();
+      void moveToFolder(serverId, targetFolderId);
+    }
+  };
 
   return (
-    <section className="space-y-2">
+    <section
+      className={cn(
+        "space-y-2 rounded-xl transition-colors",
+        isDragOver && "bg-primary/5 ring-1 ring-primary/40"
+      )}
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes(SERVER_DND_MIME)) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          setIsDragOver(true);
+        }
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node))
+          setIsDragOver(false);
+      }}
+      onDrop={handleDrop}
+    >
       <header className="flex items-center justify-between gap-2 px-1">
         <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
           {selectionMode && count > 0 && (

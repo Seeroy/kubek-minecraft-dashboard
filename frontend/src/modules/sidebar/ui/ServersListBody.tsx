@@ -1,5 +1,6 @@
 "use client";
 import type { Server, ServerStatusData } from "@/modules/server";
+import type { CreationStatusView } from "@/modules/server/modals/CreateServerModal/stages";
 import type { ServerGroup } from "@/modules/sidebar/hooks/useGroupedServers";
 import FolderSection, {
   type FolderSelectionState,
@@ -12,6 +13,7 @@ import React, { useMemo } from "react";
 
 interface Props {
   groups: ServerGroup[];
+  creatingById: Map<string, CreationStatusView>;
   selectedServerId?: string;
   serverStatuses: Record<string, ServerStatusData>;
   iconErrors: Set<string>;
@@ -43,6 +45,7 @@ function computeSelectionState(
 
 const ServersListBody: React.FC<Props> = ({
   groups,
+  creatingById,
   selectedServerId,
   serverStatuses,
   iconErrors,
@@ -79,6 +82,7 @@ const ServersListBody: React.FC<Props> = ({
         key={server.id}
         server={server}
         status={serverStatuses[server.id]}
+        creating={creatingById.get(server.id)}
         selected={selectedServerId === server.id}
         iconError={iconErrors.has(server.id)}
         onIconError={onIconError}
@@ -93,7 +97,7 @@ const ServersListBody: React.FC<Props> = ({
       />
     ));
 
-  // When user is searching, flatten into a single list (no folder grouping noise)
+  // When user is searching, flatten into single list
   if (isFiltered) {
     const flat = groups.flatMap((g) => g.servers);
     return (

@@ -1,10 +1,12 @@
 "use client";
 import type { Server, ServerStatusData } from "@/modules/server";
 import { ServerStatusIndicator } from "@/modules/server";
+import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
+import type { CreationStatusView } from "@/modules/server/modals/CreateServerModal/stages";
+import { SERVER_DND_MIME } from "@/modules/sidebar/hooks/useMoveServerToFolder";
 import ServerCardMenu from "@/modules/sidebar/ui/ServerCardMenu";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
-import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
 import { Badge } from "@/shared/ui/badge";
 import BlobImage from "@/shared/ui/BlobImage";
 import { BlueprintIcon } from "@/shared/ui/BlueprintIcon";
@@ -17,6 +19,8 @@ import React from "react";
 interface ServerCardProps {
   server: Server;
   status?: ServerStatusData;
+  /** Live creation status (progress + step message) while this server is being created */
+  creating?: CreationStatusView;
   selected?: boolean;
   iconError?: boolean;
   onIconError: (id: string) => void;
@@ -41,6 +45,7 @@ const STATUS_TEXT_CLASS: Record<string, string> = {
 const ServerCard: React.FC<ServerCardProps> = ({
   server,
   status,
+  creating,
   selected,
   iconError,
   onIconError,
@@ -54,6 +59,8 @@ const ServerCard: React.FC<ServerCardProps> = ({
   onDelete,
 }) => {
   const { t } = useTranslation("modules.sidebar.serversList");
+
+  const isCreating = creating != null;
 
   const serverStatus =
     ((status?.status ?? server.status) as ServerStatus) || ServerStatus.STOPPED;
@@ -80,31 +87,53 @@ const ServerCard: React.FC<ServerCardProps> = ({
   return (
     <Card
       size="sm"
-      role="button"
-      tabIndex={0}
-      onClick={() => {
-        if (selectionMode) onToggleCheck?.(server.id);
-        else onSelect(server.id);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          if (selectionMode) onToggleCheck?.(server.id);
-          else onSelect(server.id);
-        }
-      }}
+      role={isCreating ? undefined : "button"}
+      tabIndex={isCreating ? undefined : 0}
+      aria-disabled={isCreating || undefined}
+      draggable={!selectionMode && !isCreating}
+      onDragStart={
+        isCreating
+          ? undefined
+          : (e) => {
+              e.dataTransfer.setData(SERVER_DND_MIME, server.id);
+              e.dataTransfer.effectAllowed = "move";
+            }
+      }
+      onClick={
+        isCreating
+          ? undefined
+          : () => {
+              if (selectionMode) onToggleCheck?.(server.id);
+              else onSelect(server.id);
+            }
+      }
+      onKeyDown={
+        isCreating
+          ? undefined
+          : (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (selectionMode) onToggleCheck?.(server.id);
+                else onSelect(server.id);
+              }
+            }
+      }
       className={cn(
-        "relative cursor-pointer transition-all hover:border-border hover:shadow-md",
-        selected && !selectionMode
-          ? "border-primary/60 from-primary/5 to-primary/10 ring-1 ring-primary/40"
-          : "hover:bg-accent/30",
+        "relative transition-all",
+        isCreating
+          ? "cursor-default border-primary/40"
+          : "cursor-pointer hover:border-border hover:shadow-md",
+        !isCreating &&
+          (selected && !selectionMode
+            ? "border-primary/60 from-primary/5 to-primary/10 ring-1 ring-primary/40"
+            : "hover:bg-accent/30"),
         selectionMode &&
           checked &&
           "border-primary/60 bg-primary/5 ring-1 ring-primary/40"
       )}
     >
       <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-        {selectionMode ? (
+        {isCreating ? null : selectionMode ? (
           <Checkbox
             checked={!!checked}
             onCheckedChange={() => onToggleCheck?.(server.id)}
@@ -113,6 +142,7 @@ const ServerCard: React.FC<ServerCardProps> = ({
         ) : onDuplicate && onRename && onExport && onDelete ? (
           <ServerCardMenu
             serverId={server.id}
+            currentFolderId={server.folderId}
             onDuplicate={onDuplicate}
             onRename={onRename}
             onExport={onExport}
@@ -148,37 +178,63 @@ const ServerCard: React.FC<ServerCardProps> = ({
             <span
               className={cn(
                 "truncate text-xs font-medium",
-                STATUS_TEXT_CLASS[serverStatus] || "text-muted-foreground"
+                isCreating
+                  ? "text-primary"
+                  : STATUS_TEXT_CLASS[serverStatus] || "text-muted-foreground"
               )}
             >
-              {t(`status.${serverStatus}`, serverStatus)}
+              {isCreating
+                ? creating.message
+                : t(`status.${serverStatus}`, serverStatus)}
             </span>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="flex flex-wrap gap-1.5">
-        {versionLabel && (
-          <Badge variant="info" className="gap-1">
-            <Tag />
-            {versionLabel}
-          </Badge>
+        {isCreating ? (
+          <div className="w-full">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+                style={{ width: `${creating.progress}%` }}
+              />
+            </div>
+            <span className="mt-1 block text-right text-xs font-medium text-muted-foreground tabular-nums">
+              {creating.progress}%
+            </span>
+          </div>
+        ) : (
+          <>
+            {versionLabel && (
+              <Badge variant="info" className="gap-1">
+                <Tag />
+                {versionLabel}
+              </Badge>
+            )}
+            {typeLabel && (
+              <Badge
+                variant="secondary"
+                className="hidden gap-1 sm:inline-flex"
+              >
+                <BlueprintIcon
+                  icon={blueprint?.icon}
+                  coreType={coreSuffix}
+                  label={typeLabel}
+                  className="size-3.5"
+                />
+                {typeLabel}
+              </Badge>
+            )}
+            <Badge
+              variant={isRunning ? "success" : "outline"}
+              className="gap-1"
+            >
+              <UsersRound />
+              {playersText}
+            </Badge>
+          </>
         )}
-        {typeLabel && (
-          <Badge variant="secondary" className="hidden gap-1 sm:inline-flex">
-            <BlueprintIcon
-              icon={blueprint?.icon}
-              coreType={coreSuffix}
-              label={typeLabel}
-              className="size-3.5"
-            />
-            {typeLabel}
-          </Badge>
-        )}
-        <Badge variant={isRunning ? "success" : "outline"} className="gap-1">
-          <UsersRound />
-          {playersText}
-        </Badge>
       </CardContent>
     </Card>
   );

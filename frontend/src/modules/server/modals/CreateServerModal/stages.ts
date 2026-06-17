@@ -67,3 +67,19 @@ export function computeCreationStages(
     return { key: def.key, state: "pending", progress: 0 };
   });
 }
+
+/** Compact creation status used to render in-list progress (card / table row) */
+export interface CreationStatusView {
+  progress: number;
+  message: string;
+}
+
+/** Overall completion across all creation stages, 0–100 */
+export function creationOverallPercent(
+  creation: ServerCreationProgress
+): number {
+  const stages = computeCreationStages(creation);
+  if (stages.length === 0) return 0;
+  const sum = stages.reduce((acc, s) => acc + s.progress, 0);
+  return Math.round((sum / stages.length) * 100);
+}
