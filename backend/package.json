@@ -31,7 +31,7 @@
     "@nestjs/swagger": "^11.4.4",
     "@nestjs/websockets": "^11.1.27",
     "@scalar/nestjs-api-reference": "^1.2.4",
-    "@xhmikosr/decompress": "^10.2.1",
+    "@xhmikosr/decompress": "^11.1.3",
     "@xterm/headless": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "bun-types": "^1.3.14",
