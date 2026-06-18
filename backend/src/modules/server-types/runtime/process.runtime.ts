@@ -54,10 +54,12 @@ export class ProcessRuntime implements IServerRuntime {
     }
   }
 
-  /** sh -c on POSIX, cmd /c on Windows, both inherit the spawned PTY console */
+  /**
+   * sh -c on POSIX, cmd /c on Windows, both inherit the spawned PTY console
+   */
   private shellArgv(command: string): string[] {
     return process.platform === "win32"
-      ? ["cmd.exe", "/d", "/s", "/c", command]
+      ? ["cmd.exe", "/d", "/s", "/c", `"${command}"`]
       : ["/bin/sh", "-c", command];
   }
 
@@ -67,6 +69,9 @@ export class ProcessRuntime implements IServerRuntime {
       const proc = Bun.spawn(this.shellArgv(spec.command), {
         cwd: spec.cwd,
         env: { ...process.env, ...spec.env },
+        // Keep the cmd.exe command line verbatim so the pre-quoted java path is
+        // not re-escaped
+        windowsVerbatimArguments: process.platform === "win32",
         terminal: {
           cols: PTY_COLS,
           rows: PTY_ROWS,

@@ -6,6 +6,9 @@ export const whatsNewTranslations: TranslationDictionary = {
   gotIt: "Понятно",
   fullChangelog: "Все изменения на GitHub",
   releases: {
+    "4-0-2": {
+      windowsLaunch: "Исправлен запуск серверов на Windows, когда путь к Java содержит пробелы",
+    },
     "4-0-1": {
       docker: "Запуск серверов в Docker-контейнерах",
       builtinCores: "Встроенные ядра теперь работают в Docker",

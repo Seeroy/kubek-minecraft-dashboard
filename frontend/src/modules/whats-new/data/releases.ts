@@ -4,6 +4,7 @@ import {
   PanelLeft,
   SquareTerminal,
   Upload,
+  Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -20,6 +21,12 @@ export interface Release {
 
 // Curated highlights shown once after the panel updates to a given version
 export const RELEASES: Release[] = [
+  {
+    version: "4.0.2",
+    highlights: [
+      { icon: Wrench, titleKey: "releases.4-0-2.windowsLaunch" },
+    ],
+  },
   {
     version: "4.0.1",
     highlights: [
