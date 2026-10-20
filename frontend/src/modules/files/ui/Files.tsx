@@ -115,7 +115,7 @@ const Files = () => {
       </div>
 
       <div
-        className="relative"
+        className="relative min-h-[60vh]"
         onDragEnter={dropUpload.handleDragEnter}
         onDragLeave={dropUpload.handleDragLeave}
         onDragOver={dropUpload.handleDragOver}

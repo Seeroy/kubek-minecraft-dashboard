@@ -37,3 +37,26 @@ export function useDeleteJavaMutation() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.java.all }),
   });
 }
+
+export function useValidateJavaPathMutation() {
+  return useMutation({
+    mutationFn: (path: string) => api.java.validateJavaPath(path),
+  });
+}
+
+export function useAddCustomJavaMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { path: string; name?: string }) =>
+      api.java.addCustomJava(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.java.all }),
+  });
+}
+
+export function useRemoveCustomJavaMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.java.removeCustomJava(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.java.all }),
+  });
+}

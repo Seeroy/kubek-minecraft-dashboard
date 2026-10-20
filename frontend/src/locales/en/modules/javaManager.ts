@@ -34,10 +34,43 @@ export const javaManagerTranslations: TranslationDictionary = {
     versionLabel: (version: string, isManaged: boolean) => `Java ${ version } ${ isManaged ? "(Managed)" : "(System)" }`,
     managed: "Managed",
     system: "System",
+    custom: "Custom",
+  },
+  custom: {
+    add: {
+      title: "Add Custom Java",
+      description: "Register a Java installation from any local folder",
+      path: "Path",
+      pathPlaceholder: "/path/to/java or installation folder",
+      name: "Name (optional)",
+      namePlaceholder: "e.g. GraalVM 21",
+      validate: "Check",
+      submit: "Add",
+      validOk: (version: string, vendor: string) => `Found Java ${ version }${ vendor ? ` (${ vendor })` : "" }`,
+      validFail: "No working Java found at this path",
+    },
+    list: {
+      title: "Registered Custom Java",
+      description: "These installations are selectable for any server",
+      badge: "Custom",
+      empty: {
+        title: "No custom Java registered",
+        description: "Add a local Java installation using the form above",
+      },
+    },
+    notifications: {
+      added: "Custom Java added",
+      removed: "Custom Java removed",
+    },
+    errors: {
+      addFailed: "Failed to add custom Java",
+      removeFailed: "Failed to remove custom Java",
+    },
   },
   tabs: {
     installed: (count: number) => `Installed (${ count })`,
     available: (count: number) => `Available (${ count })`,
+    custom: (count: number) => `Custom (${ count })`,
     serverUsage: (count: number) => `Server Usage (${ count })`,
   },
   buttons: {

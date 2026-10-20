@@ -541,6 +541,10 @@ export class ServersFactory {
       );
     }
 
+    // JAVA_PATH is host-specific and must never come from an untrusted archive
+    const { JAVA_PATH: _javaPath, ...importedVariables } =
+      manifest.server.variables ?? {};
+
     const created = this.servers.create({
       name: desiredName,
       status: ServerStatus.STOPPED,
@@ -552,7 +556,7 @@ export class ServersFactory {
       blueprintId: manifest.server.blueprintId,
       blueprintVersion: manifest.server.blueprintVersion,
       runtimeKind: manifest.server.runtimeKind ?? "native",
-      variables: manifest.server.variables ?? {},
+      variables: importedVariables,
     });
 
     const taskId = this.tasksService.createTask(

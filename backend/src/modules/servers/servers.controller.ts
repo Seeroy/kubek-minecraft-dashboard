@@ -17,6 +17,7 @@ import { ServerDiagnosticDto } from "@/modules/servers/dto/server-diagnostic.dto
 import { ServerPropertiesDto } from "@/modules/servers/dto/server-properties.dto";
 import { ServerEntity } from "@/modules/servers/dto/server.entity";
 import { UpdateServerSettingsDto } from "@/modules/servers/dto/update-server-settings.dto";
+import { JavaService } from "@/modules/java/java.service";
 import { ServersService } from "@/modules/servers/servers.service";
 import {
   BadRequestException,
@@ -65,7 +66,10 @@ import { join } from "path";
 @Controller("api/servers")
 @UseGuards(BearerAuthGuard, PermissionsGuard, ServerAccessGuard)
 export class ServersController {
-  constructor(private readonly servers: ServersService) {}
+  constructor(
+    private readonly servers: ServersService,
+    private readonly javaService: JavaService,
+  ) {}
 
   /** List all servers */
   @Get()
@@ -150,11 +154,11 @@ export class ServersController {
       required: ["payload"],
     },
   })
-  create(
+  async create(
     @Body("payload") payload: string,
     @UploadedFile() coreFile: Express.Multer.File,
     @CurrentUser() user: IUser,
-  ): ServerCreatedResponseDto {
+  ): Promise<ServerCreatedResponseDto> {
     if (!payload) {
       throw new BadRequestException("payload field is required");
     }
@@ -178,6 +182,8 @@ export class ServersController {
     if (dto.blueprintId === "com.kubek.custom" && !coreFile) {
       throw new BadRequestException("coreFile is required for custom servers");
     }
+
+    await this.javaService.assertJavaPathAllowed(dto.variables?.JAVA_PATH, user);
 
     return this.servers.create(dto, user.id, coreFile);
   }
@@ -492,7 +498,13 @@ export class ServersController {
   async updateSettings(
     @Param("id") id: string,
     @Body() body: UpdateServerSettingsDto,
+    @CurrentUser() user: IUser,
   ): Promise<ServerEntity> {
+    await this.javaService.assertJavaPathAllowed(
+      body.variables?.JAVA_PATH,
+      user,
+      this.servers.findById(id)?.variables?.JAVA_PATH,
+    );
     return this.servers.updateServerSettings(id, body);
   }
 

@@ -1,9 +1,16 @@
 import { TaskErrorCode } from "@/core/errors/error-codes";
-import { JavaVersion } from "@/core/types/java";
+import { CustomJavaEntry, JavaVersion } from "@/core/types/java";
 import { downloadWithProgress } from "@/core/utils/downloadWithProgress";
+import { generateRandomString } from "@/core/utils/randomString";
 import { TasksService } from "@/modules/tasks/tasks.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { TaskStatus, TaskSteps } from "@shared/types/task.types";
+import { type IUser, UserPermissions } from "@shared/types/user.types";
 import decompress from "@xhmikosr/decompress";
 import { Glob } from "bun";
 import { exec, spawn } from "child_process";
@@ -11,6 +18,12 @@ import * as fs from "fs/promises";
 import ky from "ky";
 import * as path from "path";
 import { promisify } from "util";
+
+// Hard cap for java -version so a bad binary never hangs a request
+const JAVA_PROBE_TIMEOUT_MS = 10_000;
+
+// Only files named like the java launcher are accepted as a binary path
+const JAVA_BINARY_NAMES = new Set(["java", "java.exe"]);
 
 interface MojangVersionManifest {
   versions: { id: string; url: string }[];
@@ -23,6 +36,7 @@ interface MojangVersionDetail {
 @Injectable()
 export class JavaService {
   private readonly javaDir = "./binaries/java";
+  private readonly customJavaFile = path.join(this.javaDir, "custom.json");
 
   constructor(private readonly tasksService: TasksService) {}
 
@@ -127,6 +141,10 @@ export class JavaService {
       // Check system Java installations
       const systemJava = await this.findSystemJava();
       installedVersions.push(...systemJava);
+
+      // User-registered custom installations
+      const customJava = await this.getCustomJavaVersions();
+      installedVersions.push(...customJava);
 
       return installedVersions;
     } catch (error) {
@@ -296,16 +314,31 @@ export class JavaService {
     runtime?: string;
   }> {
     try {
-      const java = spawn(javaPath.trim(), ["-version"]);
+      const java = spawn(javaPath.trim(), ["-version"], {
+        stdio: ["ignore", "ignore", "pipe"],
+      });
 
       let output = "";
-      java.stderr.on("data", (data: Buffer) => {
+      java.stderr?.on("data", (data: Buffer) => {
         output += data.toString();
       });
 
-      await new Promise((resolve) => {
-        java.on("close", resolve);
+      // Paths can come from users, so a spawn error or a hanging binary must not escape
+      const exited = await new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => {
+          java.kill("SIGKILL");
+          resolve(false);
+        }, JAVA_PROBE_TIMEOUT_MS);
+        java.once("error", () => {
+          clearTimeout(timer);
+          resolve(false);
+        });
+        java.once("close", () => {
+          clearTimeout(timer);
+          resolve(true);
+        });
       });
+      if (!exited) return {};
 
       const lines = output.split("\n");
       const versionLine = lines[0];
@@ -361,6 +394,9 @@ export class JavaService {
   }
 
   private async findSystemJava(): Promise<JavaVersion[]> {
+    const candidates: string[] = [];
+
+    // PATH lookup via which/where
     try {
       const execAsync = promisify(exec);
 
@@ -368,36 +404,61 @@ export class JavaService {
       const locate = process.platform === "win32" ? "where" : "which";
       const { stdout } = await execAsync(`${locate} ${javaExe}`);
 
-      const paths = stdout
-        .trim()
-        .split("\n")
-        .map((p) => p.trim())
-        .filter(Boolean);
-      const versions: JavaVersion[] = [];
-
-      for (const javaPath of paths) {
-        try {
-          const javaInfo = await this.getJavaInfo(javaPath);
-          if (javaInfo.runtime) {
-            versions.push({
-              version: this.extractVersionNumber(javaInfo.runtime),
-              name: `System Java ${this.extractVersionNumber(javaInfo.runtime)}`,
-              type: "jdk",
-              os: process.platform,
-              arch: process.arch,
-              path: javaPath,
-              ...javaInfo,
-            });
-          }
-        } catch {
-          // Ignore individual Java installations that fail
-        }
-      }
-
-      return versions;
+      candidates.push(
+        ...stdout
+          .trim()
+          .split("\n")
+          .map((p) => p.trim())
+          .filter(Boolean),
+      );
     } catch {
-      return [];
+      // No java on PATH, env vars below may still point somewhere
     }
+
+    // JAVA_HOME-style env vars pointing at installation roots
+    for (const home of this.javaHomesFromEnv()) {
+      const binary = await this.resolveJavaBinary(home);
+      if (binary) candidates.push(binary);
+    }
+
+    const versions: JavaVersion[] = [];
+    const seen = new Set<string>();
+
+    for (const javaPath of candidates) {
+      try {
+        // Dedupe symlinked duplicates (PATH shims vs JAVA_HOME)
+        const realPath = await fs.realpath(javaPath).catch(() => javaPath);
+        if (seen.has(realPath)) continue;
+        seen.add(realPath);
+
+        const javaInfo = await this.getJavaInfo(javaPath);
+        if (javaInfo.runtime) {
+          versions.push({
+            version: this.extractVersionNumber(javaInfo.runtime),
+            name: `System Java ${this.extractVersionNumber(javaInfo.runtime)}`,
+            type: "jdk",
+            os: process.platform,
+            arch: process.arch,
+            path: javaPath,
+            ...javaInfo,
+          });
+        }
+      } catch {
+        // Ignore individual Java installations that fail
+      }
+    }
+
+    return versions;
+  }
+
+  /** Installation roots taken from JAVA_HOME / JDK_HOME style environment variables */
+  private javaHomesFromEnv(): string[] {
+    const homes: string[] = [];
+    for (const [key, value] of Object.entries(process.env)) {
+      if (!value) continue;
+      if (/^(JAVA|JDK|JRE)[A-Z0-9_]*_HOME$/.test(key)) homes.push(value.trim());
+    }
+    return [...new Set(homes.filter(Boolean))];
   }
 
   /**
@@ -497,6 +558,173 @@ export class JavaService {
   }
 
   /**
+   * Resolve a java binary from an arbitrary path, a direct binary or an installation folder
+   */
+  async resolveJavaBinary(inputPath: string): Promise<string | null> {
+    try {
+      const stat = await fs.stat(inputPath);
+      if (stat.isFile()) {
+        const name = path.basename(inputPath).toLowerCase();
+        return JAVA_BINARY_NAMES.has(name) ? inputPath : null;
+      }
+      if (stat.isDirectory())
+        return await this.findJavaBinaryInDirectory(inputPath);
+    } catch {
+      // Missing path, fall through to null
+    }
+    return null;
+  }
+
+  /**
+   * Strictly validate an arbitrary Java path, the binary must exist and answer java -version
+   */
+  async validateJavaPath(inputPath: string): Promise<{
+    valid: boolean;
+    resolvedPath?: string;
+    version?: string;
+    vendor?: string;
+    build?: string;
+    runtime?: string;
+    error?: string;
+  }> {
+    const trimmed = inputPath?.trim();
+    if (!trimmed) return { valid: false, error: "Path is empty" };
+
+    const binary = await this.resolveJavaBinary(trimmed);
+    if (!binary) {
+      return { valid: false, error: "No java binary found at the given path" };
+    }
+
+    const info = await this.getJavaInfo(binary);
+    if (!info.runtime) {
+      return { valid: false, error: "Failed to run java -version" };
+    }
+
+    return {
+      valid: true,
+      resolvedPath: binary,
+      version: this.extractVersionNumber(info.runtime),
+      ...info,
+    };
+  }
+
+  /** Read the custom Java registry file */
+  private async loadCustomJavas(): Promise<CustomJavaEntry[]> {
+    try {
+      const raw = await fs.readFile(this.customJavaFile, "utf-8");
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private async saveCustomJavas(entries: CustomJavaEntry[]): Promise<void> {
+    await fs.mkdir(this.javaDir, { recursive: true });
+    await fs.writeFile(this.customJavaFile, JSON.stringify(entries, null, 2));
+  }
+
+  /** Registered custom installations as JavaVersion rows */
+  async getCustomJavaVersions(): Promise<JavaVersion[]> {
+    const entries = await this.loadCustomJavas();
+    return entries.map((entry) => ({
+      version: entry.version,
+      name: entry.name || `Custom Java ${entry.version}`,
+      type: "jdk" as const,
+      os: process.platform,
+      arch: process.arch,
+      path: entry.resolvedPath,
+      vendor: entry.vendor,
+      build: entry.build,
+      runtime: entry.runtime,
+      custom: true,
+      id: entry.id,
+    }));
+  }
+
+  /**
+   * Register a custom Java installation from an arbitrary local path
+   */
+  async addCustomJava(inputPath: string, name?: string): Promise<JavaVersion> {
+    const validation = await this.validateJavaPath(inputPath);
+    if (!validation.valid || !validation.resolvedPath) {
+      throw new BadRequestException(validation.error || "Invalid Java path");
+    }
+
+    const entries = await this.loadCustomJavas();
+    const duplicate = entries.find(
+      (e) => e.resolvedPath === validation.resolvedPath,
+    );
+    if (duplicate) {
+      throw new BadRequestException("This Java is already registered");
+    }
+
+    const entry: CustomJavaEntry = {
+      id: generateRandomString(12),
+      name: name?.trim() || undefined,
+      path: inputPath.trim(),
+      resolvedPath: validation.resolvedPath,
+      version: validation.version || "unknown",
+      vendor: validation.vendor,
+      build: validation.build,
+      runtime: validation.runtime,
+    };
+    entries.push(entry);
+    await this.saveCustomJavas(entries);
+
+    return {
+      version: entry.version,
+      name: entry.name || `Custom Java ${entry.version}`,
+      type: "jdk",
+      os: process.platform,
+      arch: process.arch,
+      path: entry.resolvedPath,
+      vendor: entry.vendor,
+      build: entry.build,
+      runtime: entry.runtime,
+      custom: true,
+      id: entry.id,
+    };
+  }
+
+  /**
+   * Guard a JAVA_PATH server variable, arbitrary paths need MANAGE_JAVA,
+   * everyone else may only pick a registered custom installation
+   */
+  async assertJavaPathAllowed(
+    javaPath: unknown,
+    user: IUser,
+    currentPath?: unknown,
+  ): Promise<void> {
+    if (typeof javaPath !== "string" || !javaPath.trim()) return;
+    const trimmed = javaPath.trim();
+    // Untouched value carried over from the stored server config
+    if (typeof currentPath === "string" && currentPath.trim() === trimmed)
+      return;
+    if (user.permissions.includes(UserPermissions.MANAGE_JAVA)) return;
+
+    const entries = await this.loadCustomJavas();
+    const registered = entries.some(
+      (e) => e.resolvedPath === trimmed || e.path === trimmed,
+    );
+    if (!registered) {
+      throw new ForbiddenException(
+        "Custom Java paths require MANAGE_JAVA, pick a registered installation",
+      );
+    }
+  }
+
+  /** Unregister a custom Java, files on disk are left untouched */
+  async removeCustomJava(id: string): Promise<void> {
+    const entries = await this.loadCustomJavas();
+    const next = entries.filter((e) => e.id !== id);
+    if (next.length === entries.length) {
+      throw new NotFoundException("Custom Java not found");
+    }
+    await this.saveCustomJavas(next);
+  }
+
+  /**
    * Convert process.arch to Adoptium required arch
    */
   private archToArch() {
@@ -547,6 +775,14 @@ export class JavaService {
         return {
           success: false,
           error: "Cannot delete system Java installation",
+        };
+      }
+
+      // Custom installations are unregistered via removeCustomJava instead
+      if (versionToDelete.custom) {
+        return {
+          success: false,
+          error: "Custom Java is removed via the custom registry",
         };
       }
 

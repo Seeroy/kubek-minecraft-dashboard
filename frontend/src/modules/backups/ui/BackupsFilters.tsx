@@ -34,7 +34,8 @@ export const BackupsFilters = ({
 
   return (
     <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
-      <div className="min-w-0 flex-1">
+      {/* Fixed width on desktop, the header row sizes this block by content */}
+      <div className="min-w-0 flex-1 md:w-96 md:flex-none">
         <div className="relative">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
           <Input

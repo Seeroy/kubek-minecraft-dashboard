@@ -24,6 +24,11 @@ export const modsTranslations: TranslationDictionary = {
     actions: {
       refresh: "Refresh",
       refreshing: "Refreshing",
+      upload: "Upload",
+      uploading: "Uploading",
+    },
+    dropzone: {
+      hint: "Drop .jar files to install",
     },
     notifications: {
       loadInstalledFailed: "Failed to load installed mods",
@@ -31,6 +36,10 @@ export const modsTranslations: TranslationDictionary = {
       missingProjectId: "Unable to determine mod identifier",
       manualRemoveSuccess: (fileName: string) => `Removed ${ fileName }`,
       manualRemoveFailed: "Failed to remove manual mod",
+      uploading: "Uploading mods…",
+      uploadNoJar: "Select mod files in .jar format",
+      uploadedMany: ({ count }: { count: number }) => `Uploaded mods: ${ count }`,
+      uploadSome: ({ ok, fail }: { ok: number; fail: number }) => `Uploaded ${ ok }, failed ${ fail }`,
     },
   },
   installedTab: {

@@ -23,10 +23,18 @@ export class StatsService implements OnModuleInit {
     private readonly configService: ConfigService,
   ) {}
 
-  async onModuleInit(): Promise<void> {
+  onModuleInit(): void {
     if (!this.isTelemetryEnabled()) return;
-    const stats = await this.collectStats();
-    await this.sendStatsToServer(stats, true);
+    // Send startup stats -> background
+    void this.collectStats()
+      .then((stats) => this.sendStatsToServer(stats, true))
+      .catch((error: unknown) => {
+        if (process.env.NODE_ENV !== "production") {
+          this.logger.warn(
+            `Failed to send startup statistics: ${getErrorMessage(error)}`,
+          );
+        }
+      });
   }
 
   isTelemetryEnabled(): boolean {

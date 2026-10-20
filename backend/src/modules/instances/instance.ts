@@ -485,12 +485,23 @@ export class ServerInstance implements IInstance {
       );
     }
 
-    const version = this.blueprintResolver.javaVersion(blueprint, scope);
-    if (version) {
-      const javaPath = await this.javaService.getManagedJavaPath(version);
+    // A per-server JAVA_PATH override wins over the managed runtime
+    const customJava = this.config.variables?.JAVA_PATH;
+    if (typeof customJava === "string" && customJava.trim()) {
+      const javaPath = await this.javaService.resolveJavaBinary(
+        customJava.trim(),
+      );
       if (!javaPath)
-        throw new Error(`Managed Java ${version} is not installed`);
+        throw new Error(`No java binary found at ${customJava.trim()}`);
       scope.JAVA_BIN = path.resolve(javaPath);
+    } else {
+      const version = this.blueprintResolver.javaVersion(blueprint, scope);
+      if (version) {
+        const javaPath = await this.javaService.getManagedJavaPath(version);
+        if (!javaPath)
+          throw new Error(`Managed Java ${version} is not installed`);
+        scope.JAVA_BIN = path.resolve(javaPath);
+      }
     }
 
     return this.blueprintResolver.substitute(command, scope);

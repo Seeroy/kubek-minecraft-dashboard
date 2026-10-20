@@ -89,6 +89,14 @@ export const newServerModalTranslations: TranslationDictionary = {
       badges: {
         recommended: "Recommended",
         installed: "Installed",
+        custom: "Custom",
+      },
+      manual: {
+        option: "Custom Java path...",
+        placeholder: "/path/to/java or installation folder",
+        apply: "Apply",
+        invalid: "No working Java found at this path",
+        applied: "Custom Java path applied",
       },
     },
   },

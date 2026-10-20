@@ -41,4 +41,16 @@ export class JavaVersionEntity {
     required: false,
   })
   downloadUrl?: string;
+
+  @ApiProperty({
+    description: "True for user-registered custom installations",
+    required: false,
+  })
+  custom?: boolean;
+
+  @ApiProperty({
+    description: "Registry id of a custom installation",
+    required: false,
+  })
+  id?: string;
 }

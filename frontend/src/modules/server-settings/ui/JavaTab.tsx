@@ -29,25 +29,36 @@ export const JavaTab = () => {
   }
 
   const current = selectedServer.variables?.JAVA_VERSION;
+  const currentPath = selectedServer.variables?.JAVA_PATH;
 
-  const updateJavaVersion = async (version: number) => {
+  const saveJavaVariables = async (
+    variables: Record<string, string | number>
+  ) => {
     setSaveStatus("saving");
     try {
       const response = await api.servers.updateSettings(selectedServer.id, {
-        variables: { JAVA_VERSION: version },
+        variables,
       });
       updateServer(selectedServer.id, response);
       setSaveStatus("success");
-      notify({ title: "Java settings updated", type: "success" });
+      notify({ title: t("notifications.javaSettingsUpdated"), type: "success" });
     } catch (e: any) {
       setSaveStatus("error");
       notify({
-        title: e.message || "Failed to update Java settings",
+        title: e.message || t("notifications.failedToUpdateJavaSettings"),
         type: "error",
       });
     }
     if (resetTimer.current) clearTimeout(resetTimer.current);
     resetTimer.current = setTimeout(() => setSaveStatus("idle"), 2000);
+  };
+
+  const updateJavaVersion = (version: number) =>
+    saveJavaVariables({ JAVA_VERSION: version, JAVA_PATH: "" });
+
+  // Clearing ("") comes with a version pick, updateJavaVersion already resets JAVA_PATH
+  const updateJavaPath = async (path: string) => {
+    if (path) await saveJavaVariables({ JAVA_PATH: path });
   };
 
   return (
@@ -68,6 +79,13 @@ export const JavaTab = () => {
             label={t("java.javaVersion")}
             value={current as number | undefined}
             onChange={updateJavaVersion}
+            pathValue={(currentPath as string | undefined) || ""}
+            // Docker images ship their own Java, no host path override there
+            onPathChange={
+              selectedServer.runtimeKind === "docker"
+                ? undefined
+                : updateJavaPath
+            }
           />
         </CardContent>
       </Card>

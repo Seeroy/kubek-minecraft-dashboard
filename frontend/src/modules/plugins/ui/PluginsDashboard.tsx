@@ -16,9 +16,18 @@ import { PageLayout } from "@/shared/ui/PageLayout";
 import { PageTabsHeader } from "@/shared/ui/PageTabsHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { InstalledPluginView } from "@shared/types/plugins";
-import { Loader2, Monitor, Plug, RefreshCcw, Settings } from "lucide-react";
-import { useMemo } from "react";
+import {
+  Loader2,
+  Monitor,
+  Plug,
+  RefreshCcw,
+  Settings,
+  Upload,
+  UploadCloud,
+} from "lucide-react";
+import { useMemo, useRef } from "react";
 import { getContentKind } from "../content-kind";
+import { useContentUpload } from "../hooks/useContentUpload";
 import { AvailablePluginsTab } from "./AvailablePluginsTab";
 import { InstalledPluginsTab } from "./InstalledPluginsTab";
 
@@ -39,6 +48,14 @@ const PluginsDashboard = ({ kind = "plugin" }: ContentDashboardProps) => {
   const isInstalledLoading = installedQuery.isFetching;
 
   const reloadInstalled = () => installedQuery.refetch();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const upload = useContentUpload({
+    serverId: selectedServer?.id,
+    folder: config.installFolder,
+    t,
+    onComplete: reloadInstalled,
+  });
 
   const handleOpenInstall = (projectId: string, initialVersionId?: string) => {
     if (!selectedServer) {
@@ -174,46 +191,91 @@ const PluginsDashboard = ({ kind = "plugin" }: ContentDashboardProps) => {
             </TabsList>
           }
           actions={
-            <Button
-              variant="outline"
-              onClick={() => {
-                reloadInstalled();
-              }}
-              disabled={isInstalledLoading}
-              className="flex-shrink-0"
-            >
-              {isInstalledLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("actions.refreshing")}
-                </>
-              ) : (
-                <>
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  {t("actions.refresh")}
-                </>
-              )}
-            </Button>
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".jar"
+                multiple
+                className="hidden"
+                onChange={upload.handleInputChange}
+              />
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={upload.isUploading}
+                className="flex-shrink-0"
+              >
+                {upload.isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("actions.uploading")}
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    {t("actions.upload")}
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  reloadInstalled();
+                }}
+                disabled={isInstalledLoading}
+                className="flex-shrink-0"
+              >
+                {isInstalledLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("actions.refreshing")}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    {t("actions.refresh")}
+                  </>
+                )}
+              </Button>
+            </>
           }
         />
 
-        <TabsContent value="installed" className="mt-6">
-          <InstalledPluginsTab
-            installed={installed}
-            isInstalledLoading={isInstalledLoading}
-            installedDependencies={installedDependencies}
-            onUpdate={handleUpdate}
-            onRemove={handleRemove}
-          />
-        </TabsContent>
+        <div
+          className="relative min-h-[60vh]"
+          onDragEnter={upload.handleDragEnter}
+          onDragLeave={upload.handleDragLeave}
+          onDragOver={upload.handleDragOver}
+          onDrop={upload.handleDrop}
+        >
+          <TabsContent value="installed" className="mt-6">
+            <InstalledPluginsTab
+              installed={installed}
+              isInstalledLoading={isInstalledLoading}
+              installedDependencies={installedDependencies}
+              onUpdate={handleUpdate}
+              onRemove={handleRemove}
+            />
+          </TabsContent>
 
-        <TabsContent value="available" className="mt-6">
-          <AvailablePluginsTab
-            kind={kind}
-            selectedServer={selectedServer}
-            onInstall={handleOpenInstall}
-          />
-        </TabsContent>
+          <TabsContent value="available" className="mt-6">
+            <AvailablePluginsTab
+              kind={kind}
+              selectedServer={selectedServer}
+              onInstall={handleOpenInstall}
+            />
+          </TabsContent>
+
+          {upload.isDragOver && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-primary/70 bg-primary/5 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-2 text-primary">
+                <UploadCloud className="h-10 w-10" />
+                <p className="text-sm font-medium">{t("dropzone.hint")}</p>
+              </div>
+            </div>
+          )}
+        </div>
       </Tabs>
     </PageLayout>
   );

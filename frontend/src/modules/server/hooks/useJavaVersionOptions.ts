@@ -34,10 +34,23 @@ export function useJavaVersionOptions(): {
     // (managed runtime under ./binaries/java or a system Java) rather than only a downloadUrl
     const installedMajors = new Set<string>();
     for (const installation of data ?? []) {
+      if (installation.custom) continue;
       const major = majorVersion(installation.version);
       majors.add(major);
       if (installation.path) installedMajors.add(major);
     }
+
+    // User-registered custom installations, selectable by their local path
+    const custom = (data ?? [])
+      .filter((installation) => installation.custom && installation.path)
+      .map<JavaVersion>((installation) => ({
+        version: `custom:${installation.id}`,
+        label: installation.name,
+        managed: false,
+        custom: true,
+        path: installation.path,
+        installed: true,
+      }));
 
     const managed = Array.from(majors)
       .sort((a, b) => Number(b) - Number(a))
@@ -69,7 +82,7 @@ export function useJavaVersionOptions(): {
       ),
     };
 
-    return [...managed, system];
+    return [...managed, ...custom, system];
   }, [data, t]);
 
   return { options, isLoading };

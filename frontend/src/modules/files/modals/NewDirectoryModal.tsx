@@ -53,7 +53,7 @@ function NewDirectoryModalComponent({
     setIsLoading(true);
     try {
       await api.files.createDirectory(selectedServer.id, {
-        path: currentPath,
+        path: currentPath || "/",
         name: directoryName.trim(),
       });
 

@@ -59,6 +59,8 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
 
   const [view, setView] = useState<"form" | "progress">("form");
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  // Custom Java path override lives outside RHF, the per-blueprint zod schema would strip it
+  const [javaPath, setJavaPath] = useState("");
 
   // The validation schema changes per blueprint
   const schemaRef = useRef<
@@ -132,8 +134,14 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
     setActiveTaskId(null);
     setView("form");
     schemaRef.current = null;
+    setJavaPath("");
     form.reset(EMPTY_WIZARD_VALUES);
   }, [form, isOpen]);
+
+  // Blueprint switch resets the Java override along with the rest of the form
+  useEffect(() => {
+    setJavaPath("");
+  }, [blueprintId]);
 
   const handleSubmit = useCallback(
     async (values: WizardValues) => {
@@ -145,6 +153,9 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
         ...values.variables,
       };
       if (port) mergedVariables[port.key] = values.port;
+      // Docker images ship their own Java, a host path means nothing inside the container
+      const isDocker = canChooseDocker && !!values.runtimeDocker;
+      if (javaPath && !isDocker) mergedVariables.JAVA_PATH = javaPath;
 
       const payload: CreateServerDto = {
         name: values.name,
@@ -181,7 +192,7 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
         });
       }
     },
-    [selectedBlueprint, canChooseDocker, servers, setServers, notify, t]
+    [selectedBlueprint, canChooseDocker, javaPath, servers, setServers, notify, t]
   );
 
   const handleOpenChange = (open: boolean) => {
@@ -382,6 +393,12 @@ export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
                                 form.setValue("variables.JAVA_VERSION", value, {
                                   shouldValidate: true,
                                 })
+                              }
+                              pathValue={javaPath}
+                              onPathChange={
+                                canChooseDocker && runtimeDocker
+                                  ? undefined
+                                  : setJavaPath
                               }
                             />
                           );

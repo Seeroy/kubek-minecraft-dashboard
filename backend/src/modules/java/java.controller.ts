@@ -6,6 +6,7 @@ import { RequirePermissions } from "@/modules/auth/decorators/require-permission
 import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import { TasksService } from "@/modules/tasks/tasks.service";
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -17,6 +18,7 @@ import {
 import {
   ApiAcceptedResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiExtension,
   ApiNoContentResponse,
   ApiOkResponse,
@@ -28,6 +30,10 @@ import {
 import { TaskStatus, TaskSteps, TaskType } from "@shared/types/task.types";
 import { type IUser, UserPermissions } from "@shared/types/user.types";
 import { BearerAuthGuard } from "../auth/guards/bearer.guard";
+import {
+  CustomJavaRequestDto,
+  JavaPathValidationDto,
+} from "./dto/custom-java.dto";
 import { JavaVersionEntity } from "./dto/java-version.entity";
 import { JavaService } from "./java.service";
 
@@ -55,6 +61,53 @@ export class JavaController {
   async getAllJavaVersions(): Promise<JavaVersionEntity[]> {
     const installations = await this.javaService.getAllJavaInstallations();
     return installations;
+  }
+
+  /**
+   * Validate an arbitrary local Java path without registering it.
+   */
+  @Post("custom/validate")
+  @HttpCode(200)
+  @ApiOperation({ summary: "Validate a local Java path" })
+  @ApiOkResponse({ type: JavaPathValidationDto })
+  @ApiErrorResponses()
+  @ApiResponse({ status: 403, description: "Requires MANAGE_JAVA permission" })
+  @ApiExtension("x-permissions", [UserPermissions.MANAGE_JAVA])
+  async validateJavaPath(
+    @Body() body: CustomJavaRequestDto,
+  ): Promise<JavaPathValidationDto> {
+    return this.javaService.validateJavaPath(body.path);
+  }
+
+  /**
+   * Register a custom Java installation from a local path.
+   */
+  @Post("custom")
+  @HttpCode(201)
+  @ApiOperation({ summary: "Register a custom Java installation" })
+  @ApiCreatedResponse({ type: JavaVersionEntity })
+  @ApiErrorResponses()
+  @ApiResponse({ status: 403, description: "Requires MANAGE_JAVA permission" })
+  @ApiExtension("x-permissions", [UserPermissions.MANAGE_JAVA])
+  async addCustomJava(
+    @Body() body: CustomJavaRequestDto,
+  ): Promise<JavaVersionEntity> {
+    return this.javaService.addCustomJava(body.path, body.name);
+  }
+
+  /**
+   * Unregister a custom Java installation, files are left untouched.
+   */
+  @Delete("custom/:id")
+  @HttpCode(204)
+  @ApiOperation({ summary: "Unregister a custom Java installation" })
+  @ApiParam({ name: "id", description: "Custom Java registry id" })
+  @ApiNoContentResponse({ description: "Custom Java unregistered" })
+  @ApiErrorResponses()
+  @ApiResponse({ status: 403, description: "Requires MANAGE_JAVA permission" })
+  @ApiExtension("x-permissions", [UserPermissions.MANAGE_JAVA])
+  async removeCustomJava(@Param("id") id: string): Promise<void> {
+    await this.javaService.removeCustomJava(id);
   }
 
   /**

@@ -73,6 +73,9 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? configuredPort);
   await Startup.serverStarted(configuredPort);
+
+  // Check for updates -> background
+  void Startup.checkForUpdates();
 }
 
 bootstrap();

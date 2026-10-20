@@ -15,9 +15,17 @@ import { PageLoading } from "@/shared/ui/PageLoading";
 import { PageTabsHeader } from "@/shared/ui/PageTabsHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import type { JavaVersion } from "@/api/java/java.model";
-import { Cpu, Loader2, Package, RefreshCcw, Server } from "lucide-react";
+import {
+  Cpu,
+  FolderSearch,
+  Loader2,
+  Package,
+  RefreshCcw,
+  Server,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import AvailableJavaVersionsTab from "./AvailableJavaVersionsTab";
+import CustomJavaTab from "./CustomJavaTab";
 import InstalledJavaVersionsTab from "./InstalledJavaVersionsTab";
 import ServerJavaUsageTab from "./ServerJavaUsageTab";
 
@@ -26,6 +34,7 @@ interface ServerJavaUsage {
   serverName: string;
   javaVersion: string;
   isManaged: boolean;
+  isCustom?: boolean;
 }
 
 const JavaManager = () => {
@@ -46,17 +55,38 @@ const JavaManager = () => {
 
   const allVersions = javaQuery.data ?? [];
   const installedVersions = useMemo(
-    () => allVersions.filter((v) => v.path),
+    () => allVersions.filter((v) => v.path && !v.custom),
     [allVersions]
   );
   const availableVersions = useMemo(
     () => allVersions.filter((v) => !v.path),
     [allVersions]
   );
+  const customVersions = useMemo(
+    () => allVersions.filter((v) => v.custom),
+    [allVersions]
+  );
 
   const serverUsage = useMemo<ServerJavaUsage[]>(() => {
     const usage: ServerJavaUsage[] = [];
     for (const server of servers) {
+      // A JAVA_PATH override points at a custom local installation
+      const javaPath = server.variables?.JAVA_PATH;
+      if (
+        server.runtimeKind !== "docker" &&
+        typeof javaPath === "string" &&
+        javaPath
+      ) {
+        usage.push({
+          serverId: server.id,
+          serverName: server.name,
+          javaVersion: javaPath,
+          isManaged: false,
+          isCustom: true,
+        });
+        continue;
+      }
+
       // The Java a server runs on is the JAVA_VERSION blueprint variable
       const rawJava = server.variables?.JAVA_VERSION;
       if (rawJava === undefined || rawJava === null || rawJava === "") continue;
@@ -178,6 +208,10 @@ const JavaManager = () => {
                 <Package className="h-4 w-4" />
                 {t("tabs.available", availableVersions.length)}
               </TabsTrigger>
+              <TabsTrigger value="custom" className="flex items-center gap-2">
+                <FolderSearch className="h-4 w-4" />
+                {t("tabs.custom", customVersions.length)}
+              </TabsTrigger>
               <TabsTrigger value="servers" className="flex items-center gap-2">
                 <Server className="h-4 w-4" />
                 {t("tabs.serverUsage", serverUsage.length)}
@@ -222,6 +256,10 @@ const JavaManager = () => {
             installingVersions={installingVersions}
             onInstall={handleInstall}
           />
+        </TabsContent>
+
+        <TabsContent value="custom" className="mt-6 space-y-6">
+          <CustomJavaTab customVersions={customVersions} />
         </TabsContent>
 
         <TabsContent value="servers" className="mt-6 space-y-6">

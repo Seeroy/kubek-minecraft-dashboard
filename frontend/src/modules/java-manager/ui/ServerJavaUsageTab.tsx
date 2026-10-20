@@ -15,6 +15,7 @@ interface ServerJavaUsage {
   serverName: string;
   javaVersion: string;
   isManaged: boolean;
+  isCustom?: boolean;
 }
 
 interface ServerJavaUsageTabProps {
@@ -51,20 +52,27 @@ const ServerJavaUsageTab: React.FC<ServerJavaUsageTabProps> = ({
                 key={usage.serverId}
                 className="flex items-center justify-between rounded-lg border p-3"
               >
-                <div>
+                <div className="min-w-0">
                   <p className="font-medium">{usage.serverName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {t(
-                      "serverUsage.versionLabel",
-                      usage.javaVersion,
-                      usage.isManaged
-                    )}
+                  <p
+                    className="truncate text-sm text-muted-foreground"
+                    title={usage.javaVersion}
+                  >
+                    {usage.isCustom
+                      ? usage.javaVersion
+                      : t(
+                          "serverUsage.versionLabel",
+                          usage.javaVersion,
+                          usage.isManaged
+                        )}
                   </p>
                 </div>
                 <Badge variant={usage.isManaged ? "default" : "outline"}>
-                  {usage.isManaged
-                    ? t("serverUsage.managed")
-                    : t("serverUsage.system")}
+                  {usage.isCustom
+                    ? t("serverUsage.custom")
+                    : usage.isManaged
+                      ? t("serverUsage.managed")
+                      : t("serverUsage.system")}
                 </Badge>
               </div>
             ))}

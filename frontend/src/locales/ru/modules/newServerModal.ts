@@ -89,6 +89,14 @@ export const newServerModalTranslations: TranslationDictionary = {
       badges: {
         recommended: "Рекомендуется",
         installed: "Установлена",
+        custom: "Кастомная",
+      },
+      manual: {
+        option: "Указать путь к Java...",
+        placeholder: "/путь/к/java или папке установки",
+        apply: "Применить",
+        invalid: "По этому пути не найдена рабочая Java",
+        applied: "Кастомный путь к Java применён",
       },
     },
   },

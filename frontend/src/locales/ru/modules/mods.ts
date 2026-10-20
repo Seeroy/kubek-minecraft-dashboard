@@ -24,6 +24,11 @@ export const modsTranslations: TranslationDictionary = {
     actions: {
       refresh: "Обновить",
       refreshing: "Обновление",
+      upload: "Загрузить",
+      uploading: "Загрузка",
+    },
+    dropzone: {
+      hint: "Отпустите .jar файлы для установки",
     },
     notifications: {
       loadInstalledFailed: "Не удалось загрузить установленные моды",
@@ -31,6 +36,10 @@ export const modsTranslations: TranslationDictionary = {
       missingProjectId: "Не удалось определить идентификатор мода",
       manualRemoveSuccess: (fileName: string) => `Удален ${ fileName }`,
       manualRemoveFailed: "Не удалось удалить ручной мод",
+      uploading: "Загрузка модов…",
+      uploadNoJar: "Выберите файлы модов в формате .jar",
+      uploadedMany: ({ count }: { count: number }) => `Загружено модов: ${ count }`,
+      uploadSome: ({ ok, fail }: { ok: number; fail: number }) => `Загружено ${ ok }, не удалось ${ fail }`,
     },
   },
   installedTab: {

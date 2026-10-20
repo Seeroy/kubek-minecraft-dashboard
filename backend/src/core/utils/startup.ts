@@ -9,6 +9,9 @@ import { checkForUpdates, getVersion } from "./updates";
 
 type SpinnerType = "webServer" | "publicIP" | "privateIP" | "updates";
 
+// Hard cap for public IP lookup so boot never hangs
+const PUBLIC_IP_TIMEOUT_MS = 10_000;
+
 const spinnerPool: Record<SpinnerType, Ora | null> = {
   webServer: null,
   publicIP: null,
@@ -40,9 +43,6 @@ export class Startup {
    * Run the pre-boot intro before the application starts logging
    */
   static async runIntro() {
-    // Check for updates
-    await this.checkForUpdates();
-
     // Waiting for IP initialization
     await this.startPrivateIPSpinner();
     await asyncTimeout(100);
@@ -83,10 +83,9 @@ export class Startup {
   }
 
   /**
-   * Check for updates
-   * @private
+   * Check for updates in the background so boot never waits on the network
    */
-  private static async checkForUpdates() {
+  static async checkForUpdates() {
     this.createSpinner("updates", " Checking for updates", "yellow");
 
     const updatePromise = checkForUpdates();
@@ -143,16 +142,33 @@ export class Startup {
   private static async startPublicIPSpinner() {
     this.createSpinner("publicIP", " Getting Public IP", "cyan");
 
+    // Fetch public IP, lib timeouts are unreliable on Bun so race it
+    const request = publicIpv4({ timeout: 3000, onlyHttps: true });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error("timeout")),
+        PUBLIC_IP_TIMEOUT_MS,
+      );
+    });
+
     try {
-      // Fetch public IP
-      const ipv4 = await publicIpv4({ timeout: 2000, onlyHttps: true });
+      const ipv4 = await Promise.race([request, timeout]);
       await this.setPublicIP(chalk.cyan(ipv4));
       return true;
-    } catch (e) {
-      console.error(e);
-      // Show failure (timeout or error)
-      await this.setPublicIP("Failed");
+    } catch (error: unknown) {
+      request.cancel();
+      // Writing to stdout here would break the spinner, show failure only
+      await this.updateSpinnerWithDelay(
+        "publicIP",
+        "fail",
+        getErrorMessage(error) === "timeout"
+          ? "Public IP: timed out"
+          : "Public IP: failed",
+      );
       return false;
+    } finally {
+      clearTimeout(timer);
     }
   }
 
@@ -175,6 +191,8 @@ export class Startup {
       spinner: "dots",
       color,
       prefixText: "   ",
+      // Raw stdin mode swallows Ctrl+C and breaks redraws on Bun
+      discardStdin: false,
     }).start();
   }
 

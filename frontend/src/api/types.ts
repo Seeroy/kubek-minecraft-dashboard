@@ -539,6 +539,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/java/custom/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate a local Java path */
+        post: operations["JavaController_validateJavaPath"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/java/custom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register a custom Java installation */
+        post: operations["JavaController_addCustomJava"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/java/custom/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unregister a custom Java installation */
+        delete: operations["JavaController_removeCustomJava"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/java/{gameVersion}": {
         parameters: {
             query?: never;
@@ -2522,6 +2573,36 @@ export interface components {
             runtime?: string;
             /** @description Download URL for available (not yet installed) versions */
             downloadUrl?: string;
+            /** @description True for user-registered custom installations */
+            custom?: boolean;
+            /** @description Registry id of a custom installation */
+            id?: string;
+        };
+        CustomJavaRequestDto: {
+            /**
+             * @description Path to a java binary or an installation folder
+             * @example /opt/jdk-21
+             */
+            path: string;
+            /**
+             * @description Optional display name
+             * @example GraalVM 21
+             */
+            name?: string;
+        };
+        JavaPathValidationDto: {
+            /** @description Whether a working java was found at the path */
+            valid: boolean;
+            /** @description Resolved path to the java binary */
+            resolvedPath?: string;
+            /** @description Detected version */
+            version?: string;
+            /** @description Detected vendor */
+            vendor?: string;
+            /** @description Detected runtime string */
+            runtime?: string;
+            /** @description Failure reason */
+            error?: string;
         };
         TaskRefResponseDto: {
             /**
@@ -5975,6 +6056,196 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["JavaVersionEntity"][];
                 };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            /** @description Requires MANAGE_JAVA permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    JavaController_validateJavaPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomJavaRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JavaPathValidationDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            /** @description Requires MANAGE_JAVA permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    JavaController_addCustomJava: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomJavaRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JavaVersionEntity"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            /** @description Requires MANAGE_JAVA permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    JavaController_removeCustomJava: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Custom Java registry id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Custom Java unregistered */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             400: {
                 headers: {

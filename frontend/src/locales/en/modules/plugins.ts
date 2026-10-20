@@ -24,6 +24,11 @@ export const pluginsTranslations: TranslationDictionary = {
     actions: {
       refresh: "Refresh",
       refreshing: "Refreshing",
+      upload: "Upload",
+      uploading: "Uploading",
+    },
+    dropzone: {
+      hint: "Drop .jar files to install",
     },
     notifications: {
       loadInstalledFailed: "Failed to load installed plugins",
@@ -31,6 +36,10 @@ export const pluginsTranslations: TranslationDictionary = {
       missingProjectId: "Unable to determine plugin identifier",
       manualRemoveSuccess: (fileName: string) => `Removed ${ fileName }`,
       manualRemoveFailed: "Failed to remove manual plugin",
+      uploading: "Uploading plugins…",
+      uploadNoJar: "Select plugin files in .jar format",
+      uploadedMany: ({ count }: { count: number }) => `Uploaded plugins: ${ count }`,
+      uploadSome: ({ ok, fail }: { ok: number; fail: number }) => `Uploaded ${ ok }, failed ${ fail }`,
     },
   },
   installedTab: {

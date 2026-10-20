@@ -60,7 +60,7 @@ export class InstallPipeline {
         await this.runStep(step, blueprint, dir, scope, taskId, opts);
       }
     } else {
-      await this.ensureJava(blueprint, scope, taskId);
+      await this.ensureJava(blueprint, scope, taskId, server);
       await this.resolveDownloadUrl(blueprint, scope);
       for (const step of manifest.install.steps) {
         await this.runStep(step, blueprint, dir, scope, taskId, opts);
@@ -86,7 +86,19 @@ export class InstallPipeline {
     blueprint: LoadedBlueprint,
     scope: ResolveScope,
     taskId?: string,
+    server?: IServer,
   ): Promise<void> {
+    // A custom JAVA_PATH override skips managed provisioning, just check it works
+    const customJava = server?.variables?.JAVA_PATH;
+    if (typeof customJava === "string" && customJava.trim()) {
+      const binary = await this.javaService.resolveJavaBinary(
+        customJava.trim(),
+      );
+      if (!binary)
+        throw new Error(`No java binary found at ${customJava.trim()}`);
+      return;
+    }
+
     const version = this.resolver.javaVersion(blueprint.manifest, scope);
     if (!version) return;
 

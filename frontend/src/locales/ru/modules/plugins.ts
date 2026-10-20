@@ -24,6 +24,11 @@ export const pluginsTranslations: TranslationDictionary = {
     actions: {
       refresh: "Обновить",
       refreshing: "Обновление",
+      upload: "Загрузить",
+      uploading: "Загрузка",
+    },
+    dropzone: {
+      hint: "Отпустите .jar файлы для установки",
     },
     notifications: {
       loadInstalledFailed: "Не удалось загрузить установленные плагины",
@@ -31,6 +36,10 @@ export const pluginsTranslations: TranslationDictionary = {
       missingProjectId: "Не удалось определить идентификатор плагина",
       manualRemoveSuccess: (fileName: string) => `Удален ${ fileName }`,
       manualRemoveFailed: "Не удалось удалить ручной плагин",
+      uploading: "Загрузка плагинов…",
+      uploadNoJar: "Выберите файлы плагинов в формате .jar",
+      uploadedMany: ({ count }: { count: number }) => `Загружено плагинов: ${ count }`,
+      uploadSome: ({ ok, fail }: { ok: number; fail: number }) => `Загружено ${ ok }, не удалось ${ fail }`,
     },
   },
   installedTab: {

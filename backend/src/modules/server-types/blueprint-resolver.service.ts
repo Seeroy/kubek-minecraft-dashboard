@@ -104,6 +104,13 @@ export class BlueprintResolver {
       result[port.key] = num;
     }
 
+    // Panel-reserved JAVA_PATH survives validation even though blueprints never declare it,
+    // an empty string clears the override
+    const javaPath = input.JAVA_PATH;
+    if (typeof javaPath === "string" && javaPath.trim()) {
+      result.JAVA_PATH = javaPath.trim();
+    }
+
     return result;
   }
 

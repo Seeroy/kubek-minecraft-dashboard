@@ -1,5 +1,5 @@
 import { authHttp, type AuthHttpClient } from "@/shared/lib/http";
-import type { JavaVersion } from "./java.model";
+import type { JavaPathValidation, JavaVersion } from "./java.model";
 
 export class JavaApi {
   constructor(private authHttp: AuthHttpClient) {}
@@ -15,6 +15,20 @@ export class JavaApi {
 
   deleteJavaVersion = (version: string): Promise<void> =>
     this.authHttp.delete<void>(`java/${version}`);
+
+  validateJavaPath = (path: string): Promise<JavaPathValidation> =>
+    this.authHttp.post<JavaPathValidation>("java/custom/validate", {
+      json: { path },
+    });
+
+  addCustomJava = (data: {
+    path: string;
+    name?: string;
+  }): Promise<JavaVersion> =>
+    this.authHttp.post<JavaVersion>("java/custom", { json: data });
+
+  removeCustomJava = (id: string): Promise<void> =>
+    this.authHttp.delete<void>(`java/custom/${id}`);
 }
 
 export const javaApi = new JavaApi(authHttp);
