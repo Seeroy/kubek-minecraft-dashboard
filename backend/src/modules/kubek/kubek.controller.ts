@@ -1,14 +1,18 @@
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { IConfiguration } from "@/core/types/config";
-import { Audit } from "@/modules/audit-log/audit.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
+import { extractClientIp } from "@/core/utils/request";
+import { FtpPasswordService } from "@/modules/accounts/ftp-password.service";
+import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
+import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
+import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import {
   Body,
   Controller,
   Get,
   HttpCode,
+  Param,
   HttpStatus,
   Put,
   Req,
@@ -16,24 +20,29 @@ import {
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
-  ApiExtension,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
+import { AccessArea } from "@shared/access/areas";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
-import { UserPermissions } from "@shared/types/user.types";
+import type { IUser } from "@shared/types/user.types";
+import { can } from "@shared/access/can";
 import type { Request } from "express";
-import { ConfigurationDto } from "./dto/configuration.dto";
+import { configAudit } from "./config-audit";
+import { ConfigurationDto, RevealedSecretDto } from "./dto/configuration.dto";
 import { UpdateCheckResultDto } from "./dto/update-check.dto";
 import { KubekService } from "./kubek.service";
 
 @ApiTags("Kubek")
 @ApiBearerAuth()
 @Controller("api/kubek")
-@UseGuards(BearerAuthGuard, PermissionsGuard)
+@UseGuards(BearerAuthGuard, AccessGuard)
 export class KubekController {
-  constructor(private readonly kubekService: KubekService) {}
+  constructor(
+    private readonly kubekService: KubekService,
+    private readonly ftpPasswords: FtpPasswordService,
+  ) {}
 
   /**
    * Get Kubek version
@@ -43,8 +52,7 @@ export class KubekController {
   @ApiOperation({ summary: "Get Kubek version" })
   @ApiOkResponse({ description: "Version string", type: String })
   @ApiErrorResponses()
-  @ApiExtension("x-permissions", [UserPermissions.KUBEK_SETTINGS])
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.PANEL, "manage")
   getVersion(): string {
     return this.kubekService.getVersion();
   }
@@ -60,8 +68,7 @@ export class KubekController {
     type: UpdateCheckResultDto,
   })
   @ApiErrorResponses()
-  @ApiExtension("x-permissions", [UserPermissions.KUBEK_SETTINGS])
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.PANEL, "manage")
   checkForUpdates(): Promise<UpdateCheckResultDto> {
     return this.kubekService.checkForUpdates();
   }
@@ -74,10 +81,27 @@ export class KubekController {
   @ApiOperation({ summary: "Get all configuration" })
   @ApiOkResponse({ description: "Configuration data", type: ConfigurationDto })
   @ApiErrorResponses()
-  @ApiExtension("x-permissions", [UserPermissions.KUBEK_SETTINGS])
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.PANEL, "manage")
   getConfig(): ConfigurationDto {
-    return this.kubekService.getAllConfig();
+    return this.kubekService.getConfigView();
+  }
+
+  /**
+   * Reveal one secret config value, read on demand so it stays out of the config payload
+   */
+  @Get("config/secrets/:path")
+  @ApiOperation({ summary: "Reveal a secret configuration value" })
+  @ApiOkResponse({ description: "Secret value", type: RevealedSecretDto })
+  @ApiErrorResponses()
+  @RequireAccess(AccessArea.PANEL, "manage")
+  @Audit({
+    action: AuditAction.SETTINGS_SECRET_VIEW,
+    category: AuditCategory.SETTINGS,
+    resourceType: "config",
+    resolve: ({ req }) => ({ details: { path: req.params.path } }),
+  })
+  revealSecret(@Param("path") path: string): RevealedSecretDto {
+    return this.kubekService.revealSecret(path);
   }
 
   /**
@@ -93,36 +117,30 @@ export class KubekController {
     type: ConfigurationDto,
   })
   @ApiErrorResponses()
-  @ApiExtension("x-permissions", [UserPermissions.KUBEK_SETTINGS])
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.PANEL, "manage")
   @Audit({
     action: AuditAction.SETTINGS_UPDATE,
     category: AuditCategory.SETTINGS,
     resourceType: "config",
-    // Toggling the embedded FTP service is recorded as its own action
-    resolve: ({ req }) => {
-      const body = (req.body ?? {}) as Partial<IConfiguration>;
-      const keys = Object.keys(body);
-      const nextFtp = body.ftpd?.enabled;
-      const prevFtp = (req as Request & { auditFtpBefore?: boolean })
-        .auditFtpBefore;
-      if (typeof nextFtp === "boolean" && nextFtp !== prevFtp) {
-        return {
-          action: nextFtp ? AuditAction.FTP_ENABLE : AuditAction.FTP_DISABLE,
-          resourceType: "ftp",
-          details: { keys },
-        };
-      }
-      return { details: { keys } };
-    },
   })
   updateConfig(
     @Body() config: Partial<IConfiguration>,
-    @Req() req: Request & { auditFtpBefore?: boolean },
+    @Req() req: Request,
+    @CurrentUser() user: IUser,
   ): ConfigurationDto {
-    req.auditFtpBefore =
-      this.kubekService.getAllConfig().ftpd?.enabled ?? false;
-    return this.kubekService.setConfig(config);
+    const before = this.kubekService.snapshot();
+    const view = this.kubekService.setConfig(config, {
+      userId: user.id,
+      username: user.username,
+      ip: extractClientIp(req),
+      userAgent: req.headers["user-agent"] ?? null,
+    });
+    auditNote(req, configAudit(before, this.kubekService.snapshot()));
+    // Whoever turns FTP on gets a password
+    if (config.ftpd?.enabled && can(user, AccessArea.FILES, "read")) {
+      this.ftpPasswords.ensure(user.id);
+    }
+    return view;
   }
 
   /**

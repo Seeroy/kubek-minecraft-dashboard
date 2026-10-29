@@ -1,14 +1,13 @@
 import { useNotifications } from "@/modules/notifications";
-import { useMoveServersMutation, useServerStore } from "@/modules/server";
+import { useMoveServersMutation } from "@/modules/server";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useCallback } from "react";
 
 /**
- * Moves a single server into a folder, optimistically updating the local store
+ * Move one server into a folder, the mutation updates the list
  */
 export function useMoveServerToFolder() {
   const move = useMoveServersMutation();
-  const { updateServer } = useServerStore();
   const { notify } = useNotifications();
   const { t } = useTranslation("modules.sidebar.serversList");
 
@@ -16,7 +15,6 @@ export function useMoveServerToFolder() {
     async (serverId: string, folderId: string | null) => {
       try {
         await move.mutateAsync({ serverIds: [serverId], folderId });
-        updateServer(serverId, { folderId });
       } catch (error) {
         notify({
           title: t("folders.actionFailed"),
@@ -25,7 +23,7 @@ export function useMoveServerToFolder() {
         });
       }
     },
-    [move, updateServer, notify, t]
+    [move, notify, t]
   );
 }
 

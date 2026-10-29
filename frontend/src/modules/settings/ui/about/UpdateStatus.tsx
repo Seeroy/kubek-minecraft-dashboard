@@ -1,79 +1,54 @@
 "use client";
 
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { GITHUB_REPO_URL } from "@/modules/settings/api/about.queries";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import {
-  AlertCircle,
-  ArrowUpCircle,
-  CheckCircle2,
-  ExternalLink,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, ArrowUpCircle, CheckCircle2, ExternalLink, RotateCw } from "lucide-react";
+import { GITHUB_REPO_URL, useUpdateCheckQuery } from "../../api/about.queries";
 import { formatVersion } from "./version";
 
-const EXTERNAL = { target: "_blank", rel: "noreferrer noopener" } as const;
+/** Update state on the right of the panel card, with a manual recheck */
+export function UpdateStatus() {
+  const { t } = useTranslation("modules.settings.about");
+  const update = useUpdateCheckQuery();
+  const checking = update.isFetching;
 
-interface UpdateStatusProps {
-  checking: boolean;
-  failed: boolean;
-  updatable: boolean;
-  latestVersion: string | undefined;
-}
-
-/** Inline pill summarizing whether the panel is up to date */
-export function UpdateStatus({
-  checking,
-  failed,
-  updatable,
-  latestVersion,
-}: UpdateStatusProps) {
-  const { t } = useTranslation("modules.settings");
-
-  if (checking) {
-    return (
-      <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        {t("about.info.checking")}
-      </span>
-    );
-  }
-
-  if (failed) {
-    return (
-      <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-        <AlertCircle className="size-4" />
-        {t("about.info.checkFailed")}
-      </span>
-    );
-  }
-
-  if (updatable && latestVersion) {
-    return (
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
-        <span className="inline-flex items-center gap-2 text-sm font-medium text-primary">
-          <ArrowUpCircle className="size-4" />
-          {t("about.info.updateAvailable")} {formatVersion(latestVersion)}
-        </span>
-        <Button
-          size="xs"
-          nativeButton={false}
-          render={
-            <a href={`${GITHUB_REPO_URL}/releases/latest`} {...EXTERNAL} />
-          }
-        >
-          {t("about.info.updateCta")}
-          <ExternalLink />
-        </Button>
-      </div>
-    );
-  }
+  const badge = checking ? (
+    <Badge variant="secondary">
+      <RotateCw className="animate-spin" />
+      {t("checking")}
+    </Badge>
+  ) : update.isError ? (
+    <Badge variant="secondary">
+      <AlertCircle />
+      {t("checkFailed")}
+    </Badge>
+  ) : update.data?.updateAvailable && update.data.latestVersion ? (
+    <Badge variant="info">
+      <ArrowUpCircle />
+      {t("updateAvailable", formatVersion(update.data.latestVersion))}
+    </Badge>
+  ) : (
+    <Badge variant="success">
+      <CheckCircle2 />
+      {t("upToDate")}
+    </Badge>
+  );
 
   return (
-    <Badge variant="success" className="gap-1.5">
-      <CheckCircle2 className="size-3" />
-      {t("about.info.upToDate")}
-    </Badge>
+    <div className="grid justify-items-end gap-2 max-sm:justify-items-start">
+      {badge}
+      {update.data?.updateAvailable && !checking ? (
+        <Button size="sm" nativeButton={false} render={<a href={`${GITHUB_REPO_URL}/releases/latest`} target="_blank" rel="noreferrer noopener" />}>
+          {t("openRelease")}
+          <ExternalLink />
+        </Button>
+      ) : (
+        <Button variant="ghost" size="sm" disabled={checking} onClick={() => void update.refetch()}>
+          <RotateCw />
+          {t("checkAgain")}
+        </Button>
+      )}
+    </div>
   );
 }

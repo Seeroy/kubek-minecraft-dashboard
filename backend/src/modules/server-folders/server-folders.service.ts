@@ -38,6 +38,15 @@ export class ServerFoldersService {
     return { deleted: true };
   }
 
+  /** Puts servers into the folder with this name, made when there is none */
+  collect(name: string, serverIds: string[]): IServerFolder {
+    const folder =
+      this.folders.findAll().find((f) => f.name === name) ??
+      this.folders.create({ name: name.slice(0, 64) });
+    this.move(serverIds, folder.id);
+    return folder;
+  }
+
   move(serverIds: string[], folderId: string | null): { moved: number } {
     if (folderId != null) {
       const folder = this.folders.findById(folderId);

@@ -1,3 +1,4 @@
+import { getRealServerPath } from "@/core/utils/serverPath";
 import { FileManagerService } from "@/modules/files/file-manager.service";
 import {
   BadRequestException,
@@ -20,7 +21,7 @@ export class ServerLogsService {
     return this.files.resolveSafePath(serverId, LOGS_DIR);
   }
 
-  private filePathFor(serverId: string, fileName: string): string {
+  private filePathFor(serverId: string, fileName: string): Promise<string> {
     // Disallow path separators in filename
     if (
       fileName.includes("/") ||
@@ -29,8 +30,8 @@ export class ServerLogsService {
     ) {
       throw new BadRequestException("Invalid file name");
     }
-    const safe = this.files.resolveSafePath(serverId, join(LOGS_DIR, fileName));
-    return safe;
+    // logs/ or the file itself may be a link the server planted
+    return getRealServerPath(serverId, join(LOGS_DIR, fileName));
   }
 
   async listFiles(serverId: string): Promise<LogFileDto[]> {
@@ -66,7 +67,7 @@ export class ServerLogsService {
     fileName: string,
     opts: { tail?: number } = {},
   ): Promise<string> {
-    const safe = this.filePathFor(serverId, fileName);
+    const safe = await this.filePathFor(serverId, fileName);
     if (!existsSync(safe) || lstatSync(safe).isDirectory()) {
       throw new NotFoundException("Log file not found");
     }
@@ -108,7 +109,7 @@ export class ServerLogsService {
     query: string,
   ): Promise<LogSearchResultDto[]> {
     if (!query || query.trim().length === 0) return [];
-    const safe = this.filePathFor(serverId, fileName);
+    const safe = await this.filePathFor(serverId, fileName);
     if (!existsSync(safe) || lstatSync(safe).isDirectory()) {
       throw new NotFoundException("Log file not found");
     }

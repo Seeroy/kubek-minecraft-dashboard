@@ -1,7 +1,7 @@
 /** Heap size (MB) where Aikar's flags switch to large-heap tuning */
 const AIKAR_LARGE_HEAP_MB = 12 * 1024;
 
-/** Aikar's recommended JVM flags - a few G1GC values change past ~12 GB heap */
+/** Aikar's recommended JVM flags, a few G1GC values change past ~12 GB heap */
 export function buildAikarFlags(maxMemoryMb: number): string[] {
   const largeHeap = maxMemoryMb >= AIKAR_LARGE_HEAP_MB;
 
@@ -46,3 +46,6 @@ export function buildJvmArgs({
     ...extraArguments,
   ];
 }
+
+/** Whitespace separated user arguments */
+export const splitArgs = (raw: string) => raw.split(/\s+/).filter(Boolean);

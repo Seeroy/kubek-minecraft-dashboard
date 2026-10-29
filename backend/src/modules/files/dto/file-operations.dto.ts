@@ -3,22 +3,9 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsNotEmpty,
-  IsOptional,
   IsString,
   Matches,
 } from "class-validator";
-
-// DTO for scanning directory
-export class ScanDirectoryDto {
-  @ApiProperty({
-    description: "Directory path to scan",
-    example: "/logs",
-    default: "/",
-  })
-  @IsString()
-  @IsOptional()
-  path?: string = "/";
-}
 
 // DTO for file operations
 export class FileOperationDto {
@@ -123,18 +110,6 @@ export class ExtractArchiveDto {
   @ApiProperty({
     description: "Path to the archive file to extract",
     example: "/backup-2026-05-12.zip",
-    required: true,
-  })
-  @IsString()
-  @IsNotEmpty()
-  path: string;
-}
-
-// DTO for uploading file query parameters
-export class UploadFileQueryDto {
-  @ApiProperty({
-    description: "Directory path where to upload the file",
-    example: "/plugins",
     required: true,
   })
   @IsString()

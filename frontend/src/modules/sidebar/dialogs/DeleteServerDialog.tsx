@@ -2,7 +2,6 @@
 import { useNotifications } from "@/modules/notifications";
 import type { Server } from "@/modules/server";
 import { useDeleteServerMutation } from "@/modules/server";
-import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { ApiError } from "@/shared/lib/http";
 import type { ModalProps } from "@/shared/types/modal.types";
@@ -16,13 +15,11 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Trash2, TriangleAlert } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export interface DeleteServerProps {
   server: Server;
 }
-
-export const DELETE_SERVER_MODAL_ID = "sidebar/delete-server";
 
 declare module "@/shared/types/modal-registry" {
   interface ModalRegistry {
@@ -36,7 +33,7 @@ const DeleteServerDialog: React.FC<ModalProps<boolean> & DeleteServerProps> = ({
   server,
 }) => {
   const { t: tRoot } = useTranslation("modules.sidebar.serversList");
-  const t = (key: string, ...args: any[]) =>
+  const t = (key: string, ...args: unknown[]) =>
     tRoot(`dialogs.delete.${key}`, ...args);
   const { notify } = useNotifications();
   const mutation = useDeleteServerMutation();
@@ -44,14 +41,6 @@ const DeleteServerDialog: React.FC<ModalProps<boolean> & DeleteServerProps> = ({
   const [confirmName, setConfirmName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      setConfirmName("");
-      setPassword("");
-      setPasswordError(null);
-    }
-  }, [isOpen]);
 
   const nameMatches = server ? confirmName.trim() === server.name : false;
   const isBusy = mutation.isPending;
@@ -73,16 +62,16 @@ const DeleteServerDialog: React.FC<ModalProps<boolean> & DeleteServerProps> = ({
         duration: 4000,
       });
       onClose(true);
-    } catch (e: any) {
+    } catch (e) {
       const isInvalidPassword =
-        e instanceof ApiError && /INVALID_PASSWORD/.test(e.message);
+        e instanceof ApiError && e.code === "INVALID_PASSWORD";
       if (isInvalidPassword) {
         setPasswordError(t("invalidPassword"));
       } else {
         notify({
           type: "error",
           title: t("errorTitle"),
-          message: e?.message,
+          message: e instanceof Error ? e.message : undefined,
           icon: TriangleAlert,
         });
       }
@@ -160,14 +149,5 @@ const DeleteServerDialog: React.FC<ModalProps<boolean> & DeleteServerProps> = ({
     </Dialog>
   );
 };
-
-export function DeleteServerDialogRegistration() {
-  useThisModal({
-    id: DELETE_SERVER_MODAL_ID,
-    component: DeleteServerDialog,
-    module: "sidebar",
-  });
-  return null;
-}
 
 export default DeleteServerDialog;

@@ -1,27 +1,25 @@
 "use client";
-import { useThisModal } from "@/shared/hooks/useThisModal";
+import { usePlatformModifier } from "@/shared/hooks/usePlatformModifier";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { humanizeFileSize } from "@/shared/lib/bytesToGb";
 import type { ModalProps } from "@/shared/types/modal.types";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Kbd } from "@/shared/ui/kbd";
+import { Plate } from "@/shared/ui/plate";
+import { Spinner } from "@/shared/ui/spinner";
 import { ExternalLink, FileText, Save } from "lucide-react";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 
-const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
+const MonacoEditor = dynamic(() => import("../lib/monaco"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-      <div className="mr-3 h-6 w-6 animate-spin rounded-full border-b-2 border-primary" />
-      Loading editor…
+    <div className="grid h-full place-items-center text-muted-foreground">
+      <Spinner className="size-5" />
     </div>
   ),
 });
@@ -30,8 +28,6 @@ export interface FileEditorProps {
   filename?: string;
   initialValue: string;
 }
-
-export const FILE_EDITOR_MODAL_ID = "files/editor";
 
 declare module "@/shared/types/modal-registry" {
   interface ModalRegistry {
@@ -54,10 +50,10 @@ const LANGUAGE_BY_EXTENSION: Record<string, string> = {
   json: "json",
   yaml: "yaml",
   yml: "yaml",
-  toml: "toml",
+  toml: "ini",
   ini: "ini",
   conf: "ini",
-  properties: "properties",
+  properties: "ini",
   xml: "xml",
   html: "html",
   htm: "html",
@@ -83,93 +79,78 @@ const getLanguageFromFilename = (filename?: string): string => {
   return LANGUAGE_BY_EXTENSION[extension ?? ""] ?? "plaintext";
 };
 
-const EditorModal: React.FC<ModalProps<string | null> & FileEditorProps> = ({
-  isOpen,
-  onClose,
-  filename,
-  initialValue,
-}) => {
-  const { t } = useTranslation("modules.files");
-  const { theme, resolvedTheme } = useTheme();
+const encoder = new TextEncoder();
+
+const EditorModal: React.FC<ModalProps<string | null> & FileEditorProps> = ({ isOpen, onClose, filename, initialValue }) => {
+  const { t } = useTranslation("modules.files.modals.editor");
+  const { resolvedTheme } = useTheme();
   const router = useRouter();
+  const { mod } = usePlatformModifier();
+  // The modal mounts fresh for every open, so the initial value is enough
   const [value, setValue] = useState(initialValue);
+  // Read by the Monaco save shortcut, which is bound once on mount
+  const valueRef = useRef(initialValue);
 
-  useEffect(() => {
-    if (isOpen) setValue(initialValue);
-  }, [isOpen, initialValue]);
-
-  const monacoTheme = useMemo(() => {
-    const effectiveTheme = resolvedTheme || theme || "light";
-    return effectiveTheme === "dark" ? "vs-dark" : "light";
-  }, [theme, resolvedTheme]);
-
-  const language = useMemo(() => getLanguageFromFilename(filename), [filename]);
-  const isLogFile = language === "log";
+  const language = getLanguageFromFilename(filename);
+  const extension = filename?.split(".").pop()?.toUpperCase();
+  const dirty = value !== initialValue;
+  const size = useMemo(() => humanizeFileSize(encoder.encode(value).length), [value]);
 
   const openInLogViewer = () => {
     onClose(null);
-    router.push(
-      filename ? `/logs?file=${encodeURIComponent(filename)}` : "/logs"
-    );
+    router.push(filename ? `/logs?file=${encodeURIComponent(filename)}` : "/logs");
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose(null)}>
-      <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col overflow-hidden rounded-none p-0 md:h-[80vh] md:w-[80vw] md:max-w-none md:rounded-2xl">
-        <DialogHeader className="px-4 py-3 md:px-6 md:py-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <FileText className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <DialogTitle className="truncate">
-                {filename ?? t("modals.editor.title")}
-              </DialogTitle>
-            </div>
-          </div>
+      <DialogContent className="h-dvh max-h-none max-w-none rounded-none md:h-[min(640px,86vh)] md:max-w-[min(880px,calc(100%-2rem))] md:rounded-xl">
+        <DialogHeader className="flex-row items-center gap-3">
+          <Plate tone="blue" size="sm">
+            <FileText />
+          </Plate>
+          <DialogTitle className="truncate font-mono text-[13px]">{filename ?? t("title")}</DialogTitle>
+          {extension && <Badge variant="secondary">{extension}</Badge>}
+          {dirty && <Badge variant="warning">{t("modified")}</Badge>}
         </DialogHeader>
-        <div className="min-h-0 flex-1">
+        <DialogBody className="p-0">
           <MonacoEditor
             height="100%"
             language={language}
-            theme={monacoTheme}
+            theme={resolvedTheme === "dark" ? "vs-dark" : "light"}
             value={value}
-            onChange={(v) => setValue(v ?? "")}
+            onChange={(next) => {
+              valueRef.current = next ?? "";
+              setValue(valueRef.current);
+            }}
+            onMount={(editor, monaco) => {
+              editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => onClose(valueRef.current));
+            }}
             options={{
               minimap: { enabled: false },
               fontSize: 13,
+              fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
               wordWrap: "on",
               scrollBeyondLastLine: false,
               automaticLayout: true,
             }}
           />
-        </div>
-        <DialogFooter className="flex-row items-center justify-between gap-2 px-3 py-2 md:px-6 md:py-4">
-          {isLogFile ? (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={openInLogViewer}
-              className="text-muted-foreground md:h-9"
-            >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              {t("modals.editor.viewInLogViewer")}
+        </DialogBody>
+        <DialogFooter className="flex-row items-center gap-2 sm:justify-between">
+          <span className="text-xs text-muted-foreground tabular-nums">{size} · UTF-8 · LF</span>
+          <div className="flex items-center gap-2">
+            {language === "log" && (
+              <Button variant="ghost" size="sm" onClick={openInLogViewer}>
+                <ExternalLink />
+                {t("viewInLogViewer")}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => onClose(null)}>
+              {t("cancel")}
             </Button>
-          ) : (
-            <span />
-          )}
-          <div className="flex flex-row gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onClose(null)}
-              className="md:h-9"
-            >
-              {t("modals.editor.cancel")}
-            </Button>
-            <Button size="sm" onClick={() => onClose(value)} className="md:h-9">
-              <Save className="mr-2 h-4 w-4" />
-              {t("modals.editor.save.default")}
+            <Button onClick={() => onClose(value)} title={`${mod} S`}>
+              <Save />
+              {t("save.default")}
+              <Kbd className="border-primary-foreground/30 bg-transparent text-primary-foreground/80">{mod === "⌘" ? "⌘S" : "Ctrl S"}</Kbd>
             </Button>
           </div>
         </DialogFooter>
@@ -177,14 +158,5 @@ const EditorModal: React.FC<ModalProps<string | null> & FileEditorProps> = ({
     </Dialog>
   );
 };
-
-export function FileEditorModalRegistration() {
-  useThisModal({
-    id: FILE_EDITOR_MODAL_ID,
-    component: EditorModal,
-    module: "file-manager",
-  });
-  return null;
-}
 
 export default EditorModal;

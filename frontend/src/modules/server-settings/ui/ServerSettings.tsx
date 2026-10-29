@@ -1,221 +1,141 @@
 "use client";
 
-import { useServerStore } from "@/modules/server";
+import { useServerStore, type Server } from "@/modules/server";
 import { SaveConfirmationModalRegistration } from "@/modules/server-settings/modals/SaveConfirmationModal";
-import { GameplayTab } from "@/modules/server-settings/ui/GameplayTab";
-import { GeneralTab } from "@/modules/server-settings/ui/GeneralTab";
-import { InformationTab } from "@/modules/server-settings/ui/InformationTab";
-import { JavaTab } from "@/modules/server-settings/ui/JavaTab";
-import { NetworkTab } from "@/modules/server-settings/ui/NetworkTab";
-import { OthersTab } from "@/modules/server-settings/ui/OthersTab";
-import { WorldTab } from "@/modules/server-settings/ui/WorldTab";
-import { useTranslation } from "@/shared/hooks/useTranslation";
-import { settingsTabAllowedByBlueprint } from "@/shared/lib/serverRestrictions";
 import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
+import { useRouteTab } from "@/shared/hooks/useRouteTab";
+import { useTranslation } from "@/shared/hooks/useTranslation";
+import { useAccess } from "@/shared/lib/access";
+import { settingsTabAllowedByBlueprint } from "@/shared/lib/serverRestrictions";
 import { Button } from "@/shared/ui/button";
-import { PageLayout } from "@/shared/ui/PageLayout";
-import { PageTabsHeader } from "@/shared/ui/PageTabsHeader";
-import { StatusButton } from "@/shared/ui/status-button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import {
-  BookMarked,
-  Coffee,
-  Earth,
-  GamepadDirectional,
-  Network,
-  RectangleEllipsis,
-  RotateCcw,
-  Save,
-  Server,
-  Settings2,
-} from "lucide-react";
-import { useState } from "react";
-import { useServerSettings } from "../hooks/useServerSettings";
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { PageHeader } from "@/shared/ui/page-header";
+import { SaveBar } from "@/shared/ui/settings";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { Tabs, TabsContent, TabsCount, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
+import { AccessArea } from "@shared/access/areas";
+import { BookMarked, Coffee, Earth, GamepadDirectional, Network, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints, type LucideIcon } from "lucide-react";
+import { Fragment } from "react";
+import { NetworkTab } from "@/modules/networks/ui/NetworkTab";
+import { useSettingsDraft } from "../hooks/useSettingsDraft";
+import type { SettingsTab } from "../lib/schema";
+import { SERVER_SETTINGS_TABS } from "../lib/tabs";
+import { GeneralTab } from "./GeneralTab";
+import { JavaTab } from "./JavaTab";
+import { OtherPropertiesTab } from "./OtherPropertiesTab";
+import { PropertyGroups } from "./PropertyGroups";
 
-// Tabs that require manual save (server.properties)
-const PROPERTIES_TABS = [
-  "information",
-  "gameplay",
-  "world",
-  "network",
-  "other",
+
+const TABS: { id: SettingsTab; icon: LucideIcon; separatorBefore?: boolean }[] = [
+  { id: "general", icon: ServerIcon },
+  { id: "java", icon: Coffee },
+  { id: "information", icon: BookMarked, separatorBefore: true },
+  { id: "gameplay", icon: GamepadDirectional },
+  { id: "world", icon: Earth },
+  { id: "network", icon: Network },
+  { id: "other", icon: RectangleEllipsis },
+  { id: "velocity", icon: Waypoints, separatorBefore: true },
 ];
 
-export const ServerSettings = () => {
-  const { t } = useTranslation("modules.serverSettings");
-  const [activeTab, setActiveTab] = useState("general");
-  const { selectedServer } = useServerStore();
+function ServerSettingsForm({ server }: { server: Server }) {
+  const { t } = useTranslation("modules.serverSettings.tabs");
+  const { t: tState } = useTranslation("modules.serverSettings.state");
+  const blueprint = useBlueprint(server.blueprintId);
+  const draft = useSettingsDraft(server);
+  const [tab, changeTab] = useRouteTab<SettingsTab>("/server-settings", SERVER_SETTINGS_TABS, "general");
+  const canWrite = useAccess([AccessArea.SETTINGS, "write"], server.id);
+  const canSeeNetwork = useAccess([AccessArea.NETWORKS, "read"]);
 
-  // Blueprint metadata drives which settings tabs are available
-  const serverBlueprint = useBlueprint(selectedServer?.blueprintId);
-  const showTab = (tab: string) =>
-    serverBlueprint
-      ? settingsTabAllowedByBlueprint(tab, serverBlueprint)
-      : true;
-
-  const {
-    settings,
-    otherProperties,
-    updateSetting,
-    updateOtherProperty,
-    addOtherProperty,
-    removeOtherProperty,
-    handleSave,
-    handleReset,
-  } = useServerSettings();
-
-  const showSaveButton =
-    PROPERTIES_TABS.includes(activeTab) && showTab("information");
+  // The blueprint decides which tabs this core supports
+  const allowed = (id: SettingsTab) => (id !== "velocity" || canSeeNetwork) && (!blueprint || settingsTabAllowedByBlueprint(id, blueprint));
+  const tabs = TABS.filter((item) => allowed(item.id));
+  const active = tabs.some((item) => item.id === tab) ? tab : "general";
 
   return (
-    <>
-      <PageLayout>
-        <BlockHeader
-          kicker={t("header.title")}
-          title={t("header.title")}
-          description={t("header.description")}
-          icon={Settings2}
-          color="blue"
-        />
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-2"
-        >
-          <PageTabsHeader
-            tabs={
-              <TabsList>
-                <TabsTrigger
-                  value="general"
-                  className="flex items-center gap-2"
-                >
-                  <Server className="h-4 w-4" />
-                  {t("tabs.general")}
-                </TabsTrigger>
+    <Tabs value={active} onValueChange={(value) => changeTab(value as SettingsTab)} className="gap-5">
+      <div className="sticky top-0 z-10 w-fit max-w-full rounded-lg bg-background">
+        <TabsList>
+          {tabs.map(({ id, icon: Icon, separatorBefore }) => (
+            <Fragment key={id}>
+              {separatorBefore && <TabsSeparator />}
+              <TabsTrigger value={id}>
+                <Icon />
+                {t(id)}
+                {draft.counts[id] ? <TabsCount>{draft.counts[id]}</TabsCount> : null}
+              </TabsTrigger>
+            </Fragment>
+          ))}
+        </TabsList>
+      </div>
 
-                {showTab("java") && (
-                  <TabsTrigger value="java" className="flex items-center gap-2">
-                    <Coffee className="h-4 w-4" />
-                    {t("tabs.java")}
-                  </TabsTrigger>
-                )}
-
-                {showTab("information") && (
-                  <>
-                    <div className="mx-3 h-4 w-[1px] rounded-sm bg-foreground/20" />
-
-                    <TabsTrigger
-                      value="information"
-                      className="flex items-center gap-2"
-                    >
-                      <BookMarked className="h-4 w-4" />
-                      {t("tabs.information")}
-                    </TabsTrigger>
-
-                    <TabsTrigger
-                      value="gameplay"
-                      className="flex items-center gap-2"
-                    >
-                      <GamepadDirectional className="h-4 w-4" />
-                      {t("tabs.gameplay")}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="world"
-                      className="flex items-center gap-2"
-                    >
-                      <Earth className="h-4 w-4" />
-                      {t("tabs.world")}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="network"
-                      className="flex items-center gap-2"
-                    >
-                      <Network className="h-4 w-4" />
-                      {t("tabs.network")}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="other"
-                      className="flex items-center gap-2"
-                    >
-                      <RectangleEllipsis className="h-4 w-4" />
-                      {t("tabs.other")}
-                    </TabsTrigger>
-                  </>
-                )}
-              </TabsList>
-            }
-            actions={
-              showSaveButton && (
-                <div className="flex flex-shrink-0 gap-2 md:space-x-3">
-                  <Button variant="secondary" onClick={handleReset}>
-                    <RotateCcw className="h-4 w-4" />
-                    {t("tabs.reset")}
-                  </Button>
-                  <StatusButton
-                    onSave={handleSave}
-                    idleText={t("tabs.saveChanges")}
-                    loadingText={t("tabs.saving")}
-                    successText={t("tabs.saved")}
-                    errorText={t("tabs.error")}
-                    idleIcon={<Save className="h-4 w-4" />}
-                  />
-                </div>
-              )
-            }
-          />
-
+      {/* The network does not live in server.properties, proxies have none */}
+      {active === "velocity" ? (
+        <TabsContent value="velocity">
+          <NetworkTab serverId={server.id} />
+        </TabsContent>
+      ) : draft.loading ? (
+        <Skeleton className="h-96 rounded-lg" />
+      ) : draft.loadFailed ? (
+        <Empty className="rounded-lg border border-border bg-card py-14">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <TriangleAlert />
+            </EmptyMedia>
+            <EmptyTitle>{tState("loadFailed")}</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button variant="outline" onClick={() => void draft.retry()}>
+              <RotateCw />
+              {tState("retry")}
+            </Button>
+          </EmptyContent>
+        </Empty>
+      ) : (
+        // Without write the settings stay readable but locked
+        <fieldset disabled={!canWrite} className="contents">
           <TabsContent value="general">
-            <GeneralTab />
+            <GeneralTab server={server} draft={draft} />
           </TabsContent>
-
-          {showTab("java") && (
-            <TabsContent value="java">
-              <JavaTab />
+          <TabsContent value="java">
+            <JavaTab server={server} draft={draft} />
+          </TabsContent>
+          {(["information", "gameplay", "world", "network"] as const).map((id) => (
+            <TabsContent key={id} value={id}>
+              <PropertyGroups tab={id} draft={draft} server={server} />
             </TabsContent>
-          )}
+          ))}
+          <TabsContent value="other">
+            <OtherPropertiesTab draft={draft} />
+          </TabsContent>
+        </fieldset>
+      )}
 
-          {showTab("information") && (
-            <>
-              <TabsContent value="information">
-                <InformationTab
-                  settings={settings}
-                  onUpdateSetting={updateSetting}
-                />
-              </TabsContent>
-
-              <TabsContent value="gameplay">
-                <GameplayTab
-                  settings={settings}
-                  onUpdateSetting={updateSetting}
-                />
-              </TabsContent>
-
-              <TabsContent value="world">
-                <WorldTab settings={settings} onUpdateSetting={updateSetting} />
-              </TabsContent>
-
-              <TabsContent value="network">
-                <NetworkTab
-                  settings={settings}
-                  onUpdateSetting={updateSetting}
-                />
-              </TabsContent>
-
-              <TabsContent value="other">
-                <OthersTab
-                  properties={otherProperties}
-                  onUpdateProperty={updateOtherProperty}
-                  onAddProperty={addOtherProperty}
-                  onRemoveProperty={removeOtherProperty}
-                />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </PageLayout>
-
-      <SaveConfirmationModalRegistration />
-    </>
+      {canWrite && <SaveBar count={draft.total} saving={draft.saving} onSave={draft.save} onReset={draft.reset} />}
+    </Tabs>
   );
-};
+}
+
+export function ServerSettings() {
+  const { t } = useTranslation("modules.serverSettings");
+  const { selectedServer } = useServerStore();
+
+  return (
+    <div className="stagger-enter">
+      <PageHeader title={t("header.title")} description={t("header.description")} />
+      {selectedServer ? (
+        // Keyed so drafts never leak between servers
+        <ServerSettingsForm key={selectedServer.id} server={selectedServer} />
+      ) : (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ServerOff />
+            </EmptyMedia>
+            <EmptyTitle>{t("general.noServerSelected")}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      )}
+      <SaveConfirmationModalRegistration />
+    </div>
+  );
+}

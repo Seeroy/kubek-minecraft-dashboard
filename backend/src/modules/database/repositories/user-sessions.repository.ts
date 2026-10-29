@@ -7,7 +7,7 @@ export abstract class IUserSessionsRepository {
 
   abstract findByTokenHash(tokenHash: string, now: number): IUserSession | null;
 
-  abstract findActiveByUserId(userId: string): IUserSession[];
+  abstract findActiveByUserId(userId: string, now: number): IUserSession[];
 
   abstract create(session: IUserSession): void;
 
@@ -48,12 +48,12 @@ export class UserSessionsRepository implements IUserSessionsRepository {
     return row ? this.deserialize(row) : null;
   }
 
-  findActiveByUserId(userId: string): IUserSession[] {
+  findActiveByUserId(userId: string, now: number): IUserSession[] {
     const rows = this.sqlite.connection
       .query(
-        "SELECT * FROM user_sessions WHERE userId = ? AND revokedAt IS NULL ORDER BY lastSeenAt DESC",
+        "SELECT * FROM user_sessions WHERE userId = ? AND revokedAt IS NULL AND (expiresAt IS NULL OR expiresAt > ?) ORDER BY lastSeenAt DESC",
       )
-      .all(userId);
+      .all(userId, now);
     return rows.map((r: any) => this.deserialize(r));
   }
 

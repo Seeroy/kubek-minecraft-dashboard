@@ -6,19 +6,22 @@ import { commandPaletteTranslations } from "./modules/commandPalette";
 import { commonModalsTranslations } from "./modules/commonModals";
 import { componentsTranslations } from "./modules/components";
 import { consoleTranslations } from "./modules/console";
-import { createUserModalTranslations } from "./modules/createUserModal";
 import { dashboardTranslations } from "./modules/dashboard";
 import { diagnosticsTranslations } from "./modules/diagnostics";
-import { editUserModalTranslations } from "./modules/editUserModal";
 import { extensionsTranslations } from "./modules/extensions";
 import { filesTranslations } from "./modules/files";
-import { headerTranslations } from "./modules/header";
 import { javaManagerTranslations } from "./modules/javaManager";
 import { logViewerTranslations } from "./modules/logViewer";
+import { contentTranslations } from "./modules/content";
+import { modpacksTranslations } from "./modules/modpacks";
 import { modsTranslations } from "./modules/mods";
+import { networksTranslations } from "./modules/networks";
 import { newServerModalTranslations } from "./modules/newServerModal";
+import { assistantTranslations } from "./modules/assistant";
+import { inboxTranslations } from "./modules/inbox";
 import { notificationsTranslations } from "./modules/notifications";
 import { oobeTranslations } from "./modules/oobe";
+import { playersTranslations } from "./modules/players";
 import { pluginsTranslations } from "./modules/plugins";
 import { schedulerTranslations } from "./modules/scheduler";
 import { serverSettingsTranslations } from "./modules/serverSettings";
@@ -38,18 +41,21 @@ export const usTranslations: TranslationDictionary = {
   },
   modules: {
     plugins: pluginsTranslations,
+    players: playersTranslations,
     mods: modsTranslations,
+    modpacks: modpacksTranslations,
+    networks: networksTranslations,
+    content: contentTranslations,
     auth: authTranslations,
     backups: backupsTranslations,
     components: componentsTranslations,
     console: consoleTranslations,
-    createUserModal: createUserModalTranslations,
-    editUserModal: editUserModalTranslations,
     files: filesTranslations,
-    header: headerTranslations,
     javaManager: javaManagerTranslations,
     newServerModal: newServerModalTranslations,
     notifications: notificationsTranslations,
+    inbox: inboxTranslations,
+    assistant: assistantTranslations,
     oobe: oobeTranslations,
     serverSettings: serverSettingsTranslations,
     settings: settingsTranslations,
@@ -69,4 +75,3 @@ export const usTranslations: TranslationDictionary = {
     whatsNew: whatsNewTranslations,
   },
 };
-

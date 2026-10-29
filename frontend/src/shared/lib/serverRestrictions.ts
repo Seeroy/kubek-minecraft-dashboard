@@ -19,6 +19,8 @@ export function settingsTabAllowedByBlueprint(
     case "network":
     case "other":
       return hasProperties;
+    case "velocity":
+      return bp.id === "com.kubek.velocity";
     default:
       return true;
   }
@@ -36,7 +38,25 @@ export function routeAllowedByBlueprint(
       return bp.features.includes("mods:fabric");
     case "/java":
       return bp.variables.some((v) => v.key === "JAVA_VERSION");
+    case "/players":
+      return playerListsAllowed(bp);
     default:
       return true;
   }
+}
+
+// Proxies have no server.properties
+export function hasServerProperties(bp: BlueprintSummary): boolean {
+  return bp.configFiles.some(
+    (c) => c.parser === "properties" && c.path === "server.properties"
+  );
+}
+
+// Java servers keep whitelist.json and friends, proxies and Bedrock do not
+export function playerListsAllowed(bp: BlueprintSummary): boolean {
+  return (
+    bp.features.includes("players") &&
+    bp.queryProtocol !== "minecraft-bedrock" &&
+    hasServerProperties(bp)
+  );
 }

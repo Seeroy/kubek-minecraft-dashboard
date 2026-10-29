@@ -4,5 +4,6 @@ export type WsMetricsData = {
     total: number;
     free: number;
   };
-  timestamp?: Date;
+  // ISO string from the broadcaster
+  timestamp?: string;
 };

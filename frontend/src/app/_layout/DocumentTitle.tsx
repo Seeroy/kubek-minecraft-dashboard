@@ -3,6 +3,7 @@
 import { allNavigation } from "@/modules/sidebar/data/navigation";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useNotificationTitleStore } from "@/shared/stores/notification-title-store";
+import { sectionPath } from "@/shared/lib/routeTabs";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
@@ -21,7 +22,7 @@ const DocumentTitle = () => {
   useEffect(() => {
     let pageName: string | null = null;
 
-    const navItem = allNavigation.find((item) => item.href === pathname);
+    const navItem = allNavigation.find((item) => item.href === sectionPath(pathname));
     if (navItem) {
       pageName = t(`modules.sidebar.${ navItem.nameKey }`);
     } else if (pathname && EXTRA_TITLE_KEYS[pathname]) {

@@ -1,4 +1,4 @@
-import type { ExtHttpApi, ExtRoute } from "@kubekpanel/extension-sdk";
+import type { ExtHttpApi } from "@kubekpanel/extension-sdk";
 
 /** http:outbound exposes fetch/post; http:routes adds registerRoutes */
 export function createOutboundHttpApi(): Pick<ExtHttpApi, "fetch" | "post"> {
@@ -11,10 +11,4 @@ export function createOutboundHttpApi(): Pick<ExtHttpApi, "fetch" | "post"> {
         body: JSON.stringify(json),
       }),
   };
-}
-
-export function createRoutesHttpApi(
-  register: (routes: ExtRoute[]) => void,
-): Pick<ExtHttpApi, "registerRoutes"> {
-  return { registerRoutes: register };
 }

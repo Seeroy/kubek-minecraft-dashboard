@@ -6,11 +6,6 @@ export const filesTranslations: TranslationDictionary = {
     description: "Browse, edit, and manage server files",
   },
   modals: {
-    confirmDialog: {
-      defaultTitle: "Are you sure?",
-      confirmText: "Confirm",
-      cancelText: "Cancel",
-    },
     newDirectory: {
       title: "Create New Directory",
       description: "Enter a name for your new directory in",
@@ -42,6 +37,7 @@ export const filesTranslations: TranslationDictionary = {
       cancel: "Cancel",
     },
     editor: {
+      modified: "modified",
       title: "Edit file",
       cancel: "Cancel",
       viewInLogViewer: "View in Log Viewer",
@@ -69,22 +65,25 @@ export const filesTranslations: TranslationDictionary = {
   },
   ui: {
     files: {
+      breadcrumb: "Path",
       noServerSelected: "Please select a server to view files",
       buttons: {
+        create: "Create",
         createFile: "Create file",
         createFolder: "Create folder",
         upload: "Upload",
       },
       delete: {
-        title: "Delete",
-        description: "Are you sure you want to delete",
+        fileTitle: "Delete file?",
+        directoryTitle: "Delete folder?",
+        confirmDesc: (name: string) => `"${name}" will be deleted permanently`,
         confirmText: "Delete",
         cancelText: "Cancel",
-        undoWarning: "This action cannot be undone",
-        confirmManyTitle: ({ count }: { count: number }) => `Delete ${ count } items?`,
+        confirmManyTitle: ({ count }: { count: number }) => `Delete ${count} item${count === 1 ? "" : "s"}?`,
         confirmManyDesc: "This action cannot be undone",
       },
       selection: {
+        clear: "Clear selection",
         count: ({ count }: { count: number }) => `Selected: ${ count }`,
         actions: {
           delete: "Delete",
@@ -105,6 +104,8 @@ export const filesTranslations: TranslationDictionary = {
       },
     },
     filesList: {
+      selectAll: "Select all",
+      summary: (count: number, size: string) => `${count} items · ${size}`,
       loading: "Loading files...",
       searchPlaceholder: "Search files...",
       noMatches: "No matches",
@@ -133,6 +134,8 @@ export const filesTranslations: TranslationDictionary = {
     },
     fileItem: {
       actions: {
+        menu: "Actions",
+        open: "Open",
         edit: "Edit",
         download: "Download",
         copyPath: "Copy Path",

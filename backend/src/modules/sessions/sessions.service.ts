@@ -1,3 +1,4 @@
+import { AppEventsService } from "@/core/events/app-events.service";
 import { AccountsService } from "@/modules/accounts/accounts.service";
 import { UserSessionsRepository } from "@/modules/database/repositories/user-sessions.repository";
 import { ExtensionEventBus } from "@/modules/extensions/extension-event-bus.service";
@@ -26,6 +27,7 @@ export class SessionsService {
     private readonly sessions: UserSessionsRepository,
     private readonly accounts: AccountsService,
     private readonly bus: ExtensionEventBus,
+    private readonly events: AppEventsService,
   ) {}
 
   // Shared auth chain for both the HTTP guard and the WS gateway
@@ -65,6 +67,7 @@ export class SessionsService {
 
     this.sessions.create(session);
     this.bus.publish("user.login", { userId, ip: ip ?? "" });
+    this.events.emit("user.login", { userId, ip });
     return { token, session };
   }
 
@@ -96,6 +99,7 @@ export class SessionsService {
     }
     this.sessions.revoke(sessionId, Date.now());
     this.lastTouch.delete(sessionId);
+    this.events.emit("session.revoked", { userId: session.userId, sessionId });
   }
 
   revokeAllForUser(userId: string, exceptSessionId?: string): void {
@@ -107,10 +111,11 @@ export class SessionsService {
     } else {
       this.lastTouch.clear();
     }
+    this.events.emit("user.sessions_revoked", { userId, exceptSessionId });
   }
 
   listForUser(userId: string, currentSessionId?: string): SessionPublicView[] {
-    return this.sessions.findActiveByUserId(userId).map((s) => ({
+    return this.sessions.findActiveByUserId(userId, Date.now()).map((s) => ({
       id: s.id,
       ip: s.ip,
       userAgent: s.userAgent,

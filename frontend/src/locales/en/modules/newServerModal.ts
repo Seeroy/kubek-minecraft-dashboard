@@ -2,50 +2,72 @@ import type { TranslationDictionary } from "../../../locales/types";
 
 export const newServerModalTranslations: TranslationDictionary = {
   modal: {
-    title: "Create New Server",
-    tabs: {
-      core: "Core",
-    },
-    buttons: {
-      cancel: "Cancel",
-      create: "Create Server",
-      creating: "Creating…",
-    },
+    title: "Create a new server",
+    close: "Close",
     notifications: {
       catalogError: "Unable to load catalog",
       creationFailed: "Failed to create server",
       creationError: "Something went wrong while creating the server",
-    },
-    progress: {
-      title: "Creating server",
-      runningHint: "You can close this window - creation continues in the background",
-      stages: {
-        core: "Preparing core",
-        java: "Checking Java",
-        finalize: "Finalizing",
-      },
-      buttons: {
-        open: "Open server",
-        another: "Create another",
-        back: "Back",
-        close: "Close",
-      },
+      nameTaken: "A server with this name already exists",
     },
   },
+  steps: {
+    type: {
+      label: "Server type",
+      hint: "Pick a core, we will figure out the rest",
+    },
+    basics: {
+      label: "Basics",
+      hint: "Name, version and Java",
+    },
+    advanced: {
+      label: "Advanced",
+      hint: "Memory, launch flags and EULA",
+    },
+    create: {
+      label: "Creation",
+      hint: "Creating the server",
+    },
+  },
+  nav: {
+    back: "Back",
+    next: "Next",
+    create: "Create server",
+    creating: "Creating…",
+    picked: (name: string) => `Selected: ${name}`,
+    pickType: "Pick a server type",
+    keys: "to continue",
+    running: "You can close this window, creation continues in the background",
+    another: "Create another",
+    done: "Done",
+    openConsole: "Open console",
+  },
+  type: {
+    modpack: {
+      title: "Have a ready pack?",
+      text: "Import a modpack from Modrinth or a .mrpack file, mods install themselves",
+      action: "Import modpack",
+    },
+    search: "Find a server type",
+    loading: "Loading server types",
+    nothing: "Nothing found",
+    nothingHint: (query: string) => `No server types match "${query}"`,
+  },
   general: {
-    title: "General",
     parameters: "Parameters",
     name: {
-      label: "Server Name",
-      placeholder: "My Awesome Server",
+      label: "Server name",
+      placeholder: "My awesome server",
       errors: {
         required: "Server name is required",
         max: "Server name must be less than 50 characters",
-        regex: "Server name can only contain letters, numbers, spaces, hyphens and underscores",
+        regex: "Server name can only contain latin letters, numbers, spaces, hyphens and underscores",
       },
     },
     port: {
-      label: "Server Port",
+      label: "Server port",
+      free: (port: number) => `Next free: ${port}`,
+      busy: (name: string) => `Port is already used by "${name}"`,
       errors: {
         range: "Port must be between 1024 and 65535",
       },
@@ -53,17 +75,25 @@ export const newServerModalTranslations: TranslationDictionary = {
   },
   core: {
     version: {
-      label: "Core Version",
+      label: "Core version",
     },
     custom: {
-      dropzone: "Drop your `.jar` file here or browse your files",
-      selected: ({ name }: { name: string }) => `Selected file: ${name}`,
+      label: "Core file",
+      title: "Drop a .jar file here",
+      hint: "Or pick it from your computer",
+      choose: "Choose file",
+      selected: (name: string) => `Selected file: ${name}`,
+      required: "Upload a .jar file",
+      invalid: "A .jar file is required",
     },
   },
   java: {
     version: {
-      label: "Java Version",
-      resolving: "Matching",
+      label: "Java version",
+      loading: "Loading Java versions…",
+      resolving: "Finding a matching Java…",
+      mismatch: (core: string, java: number) => `${core} needs Java ${java}`,
+      tooOld: "The server will not start on this version",
       options: {
         "21": {
           label: "Java 21",
@@ -83,7 +113,7 @@ export const newServerModalTranslations: TranslationDictionary = {
         },
         system: {
           label: "System Java",
-          description: "Use system Java installation",
+          description: "Use the system Java installation",
         },
       },
       badges: {
@@ -92,8 +122,8 @@ export const newServerModalTranslations: TranslationDictionary = {
         custom: "Custom",
       },
       manual: {
-        option: "Custom Java path...",
-        placeholder: "/path/to/java or installation folder",
+        option: "Set a path to Java...",
+        placeholder: "/path/to/java or install folder",
         apply: "Apply",
         invalid: "No working Java found at this path",
         applied: "Custom Java path applied",
@@ -101,11 +131,12 @@ export const newServerModalTranslations: TranslationDictionary = {
     },
   },
   advanced: {
-    title: "Advanced",
     memory: {
-      label: "Server Memory",
+      label: "Server memory",
       unit: "MB",
-      help: "-Xms is the initial heap size, -Xmx is the maximum. Values are in megabytes",
+      help: "Xms sets the initial heap size, Xmx the maximum",
+      free: (size: string) => `Free on the host: ${size}`,
+      slider: "Maximum memory",
       xms: {
         label: "Initial size (Xms)",
       },
@@ -117,30 +148,60 @@ export const newServerModalTranslations: TranslationDictionary = {
         order: "Maximum cannot be lower than the initial size",
       },
     },
+    launch: "Launch options",
     aikar: {
-      label: "Aikar's Flags",
-      description: "An optimized G1GC flag set for stable server performance. Recommended for most servers",
+      label: "Aikar flags",
+      description: "Tuned G1GC flags for a stable server. Recommended for most servers",
     },
     docker: {
       label: "Run in Docker",
       beta: "Beta",
-      description: "Launch this server in a Docker container instead of a host process. The choice is fixed once the server is created. Beta feature, expect bugs",
+      description: "Run the server in a Docker container instead of a host process. The choice is fixed once the server is created",
       unavailable: "Docker daemon is unavailable",
     },
+    autostart: {
+      label: "Start after creation",
+      description: "The server starts as soon as everything is ready",
+    },
+    eula: {
+      label: "Accept the Minecraft EULA",
+      description: "I agree to the",
+      link: "Minecraft EULA",
+      required: "A Minecraft server will not start without accepting the EULA",
+    },
+    folder: {
+      label: "Folder in the list",
+      none: "No folder",
+    },
     startupArguments: {
-      label: "Additional Arguments",
+      label: "Extra arguments",
       placeholder: "-Dproperty=value",
-      help: "Custom JVM arguments. Memory and Aikar flags are added automatically - no need to add them here",
+      help: "Memory and Aikar flags are added automatically",
     },
     preview: {
-      label: "Effective startup arguments",
+      label: "Final launch arguments",
     },
   },
+  progress: {
+    stages: {
+      java: "Checking Java",
+      core: "Preparing core",
+      mods: "Downloading mods",
+      overrides: "Applying pack settings",
+      finalize: "Finalizing",
+    },
+    pending: "Waiting",
+    done: "Done",
+    overall: "Overall progress",
+    createdTitle: (name: string) => `Server "${name}" created`,
+    starting: "The server is starting, follow it in the console",
+    ready: "The server is ready to start",
+    failedTitle: "Could not create the server",
+  },
   blueprint: {
-    loadingTypes: "Loading server types",
     loadingVersions: "Loading versions",
-    selectVersion: "Select version",
-    selectOption: (label: string) => `Select ${ label.toLowerCase() }`,
+    selectVersion: "Select a version",
+    selectOption: (label: string) => `Select: ${label}`,
     ports: {
       game: "Game port",
       proxy: "Proxy port",

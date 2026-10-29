@@ -1,4 +1,6 @@
+import { getErrorMessage } from "@/core/utils/error";
 import { generateRandomString } from "@/core/utils/randomString";
+import { DatabaseSeeder } from "@/modules/database/database.seeder";
 import { ConfigRepository } from "@/modules/database/repositories/config.repository";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { UsersRepository } from "@/modules/database/repositories/users.repository";
@@ -19,8 +21,17 @@ import type {
 
 const MARKER_KEY = "legacyMigratedAt";
 const BACKUP_SUFFIX = ".migrated-backup";
+const CREDENTIALS_FILE = "migrated-credentials.txt";
+// What the bundled blueprints launch
+const SERVER_JAR = "server.jar";
 
-// One-time import of legacy Kubek data
+interface SkippedServer {
+  name: string;
+  reason: string;
+}
+
+// One-time import from Kubek 3.x. All database writes go in one transaction,
+// folders are moved after it and the move is retried on the next start
 @Injectable()
 export class LegacyMigrationService implements OnModuleInit {
   private readonly root = process.cwd();
@@ -30,22 +41,32 @@ export class LegacyMigrationService implements OnModuleInit {
     private readonly config: ConfigRepository,
     private readonly servers: ServersRepository,
     private readonly users: UsersRepository,
+    private readonly seeder: DatabaseSeeder,
   ) {}
 
-  onModuleInit(): void {
+  // Seed after the import, otherwise a new kubek admin takes the name
+  // of the imported one
+  async onModuleInit(): Promise<void> {
     try {
       this.run();
     } catch (error) {
-      console.error(chalk.red("[Migration] Legacy migration failed:"), error);
+      console.error(
+        chalk.red("[Migration] Legacy migration failed, nothing was imported:"),
+        error,
+      );
     }
+    await this.seeder.seed();
   }
 
   private run(): void {
-    if (this.alreadyMigrated()) return;
-
     const configPath = path.join(this.root, "config.json");
     const usersPath = path.join(this.root, "users.json");
     const serversJsonPath = path.join(this.root, "servers", "servers.json");
+
+    if (this.alreadyMigrated()) {
+      this.finishFileMoves(configPath, usersPath, serversJsonPath);
+      return;
+    }
 
     const hasLegacyData =
       fs.existsSync(configPath) ||
@@ -53,30 +74,40 @@ export class LegacyMigrationService implements OnModuleInit {
       fs.existsSync(serversJsonPath);
     if (!hasLegacyData) return;
 
-    console.log(
-      chalk.cyan("[Migration] Legacy Kubek data detected, importing…"),
-    );
-
     let importedConfig = false;
-    if (fs.existsSync(configPath)) {
-      importedConfig = this.migrateConfig(configPath);
-    }
-
-    // Servers before users: access restrictions reference server names that
-    // must be remapped to the new server UUIDs
     const serverNameToId = new Map<string, string>();
-    if (fs.existsSync(serversJsonPath)) {
-      this.migrateServers(serversJsonPath, serverNameToId);
-    }
-
     const credentials: { username: string; password: string }[] = [];
-    if (fs.existsSync(usersPath)) {
-      this.migrateUsers(usersPath, serverNameToId, credentials);
-    }
+    const skipped: SkippedServer[] = [];
+    const notes: string[] = [];
 
-    this.backup(configPath, usersPath, serversJsonPath);
-    this.setMarker();
-    this.printSummary(importedConfig, serverNameToId.size, credentials);
+    this.sqlite.connection.transaction(() => {
+      if (fs.existsSync(configPath)) {
+        importedConfig = this.migrateConfig(configPath);
+      }
+
+      // Servers before users: access restrictions reference server names that
+      // must be remapped to the new server UUIDs
+      if (fs.existsSync(serversJsonPath)) {
+        this.migrateServers(serversJsonPath, serverNameToId, skipped, notes);
+      }
+
+      if (fs.existsSync(usersPath)) {
+        this.migrateUsers(usersPath, serverNameToId, credentials);
+      }
+
+      this.setMarker();
+      // Before commit, so new passwords are never lost
+      this.saveCredentials(credentials);
+    })();
+
+    this.finishFileMoves(configPath, usersPath, serversJsonPath);
+    this.printSummary(
+      importedConfig,
+      serverNameToId.size,
+      credentials,
+      skipped,
+      notes,
+    );
   }
 
   private migrateConfig(configPath: string): boolean {
@@ -89,9 +120,14 @@ export class LegacyMigrationService implements OnModuleInit {
   private migrateServers(
     serversJsonPath: string,
     nameToId: Map<string, string>,
+    skipped: SkippedServer[],
+    notes: string[],
   ): void {
     const legacyServers = readJson<LegacyServersFile>(serversJsonPath);
-    if (!legacyServers) return;
+    if (!legacyServers) {
+      skipped.push({ name: "servers.json", reason: "unreadable JSON" });
+      return;
+    }
 
     for (const [name, legacy] of Object.entries(legacyServers)) {
       try {
@@ -99,18 +135,26 @@ export class LegacyMigrationService implements OnModuleInit {
         const exists = fs.existsSync(dir) && fs.statSync(dir).isDirectory();
         const binaryName = exists ? this.detectJar(dir) : "";
         const startupArguments = exists ? this.parseStartupArguments(dir) : [];
+        const scriptJava = exists ? this.parseScriptJava(dir) : undefined;
 
-        const created = this.servers.create(
-          mapServer(legacy, name, binaryName, startupArguments),
+        const mapped = mapServer(
+          legacy,
+          name,
+          binaryName,
+          startupArguments,
+          scriptJava,
         );
+        const created = this.servers.create(mapped);
         nameToId.set(name, created.id);
 
-        // ./servers/<name> -> ./servers/<uuid>; start scripts get regenerated on launch
-        if (exists) {
-          const target = path.join(this.root, "servers", created.id);
-          if (!fs.existsSync(target)) fs.renameSync(dir, target);
+        if (!exists) notes.push(`"${name}": no servers/${name} folder found`);
+        if (binaryName.toLowerCase().includes(CORE_TYPES.BEAMMP)) {
+          notes.push(
+            `"${name}": BeamMP has no blueprint, imported as Custom JAR, check how it starts`,
+          );
         }
       } catch (error) {
+        skipped.push({ name, reason: getErrorMessage(error) });
         console.error(
           chalk.yellow(`[Migration] Failed to migrate server "${name}":`),
           error,
@@ -151,6 +195,18 @@ export class LegacyMigrationService implements OnModuleInit {
     return [];
   }
 
+  // 3.x start scripts point at ./binaries/java/<major>/..., same folder 4.x uses
+  private parseScriptJava(dir: string): number | undefined {
+    for (const script of ["start.sh", "start.bat"]) {
+      const scriptPath = path.join(dir, script);
+      if (!fs.existsSync(scriptPath)) continue;
+      const content = fs.readFileSync(scriptPath, "utf8");
+      const match = /binaries[\\/]java[\\/](\d+)[\\/]/.exec(content);
+      if (match) return Number(match[1]);
+    }
+    return undefined;
+  }
+
   private migrateUsers(
     usersPath: string,
     nameToId: Map<string, string>,
@@ -175,6 +231,61 @@ export class LegacyMigrationService implements OnModuleInit {
         );
       }
     }
+  }
+
+  // Renames ./servers/<name> to ./servers/<uuid>, start scripts are rebuilt on launch.
+  // servers.json is moved away only when every folder is renamed
+  private finishFileMoves(
+    configPath: string,
+    usersPath: string,
+    serversJsonPath: string,
+  ): void {
+    let serversDone = true;
+    const legacyServers = fs.existsSync(serversJsonPath)
+      ? readJson<LegacyServersFile>(serversJsonPath)
+      : null;
+
+    for (const name of Object.keys(legacyServers ?? {})) {
+      const server = this.servers.findByName(name);
+      if (!server) continue;
+      const from = path.join(this.root, "servers", name);
+      const to = path.join(this.root, "servers", server.id);
+      try {
+        if (fs.existsSync(from) && !fs.existsSync(to)) fs.renameSync(from, to);
+        const isJava = server.blueprintId !== "com.kubek.bedrock";
+        if (isJava && fs.existsSync(to)) this.ensureServerJar(to);
+      } catch (error) {
+        serversDone = false;
+        console.error(
+          chalk.yellow(
+            `[Migration] Failed to move files of "${name}", will retry on next start:`,
+          ),
+          error,
+        );
+      }
+    }
+
+    this.backup(configPath, usersPath);
+    if (serversDone) this.backup(serversJsonPath);
+  }
+
+  // 3.x named the jar after the core, panel runs server.jar
+  private ensureServerJar(dir: string): void {
+    if (fs.existsSync(path.join(dir, SERVER_JAR))) return;
+    const jar = this.detectJar(dir);
+    if (jar) fs.renameSync(path.join(dir, jar), path.join(dir, SERVER_JAR));
+  }
+
+  private saveCredentials(
+    credentials: { username: string; password: string }[],
+  ): void {
+    if (credentials.length === 0) return;
+    const lines = credentials.map((c) => `${c.username}  ${c.password}`);
+    fs.writeFileSync(
+      path.join(this.root, CREDENTIALS_FILE),
+      `Kubek accounts imported on ${new Date().toISOString()}\n${lines.join("\n")}\n`,
+      { mode: 0o600 },
+    );
   }
 
   private alreadyMigrated(): boolean {
@@ -209,30 +320,65 @@ export class LegacyMigrationService implements OnModuleInit {
     importedConfig: boolean,
     serverCount: number,
     credentials: { username: string; password: string }[],
+    skipped: SkippedServer[],
+    notes: string[],
   ): void {
-    console.log(chalk.green("[Migration] Legacy import complete:"));
-    console.log(`   • settings:  ${importedConfig ? "imported" : "skipped"}`);
-    console.log(`   • servers:   ${serverCount} migrated`);
-    console.log(`   • accounts:  ${credentials.length} migrated`);
+    const indent = "       ";
+    const done = (text: string) =>
+      console.log(`${indent}${chalk.green("✔")} ${text}`);
+
+    console.log(" ");
+    console.log(
+      `    📦 ${chalk.bold("Imported data from the previous Kubek")}`,
+    );
+    done(
+      importedConfig ? "panel settings" : chalk.gray("panel settings skipped"),
+    );
+    done(`${serverCount} ${serverCount === 1 ? "server" : "servers"}`);
+    done(
+      `${credentials.length} ${credentials.length === 1 ? "account" : "accounts"}`,
+    );
 
     if (credentials.length > 0) {
+      console.log(" ");
       console.log(
-        chalk.black.bgYellowBright(
-          " New passwords were generated (old ones can't be carried over). Save them now: ",
-        ),
+        `${indent}${chalk.black.bgYellowBright(" Old passwords can't be carried over, new ones were generated: ")}`,
       );
       for (const { username, password } of credentials) {
-        console.log(`   ${chalk.bold(username)}  →  ${chalk.cyan(password)}`);
+        console.log(
+          `${indent}  ${chalk.bold(username)}  →  ${chalk.cyan(password)}`,
+        );
       }
+      console.log(
+        `${indent}${chalk.gray(`Also saved to ${CREDENTIALS_FILE}, delete it once passwords are changed`)}`,
+      );
+    }
+
+    if (skipped.length > 0) {
+      console.log(" ");
+      console.log(
+        `${indent}${chalk.black.bgYellowBright(` ${skipped.length} ${skipped.length === 1 ? "server was" : "servers were"} not imported: `)}`,
+      );
+      for (const { name, reason } of skipped) {
+        console.log(
+          `${indent}  ${chalk.yellow("✘")} ${chalk.bold(name)}  ${reason}`,
+        );
+      }
+      console.log(
+        `${indent}${chalk.gray(`Their folders stay in servers/, old entries are in servers/servers.json${BACKUP_SUFFIX}`)}`,
+      );
+    }
+
+    for (const note of notes) {
+      console.log(`${indent}${chalk.yellow("!")} ${note}`);
     }
 
     if (importedConfig) {
       console.log(
-        chalk.gray(
-          "   Note: a migrated web-server port takes effect after the next restart.",
-        ),
+        `${indent}${chalk.gray("The imported web-server port takes effect after the next restart")}`,
       );
     }
+    console.log(" ");
   }
 }
 

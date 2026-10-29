@@ -1,20 +1,15 @@
-import type { ServerStatusData } from "@/modules/server";
+import type { Server, ServerStatusData } from "@/modules/server/types";
+import type { ServerStatus } from "@shared/types/server/server.types";
+import type { WsServerQueryData } from "@shared/types/ws/server-payloads.types";
 import { create } from "zustand";
 
 interface ServerStatusesState {
   statuses: Record<string, ServerStatusData>;
 
   updateStatus: (data: ServerStatusData) => void;
-  updateQueryData: (
-    serverId: string,
-    queryData: {
-      players?: { online: number; max: number; list?: string[] };
-      runtime?: { playersOnline?: number; startedAt?: string };
-      version?: string;
-      timestamp?: string;
-    }
-  ) => void;
-  clearAll: () => void;
+  updateQueryData: (serverId: string, queryData: WsServerQueryData) => void;
+  /** Statuses from the server list, same place as status_update */
+  seedFromList: (servers: Pick<Server, "id" | "status">[]) => void;
 }
 
 export const useServerStatusesStore = create<ServerStatusesState>((set) => ({
@@ -50,11 +45,38 @@ export const useServerStatusesStore = create<ServerStatusesState>((set) => ({
       },
     })),
 
-  clearAll: () => set({ statuses: {} }),
+  seedFromList: (servers) =>
+    set((state) => {
+      // List comes every 10s, keep the map if nothing changed
+      if (servers.every((server) => state.statuses[server.id]?.status === server.status)) return state;
+      const statuses = { ...state.statuses };
+      for (const server of servers) {
+        statuses[server.id] = {
+          ...statuses[server.id],
+          serverId: server.id,
+          status: server.status,
+        };
+      }
+      return { statuses };
+    }),
 }));
 
-// Per-server selector - a component re-renders only when its own server status changes
-export const useServerStatus = (serverId: string | undefined | null) =>
+/** Live status from the socket, else the fallback */
+export const resolveServerStatus = (
+  live: Pick<ServerStatusData, "status"> | null | undefined,
+  fallback: ServerStatus
+): ServerStatus => live?.status ?? fallback;
+
+/** Status of one server, re-renders only on change */
+export function useServerStatus(serverId: string | null | undefined, fallback: ServerStatus): ServerStatus;
+export function useServerStatus(serverId: string | null | undefined, fallback?: ServerStatus): ServerStatus | undefined;
+export function useServerStatus(serverId: string | null | undefined, fallback?: ServerStatus) {
+  const live = useServerStatusesStore((s) => (serverId ? s.statuses[serverId]?.status : undefined));
+  return live ?? fallback;
+}
+
+/** Live players, runtime and version of one server */
+export const useServerLive = (serverId: string | undefined | null) =>
   useServerStatusesStore((s) =>
     serverId ? (s.statuses[serverId] ?? null) : null
   );

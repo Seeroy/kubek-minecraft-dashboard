@@ -1,6 +1,5 @@
 import { Startup } from "@/core/utils/startup";
 import { checkForUpdates } from "@/core/utils/updates";
-import { ServerBroadcastService } from "@/ws/services/server-broadcast.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
@@ -11,8 +10,6 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 export class UpdateCheckService {
   private readonly logger = new Logger(UpdateCheckService.name);
 
-  constructor(private readonly broadcast: ServerBroadcastService) {}
-
   @Cron(CronExpression.EVERY_12_HOURS)
   async checkForUpdates(): Promise<void> {
     const previousVersion = Startup.latestUpdate?.latestVersion;
@@ -20,15 +17,13 @@ export class UpdateCheckService {
 
     Startup.latestUpdate = result;
 
-    // Only notify when a genuinely newer version appeared since the last check
-    if (result.updateAvailable && result.latestVersion !== previousVersion) {
-      if (process.env.NODE_ENV !== "production") {
-        this.logger.log(`Update available: v${result.latestVersion}`);
-      }
-      this.broadcast.emitUpdateNotification({
-        latestVersion: result.latestVersion,
-        releaseNotes: result.releaseNotes,
-      });
+    // UI asks over HTTP, here we just log a new version
+    if (
+      result.updateAvailable &&
+      result.latestVersion !== previousVersion &&
+      process.env.NODE_ENV !== "production"
+    ) {
+      this.logger.log(`Update available: v${result.latestVersion}`);
     }
   }
 }

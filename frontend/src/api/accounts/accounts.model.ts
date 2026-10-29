@@ -4,3 +4,4 @@ export type Account = components["schemas"]["PublicUserDto"];
 export type CreateAccountDto = components["schemas"]["CreateAccountDto"];
 export type UpdateAccountDto = components["schemas"]["UpdateAccountDto"];
 export type ChangePasswordDto = components["schemas"]["ChangePasswordDto"];
+export type FtpPasswordResponse = components["schemas"]["FtpPasswordResponseDto"];

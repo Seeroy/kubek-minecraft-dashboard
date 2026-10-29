@@ -2,5 +2,5 @@ export type {
   Notification,
   NotificationAction,
   NotificationType
-} from "@/shared/types/notification.types";
+} from "@/shared/types/toast.types";
 

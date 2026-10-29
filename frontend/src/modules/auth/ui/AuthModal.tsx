@@ -1,6 +1,7 @@
 "use client";
 
 import { api, type TwoFactorMethod, type UserProfile } from "@/api";
+import { formatWait, useRetryLock } from "@/shared/hooks/useRetryLock";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { qk } from "@/shared/queries/query-keys";
 import { useAuthStore } from "@/shared/stores/auth-store";
@@ -25,6 +26,9 @@ import { z } from "zod";
 import { BackgroundDecor } from "./BackgroundDecor";
 import { FieldWithIcon } from "./FieldWithIcon";
 import { TwoFactorStep } from "./TwoFactorStep";
+
+// If the backend sends no expiry
+const fallbackExpiry = () => Date.now() + 3 * 60 * 1000;
 
 interface PendingChallenge {
   challengeId: string;
@@ -55,6 +59,8 @@ export default function AuthModal() {
   type LoginFormValues = z.infer<typeof loginSchema>;
 
   const [error, setError] = useState<string>("");
+  const retryLock = useRetryLock();
+  const shownError = retryLock.locked ? t("modal.errors.rateLimited", formatWait(retryLock.seconds)) : error;
   const [showPassword, setShowPassword] = useState(false);
   const [pending2fa, setPending2fa] = useState<PendingChallenge | null>(null);
 
@@ -92,26 +98,17 @@ export default function AuthModal() {
           challengeId: response.challengeId,
           primary: response.primary,
           methods: response.methods,
-          expiresAt: response.expiresAt ?? Date.now() + 3 * 60 * 1000,
+          expiresAt: response.expiresAt ?? fallbackExpiry(),
         });
         return;
       }
       if (response.token && response.user) {
         finalizeLogin(response.token, response.user);
       }
-    } catch (err: any) {
-      if (err.response) {
-        try {
-          const errorData = await err.response.json();
-          setError(errorData.message || t("modal.errors.loginFailed"));
-        } catch {
-          setError(t("modal.errors.invalidResponse"));
-        }
-      } else if (err.name === "HTTPError") {
-        setError(t("modal.errors.networkError"));
-      } else {
-        setError(err.message || t("modal.errors.unexpected"));
-      }
+    } catch (err: unknown) {
+      if (retryLock.capture(err)) return;
+      // The HTTP client turns failed responses into ApiError with the backend message
+      setError((err instanceof Error && err.message) || t("modal.errors.unexpected"));
     }
   };
 
@@ -201,7 +198,7 @@ export default function AuthModal() {
                 <Button
                   className="group w-full"
                   type="submit"
-                  disabled={isSubmitting || !isValid}
+                  disabled={isSubmitting || !isValid || retryLock.locked}
                 >
                   {isSubmitting ? (
                     <>
@@ -217,7 +214,7 @@ export default function AuthModal() {
                 </Button>
 
                 <AnimatePresence initial={false}>
-                  {error ? (
+                  {shownError ? (
                     <motion.div
                       initial={{ opacity: 0, y: -4, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: "auto" }}
@@ -226,7 +223,7 @@ export default function AuthModal() {
                     >
                       <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
+                        <AlertDescription>{shownError}</AlertDescription>
                       </Alert>
                     </motion.div>
                   ) : null}

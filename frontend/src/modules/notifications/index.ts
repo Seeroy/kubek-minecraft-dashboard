@@ -1,7 +1,3 @@
-export {
-  NotificationProvider,
-  useNotificationsContext
-} from "./contexts/NotificationProvider";
 export { useNotifications } from "./hooks/useNotifications";
 export type {
   Notification,

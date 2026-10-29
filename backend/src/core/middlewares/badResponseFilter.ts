@@ -6,17 +6,30 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from "@nestjs/common";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
+
+// Fallback codes for statuses when the exception carries no code of its own
+const STATUS_CODES: Partial<Record<number, ApiErrorCode>> = {
+  [HttpStatus.UNAUTHORIZED]: ApiErrorCode.UNAUTHORIZED,
+  [HttpStatus.FORBIDDEN]: ApiErrorCode.FORBIDDEN,
+  [HttpStatus.NOT_FOUND]: ApiErrorCode.NOT_FOUND,
+  [HttpStatus.BAD_REQUEST]: ApiErrorCode.BAD_REQUEST,
+  [HttpStatus.CONFLICT]: ApiErrorCode.CONFLICT,
+  [HttpStatus.TOO_MANY_REQUESTS]: ApiErrorCode.RATE_LIMITED,
+};
 
 @Catch()
 export class BadResponseFilter implements ExceptionFilter {
+  private readonly logger = new Logger(BadResponseFilter.name);
+
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
 
-    const requestId = uuidv4();
+    const requestId = randomUUID();
     const timestamp = new Date().toISOString();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -25,10 +38,12 @@ export class BadResponseFilter implements ExceptionFilter {
     let code: ApiErrorCode | string = ApiErrorCode.INTERNAL_ERROR;
     let details: any[] | undefined;
     let attemptsLeft: number | undefined;
+    let retryAfter: number | undefined;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
+      code = STATUS_CODES[status] ?? code;
 
       // string or object here, handle both
       if (typeof res === "string") {
@@ -38,13 +53,22 @@ export class BadResponseFilter implements ExceptionFilter {
         details = (res as any).details;
         code = (res as any).code || code;
         attemptsLeft = (res as any).attemptsLeft;
+        retryAfter = (res as any).retryAfter;
       }
+    } else {
+      // Client gets a generic message, the real error goes to the log
+      const stack =
+        exception instanceof Error
+          ? (exception.stack ?? exception.message)
+          : String(exception);
+      this.logger.error(
+        `Unhandled error ${requestId} on ${request.method} ${request.url}`,
+        stack,
+      );
+    }
 
-      if (status === HttpStatus.UNAUTHORIZED) code = ApiErrorCode.UNAUTHORIZED;
-      else if (status === HttpStatus.FORBIDDEN) code = ApiErrorCode.FORBIDDEN;
-      else if (status === HttpStatus.NOT_FOUND) code = ApiErrorCode.NOT_FOUND;
-      else if (status === HttpStatus.BAD_REQUEST)
-        code = ApiErrorCode.BAD_REQUEST;
+    if (retryAfter !== undefined) {
+      response.setHeader("Retry-After", String(retryAfter));
     }
 
     const body: ApiErrorBodyDto = {
@@ -53,6 +77,7 @@ export class BadResponseFilter implements ExceptionFilter {
       message,
       details,
       attemptsLeft,
+      retryAfter,
       timestamp,
       requestId,
       path: request.url,

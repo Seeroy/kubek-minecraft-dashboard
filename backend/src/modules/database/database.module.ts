@@ -5,15 +5,17 @@ import { AuthChallengesRepository } from "./repositories/auth-challenges.reposit
 import { ConfigRepository } from "./repositories/config.repository";
 import { ExtensionKvRepository } from "./repositories/extension-kv.repository";
 import { ExtensionsRepository } from "./repositories/extensions.repository";
-import {
-  Metrics1mRepository,
-  Metrics5mRepository,
-  MetricsRawRepository,
-} from "./repositories/metrics.repository";
+import { FtpCredentialsRepository } from "./repositories/ftp-credentials.repository";
+import { MetricsRepository } from "./repositories/metrics.repository";
+import { NetworksRepository } from "./repositories/networks.repository";
+import { NotificationPrefsRepository } from "./repositories/notification-prefs.repository";
+import { NotificationsRepository } from "./repositories/notifications.repository";
 import { OtpCodesRepository } from "./repositories/otp-codes.repository";
+import { RolesRepository } from "./repositories/roles.repository";
 import { ScheduledTaskRunsRepository } from "./repositories/scheduled-task-runs.repository";
 import { ScheduledTasksRepository } from "./repositories/scheduled-tasks.repository";
 import { ServerFoldersRepository } from "./repositories/server-folders.repository";
+import { ServerModpacksRepository } from "./repositories/server-modpacks.repository";
 import { ServerModsRepository } from "./repositories/server-mods.repository";
 import { ServerPluginsRepository } from "./repositories/server-plugins.repository";
 import { ServersRepository } from "./repositories/servers.repository";
@@ -28,10 +30,14 @@ import { SqliteProvider } from "./sqlite.provider";
     SqliteProvider,
     ConfigRepository,
     UsersRepository,
+    RolesRepository,
+    FtpCredentialsRepository,
     ServersRepository,
     ServerFoldersRepository,
     ServerPluginsRepository,
     ServerModsRepository,
+    ServerModpacksRepository,
+    NetworksRepository,
     TelegramUsersRepository,
     OtpCodesRepository,
     UserSessionsRepository,
@@ -39,9 +45,9 @@ import { SqliteProvider } from "./sqlite.provider";
     ScheduledTaskRunsRepository,
     AuthChallengesRepository,
     AuditLogsRepository,
-    MetricsRawRepository,
-    Metrics1mRepository,
-    Metrics5mRepository,
+    MetricsRepository,
+    NotificationsRepository,
+    NotificationPrefsRepository,
     ExtensionsRepository,
     ExtensionKvRepository,
     DatabaseSeeder,
@@ -50,10 +56,14 @@ import { SqliteProvider } from "./sqlite.provider";
     SqliteProvider,
     ConfigRepository,
     UsersRepository,
+    RolesRepository,
+    FtpCredentialsRepository,
     ServersRepository,
     ServerFoldersRepository,
     ServerPluginsRepository,
     ServerModsRepository,
+    ServerModpacksRepository,
+    NetworksRepository,
     TelegramUsersRepository,
     OtpCodesRepository,
     UserSessionsRepository,
@@ -61,11 +71,12 @@ import { SqliteProvider } from "./sqlite.provider";
     ScheduledTaskRunsRepository,
     AuthChallengesRepository,
     AuditLogsRepository,
-    MetricsRawRepository,
-    Metrics1mRepository,
-    Metrics5mRepository,
+    MetricsRepository,
+    NotificationsRepository,
+    NotificationPrefsRepository,
     ExtensionsRepository,
     ExtensionKvRepository,
+    DatabaseSeeder,
   ],
 })
 export class DatabaseModule {}

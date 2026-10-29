@@ -25,23 +25,29 @@ export class ExtensionsRepository {
     return row ? this.deserialize(row) : null;
   }
 
-  /** Insert or replace the full record (install/reinstall) */
+  /** Saves the whole record on install or reinstall */
   upsert(
-    record: Omit<ExtensionRecord, "installedAt" | "updatedAt"> & {
+    record: Omit<ExtensionRecord, "version" | "installedAt" | "updatedAt"> & {
       installedAt?: number;
     },
   ): ExtensionRecord {
     const existing = this.findById(record.id);
     const installedAt =
       existing?.installedAt ?? record.installedAt ?? Date.now();
-    const stmt = this.sqlite.connection
-      .prepare(`INSERT OR REPLACE INTO extensions
-      (id, version, enabled, manifest, grantedCapabilities, status, installedAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    // Not REPLACE: it deletes the row and the extension storage with it
+    const stmt = this.sqlite.connection.prepare(`INSERT INTO extensions
+      (id, enabled, manifest, grantedCapabilities, status, installedAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        enabled = excluded.enabled,
+        manifest = excluded.manifest,
+        grantedCapabilities = excluded.grantedCapabilities,
+        status = excluded.status,
+        installedAt = excluded.installedAt,
+        updatedAt = excluded.updatedAt
     `);
     stmt.run(
       record.id,
-      record.version,
       record.enabled ? 1 : 0,
       JSON.stringify(record.manifest),
       JSON.stringify(record.grantedCapabilities ?? []),
@@ -80,11 +86,12 @@ export class ExtensionsRepository {
   }
 
   private deserialize(row: any): ExtensionRecord {
+    const manifest = JSON.parse(String(row.manifest));
     return {
       id: String(row.id),
-      version: String(row.version),
+      version: String(manifest.version),
       enabled: Number(row.enabled) === 1,
-      manifest: JSON.parse(String(row.manifest)),
+      manifest,
       grantedCapabilities: JSON.parse(String(row.grantedCapabilities ?? "[]")),
       status: String(row.status) as ExtensionStatus,
       installedAt: Number(row.installedAt),

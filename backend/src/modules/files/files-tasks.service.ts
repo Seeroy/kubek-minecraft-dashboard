@@ -1,6 +1,6 @@
 import { TaskErrorCode } from "@/core/errors/error-codes";
 import { getErrorMessage } from "@/core/utils/error";
-import { FileManagerService } from "@/modules/files/file-manager.service";
+import { FileBatchService } from "@/modules/files/file-batch.service";
 import { TasksService } from "@/modules/tasks/tasks.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { ITask, TaskStatus, TaskType } from "@shared/types/task.types";
@@ -11,7 +11,7 @@ export class FilesTasksService {
 
   constructor(
     private readonly tasksService: TasksService,
-    private readonly fileManager: FileManagerService,
+    private readonly fileBatch: FileBatchService,
   ) {}
 
   async deletePathsTask(
@@ -86,17 +86,13 @@ export class FilesTasksService {
     paths: string[],
   ): Promise<void> {
     try {
-      await this.fileManager.deletePaths(
-        serverId,
-        paths,
-        (done, total, name) => {
-          const progress = Math.min(99, Math.round((done / total) * 100));
-          this.tasksService.updateTask(taskId, {
-            progress,
-            message: `Deleting ${done}/${total}: ${name}`,
-          });
-        },
-      );
+      await this.fileBatch.deletePaths(serverId, paths, (done, total, name) => {
+        const progress = Math.min(99, Math.round((done / total) * 100));
+        this.tasksService.updateTask(taskId, {
+          progress,
+          message: `Deleting ${done}/${total}: ${name}`,
+        });
+      });
       this.tasksService.updateTask(taskId, {
         status: TaskStatus.SUCCESS,
         progress: 100,
@@ -125,17 +121,14 @@ export class FilesTasksService {
     archivePath: string,
   ): Promise<void> {
     try {
-      const result = await this.fileManager.extractZipArchive(
+      const result = await this.fileBatch.extractZipArchive(
         serverId,
         archivePath,
-        (done, _total, name) => {
-          const progress = Math.min(
-            95,
-            Math.round(95 * (1 - 1 / (1 + done / 25))),
-          );
+        (done, total, name) => {
+          const progress = Math.min(95, Math.round((done / total) * 95));
           this.tasksService.updateTask(taskId, {
             progress,
-            message: `Extracting ${done}: ${name}`,
+            message: `Extracting: ${name}`,
           });
         },
       );
@@ -169,8 +162,10 @@ export class FilesTasksService {
     destPath: string,
     archiveName: string,
   ): Promise<void> {
+    // Progress comes per chunk, only send when the percent changes
+    let lastProgress = -1;
     try {
-      const result = await this.fileManager.createZipArchive(
+      const result = await this.fileBatch.createZipArchive(
         serverId,
         paths,
         destPath,
@@ -178,9 +173,11 @@ export class FilesTasksService {
         (done, total, name) => {
           // Reserve final 5% for stream flush + atomic rename
           const progress = Math.min(95, Math.round((done / total) * 95));
+          if (progress === lastProgress) return;
+          lastProgress = progress;
           this.tasksService.updateTask(taskId, {
             progress,
-            message: `Compressing ${done}/${total}: ${name}`,
+            message: `Compressing: ${name}`,
           });
         },
       );

@@ -42,10 +42,11 @@ import {
 const USERNAME = process.env.E2E_USERNAME ?? "kubek";
 const PASSWORD = process.env.E2E_PASSWORD ?? "Kubek2026";
 
-// Directory containing the BeamMP blueprint.json
+// Directory containing the BeamMP blueprint.json, by default the blueprint-template
+// repo checked out next to this one
 const BLUEPRINT_SRC =
   process.env.E2E_BLUEPRINT_SRC ??
-  "/Users/seeeroy/Documents/GitHub/Kubek/blueprint-template";
+  path.resolve(__dirname, "../../../blueprint-template");
 
 // Heap defaults applied to Java-based builds that do not override them
 const DEFAULT_XMX = num(process.env.E2E_XMX, 4096);
@@ -253,29 +254,9 @@ function waitForQuery(
   });
 }
 
-function subscribeRoom(socket: Socket, room: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const onOk = (): void => {
-      cleanup();
-      resolve();
-    };
-    const onNo = (): void => {
-      cleanup();
-      reject(new Error(`room rejected: ${room}`));
-    };
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error(`room subscribe timeout: ${room}`));
-    }, 10_000);
-    const cleanup = (): void => {
-      clearTimeout(timer);
-      socket.off("room:success", onOk);
-      socket.off("room:rejected", onNo);
-    };
-    socket.on("room:success", onOk);
-    socket.on("room:rejected", onNo);
-    socket.emit("room:subscribe", room);
-  });
+async function subscribeRoom(socket: Socket, room: string): Promise<void> {
+  const ack = await socket.timeout(10_000).emitWithAck("room:subscribe", room);
+  if (!ack?.ok) throw new Error(`room rejected: ${room}`);
 }
 
 // Zip the blueprint source into a .kbp, staging only the files the installer needs

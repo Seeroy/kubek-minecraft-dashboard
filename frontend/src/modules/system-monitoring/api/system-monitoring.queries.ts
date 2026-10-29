@@ -9,3 +9,12 @@ export function useSystemMonitoringQuery() {
     refetchInterval: 5000,
   });
 }
+
+/** Static host facts: platform, docker availability, hardware */
+export function useSystemInfoQuery() {
+  return useQuery({
+    queryKey: qk.systemMonitoring.info(),
+    queryFn: () => api.systemMonitoring.getSystemInfo(),
+    staleTime: 5 * 60_000,
+  });
+}

@@ -1,7 +1,8 @@
+import type { IServerFolder } from "@shared/types/server/folder.types";
 import { ApiProperty } from "@nestjs/swagger";
 
 /** Domain projection of a server folder */
-export class ServerFolderEntity {
+export class ServerFolderEntity implements IServerFolder {
   @ApiProperty({ description: "Folder ID", example: "f1a2b3c4" })
   id: string;
 

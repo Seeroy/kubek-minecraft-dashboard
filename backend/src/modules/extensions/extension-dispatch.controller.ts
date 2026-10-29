@@ -4,7 +4,6 @@ import type {
   ExtRequest,
   ExtResponse,
   ExtRoute,
-  ExtUser,
 } from "@kubekpanel/extension-sdk";
 import {
   All,
@@ -19,6 +18,7 @@ import {
 import { ApiBearerAuth, ApiExcludeController } from "@nestjs/swagger";
 import type { IUser } from "@shared/types/user.types";
 import type { Request, Response } from "express";
+import { extPermissionsOf, toExtUser } from "./ext-user";
 import { ExtensionRegistry } from "./extension-registry.service";
 
 /**
@@ -53,13 +53,13 @@ export class ExtensionDispatchController {
     if (
       route.permission &&
       !user.isAdmin &&
-      !user.permissions.some((p) => p === route.permission)
+      !extPermissionsOf(user).includes(route.permission)
     ) {
       throw new ForbiddenException(`Missing permission: ${route.permission}`);
     }
 
     const extReq: ExtRequest = {
-      user: this.toExtUser(user),
+      user: toExtUser(user),
       body: req.body,
       query: this.stringRecord(req.query),
       params: this.extractParams(route.path, subPath),
@@ -137,14 +137,5 @@ export class ExtensionDispatchController {
         out[key] = value[0];
     }
     return out;
-  }
-
-  private toExtUser(user: IUser): ExtUser {
-    return {
-      id: user.id,
-      username: user.username,
-      isAdmin: user.isAdmin,
-      permissions: user.permissions,
-    };
   }
 }

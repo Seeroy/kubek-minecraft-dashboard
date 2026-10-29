@@ -1,4 +1,8 @@
+"use client";
+
 import { cn } from "@/shared/lib/cn";
+import { useSidebarStore } from "@/shared/stores/sidebar-store";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import Link from "next/link";
 import { type ComponentType, type ReactNode } from "react";
 import { NAV_ITEM_BASE } from "./navItemBase";
@@ -6,7 +10,7 @@ import { NAV_ITEM_BASE } from "./navItemBase";
 // Both static (Lucide) and extension-provided icons render the same way here
 export type NavIcon = ComponentType<{ className?: string }>;
 
-export const NavLink = ({
+export function NavLink({
   href,
   icon: Icon,
   label,
@@ -20,39 +24,33 @@ export const NavLink = ({
   isActive: boolean;
   onClick: () => void;
   badge?: ReactNode;
-}) => (
-  <Link
-    href={href}
-    onClick={onClick}
-    className={cn(
-      "group relative transition-all duration-200 hover:bg-sidebar-accent/50",
-      NAV_ITEM_BASE,
-      isActive
-        ? "border-primary/40 bg-sidebar-accent text-sidebar-accent-foreground md:border-0 md:bg-sidebar-accent"
-        : "text-muted-foreground hover:text-foreground"
-    )}
-  >
-    {/* Active Indicator (Left edge) - desktop only */}
-    <div
-      className={cn(
-        "absolute top-1/2 -left-3 hidden w-0.5 -translate-y-1/2 rounded-r-full transition-all duration-200 md:block",
-        isActive ? "h-5 bg-primary" : "h-0 bg-transparent"
-      )}
-    />
+}) {
+  const mini = useSidebarStore((s) => s.mini);
 
-    <Icon
-      className={cn(
-        "h-5 w-5 shrink-0 transition-colors duration-200 md:h-[18px] md:w-[18px]",
-        isActive
-          ? "text-primary"
-          : "text-muted-foreground group-hover:text-foreground"
-      )}
-    />
-
-    <span className="relative z-10 line-clamp-2 leading-tight font-medium md:line-clamp-none md:min-w-0 md:flex-1 md:truncate">
-      {label}
-    </span>
-
-    {badge}
-  </Link>
-);
+  return (
+    <Tooltip disabled={!mini}>
+      <TooltipTrigger
+        render={
+          <Link
+            href={href}
+            onClick={onClick}
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              NAV_ITEM_BASE,
+              "outline-none hover:bg-hover hover:text-foreground focus-visible:bg-hover focus-visible:text-foreground",
+              "aria-[current=page]:bg-primary/12 aria-[current=page]:text-foreground aria-[current=page]:[&>svg]:text-primary",
+              "before:absolute before:inset-y-2.5 before:-left-3 before:w-[3px] before:rounded-r-[3px] before:bg-primary before:opacity-0 aria-[current=page]:before:opacity-100 sidebar-mini:before:-left-2"
+            )}
+          />
+        }
+      >
+        <Icon />
+        <span>{label}</span>
+        {badge}
+      </TooltipTrigger>
+      <TooltipContent side="right" sideOffset={10}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}

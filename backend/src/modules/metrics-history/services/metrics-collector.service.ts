@@ -1,7 +1,6 @@
 import {
-  Metrics1mRepository,
-  Metrics5mRepository,
-  MetricsRawRepository,
+  MetricsRepository,
+  MetricsResolution,
   RawMetricPoint,
 } from "@/modules/database/repositories/metrics.repository";
 import { SystemMonitoringService } from "@/modules/system-monitoring/system-monitoring.service";
@@ -21,9 +20,7 @@ export class MetricsCollectorService implements OnModuleInit {
   constructor(
     private readonly system: SystemMonitoringService,
     private readonly procStats: ProcessStatsService,
-    private readonly raw: MetricsRawRepository,
-    private readonly m1m: Metrics1mRepository,
-    private readonly m5m: Metrics5mRepository,
+    private readonly metrics: MetricsRepository,
   ) {}
 
   onModuleInit() {
@@ -57,7 +54,7 @@ export class MetricsCollectorService implements OnModuleInit {
     void this.procStats;
     void serverScope;
 
-    if (points.length > 0) this.raw.insertMany(points);
+    if (points.length > 0) this.metrics.insertRaw(points);
   }
 
   // Roll up raw into 1m buckets every minute (operate only on closed buckets)
@@ -69,8 +66,12 @@ export class MetricsCollectorService implements OnModuleInit {
     const toTs = currentBucket; // exclusive
     if (toTs <= fromTs) return;
 
-    const buckets = this.raw.aggregateBuckets(60_000, fromTs, toTs);
-    this.m1m.upsertMany(buckets);
+    this.metrics.rollUp(
+      MetricsResolution.RAW,
+      MetricsResolution.ONE_MINUTE,
+      fromTs,
+      toTs,
+    );
     this.lastAggregated1m = toTs;
   }
 
@@ -83,8 +84,12 @@ export class MetricsCollectorService implements OnModuleInit {
     const toTs = currentBucket;
     if (toTs <= fromTs) return;
 
-    const buckets = this.m5m.aggregateFrom("metrics_1m", 300_000, fromTs, toTs);
-    this.m5m.upsertMany(buckets);
+    this.metrics.rollUp(
+      MetricsResolution.ONE_MINUTE,
+      MetricsResolution.FIVE_MINUTES,
+      fromTs,
+      toTs,
+    );
     this.lastAggregated5m = toTs;
   }
 }

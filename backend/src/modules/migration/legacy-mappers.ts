@@ -1,51 +1,41 @@
 import type { IConfiguration } from "@/core/types/config";
+import type { AccessMap } from "@shared/access/areas";
+import { accessFromLegacy } from "@shared/access/legacy";
 import {
   ServerStatus,
   type IServer,
   type ServerCoreType,
 } from "@shared/types/server/server.types";
-import { UserPermissions, type IUser } from "@shared/types/user.types";
+import type { IUser } from "@shared/types/user.types";
 import { CORE_TYPES } from "./legacy-core-types";
 import type { LegacyConfig, LegacyServer, LegacyUser } from "./legacy.types";
 
-// Legacy permission -> new permissions. Unmapped ones are dropped
-const PERMISSION_MAP: Record<string, UserPermissions[]> = {
-  accounts: [UserPermissions.ACCOUNTS_MANAGEMENT],
-  file_manager: [UserPermissions.FILE_MANAGER],
-  manage_servers: [
-    UserPermissions.SERVERS_CONTROL,
-    UserPermissions.SERVERS_CONFIGURE,
-  ],
-  making_servers: [UserPermissions.CREATE_SERVERS],
-  monitor_servers: [UserPermissions.SERVERS_VIEW],
-  manage_java: [UserPermissions.MANAGE_JAVA],
-  manage_plugins: [UserPermissions.MANAGE_PLUGINS],
-  system_monitoring: [UserPermissions.SYSTEM_MONITORING],
-  kubek_settings: [UserPermissions.KUBEK_SETTINGS],
+// Kubek 3 permission -> pre 4.2 flat keys. Unmapped ones are dropped
+const PERMISSION_MAP: Record<string, string[]> = {
+  accounts: ["accounts_mgr"],
+  file_manager: ["file_manager"],
+  manage_servers: ["servers_control", "servers_configure"],
+  making_servers: ["servers_create"],
+  monitor_servers: ["servers_view"],
+  manage_java: ["java_mgr"],
+  manage_plugins: ["plugins_mgr"],
+  system_monitoring: ["system_monitoring"],
+  kubek_settings: ["kubek_settings"],
 };
 
-// New permissions with no legacy equivalent, granted to admins only
-const ADMIN_ONLY_PERMISSIONS: UserPermissions[] = [
-  UserPermissions.BACKUPS,
-  UserPermissions.SCHEDULER_MANAGEMENT,
-  UserPermissions.AUDIT_LOG,
-];
+// Keys with no Kubek 3 equivalent, granted to admins only
+const ADMIN_ONLY_PERMISSIONS = ["backups", "scheduler_mgr", "audit_log"];
 
 // Admin = could manage both accounts and settings in the old panel
 export function mapPermissions(legacy: string[] = []): {
-  permissions: UserPermissions[];
+  grants: AccessMap;
   isAdmin: boolean;
 } {
-  const set = new Set<UserPermissions>();
-  for (const perm of legacy) {
-    for (const mapped of PERMISSION_MAP[perm] ?? []) set.add(mapped);
-  }
-
+  const keys = legacy.flatMap((perm) => PERMISSION_MAP[perm] ?? []);
   const isAdmin =
     legacy.includes("accounts") && legacy.includes("kubek_settings");
-  if (isAdmin) for (const perm of ADMIN_ONLY_PERMISSIONS) set.add(perm);
-
-  return { permissions: [...set], isAdmin };
+  if (isAdmin) keys.push(...ADMIN_ONLY_PERMISSIONS);
+  return { grants: accessFromLegacy(keys), isAdmin };
 }
 
 export function mapConfig(legacy: LegacyConfig): Partial<IConfiguration> {
@@ -55,9 +45,8 @@ export function mapConfig(legacy: LegacyConfig): Partial<IConfiguration> {
     port:
       typeof legacy.webserverPort === "number" ? legacy.webserverPort : 8000,
     ftpd: {
+      // No global FTP login anymore, accounts have their own password
       enabled: !!legacy.ftpd?.enabled,
-      username: legacy.ftpd?.username,
-      password: legacy.ftpd?.password,
       port: legacy.ftpd?.port,
     },
     subnetsAccessRestriction: {
@@ -87,9 +76,31 @@ function inferBlueprintId(
   coreType: ServerCoreType,
 ): string {
   if (isBedrock) return "com.kubek.bedrock";
-  if (coreType === "custom") return "com.kubek.custom";
+  // no BeamMP blueprint, run whatever jar is there as custom
+  if (coreType === "custom" || coreType === "beammp") return "com.kubek.custom";
   return `com.kubek.${coreType}`;
 }
+
+// 3.x saved downloaded cores as <core>-<version>.jar
+export function parseLegacyJarVersion(binaryName: string): string | undefined {
+  return /-(\d+\.\d+(?:\.\d+)?)\.jar$/i.exec(binaryName)?.[1];
+}
+
+// Offline on purpose, migration runs at boot and can't wait on Mojang
+export function javaForMinecraft(version: string): number | undefined {
+  const match = /^(\d+)\.(\d+)(?:\.(\d+))?/.exec(version);
+  if (!match) return undefined;
+  const [major, minor, patch] = match.slice(1).map((n) => Number(n ?? 0));
+  if (major >= 26) return 25;
+  if (major !== 1) return undefined;
+  if (minor <= 16) return 8;
+  if (minor === 17) return 16;
+  if (minor < 20 || (minor === 20 && patch < 5)) return 17;
+  return 21;
+}
+
+// Proxy versions aren't game versions
+const PROXY_CORES: ServerCoreType[] = ["velocity", "waterfall"];
 
 function parseXmx(args: string[]): number | undefined {
   for (const arg of args) {
@@ -102,17 +113,36 @@ function parseXmx(args: string[]): number | undefined {
   return undefined;
 }
 
-// binaryName is the jar found on disk, empty for Bedrock or when none exists
+// binaryName is the jar found on disk, empty for Bedrock or when none exists,
+// scriptJava is the managed Java major the old start script used
 export function mapServer(
   legacy: LegacyServer,
   name: string,
   binaryName: string,
   startupArguments: string[],
+  scriptJava?: number,
 ): Omit<IServer, "id"> {
   const isBedrock = legacy.minecraftType === "bedrock";
   const coreType: ServerCoreType = isBedrock
     ? "custom"
     : inferCoreType(binaryName);
+  const blueprintId = inferBlueprintId(isBedrock, coreType);
+
+  const variables: IServer["variables"] = {
+    XMX: parseXmx(startupArguments) ?? 2048,
+  };
+  const gameVersion = isBedrock ? undefined : parseLegacyJarVersion(binaryName);
+  if (gameVersion && blueprintId !== "com.kubek.custom") {
+    variables.GAME_VERSION = gameVersion;
+  }
+  if (!isBedrock) {
+    const isProxy = PROXY_CORES.includes(coreType);
+    const java =
+      scriptJava ??
+      (gameVersion && !isProxy ? javaForMinecraft(gameVersion) : undefined);
+    if (java) variables.JAVA_VERSION = java;
+  }
+
   return {
     name,
     status: ServerStatus.STOPPED,
@@ -125,10 +155,12 @@ export function mapServer(
     },
     folderId: null,
     // blueprint assignment for servers imported from old Kubek versions
-    blueprintId: inferBlueprintId(isBedrock, coreType),
+    blueprintId,
     blueprintVersion: "1.0.0",
     runtimeKind: "native",
-    variables: { XMX: parseXmx(startupArguments) ?? 2048 },
+    variables,
+    // 3.x never recorded who made a server
+    createdBy: null,
   };
 }
 
@@ -141,7 +173,7 @@ export function mapUser(
   hashedPassword: string,
   serverNameToId: Map<string, string>,
 ): IUser {
-  const { permissions, isAdmin } = mapPermissions(legacy.permissions ?? []);
+  const { grants, isAdmin } = mapPermissions(legacy.permissions ?? []);
   const allowed = (legacy.serversAllowed ?? [])
     .map((name) => serverNameToId.get(name))
     .filter((mappedId): mappedId is string => !!mappedId);
@@ -150,8 +182,11 @@ export function mapUser(
     id,
     username,
     password: hashedPassword,
-    secret: "",
-    permissions,
+    roles: [],
+    grants,
+    extPermissions: [],
+    // The repository computes the real effective access on read
+    access: { levels: grants, ext: [] },
     serversRestrict: {
       enabled: !!legacy.serversAccessRestricted,
       allowed,

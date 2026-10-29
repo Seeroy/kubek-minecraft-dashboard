@@ -17,12 +17,15 @@ interface FilesDropUploadOptions {
   serverId: string | undefined;
   currentPath: string;
   onComplete?: () => void;
+  // Off without write access, the drop then does nothing
+  enabled?: boolean;
 }
 
 export function useFilesDropUpload({
   serverId,
   currentPath,
   onComplete,
+  enabled = true,
 }: FilesDropUploadOptions): FilesDropUpload {
   const { notify, update, close } = useNotifications();
   const { t } = useTranslation("modules.files");
@@ -32,12 +35,12 @@ export function useFilesDropUpload({
   const dragCounter = useRef(0);
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes("Files")) return;
+    if (!enabled || !e.dataTransfer.types.includes("Files")) return;
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current++;
     setIsDragOver(true);
-  }, []);
+  }, [enabled]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     if (!e.dataTransfer.types.includes("Files")) return;
@@ -51,12 +54,12 @@ export function useFilesDropUpload({
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes("Files")) return;
+    if (!enabled || !e.dataTransfer.types.includes("Files")) return;
     e.preventDefault();
     e.stopPropagation();
     // Required for drop to fire
     e.dataTransfer.dropEffect = "copy";
-  }, []);
+  }, [enabled]);
 
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
@@ -86,8 +89,8 @@ export function useFilesDropUpload({
         try {
           await api.files.uploadFile(serverId, currentPath, file);
           success++;
-        } catch (err: any) {
-          failures.push(`${file.name} (${err.message || "error"})`);
+        } catch (err: unknown) {
+          failures.push(`${file.name} (${(err instanceof Error && err.message) || "error"})`);
         }
         const done = i + 1;
         const progress = Math.round((done / files.length) * 100);

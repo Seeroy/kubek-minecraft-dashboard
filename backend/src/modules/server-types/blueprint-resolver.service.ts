@@ -5,6 +5,7 @@ import type {
 } from "@kubekpanel/blueprint-sdk";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { resolve } from "path";
+import { assertLaunchVariablesSafeForRequest } from "./launch-args";
 import type { ResolveScope } from "./server-types.types";
 
 type VariableValue = string | number | boolean;
@@ -28,9 +29,7 @@ export class BlueprintResolver {
     for (const variable of blueprint.variables) {
       const value = opts.variables?.[variable.key];
       scope[variable.key] = (value ?? variable.default ?? "") as
-        | string
-        | number
-        | boolean;
+        string | number | boolean;
     }
 
     for (const port of blueprint.ports) {
@@ -110,6 +109,9 @@ export class BlueprintResolver {
     if (typeof javaPath === "string" && javaPath.trim()) {
       result.JAVA_PATH = javaPath.trim();
     }
+
+    // Startup commands run through a shell
+    assertLaunchVariablesSafeForRequest(blueprint, result);
 
     return result;
   }

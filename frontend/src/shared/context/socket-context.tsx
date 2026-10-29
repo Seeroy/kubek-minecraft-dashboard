@@ -1,7 +1,10 @@
 "use client";
 import { createSocket } from "@/shared/lib/socket";
 import { useAuthStore } from "@/shared/stores/auth-store";
-import type { WsEventPayloadMap } from "@shared/types/ws/event-payload-map.types";
+import type {
+  WsEvent,
+  WsEventPayloadMap,
+} from "@shared/types/ws/event-payload-map.types";
 import { WsUserEventTypes } from "@shared/types/ws/user-events.types";
 import React, {
   createContext,
@@ -15,21 +18,22 @@ import type { Socket } from "socket.io-client";
 
 type SocketStatus = "disconnected" | "connecting" | "connected" | "error";
 
+// socket.io listener type, handlers get typed in subscribe
+type Listener = Parameters<Socket["on"]>[1];
+
 // Stable API: subscribe/unsubscribe/connect/disconnect never change identity
 interface SocketApiValue {
   connect: () => void;
   disconnect: () => void;
   getSocket: () => Socket | null;
-  subscribe<E extends keyof WsEventPayloadMap>(
+  subscribe<E extends WsEvent>(
     event: E,
     handler: (data: WsEventPayloadMap[E]) => void
   ): void;
-  subscribe(event: string, handler: (...args: any[]) => void): void;
-  unsubscribe<E extends keyof WsEventPayloadMap>(
+  unsubscribe<E extends WsEvent>(
     event: E,
     handler?: (data: WsEventPayloadMap[E]) => void
   ): void;
-  unsubscribe(event: string, handler?: (...args: any[]) => void): void;
 }
 
 // Reactive state: changes on (re)connect and status transitions
@@ -48,9 +52,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = React.useState<SocketStatus>("disconnected");
 
   // Buffer for event handlers so they survive socket recreation
-  const handlersRef = useRef<Map<string, ((...args: any[]) => void)[]>>(
-    new Map()
-  );
+  const handlersRef = useRef<Map<string, Listener[]>>(new Map());
   const socketRef = useRef<Socket | null>(null);
 
   // Reactively follow the auth token
@@ -67,11 +69,19 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     setSocket(newSocket);
     setStatus("connecting");
 
+    let authFailed = false;
     const handleConnect = () => setStatus("connected");
-    const handleDisconnect = () => setStatus("disconnected");
+    const handleDisconnect = (reason: Socket.DisconnectReason) => {
+      setStatus("disconnected");
+      // Server drops sockets when access changes, reconnect for fresh checks
+      if (reason === "io server disconnect" && !authFailed) {
+        newSocket.connect();
+      }
+    };
     const handleConnectError = () => setStatus("error");
     // Server revoked the session / token is invalid: clear auth
     const handleAuthFailed = () => {
+      authFailed = true;
       useAuthStore.getState().clearAuth();
     };
 
@@ -105,7 +115,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const subscribe = useCallback(
-    (event: string, handler: (...args: any[]) => void) => {
+    (event: string, handler: Listener) => {
       if (!handlersRef.current.has(event)) {
         handlersRef.current.set(event, []);
       }
@@ -117,7 +127,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   );
 
   const unsubscribe = useCallback(
-    (event: string, handler?: (...args: any[]) => void) => {
+    (event: string, handler?: Listener) => {
       if (handler) {
         const handlers = handlersRef.current.get(event);
         if (handlers) {

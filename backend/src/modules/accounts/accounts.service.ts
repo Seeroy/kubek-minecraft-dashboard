@@ -7,7 +7,6 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import type { IUser } from "@shared/types/user.types";
-import { UserPermissions } from "@shared/types/user.types";
 import { randomUUID } from "crypto";
 
 @Injectable()
@@ -26,23 +25,25 @@ export class AccountsService {
     return this.users.findByUsername(username);
   }
 
-  async create(user: CreateAccountDto): Promise<void> {
-    if (this.findByUsername(user.username)) {
+  async create(dto: CreateAccountDto): Promise<IUser> {
+    if (this.findByUsername(dto.username)) {
       throw new BadRequestException("Username already exists");
     }
 
-    const hashedPassword = await hashPassword(user.password);
-
+    const id = randomUUID();
+    const servers = dto.servers ?? [];
     this.users.create({
-      id: randomUUID(),
-      ...user,
-      password: hashedPassword,
-      secret: "",
-      serversRestrict: {
-        enabled: (user.servers && user.servers?.length > 0) || false,
-        allowed: user.servers || [],
-      },
+      id,
+      username: dto.username,
+      password: await hashPassword(dto.password),
+      roles: dto.roles ?? [],
+      grants: dto.grants ?? {},
+      extPermissions: dto.extPermissions ?? [],
+      // Computed by the repository on read
+      access: { levels: {}, ext: [] },
+      serversRestrict: { enabled: servers.length > 0, allowed: servers },
     });
+    return this.findById(id)!;
   }
 
   update(user: IUser): void {
@@ -57,23 +58,5 @@ export class AccountsService {
       throw new NotFoundException("User not found");
     }
     this.users.delete(id);
-  }
-
-  createDefaultAccount(hashedPassword: string): IUser {
-    const defaultUser: IUser = {
-      id: randomUUID(),
-      username: "kubek",
-      password: hashedPassword,
-      secret: "",
-      permissions: Object.values(UserPermissions),
-      serversRestrict: {
-        enabled: false,
-        allowed: [],
-      },
-      isAdmin: true,
-    };
-
-    this.create(defaultUser);
-    return defaultUser;
   }
 }

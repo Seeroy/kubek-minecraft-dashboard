@@ -1,8 +1,10 @@
 import {
   type ITask,
   type TaskSteps,
+  type TaskType,
   TaskStatus,
 } from "@shared/types/task.types";
+import { isTaskActive } from "@/shared/lib/task-status";
 import { create } from "zustand";
 
 /**
@@ -10,6 +12,7 @@ import { create } from "zustand";
  */
 export interface ServerCreationProgress {
   taskId: string;
+  type?: TaskType;
   serverId?: string;
   serverName: string;
   status: TaskStatus;
@@ -18,42 +21,55 @@ export interface ServerCreationProgress {
   message?: string;
   error?: string;
   updatedAt: number;
+  /** Distinct step and message pairs in arrival order, shown as a log */
+  log: { step?: TaskSteps; message?: string }[];
 }
 
 interface ServerCreationState {
   creations: Record<string, ServerCreationProgress>;
   upsertFromTask: (task: ITask) => void;
-  clear: (taskId: string) => void;
+  /** Tasks whose server starts once creation succeeds */
+  autostart: Record<string, true>;
+  setAutostart: (taskId: string, enabled: boolean) => void;
 }
 
 export const useServerCreationStore = create<ServerCreationState>((set) => ({
   creations: {},
 
   upsertFromTask: (task) =>
-    set((state) => ({
-      creations: {
-        ...state.creations,
-        [task.id]: {
-          taskId: task.id,
-          serverId: task.result?.serverId ?? task.meta?.serverId,
-          serverName:
-            task.meta?.serverName ?? state.creations[task.id]?.serverName ?? "",
-          status: task.status,
-          step: task.step,
-          progress: task.progress ?? 0,
-          message: task.message,
-          error: task.error?.message,
-          updatedAt: Date.now(),
-        },
-      },
-    })),
-
-  clear: (taskId) =>
     set((state) => {
-      if (!state.creations[taskId]) return state;
-      const next = { ...state.creations };
-      delete next[taskId];
-      return { creations: next };
+      const prev = state.creations[task.id];
+      const log = prev?.log ?? [];
+      const last = log.at(-1);
+      const changed = !last || last.step !== task.step || last.message !== task.message;
+      return {
+        creations: {
+          ...state.creations,
+          [task.id]: {
+            taskId: task.id,
+            type: task.type,
+            serverId: task.result?.serverId ?? task.meta?.serverId,
+            serverName: task.meta?.serverName ?? prev?.serverName ?? "",
+            status: task.status,
+            step: task.step,
+            progress: task.progress ?? 0,
+            message: task.message,
+            error: task.error?.message,
+            updatedAt: Date.now(),
+            log: changed ? [...log, { step: task.step, message: task.message }] : log,
+          },
+        },
+      };
+    }),
+
+  autostart: {},
+
+  setAutostart: (taskId, enabled) =>
+    set((state) => {
+      const next = { ...state.autostart };
+      if (enabled) next[taskId] = true;
+      else delete next[taskId];
+      return { autostart: next };
     }),
 }));
 
@@ -61,8 +77,6 @@ export const useServerCreationStore = create<ServerCreationState>((set) => ({
 export function getLatestActiveCreation(): ServerCreationProgress | undefined {
   const { creations } = useServerCreationStore.getState();
   return Object.values(creations)
-    .filter(
-      (c) => c.status === TaskStatus.PENDING || c.status === TaskStatus.RUNNING
-    )
+    .filter(isTaskActive)
     .sort((a, b) => b.updatedAt - a.updatedAt)[0];
 }

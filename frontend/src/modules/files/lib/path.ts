@@ -17,8 +17,3 @@ export function getParentPath(path: string): string {
   parts.pop();
   return parts.join("/");
 }
-
-export function getFileName(path: string): string {
-  const parts = splitFilesPath(path);
-  return parts[parts.length - 1] ?? "";
-}

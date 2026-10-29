@@ -1,10 +1,13 @@
+import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
+import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { TaskRefResponseDto } from "@/core/dto/task-ref-response.dto";
+import { Audit } from "@/modules/audit-log/audit.decorator";
+import { contentAudit } from "@/modules/plugins/content.audit";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
 import {
   Body,
@@ -21,14 +24,13 @@ import {
   ApiAcceptedResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiExtension,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from "@nestjs/swagger";
+import { AuditAction } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
-import { UserPermissions } from "@shared/types/user.types";
 import { InstallPluginDto } from "./dto/install-plugin.dto";
 import { InstalledContentDto } from "./dto/installed-content.dto";
 import {
@@ -46,14 +48,13 @@ import { PluginsService } from "./plugins.service";
 @ApiTags("Plugins")
 @ApiBearerAuth()
 @Controller("api/plugins")
-@UseGuards(BearerAuthGuard, PermissionsGuard, ServerAccessGuard)
+@UseGuards(BearerAuthGuard, AccessGuard, ServerAccessGuard)
 export class PluginsController {
   constructor(private readonly pluginsService: PluginsService) {}
 
   @Get("search")
   @ApiOperation({ summary: "Search plugins on Modrinth" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @ApiOkResponse({
     type: ModrinthSearchResponseDto,
     description: "Search result",
@@ -65,8 +66,7 @@ export class PluginsController {
 
   @Get("projects/:projectId")
   @ApiOperation({ summary: "Get plugin project details" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @ApiOkResponse({ type: ModrinthProjectDto, description: "Project details" })
   @ApiErrorResponses()
   @ApiParam({ name: "projectId", description: "Project ID or slug" })
@@ -78,8 +78,7 @@ export class PluginsController {
 
   @Get("projects/:projectId/versions")
   @ApiOperation({ summary: "List versions of plugin project" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @ApiOkResponse({
     type: [ModrinthVersionDto],
     description: "Project versions",
@@ -95,8 +94,7 @@ export class PluginsController {
 
   @Get("installed/:serverId")
   @ApiOperation({ summary: "List installed plugins for server" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @CheckServerAccess("serverId")
   @ApiParam({ name: "serverId", description: "Server ID" })
   @ApiOkResponse({
@@ -113,8 +111,7 @@ export class PluginsController {
   @Post("install")
   @HttpCode(202)
   @ApiOperation({ summary: "Install plugin from Modrinth" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "write")
   @CheckServerAccess("serverId")
   @ApiBody({ type: InstallPluginDto })
   @ApiAcceptedResponse({
@@ -122,6 +119,7 @@ export class PluginsController {
     description: "Background install task started",
   })
   @ApiErrorResponses()
+  @Audit(contentAudit(AuditAction.CONTENT_INSTALL, "plugin"))
   install(
     @Body() dto: InstallPluginDto,
     @CurrentUser() user: IUser,
@@ -132,8 +130,7 @@ export class PluginsController {
   @Post("servers/:serverId/plugins/:pluginId/update")
   @HttpCode(202)
   @ApiOperation({ summary: "Update installed plugin to another version" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "write")
   @CheckServerAccess("serverId")
   @ApiParam({ name: "serverId", description: "Server ID" })
   @ApiParam({ name: "pluginId", description: "Installed plugin record ID" })
@@ -142,6 +139,7 @@ export class PluginsController {
     description: "Background update task started",
   })
   @ApiErrorResponses()
+  @Audit(contentAudit(AuditAction.CONTENT_UPDATE, "plugin"))
   update(
     @Param("serverId") serverId: string,
     @Param("pluginId") pluginId: string,
@@ -154,8 +152,7 @@ export class PluginsController {
   @Delete("servers/:serverId/plugins/:pluginId")
   @HttpCode(202)
   @ApiOperation({ summary: "Remove installed plugin" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "manage")
   @CheckServerAccess("serverId")
   @ApiParam({ name: "serverId", description: "Server ID" })
   @ApiParam({ name: "pluginId", description: "Installed plugin record ID" })
@@ -164,6 +161,7 @@ export class PluginsController {
     description: "Background remove task started",
   })
   @ApiErrorResponses()
+  @Audit(contentAudit(AuditAction.CONTENT_REMOVE, "plugin"))
   remove(
     @Param("serverId") serverId: string,
     @Param("pluginId") pluginId: string,

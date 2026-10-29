@@ -1,32 +1,19 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { UserPermissions } from "@shared/types/user.types";
+import { Injectable, Logger } from "@nestjs/common";
+import { isLegacyPermission } from "@shared/access/legacy";
 
 export interface PermissionDef {
   key: string;
   label: string;
   group?: string;
-  /** "core" for built-in permissions, otherwise the extension id that declares it */
-  source: "core" | (string & {});
+  /** Extension id that declares it */
+  source: string;
 }
 
-/**
- * Core permissions registry
- */
+/** Permissions declared by extensions, core access lives in areas */
 @Injectable()
-export class PermissionRegistry implements OnModuleInit {
+export class PermissionRegistry {
   private readonly logger = new Logger(PermissionRegistry.name);
   private readonly defs = new Map<string, PermissionDef>();
-
-  onModuleInit(): void {
-    this.registerCore();
-  }
-
-  /** Seed built-in permissions from the UserPermissions enum */
-  private registerCore(): void {
-    for (const [name, key] of Object.entries(UserPermissions)) {
-      this.defs.set(key, { key, label: name, group: "core", source: "core" });
-    }
-  }
 
   /** Register permissions declared by an extension. Throws on collision with an existing key */
   register(
@@ -34,6 +21,12 @@ export class PermissionRegistry implements OnModuleInit {
     defs: Array<{ key: string; label: string; group?: string }>,
   ): void {
     for (const def of defs) {
+      // Old core keys are still checked by extensions, so none may redeclare them
+      if (isLegacyPermission(def.key)) {
+        throw new Error(
+          `Permission "${def.key}" is a core permission, cannot be redeclared by "${extId}"`,
+        );
+      }
       const existing = this.defs.get(def.key);
       if (existing && existing.source !== extId) {
         throw new Error(

@@ -5,19 +5,15 @@ import { ModrinthVersion } from "@shared/types/plugins";
  * Required dependencies that can be auto-installed because both the project
  * and version ids are resolved
  */
-export function getInstallableDependencies(
-  version: ModrinthVersion | undefined,
-): PluginInstallDependencyInput[] {
+export function getInstallableDependencies(version: ModrinthVersion | undefined): PluginInstallDependencyInput[] {
   if (!version?.dependencies?.length) return [];
 
   return version.dependencies
-    .filter((dependency) => dependency.dependencyType === "required")
-    .filter((dependency) =>
-      Boolean(dependency.versionId && dependency.projectId),
-    )
+    .filter((dependency) => dependency.dependency_type === "required")
+    .filter((dependency) => Boolean(dependency.version_id && dependency.project_id))
     .map((dependency) => ({
-      projectId: dependency.projectId!,
-      versionId: dependency.versionId!,
+      projectId: dependency.project_id!,
+      versionId: dependency.version_id!,
     }));
 }
 
@@ -29,13 +25,9 @@ export function getMissingDependencies(version: ModrinthVersion | undefined) {
   if (!version?.dependencies?.length) return [];
 
   return version.dependencies
-    .filter(
-      (dependency) =>
-        dependency.dependencyType === "required" &&
-        (!dependency.versionId || !dependency.projectId),
-    )
+    .filter((dependency) => dependency.dependency_type === "required" && (!dependency.version_id || !dependency.project_id))
     .map((dependency) => ({
-      projectId: dependency.projectId,
-      versionId: dependency.versionId,
+      projectId: dependency.project_id ?? undefined,
+      versionId: dependency.version_id ?? undefined,
     }));
 }

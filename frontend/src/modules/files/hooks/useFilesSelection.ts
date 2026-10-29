@@ -5,10 +5,8 @@ export interface FilesSelection {
   selected: Set<string>;
   selectedPaths: string[];
   count: number;
-  isSelected: (path: string) => boolean;
   toggle: (path: string) => void;
-  setSelection: (paths: string[]) => void;
-  selectAll: (paths: string[]) => void;
+  selectMany: (paths: string[], select: boolean) => void;
   clear: () => void;
 }
 
@@ -18,37 +16,24 @@ export function useFilesSelection(): FilesSelection {
   const toggle = useCallback((path: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
+      if (!next.delete(path)) next.add(path);
       return next;
     });
   }, []);
 
-  const setSelection = useCallback((paths: string[]) => {
-    setSelected(new Set(paths));
-  }, []);
-
-  const selectAll = useCallback((paths: string[]) => {
-    setSelected(new Set(paths));
+  const selectMany = useCallback((paths: string[], select: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const path of paths) {
+        if (select) next.add(path);
+        else next.delete(path);
+      }
+      return next;
+    });
   }, []);
 
   const clear = useCallback(() => setSelected(new Set()), []);
-
-  const isSelected = useCallback(
-    (path: string) => selected.has(path),
-    [selected]
-  );
-
   const selectedPaths = useMemo(() => Array.from(selected), [selected]);
 
-  return {
-    selected,
-    selectedPaths,
-    count: selected.size,
-    isSelected,
-    toggle,
-    setSelection,
-    selectAll,
-    clear,
-  };
+  return { selected, selectedPaths, count: selected.size, toggle, selectMany, clear };
 }

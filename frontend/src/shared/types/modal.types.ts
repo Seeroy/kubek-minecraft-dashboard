@@ -1,23 +1,16 @@
-export interface ModalProps<Result = any> {
-  isOpen: boolean;
-  // Flexible signature: existing modals call onClose() with no args; new modals
-  // may pass a result value to resolve the open() promise. Loose typing here
-  // lets callers wire onClose directly into onClick/onOpenChange handlers
-  onClose: (...args: any[]) => void;
+import type { ComponentType } from "react";
+import type { ModalId, PropsOf, ResultOf } from "./modal-registry";
 
-  [key: string]: any;
+export interface ModalProps<Result = void> {
+  isOpen: boolean;
+  // Modals without a result take no args, so onClose can go straight into onClick/onOpenChange
+  onClose: [Result] extends [void] ? () => void : (result?: Result) => void;
 }
 
-export type ModalComponent<Result = any> = React.ComponentType<
-  ModalProps<Result>
->;
+export type ModalComponentProps<K extends ModalId> = ModalProps<ResultOf<K>> & PropsOf<K>;
 
-export interface ModalConfig {
-  id: string;
-  // Registered modals carry their own extra props on top of ModalProps, so the
-  // registry stores them with an open component type
-  component: React.ComponentType<any>;
+export interface ModalConfig<K extends ModalId = ModalId> {
+  id: K;
+  component: ComponentType<ModalComponentProps<K>>;
   module?: string;
 }
-
-export type ModalType = "global" | "module";

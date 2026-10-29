@@ -1,26 +1,20 @@
+import ClientStatsReporter from "@/app/_layout/ClientStatsReporter";
 import DocumentTitle from "@/app/_layout/DocumentTitle";
-import { CommandPaletteProvider } from "@/modules/command-palette";
-import { ExtensionRuntimeProvider } from "@/modules/extensions";
 import {
   GlobalErrorNotifier,
   NotificationCenter,
-  NotificationProvider,
   NotificationSoundBridge,
-  ServerStatusNotifier,
-  TaskNotificationsBridge,
   ToastBusBridge,
 } from "@/modules/notifications";
-import { ServerCreationBridge, ServerProvider } from "@/modules/server";
-import { WhatsNewBridge } from "@/modules/whats-new";
-import { AuthProvider } from "@/shared/context/auth-context";
+import { ServerProvider } from "@/modules/server";
 import { LanguageProvider } from "@/shared/context/language-context";
 import { SocketProvider } from "@/shared/context/socket-context";
-import { ColorThemeProvider } from "@/shared/context/theme-context";
-import { ModalProvider } from "@/shared/providers/ModalProvider";
+import { SharedModalsRegistration } from "@/shared/modals";
 import { ReactQueryProvider } from "@/shared/queries/query-client";
-import { ThemeProvider } from "@/shared/ui/theme-provider";
+import { ThemeProvider } from "next-themes";
 import type { FC, PropsWithChildren } from "react";
-import { GlobalModalsRegistration } from "./GlobalModals";
+import { AuthGate } from "./AuthGate";
+import { ModalProvider } from "./ModalProvider";
 
 const Providers: FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -32,31 +26,21 @@ const Providers: FC<PropsWithChildren> = ({ children }) => {
         disableTransitionOnChange
       >
         <ReactQueryProvider>
-          <AuthProvider>
-            <SocketProvider>
-              <ServerProvider>
-                <ColorThemeProvider>
-                  <NotificationProvider>
-                    <ToastBusBridge/>
-                    <ModalProvider/>
-                    <GlobalModalsRegistration/>
-                    <WhatsNewBridge/>
-                    <NotificationCenter/>
-                    <TaskNotificationsBridge/>
-                    <ServerCreationBridge/>
-                    <ServerStatusNotifier/>
-                    <GlobalErrorNotifier/>
-                    <NotificationSoundBridge/>
-                    <DocumentTitle/>
-                    <CommandPaletteProvider/>
-                    <ExtensionRuntimeProvider/>
+          <AuthGate/>
+          <SocketProvider>
+            <ServerProvider>
+              <ToastBusBridge/>
+              <ModalProvider/>
+              <SharedModalsRegistration/>
+              <NotificationCenter/>
+              <GlobalErrorNotifier/>
+              <NotificationSoundBridge/>
+              <DocumentTitle/>
+              <ClientStatsReporter/>
 
-                    { children }
-                  </NotificationProvider>
-                </ColorThemeProvider>
-              </ServerProvider>
-            </SocketProvider>
-          </AuthProvider>
+              { children }
+            </ServerProvider>
+          </SocketProvider>
         </ReactQueryProvider>
       </ThemeProvider>
     </LanguageProvider>

@@ -1,92 +1,65 @@
 import type { TranslationDictionary } from "../../../locales/types";
 
 export const consoleTranslations: TranslationDictionary = {
-  commandInput: {
-    placeholder: "Enter command",
+  explainPrompt: (line: string) => `Explain this console error and how to fix it:\n\n\`\`\`\n${line}\n\`\`\``,
+  noServer: {
+    title: "No server selected",
+    description: "Pick a server in the sidebar to see its console",
   },
-  header: {
-    kicker: "Console",
-    title: "Server Console",
-    description: "View live logs and run commands on the selected server",
+  log: {
+    title: "Log",
+    lines: (n: number) => `${n} ${n === 1 ? "line" : "lines"}`,
+    search: "Filter log",
+    download: "Download",
+    empty: "No output yet, server lines will appear here",
+    noMatches: "No lines match the filter",
+    newLines: (n: number) => `${n} new`,
   },
-  console: {
-    noServerSelected: "No server selected",
-    noLogs: "No logs yet. Server logs will appear here",
-    cards: {
-      address: "Address",
-      copyAddress: "Copy address",
-      version: "Version",
-      players: "Players",
-      playersOnline: "Players online",
-      serverEmpty: "Server is empty",
-      status: "Status",
-      uptime: "Uptime",
-      lastUpdate: "Updated",
-      bufferedLogs: "Log buffer",
-    },
-    status: {
-      online: "Online",
-      offline: "Offline",
-      running: "Running",
-      stopped: "Stopped",
-      active: "Active",
-      inactive: "Inactive",
-      starting: "Starting",
-      restarting: "Restarting",
-      stopping: "Stopping",
-      error: "Error",
-      crashed: "Crashed",
-      unknown: "Unknown",
-    },
+  command: {
+    placeholder: "Enter a command",
+    send: "Send",
   },
-  kubekLogLine: {
-    notSpecified: "Not specified",
+  cards: {
+    address: "Address",
+    copyAddress: "Copy address",
+    version: "Version",
+    players: "Players",
+    playersOnline: "Players online",
+    serverEmpty: "Nobody is online",
+    status: "Status",
+    uptime: "Uptime",
+    lastUpdate: "Data received",
+    secondsAgo: (s: number) => (s < 1 ? "just now" : `${s} s ago`),
+    bufferedLogs: "Lines in buffer",
+  },
+  status: {
+    running: "Running",
+    stopped: "Stopped",
+    starting: "Starting",
+    stopping: "Stopping",
+    crashed: "Crashed",
+  },
+  events: {
     unknownUser: "Unknown user",
-    badges: {
-      telegram: "Telegram",
-      kubek: "Kubek",
+    executed: "ran",
+    statusChanged: "Server status changed to",
+    stopped: (code: number) => `Server stopped, exit code ${code}`,
+    restartFailed: (attempts: number) => `Failed to restart the server after ${attempts} attempts`,
+    telegramControl: "used Telegram to",
+    causes: {
+      killed: "Stopped by request",
+      crashed: "Crashed",
     },
-    userInput: {
-      executedCommand: " executed command: ",
-      labels: {
-        user: "👤 User:",
-        id: "🆔 ID:",
-        exactTime: "🕒 Exact time:",
-      },
-    },
-    statusChange: {
-      statusChanged: "Server status changed: ",
-      labels: {
-        status: "📊 Status:",
-        exactTime: "🕒 Exact time:",
-      },
-    },
-    stop: {
-      serverStopped: "Server stopped",
-      exitCode: "(exit code: ",
-      labels: {
-        cause: "🛑 Cause:",
-        exitCode: "🔢 Exit code:",
-        exactTime: "🕒 Exact time:",
-      },
-    },
-    restartFailed: {
-      failedToRestart: "Failed to restart server after ",
-      attempts: " attempts",
-      labels: {
-        attempts: "⚠️ Attempts:",
-        exactTime: "🕒 Exact time:",
-      },
-    },
-    botControl: {
-      controlledViaTelegram: " controlled server via Telegram: ",
-      labels: {
-        user: "👤 User:",
-        userId: "🆔 User ID:",
-        telegramId: "🤖 Telegram ID:",
-        action: "🎮 Action:",
-        exactTime: "🕒 Exact time:",
-      },
+    details: {
+      user: "User",
+      id: "ID",
+      telegramId: "Telegram ID",
+      action: "Action",
+      status: "Status",
+      cause: "Cause",
+      exitCode: "Exit code",
+      attempts: "Attempts",
+      time: "Time",
     },
   },
 };

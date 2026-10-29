@@ -1,5 +1,6 @@
 import type { ContentKind } from "@/api";
 import type { BlueprintSummary } from "@/shared/types/server-types.types";
+import { TaskType } from "@shared/types/task.types";
 import { Boxes, Puzzle, type LucideIcon } from "lucide-react";
 
 /**
@@ -16,6 +17,10 @@ export interface ContentKindConfig {
   /** Modrinth project type used for the modrinth.com link */
   modrinthType: "plugin" | "mod";
   icon: LucideIcon;
+  /** Shown next to the catalog source */
+  loaderLabel: string;
+  /** Background tasks that change the installed list */
+  taskTypes: TaskType[];
   /** Whether this content kind is usable on the given server's blueprint */
   isAvailable: (blueprint: BlueprintSummary | undefined) => boolean;
   /** Loader to constrain the catalog search to (undefined = no constraint) */
@@ -29,6 +34,8 @@ export const CONTENT_KINDS: Record<ContentKind, ContentKindConfig> = {
     installFolder: "plugins",
     modrinthType: "plugin",
     icon: Puzzle,
+    loaderLabel: "Paper / Bukkit",
+    taskTypes: [TaskType.PLUGIN_INSTALL, TaskType.PLUGIN_UPDATE, TaskType.PLUGIN_REMOVE],
     isAvailable: (bp) => !!bp?.features.includes("plugins:modrinth"),
     searchLoader: () => undefined,
   },
@@ -38,6 +45,8 @@ export const CONTENT_KINDS: Record<ContentKind, ContentKindConfig> = {
     installFolder: "mods",
     modrinthType: "mod",
     icon: Boxes,
+    loaderLabel: "Fabric",
+    taskTypes: [TaskType.MOD_INSTALL, TaskType.MOD_UPDATE, TaskType.MOD_REMOVE],
     isAvailable: (bp) => !!bp?.features.includes("mods:fabric"),
     searchLoader: (bp) =>
       bp?.features.includes("mods:fabric") ? "fabric" : undefined,

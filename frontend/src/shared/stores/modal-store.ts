@@ -1,36 +1,48 @@
-import { PropsOf, ResultOf } from "@/shared/types/modal-registry";
-import { ModalConfig, ModalProps } from "@/shared/types/modal.types";
+import type { ModalId, OpenModalArgs, ResultOf } from "@/shared/types/modal-registry";
+import type { ModalConfig } from "@/shared/types/modal.types";
+import type { ComponentType } from "react";
 import { create } from "zustand";
 import { installModalDevtools } from "./modal-store.dev";
 
+// Per-id types are checked at register/open time, the store itself keeps them erased
+interface StoredModalProps {
+  id: ModalId;
+  isOpen: boolean;
+  onClose: (result?: unknown) => void;
+  [key: string]: unknown;
+}
+
+interface StoredModal {
+  id: ModalId;
+  component: ComponentType<StoredModalProps>;
+  module?: string;
+}
+
 interface ActiveModal {
-  id: string;
+  id: ModalId;
   order: number;
-  props: ModalProps<any> & { id: string };
-  resolve: (result: any) => void;
+  props: StoredModalProps;
+  resolve: (result: unknown) => void;
 }
 
 interface ModalState {
-  modals: Map<string, ModalConfig>;
-  activeModals: Map<string, ActiveModal>;
+  modals: Map<ModalId, StoredModal>;
+  activeModals: Map<ModalId, ActiveModal>;
   nextOrder: number;
 
   /** Register a modal's config so it can be opened by id. */
-  registerModal: (config: ModalConfig) => void;
+  registerModal: <K extends ModalId>(config: ModalConfig<K>) => void;
   /** Remove a modal's config; if it's currently open, resolves it as cancelled. */
-  unregisterModal: (id: string) => void;
+  unregisterModal: (id: ModalId) => void;
 
   /**
    * Open a modal and await its result. The returned promise resolves with the
    * value passed to closeModal/onClose, or undefined when cancelled
    */
-  openModal: <K extends string>(
-    id: K,
-    props?: Omit<PropsOf<K>, "isOpen" | "onClose">
-  ) => Promise<ResultOf<K> | undefined>;
+  openModal: <K extends ModalId>(id: K, ...args: OpenModalArgs<K>) => Promise<ResultOf<K> | undefined>;
 
   /** Close an active modal */
-  closeModal: <K extends string>(id: K, result?: ResultOf<K>) => void;
+  closeModal: <K extends ModalId>(id: K, result?: ResultOf<K>) => void;
   /** Close every active modal */
   closeAllModals: () => void;
 }
@@ -45,14 +57,13 @@ export const useModalStore = create<ModalState>((set, get) => ({
   activeModals: new Map(),
   nextOrder: 0,
 
-  registerModal: (config) => {
+  registerModal: (registered) => {
+    const config = registered as unknown as StoredModal;
     set((state) => {
       const existing = state.modals.get(config.id);
       if (existing && existing.component !== config.component) {
         // Dev-time warning for accidental ID collisions
-        console.warn(
-          `Modal "${config.id}" is being re-registered with a different component`
-        );
+        console.warn(`Modal "${config.id}" is being re-registered with a different component`);
       }
       const newModals = new Map(state.modals);
       newModals.set(config.id, config);
@@ -76,12 +87,9 @@ export const useModalStore = create<ModalState>((set, get) => ({
     });
   },
 
-  // Generic default can't satisfy the per-call props type, so widen it here
-  openModal: (
-    id,
-    props = {} as Omit<PropsOf<typeof id>, "isOpen" | "onClose">
-  ) => {
-    return new Promise((resolve) => {
+  openModal: (id, ...[props]) => {
+    return new Promise((resolvePromise) => {
+      const resolve = resolvePromise as (result: unknown) => void;
       const { modals, activeModals } = get();
       if (!modals.has(id)) {
         console.warn(`Modal "${id}" is not registered`);
@@ -102,7 +110,7 @@ export const useModalStore = create<ModalState>((set, get) => ({
 
       const order = get().nextOrder + 1;
 
-      const onClose = (result?: any) => {
+      const onClose = (result?: unknown) => {
         const current = get().activeModals.get(id);
         if (!current || current.props.isOpen === false) return;
         current.resolve(result);
@@ -137,7 +145,7 @@ export const useModalStore = create<ModalState>((set, get) => ({
             id,
             isOpen: true,
             onClose,
-            ...(props as object),
+            ...(props as object | undefined),
           },
         });
         return { activeModals: next, nextOrder: order };
@@ -162,14 +170,9 @@ installModalDevtools();
 
 // Imperative API for use outside React components
 export const modalApi = {
-  open: <K extends string>(
-    id: K,
-    props?: Omit<PropsOf<K>, "isOpen" | "onClose">
-  ): Promise<ResultOf<K> | undefined> =>
-    useModalStore.getState().openModal(id, props),
+  open: <K extends ModalId>(id: K, ...args: OpenModalArgs<K>): Promise<ResultOf<K> | undefined> => useModalStore.getState().openModal(id, ...args),
 
-  close: <K extends string>(id: K, result?: ResultOf<K>) =>
-    useModalStore.getState().closeModal(id, result),
+  close: <K extends ModalId>(id: K, result?: ResultOf<K>) => useModalStore.getState().closeModal(id, result),
 
   closeAll: () => useModalStore.getState().closeAllModals(),
 };

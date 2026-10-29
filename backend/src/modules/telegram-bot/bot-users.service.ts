@@ -1,6 +1,9 @@
 import { TelegramUsersRepository } from "@/modules/database/repositories/telegram-users.repository";
 import { Injectable } from "@nestjs/common";
-import type { ITelegramUser, TelegramLang } from "@/modules/telegram-bot/telegram.types";
+import type {
+  ITelegramUser,
+  TelegramLang,
+} from "@/modules/telegram-bot/telegram.types";
 import type { MyContext } from "./bot-types";
 import { detectLang } from "./i18n";
 

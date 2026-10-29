@@ -1,10 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
-  IsBoolean,
   IsIn,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
+  ValidateIf,
 } from "class-validator";
 
 export class UpdatePreferencesDto {
@@ -12,11 +13,6 @@ export class UpdatePreferencesDto {
   @IsOptional()
   @IsIn(["totp", "telegram", null])
   twofaPrimary?: "totp" | "telegram" | null;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsBoolean()
-  notifyTaskResults?: boolean;
 
   @ApiProperty({
     required: false,
@@ -37,4 +33,16 @@ export class UpdatePreferencesDto {
   @IsString()
   @MaxLength(64)
   lastSeenWhatsNewVersion?: string | null;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    description:
+      "Minecraft nickname for the avatar, null or empty to use the username",
+    example: "Notch",
+  })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== "")
+  @Matches(/^[A-Za-z0-9_]{1,16}$/)
+  skinName?: string | null;
 }

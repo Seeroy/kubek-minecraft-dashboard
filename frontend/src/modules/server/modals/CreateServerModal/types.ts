@@ -1,3 +1,5 @@
+import type { NoModalProps } from "@/shared/types/modal-registry";
+
 export interface JavaVersion {
   version: string;
   label: string;
@@ -11,7 +13,8 @@ export interface JavaVersion {
   path?: string;
 }
 
-export interface CreateServerModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+declare module "@/shared/types/modal-registry" {
+  interface ModalRegistry {
+    "servers/create": { props: NoModalProps; result: void };
+  }
 }

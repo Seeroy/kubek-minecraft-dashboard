@@ -1,359 +1,204 @@
 "use client";
 
-import { NOTIFICATION_SOUND_STORAGE_KEY } from "@/modules/notifications/utils/soundPreference";
-import { ThemePicker } from "@/modules/settings/ui/ThemePicker";
+import type { SupportedLanguage } from "@/locales";
+import { useNotificationSound } from "@/modules/notifications/utils/soundPreference";
 import { useLanguageContext } from "@/shared/context/language-context";
+import { useProfileQuery } from "@/shared/queries/auth.queries";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { useAuthStore } from "@/shared/stores/auth-store";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
+import { CopyButton } from "@/shared/ui/CopyButton";
+import { FieldError } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
-import { Separator } from "@/shared/ui/separator";
+import { KeyValue, KeyValueItem } from "@/shared/ui/key-value";
+import { LanguageFlag } from "@/shared/ui/LanguageFlag";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Switch } from "@/shared/ui/switch";
-import { Bell, FolderSync, Languages, Settings } from "lucide-react";
-import { useEffect, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { MainConfigFormData } from "../validations/schema";
+import { Toggle } from "@/shared/ui/toggle";
+import { ToggleGroup } from "@/shared/ui/toggle-group";
+import { Bell, CircleUser, FolderSync, Gamepad2, Gauge, Globe, Info, Languages, Monitor, Moon, Network, Palette, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Controller, useWatch, type UseFormReturn } from "react-hook-form";
+import type { MainConfigFormData } from "../validations/schema";
+import { FtpPasswordField } from "./ftp/FtpPasswordField";
+import { SkinNameInput } from "./SkinNameInput";
+import { ThemePicker } from "./ThemePicker";
 
-interface GeneralSettingsProps {
-  form: UseFormReturn<MainConfigFormData>;
-}
+const MODES = [
+  { id: "system", icon: Monitor },
+  { id: "dark", icon: Moon },
+  { id: "light", icon: Sun },
+] as const;
 
-// Empty number inputs drops NaN which fails zod. so, this is fix
-const toOptionalNumber = (value: unknown) => {
-  if (value === "" || value === null || value === undefined) return undefined;
+// Empty number inputs give NaN, which zod rejects as a type error instead of "required"
+export const toOptionalNumber = (value: unknown) => {
+  if (value === "" || value == null) return undefined;
   const parsed = Number(value);
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
-export default function GeneralSettings({ form }: GeneralSettingsProps) {
-  const {
-    register,
-    watch,
-    setValue,
-    trigger,
-    formState: { errors },
-  } = form;
-  const watchFTPEnabled = watch("ftpd.enabled");
-  const user = useAuthStore((s) => s.user);
+export default function GeneralSettings({ form }: { form: UseFormReturn<MainConfigFormData> }) {
+  const { t } = useTranslation("modules.settings.general");
+  // Validation messages are full translation keys
+  const { t: tRoot } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const { language, availableLanguages, setLanguage } = useLanguageContext();
-  const { t } = useTranslation("modules.settings");
-  // Validation messages are full translation keys from the zod schema
-  const { t: tError } = useTranslation();
-  const [notificationSoundEnabled, setNotificationSoundEnabled] =
-    useState(true);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setNotificationSoundEnabled(
-      window.localStorage.getItem(NOTIFICATION_SOUND_STORAGE_KEY) !== "false"
-    );
-  }, []);
-
-  const handleNotificationSoundChange = (value: boolean) => {
-    setNotificationSoundEnabled(value);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        NOTIFICATION_SOUND_STORAGE_KEY,
-        String(value)
-      );
-    }
-  };
+  const [soundEnabled, setSoundEnabled] = useNotificationSound();
+  const { register, control, formState } = form;
+  const { errors, dirtyFields } = formState;
+  const [ftpEnabled, ftpPort] = useWatch({ control, name: ["ftpd.enabled", "ftpd.port"] });
+  const username = useProfileQuery().data?.username;
+  // The panel and FTP share a host, the address in the bar is what the user reaches
+  const host = typeof window === "undefined" ? "" : window.location.hostname;
+  const error = (message: string | undefined) => (message ? <FieldError>{tRoot(message)}</FieldError> : null);
 
   return (
-    <div className="space-y-6">
-      {/* Color Themes */}
-      <Card>
-        <CardHeader>
-          <BlockHeader
-            kicker={t("general.colorTheme.title")}
-            title={t("general.colorTheme.title")}
-            description={t("general.colorTheme.description")}
-            icon={Settings}
-            color="primary"
+    <>
+      <SettingsGroup tone="green" icon={CircleUser} title={t("profile.title")} description={t("profile.description")}>
+        <SettingsField label={t("profile.label")} icon={Gamepad2} hint={t("profile.hint")} changed={!!dirtyFields.skinName} htmlFor="profile-skin-name">
+          <Controller
+            control={control}
+            name="skinName"
+            render={({ field }) => <SkinNameInput id="profile-skin-name" value={field.value} onChange={field.onChange} />}
           />
-        </CardHeader>
-        <CardContent>
+        </SettingsField>
+      </SettingsGroup>
+
+      <SettingsGroup tone="purple" icon={Palette} title={t("theme.title")} description={t("theme.description")}>
+        <SettingsField label={t("theme.title")} icon={Palette} wide>
           <ThemePicker />
-        </CardContent>
-      </Card>
+        </SettingsField>
+        <SettingsField label={t("theme.mode")} icon={Moon}>
+          <ToggleGroup
+            variant="segmented"
+            className="w-fit"
+            value={[theme ?? "system"]}
+            onValueChange={(next) => next[0] && setTheme(next[0])}
+          >
+            {MODES.map(({ id, icon: Icon }) => (
+              <Toggle key={id} variant="segmented" value={id}>
+                <Icon />
+                {t(`theme.modes.${id}`)}
+              </Toggle>
+            ))}
+          </ToggleGroup>
+        </SettingsField>
+      </SettingsGroup>
 
-      {/* Language Selection */}
-      <Card>
-        <CardHeader>
-          <BlockHeader
-            kicker={t("general.language.title")}
-            title={t("general.language.title")}
-            description={t("general.language.description")}
-            icon={Languages}
-            color="blue"
-          />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Select
-              value={language}
-              onValueChange={(value) => value != null && setLanguage(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("general.language.placeholder")}>
-                  {(value: string) => {
-                    const lang = availableLanguages.find(
-                      (l) => l.code === value
-                    );
-                    if (!lang) return t("general.language.placeholder");
-                    return (
-                      <>
-                        <span className={`fi fi-${lang.code}`} />
-                        {lang.label}
-                      </>
-                    );
-                  }}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {availableLanguages.map((lang) => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    <span className={`fi fi-${lang.code}`} />
-                    {lang.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <SettingsGroup tone="blue" icon={Languages} title={t("language.title")} description={t("language.description")}>
+        <SettingsField label={t("language.label")} icon={Globe}>
+          <Select<SupportedLanguage> value={language} onValueChange={(value) => value && setLanguage(value)}>
+            <SelectTrigger className="w-full" aria-label={t("language.label")}>
+              <SelectValue>
+                {(value: SupportedLanguage) => {
+                  const current = availableLanguages.find((l) => l.code === value);
+                  return current ? (
+                    <>
+                      <LanguageFlag code={current.code} />
+                      {current.label}
+                    </>
+                  ) : null;
+                }}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {availableLanguages.map((lang) => (
+                <SelectItem key={lang.code} value={lang.code}>
+                  <LanguageFlag code={lang.code} />
+                  {lang.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingsField>
+      </SettingsGroup>
 
-      {/* Notifications (per-browser preference) */}
-      <Card>
-        <CardHeader>
-          <BlockHeader
-            kicker={t("general.notifications.title")}
-            title={t("general.notifications.title")}
-            description={t("general.notifications.description")}
-            icon={Bell}
-            color="yellow"
-          />
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-row items-center justify-between rounded-xl border border-border/60 bg-muted/30 p-4">
-            <div className="space-y-1">
-              <Label
-                className="text-sm font-medium"
-                htmlFor="notification-sound-enabled"
-              >
-                {t("general.notifications.sound.label")}
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                {t("general.notifications.sound.description")}
-              </p>
-            </div>
-            <Switch
-              id="notification-sound-enabled"
-              checked={notificationSoundEnabled}
-              onCheckedChange={handleNotificationSoundChange}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <SettingsGroup tone="amber" icon={Bell} title={t("notifications.title")} description={t("notifications.description")}>
+        <SettingsField label={t("notifications.sound")} icon={Bell} hint={t("notifications.soundHint")} inline>
+          <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} aria-label={t("notifications.sound")} />
+        </SettingsField>
+      </SettingsGroup>
 
-      {/* Panel Configuration */}
-      <Card>
-        <CardHeader>
-          <BlockHeader
-            kicker={t("general.panelConfiguration.title")}
-            title={t("general.panelConfiguration.title")}
-            description={t("general.panelConfiguration.description")}
-            icon={Settings}
-            color="purple"
+      <SettingsGroup tone="cyan" icon={Network} title={t("panel.title")} description={t("panel.description")}>
+        <SettingsField label={t("panel.port")} icon={Network} hint={t("panel.portHint")} changed={!!dirtyFields.port} htmlFor="panel-port">
+          <Input
+            id="panel-port"
+            type="number"
+            className="font-mono"
+            placeholder="8080"
+            aria-invalid={!!errors.port}
+            {...register("port", { setValueAs: toOptionalNumber })}
           />
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="port">
-              {t("general.panelConfiguration.port.label")}
-            </Label>
-            <Input
-              id="port"
-              type="number"
-              placeholder="8080"
-              aria-invalid={!!errors.port}
-              {...register("port", { setValueAs: toOptionalNumber })}
-            />
-            {errors.port && (
-              <p className="text-sm text-destructive">
-                {errors.port.message && tError(errors.port.message)}
-              </p>
+          {error(errors.port?.message)}
+        </SettingsField>
+        <SettingsField
+          label={t("panel.serverStats")}
+          icon={Gauge}
+          changed={!!dirtyFields.serverStats?.enabled}
+          hint={
+            <>
+              {t("panel.serverStatsHint")} <code className="font-mono text-[12px]">KUBEK_SERVER_STATS=off</code>
+            </>
+          }
+          inline
+        >
+          <Controller
+            control={control}
+            name="serverStats.enabled"
+            render={({ field }) => <Switch checked={!!field.value} onCheckedChange={field.onChange} aria-label={t("panel.serverStats")} />}
+          />
+        </SettingsField>
+      </SettingsGroup>
+
+      <SettingsGroup tone="green" icon={FolderSync} title={t("ftp.title")} description={t("ftp.description")}>
+        <SettingsField label={t("ftp.enable")} icon={FolderSync} hint={t("ftp.enableHint")} changed={!!dirtyFields.ftpd?.enabled} inline>
+          <Controller
+            control={control}
+            name="ftpd.enabled"
+            render={({ field }) => (
+              <Switch
+                checked={!!field.value}
+                onCheckedChange={(checked) => {
+                  field.onChange(checked);
+                  // Turning FTP on makes the port required
+                  void form.trigger("ftpd");
+                }}
+                aria-label={t("ftp.enable")}
+              />
             )}
-            <p className="text-xs text-muted-foreground">
-              {t("general.panelConfiguration.port.description")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* FTP Configuration */}
-      <Card>
-        <CardHeader>
-          <BlockHeader
-            kicker={t("general.ftp.title")}
-            title={t("general.ftp.title")}
-            description={t("general.ftp.description")}
-            icon={FolderSync}
-            color="green"
           />
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-row items-center justify-between rounded-xl border border-border/60 bg-muted/30 p-4">
-            <div className="space-y-1">
-              <Label className="text-sm font-medium" htmlFor="ftpd-enabled">
-                {t("general.ftp.enable.label")}
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                {t("general.ftp.enable.description")}
-              </p>
-            </div>
-            <Switch
-              id="ftpd-enabled"
-              checked={watchFTPEnabled}
-              onCheckedChange={(value) => {
-                // Enabling makes sibling fields required
-                setValue("ftpd.enabled", value, { shouldDirty: true });
-                void trigger();
-              }}
+        </SettingsField>
+
+        <div className="col-span-full grid gap-5 transition-opacity aria-disabled:opacity-45 md:grid-cols-[1fr_140px]" aria-disabled={!ftpEnabled}>
+          <FtpPasswordField enabled={!!ftpEnabled} />
+          <SettingsField label={t("ftp.port")} icon={Network} changed={!!dirtyFields.ftpd?.port} htmlFor="ftp-port">
+            <Input
+              id="ftp-port"
+              type="number"
+              className="font-mono"
+              placeholder="21"
+              disabled={!ftpEnabled}
+              aria-invalid={!!errors.ftpd?.port}
+              {...register("ftpd.port", { setValueAs: toOptionalNumber })}
             />
-          </div>
+            {error(errors.ftpd?.port?.message)}
+          </SettingsField>
+        </div>
 
-          {watchFTPEnabled && (
-            <div className="animate-in space-y-6 duration-200 fade-in slide-in-from-top-2">
-              <Separator />
-              <div className="grid gap-4 md:grid-cols-2">
-                {/* FTP Username */}
-                <div className="space-y-2">
-                  <Label htmlFor="ftpd-username">
-                    {t("general.ftp.username")}
-                  </Label>
-                  <Input
-                    id="ftpd-username"
-                    placeholder="admin"
-                    aria-invalid={!!errors.ftpd?.username}
-                    {...register("ftpd.username")}
-                  />
-                  {errors.ftpd?.username && (
-                    <p className="text-sm text-destructive">
-                      {errors.ftpd.username.message &&
-                        tError(errors.ftpd.username.message)}
-                    </p>
-                  )}
-                </div>
-
-                {/* FTP Password */}
-                <div className="space-y-2">
-                  <Label htmlFor="ftpd-password">
-                    {t("general.ftp.password")}
-                  </Label>
-                  <Input
-                    id="ftpd-password"
-                    type="password"
-                    placeholder={t("general.ftp.passwordPlaceholder")}
-                    aria-invalid={!!errors.ftpd?.password}
-                    {...register("ftpd.password")}
-                  />
-                  {errors.ftpd?.password && (
-                    <p className="text-sm text-destructive">
-                      {errors.ftpd.password.message &&
-                        tError(errors.ftpd.password.message)}
-                    </p>
-                  )}
-                </div>
-
-                {/* FTP Port */}
-                <div className="space-y-2">
-                  <Label htmlFor="ftpd-port">{t("general.ftp.port")}</Label>
-                  <Input
-                    id="ftpd-port"
-                    type="number"
-                    placeholder="21"
-                    aria-invalid={!!errors.ftpd?.port}
-                    {...register("ftpd.port", { setValueAs: toOptionalNumber })}
-                  />
-                  {errors.ftpd?.port && (
-                    <p className="text-sm text-destructive">
-                      {errors.ftpd.port.message &&
-                        tError(errors.ftpd.port.message)}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* FTP Root Error */}
-              {errors.ftpd?.root && (
-                <div className="text-sm font-medium text-destructive">
-                  {errors.ftpd.root.message && tError(errors.ftpd.root.message)}
-                </div>
-              )}
-
-              <Separator />
-
-              {/* FTP Connection Details */}
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-medium">
-                    {t("general.ftp.connectionDetails.title")}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t("general.ftp.connectionDetails.description")}
-                  </p>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Host</Label>
-                    <div className="rounded-lg border border-border/40 bg-muted/60 px-3 py-2 font-mono text-sm">
-                      localhost
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Port</Label>
-                    <div className="rounded-lg border border-border/40 bg-muted/60 px-3 py-2 font-mono text-sm">
-                      {watch("ftpd.port") || 21}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Username</Label>
-                    <div className="rounded-lg border border-border/40 bg-muted/60 px-3 py-2 font-mono text-sm">
-                      {user?.username || "Not logged in"}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Password</Label>
-                    <div className="rounded-lg border border-border/40 bg-muted/60 px-3 py-2 font-mono text-sm">
-                      {t("general.ftp.connectionDetails.password")}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-[oklch(0.70_0.15_200/0.25)] bg-[oklch(0.70_0.15_200/0.10)] p-3.5">
-                  <p className="text-sm text-[oklch(0.40_0.13_200)] dark:text-[oklch(0.80_0.15_200)]">
-                    {t("general.ftp.connectionDetails.instructions")}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        {ftpEnabled && (
+          <SettingsField label={t("ftp.details")} icon={Info} hint={t("ftp.hint")} wide>
+            <KeyValue className="rounded-md border border-dashed border-border bg-subtle px-4 py-3 [&_dd]:text-left [&_dd]:font-mono [&_dd]:text-[12.5px]">
+              <KeyValueItem label={t("ftp.host")}>
+                <span className="inline-flex items-center gap-1">
+                  {host}
+                  <CopyButton value={host} title={t("ftp.copyHost")} />
+                </span>
+              </KeyValueItem>
+              <KeyValueItem label={t("ftp.port")}>{ftpPort || 21}</KeyValueItem>
+              <KeyValueItem label={t("ftp.user")}>{username || "—"}</KeyValueItem>
+            </KeyValue>
+          </SettingsField>
+        )}
+      </SettingsGroup>
+    </>
   );
 }

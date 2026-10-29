@@ -24,15 +24,3 @@ export function useLogContentQuery(
     enabled: !!serverId && !!file,
   });
 }
-
-export function useLogSearchQuery(
-  serverId: string | undefined,
-  file: string | undefined,
-  q: string
-) {
-  return useQuery({
-    queryKey: qk.serverLogs.search(serverId ?? "", file ?? "", q),
-    queryFn: () => serverLogsApi.search(serverId!, file!, q),
-    enabled: !!serverId && !!file && q.trim().length > 0,
-  });
-}

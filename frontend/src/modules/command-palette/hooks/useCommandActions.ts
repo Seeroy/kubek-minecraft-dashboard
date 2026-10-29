@@ -3,14 +3,15 @@ import { api } from "@/api";
 import { CREATE_BACKUP_MODAL_ID } from "@/modules/backups/modals/CreateBackupModal";
 import { useServerStatus, useServerStore } from "@/modules/server";
 import { CREATE_SERVER_MODAL_ID } from "@/modules/server/modals/CreateServerModal";
-import { allNavigation } from "@/modules/sidebar/data/navigation";
+import { allNavigation, serverScopedRoutes } from "@/modules/sidebar/data/navigation";
 import { useModal } from "@/shared/hooks/useModalsManager";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { meetsAccess } from "@/shared/lib/access";
 import { routeAllowedByBlueprint } from "@/shared/lib/serverRestrictions";
 import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
 import { useAuthStore } from "@/shared/stores/auth-store";
-import { ServerStatus } from "@shared/types/server/server.types";
-import { UserPermissions } from "@shared/types/user.types";
+import { isOffline } from "@/modules/server/hooks/useServerMeta";
+import { AccessArea } from "@shared/access/areas";
 import {
   Database,
   OctagonX,
@@ -27,9 +28,7 @@ import type { CommandAction } from "../types/command.types";
 export function useCommandActions(): CommandAction[] {
   const router = useRouter();
   const { servers, selectedServer, selectServer } = useServerStore();
-  const selectedStatus = useServerStatus(selectedServer?.id)?.status;
-  const hasPermission = useAuthStore((s) => s.hasPermission);
-  const hasServerAccess = useAuthStore((s) => s.hasServerAccess);
+  const selectedStatus = useServerStatus(selectedServer?.id, selectedServer?.status);
   const user = useAuthStore((s) => s.user);
   const selectedBlueprint = useBlueprint(selectedServer?.blueprintId);
   const { open: openModal } = useModal();
@@ -47,7 +46,7 @@ export function useCommandActions(): CommandAction[] {
         !routeAllowedByBlueprint(item.href, selectedBlueprint)
       )
         continue;
-      if (item.permission && !hasPermission(item.permission)) continue;
+      if (!meetsAccess(user, item.access, serverScopedRoutes.has(item.href) ? selectedServer?.id : null)) continue;
 
       actions.push({
         id: `nav:${item.href}`,
@@ -61,7 +60,7 @@ export function useCommandActions(): CommandAction[] {
 
     // Server switching - only servers the user may access
     for (const server of servers) {
-      if (!hasServerAccess(server.id)) continue;
+      if (!meetsAccess(user, "serverView", server.id)) continue;
       actions.push({
         id: `server:${server.id}`,
         group: "servers",
@@ -75,12 +74,11 @@ export function useCommandActions(): CommandAction[] {
     }
 
     // Contextual actions for the selected server
-    if (selectedServer && hasServerAccess(selectedServer.id)) {
+    if (selectedServer && meetsAccess(user, "serverView", selectedServer.id)) {
       const id = selectedServer.id;
-      const isStopped =
-        (selectedStatus ?? selectedServer.status) === ServerStatus.STOPPED;
+      const isStopped = isOffline(selectedStatus);
 
-      if (hasPermission(UserPermissions.SERVERS_CONTROL)) {
+      if (meetsAccess(user, [AccessArea.POWER, "write"], id)) {
         if (isStopped) {
           actions.push({
             id: "action:start",
@@ -107,20 +105,22 @@ export function useCommandActions(): CommandAction[] {
               hint: selectedServer.name,
               icon: RotateCw,
               perform: () => api.servers.restart(id),
-            },
-            {
+            }
+          );
+          if (meetsAccess(user, [AccessArea.POWER, "manage"], id)) {
+            actions.push({
               id: "action:kill",
               group: "actions",
               label: tCmd("actions.kill"),
               hint: selectedServer.name,
               icon: OctagonX,
               perform: () => api.servers.kill(id),
-            }
-          );
+            });
+          }
         }
       }
 
-      if (hasPermission(UserPermissions.BACKUPS)) {
+      if (meetsAccess(user, [AccessArea.BACKUPS, "write"], id)) {
         actions.push({
           id: "action:backup",
           group: "actions",
@@ -132,7 +132,7 @@ export function useCommandActions(): CommandAction[] {
       }
     }
 
-    if (hasPermission(UserPermissions.CREATE_SERVERS)) {
+    if (meetsAccess(user, [AccessArea.SERVERS, "write"])) {
       actions.push({
         id: "action:create-server",
         group: "actions",
@@ -149,8 +149,6 @@ export function useCommandActions(): CommandAction[] {
     selectedServer,
     selectedStatus,
     selectedBlueprint,
-    hasPermission,
-    hasServerAccess,
     selectServer,
     openModal,
     router,

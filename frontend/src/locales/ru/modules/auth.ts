@@ -31,9 +31,7 @@ export const authTranslations: TranslationDictionary = {
       }
     },
     errors: {
-      loginFailed: "Ошибка входа",
-      invalidResponse: "Ошибка входа: Неверный ответ сервера",
-      networkError: "Ошибка сети: Проверьте подключение",
+      rateLimited: (wait: string) => `Слишком много попыток. Повторите через ${wait}`,
       unexpected: "Произошла неожиданная ошибка",
     }
   },
@@ -50,6 +48,7 @@ export const authTranslations: TranslationDictionary = {
     useTelegram: "Подтвердить через Telegram",
     attemptsLeft: (n: number) => `Осталось попыток: ${ n }`,
     errors: {
+      rateLimited: (wait: string) => `Слишком много попыток. Повторите через ${wait}`,
       invalidCode: "Неверный код",
       locked: "Слишком много попыток. Запрос заблокирован, начните заново.",
       telegramDenied: "Вход отклонён в Telegram",

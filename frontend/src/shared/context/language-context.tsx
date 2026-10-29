@@ -1,23 +1,8 @@
 "use client";
 
-import {
-  defaultLanguage,
-  LANGUAGE_STORAGE_KEY,
-  languageOptions,
-  type SupportedLanguage,
-  translationResources,
-} from "@/locales";
+import { defaultLanguage, LANGUAGE_STORAGE_KEY, languageOptions, setActiveLanguage, type SupportedLanguage, translationResources } from "@/locales";
 import type { TranslationDictionary, TranslationValue } from "@/locales/types";
-import {
-  createContext,
-  type PropsWithChildren,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { createContext, type PropsWithChildren, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 interface LanguageContextValue {
   language: SupportedLanguage;
@@ -30,28 +15,25 @@ interface LanguageContextValue {
   t: (path: string, ...args: any[]) => string;
   dictionary: TranslationDictionary;
   /** Merge extension flat dictionaries ({ <lang>: { "<key>": "<text>" } }) into t() */
-  registerExtensionLocales: (
-    bundles: Array<Record<string, Record<string, string>>>
-  ) => void;
+  registerExtensionLocales: (bundles: Array<Record<string, Record<string, string>>>) => void;
 }
 
-const LanguageContext = createContext<LanguageContextValue | undefined>(
-  undefined
-);
+const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  const [language, setLanguageState] =
-    useState<SupportedLanguage>(defaultLanguage);
+  const [language, setLanguageState] = useState<SupportedLanguage>(defaultLanguage);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(
-      LANGUAGE_STORAGE_KEY
-    ) as SupportedLanguage | null;
+    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY) as SupportedLanguage | null;
     if (stored && stored in translationResources) {
       setLanguageState(stored);
     }
   }, []);
+
+  useEffect(() => {
+    setActiveLanguage(language);
+  }, [language]);
 
   const setLanguage = useCallback((nextLanguage: SupportedLanguage) => {
     setLanguageState(nextLanguage);
@@ -60,44 +42,34 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     }
   }, []);
 
-  const dictionary =
-    translationResources[language] ?? translationResources[defaultLanguage];
+  const dictionary = translationResources[language] ?? translationResources[defaultLanguage];
 
   // Flat key to text dictionaries from installed extensions ("ext.sentinel.title"), kept separate
   // from the core nested dictionary and matched by exact key in t().
   // Stored in a ref so t keeps a stable identity across registrations - many effects/memos list t in their deps. A version counter bumps to
   // re-render consumers once when new locales arrive
-  const extLocalesRef = useRef<
-    Partial<Record<SupportedLanguage, Record<string, string>>>
-  >({});
+  const extLocalesRef = useRef<Partial<Record<SupportedLanguage, Record<string, string>>>>({});
   const [extLocalesVersion, setExtLocalesVersion] = useState(0);
 
-  const registerExtensionLocales = useCallback(
-    (bundles: Array<Record<string, Record<string, string>>>) => {
-      const next: Partial<Record<SupportedLanguage, Record<string, string>>> = {
-        ...extLocalesRef.current,
-      };
-      for (const bundle of bundles) {
-        for (const [lang, dict] of Object.entries(bundle)) {
-          next[lang as SupportedLanguage] = {
-            ...(next[lang as SupportedLanguage] ?? {}),
-            ...dict,
-          };
-        }
+  const registerExtensionLocales = useCallback((bundles: Array<Record<string, Record<string, string>>>) => {
+    const next: Partial<Record<SupportedLanguage, Record<string, string>>> = {
+      ...extLocalesRef.current,
+    };
+    for (const bundle of bundles) {
+      for (const [lang, dict] of Object.entries(bundle)) {
+        next[lang as SupportedLanguage] = {
+          ...(next[lang as SupportedLanguage] ?? {}),
+          ...dict,
+        };
       }
-      extLocalesRef.current = next;
-      setExtLocalesVersion((v) => v + 1);
-    },
-    []
-  );
+    }
+    extLocalesRef.current = next;
+    setExtLocalesVersion((v) => v + 1);
+  }, []);
 
   const availableLanguages = useMemo(
     () =>
-      (
-        Object.entries(languageOptions) as Array<
-          [SupportedLanguage, { label: string; locale: string }]
-        >
-      ).map(([code, meta]) => ({
+      (Object.entries(languageOptions) as Array<[SupportedLanguage, { label: string; locale: string }]>).map(([code, meta]) => ({
         code,
         label: meta.label,
         locale: meta.locale,
@@ -109,8 +81,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     (path: string): TranslationValue | TranslationDictionary | undefined => {
       if (!path) return undefined;
       const segments = path.split(".");
-      let current: TranslationValue | TranslationDictionary | undefined =
-        dictionary;
+      let current: TranslationValue | TranslationDictionary | undefined = dictionary;
 
       for (const segment of segments) {
         if (current && typeof current === "object" && segment in current) {
@@ -166,22 +137,10 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     // extLocalesVersion re-renders consumers when extension locales change, even though
     // translate itself stays referentially stable
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      language,
-      availableLanguages,
-      setLanguage,
-      translate,
-      dictionary,
-      registerExtensionLocales,
-      extLocalesVersion,
-    ]
+    [language, availableLanguages, setLanguage, translate, dictionary, registerExtensionLocales, extLocalesVersion]
   );
 
-  return (
-    <LanguageContext.Provider value={value}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
 export const useLanguageContext = () => {

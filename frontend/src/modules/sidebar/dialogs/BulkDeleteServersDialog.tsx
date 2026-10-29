@@ -2,7 +2,6 @@
 import { useNotifications } from "@/modules/notifications";
 import type { Server } from "@/modules/server";
 import { useBulkDeleteServersMutation } from "@/modules/server";
-import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { ApiError } from "@/shared/lib/http";
 import type { ModalProps } from "@/shared/types/modal.types";
@@ -18,7 +17,7 @@ import {
 import { Input } from "@/shared/ui/input";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Trash2, TriangleAlert } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 export interface BulkDeleteServersProps {
   servers: Server[];
@@ -27,8 +26,6 @@ export interface BulkDeleteServersProps {
 export interface BulkDeleteServersResult {
   deleted: string[];
 }
-
-export const BULK_DELETE_SERVERS_MODAL_ID = "sidebar/bulk-delete-servers";
 
 declare module "@/shared/types/modal-registry" {
   interface ModalRegistry {
@@ -43,7 +40,7 @@ const BulkDeleteServersDialog: React.FC<
   ModalProps<BulkDeleteServersResult | null> & BulkDeleteServersProps
 > = ({ isOpen, onClose, servers }) => {
   const { t: tRoot } = useTranslation("modules.sidebar.serversList");
-  const t = (key: string, ...args: any[]) =>
+  const t = (key: string, ...args: unknown[]) =>
     tRoot(`dialogs.bulkDelete.${key}`, ...args);
   const { notify } = useNotifications();
   const mutation = useBulkDeleteServersMutation();
@@ -51,14 +48,6 @@ const BulkDeleteServersDialog: React.FC<
   const [password, setPassword] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      setPassword("");
-      setAcknowledged(false);
-      setPasswordError(null);
-    }
-  }, [isOpen]);
 
   const ids = useMemo(() => servers.map((s) => s.id), [servers]);
   const isBusy = mutation.isPending;
@@ -80,16 +69,16 @@ const BulkDeleteServersDialog: React.FC<
         duration: 5000,
       });
       onClose({ deleted: result.deleted });
-    } catch (e: any) {
+    } catch (e) {
       const isInvalidPassword =
-        e instanceof ApiError && /INVALID_PASSWORD/.test(e.message);
+        e instanceof ApiError && e.code === "INVALID_PASSWORD";
       if (isInvalidPassword) {
         setPasswordError(t("invalidPassword"));
       } else {
         notify({
           type: "error",
           title: t("errorTitle"),
-          message: e?.message,
+          message: e instanceof Error ? e.message : undefined,
           icon: TriangleAlert,
         });
       }
@@ -168,14 +157,5 @@ const BulkDeleteServersDialog: React.FC<
     </Dialog>
   );
 };
-
-export function BulkDeleteServersDialogRegistration() {
-  useThisModal({
-    id: BULK_DELETE_SERVERS_MODAL_ID,
-    component: BulkDeleteServersDialog,
-    module: "sidebar",
-  });
-  return null;
-}
 
 export default BulkDeleteServersDialog;

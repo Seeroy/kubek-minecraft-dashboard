@@ -2,7 +2,6 @@
 import { useNotifications } from "@/modules/notifications";
 import type { Server } from "@/modules/server";
 import { useDuplicateServerMutation } from "@/modules/server";
-import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { ApiError } from "@/shared/lib/http";
 import type { ModalProps } from "@/shared/types/modal.types";
@@ -16,13 +15,11 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Copy, TriangleAlert } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export interface DuplicateServerProps {
   server: Server;
 }
-
-export const DUPLICATE_SERVER_MODAL_ID = "sidebar/duplicate-server";
 
 declare module "@/shared/types/modal-registry" {
   interface ModalRegistry {
@@ -37,20 +34,13 @@ const DuplicateServerDialog: React.FC<
   ModalProps<string | null> & DuplicateServerProps
 > = ({ isOpen, onClose, server }) => {
   const { t: tRoot } = useTranslation("modules.sidebar.serversList");
-  const t = (key: string, ...args: any[]) =>
+  const t = (key: string, ...args: unknown[]) =>
     tRoot(`dialogs.duplicate.${key}`, ...args);
   const { notify } = useNotifications();
   const mutation = useDuplicateServerMutation();
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(server ? `${server.name} (copy)` : "");
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen && server) {
-      setName(`${server.name} (copy)`);
-      setError(null);
-    }
-  }, [isOpen, server]);
 
   const trimmed = name.trim();
   const isBusy = mutation.isPending;
@@ -71,15 +61,16 @@ const DuplicateServerDialog: React.FC<
         duration: 5000,
       });
       onClose(created.id);
-    } catch (e: any) {
+    } catch (e) {
       if (e instanceof ApiError && e.message?.includes("NAME_TAKEN")) {
         setError(t("nameTaken"));
       } else {
-        setError(e?.message ?? null);
+        const message = e instanceof Error ? e.message : undefined;
+        setError(message ?? null);
         notify({
           type: "error",
           title: t("errorTitle"),
-          message: e?.message,
+          message,
           icon: TriangleAlert,
         });
       }
@@ -131,14 +122,5 @@ const DuplicateServerDialog: React.FC<
     </Dialog>
   );
 };
-
-export function DuplicateServerDialogRegistration() {
-  useThisModal({
-    id: DUPLICATE_SERVER_MODAL_ID,
-    component: DuplicateServerDialog,
-    module: "sidebar",
-  });
-  return null;
-}
 
 export default DuplicateServerDialog;

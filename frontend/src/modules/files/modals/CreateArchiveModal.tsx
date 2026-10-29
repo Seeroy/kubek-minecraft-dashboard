@@ -1,56 +1,39 @@
 "use client";
-import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { ModalProps } from "@/shared/types/modal.types";
 import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Archive } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
-interface CreateArchiveModalProps extends ModalProps {
+export interface CreateArchiveProps {
   selectedPaths?: string[];
   defaultName?: string;
   onConfirm?: (archiveName: string) => void;
 }
 
+declare module "@/shared/types/modal-registry" {
+  interface ModalRegistry {
+    "files/create-archive": { props: CreateArchiveProps; result: void };
+  }
+}
+
+type CreateArchiveModalProps = ModalProps & CreateArchiveProps;
+
 const PREVIEW_LIMIT = 5;
 const INVALID_NAME_CHARS = /[\\/:*?"<>|]/;
 
-function CreateArchiveModalComponent({
-  isOpen,
-  onClose,
-  selectedPaths = [],
-  defaultName = "archive",
-  onConfirm,
-}: CreateArchiveModalProps) {
+export default function CreateArchiveModalComponent({ isOpen, onClose, selectedPaths = [], defaultName = "archive", onConfirm }: CreateArchiveModalProps) {
   const { t } = useTranslation("modules.files");
   const [name, setName] = useState(defaultName);
 
-  useEffect(() => {
-    if (isOpen) setName(defaultName);
-  }, [isOpen, defaultName]);
-
-  const previewPaths = useMemo(
-    () => selectedPaths.slice(0, PREVIEW_LIMIT),
-    [selectedPaths]
-  );
+  const previewPaths = useMemo(() => selectedPaths.slice(0, PREVIEW_LIMIT), [selectedPaths]);
   const restCount = Math.max(0, selectedPaths.length - PREVIEW_LIMIT);
 
   const trimmed = name.trim();
-  const isValid =
-    trimmed.length > 0 &&
-    !INVALID_NAME_CHARS.test(trimmed) &&
-    trimmed !== "." &&
-    trimmed !== "..";
+  const isValid = trimmed.length > 0 && !INVALID_NAME_CHARS.test(trimmed) && trimmed !== "." && trimmed !== "..";
 
   const handleSubmit = () => {
     if (!isValid) return;
@@ -79,9 +62,7 @@ function CreateArchiveModalComponent({
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="archive-name">
-              {t("modals.createArchive.form.name.label")}
-            </Label>
+            <Label htmlFor="archive-name">{t("modals.createArchive.form.name.label")}</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="archive-name"
@@ -129,15 +110,4 @@ function CreateArchiveModalComponent({
       </DialogContent>
     </Dialog>
   );
-}
-
-export const CREATE_ARCHIVE_MODAL_ID = "files/create-archive";
-
-export function CreateArchiveModalRegistration() {
-  useThisModal({
-    id: CREATE_ARCHIVE_MODAL_ID,
-    component: CreateArchiveModalComponent,
-    module: "file-manager",
-  });
-  return null;
 }

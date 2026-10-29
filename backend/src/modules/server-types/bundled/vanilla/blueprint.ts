@@ -35,8 +35,8 @@ export const vanilla = {
       OVERRIDE_SERVER_PROPERTIES: "false",
       ENABLE_RCON: "TRUE",
       RCON_PASSWORD: "kubek",
-      PUID: "{{HOST_UID}}",
-      PGID: "{{HOST_GID}}",
+      UID: "{{HOST_UID}}",
+      GID: "{{HOST_GID}}",
     },
   },
   variables: [

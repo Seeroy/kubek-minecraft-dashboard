@@ -1,3 +1,4 @@
+import type { UpdateServerFolderProps } from "@shared/types/server/folder.types";
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsInt,
@@ -7,7 +8,7 @@ import {
   MinLength,
 } from "class-validator";
 
-export class UpdateFolderDto {
+export class UpdateFolderDto implements UpdateServerFolderProps {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()

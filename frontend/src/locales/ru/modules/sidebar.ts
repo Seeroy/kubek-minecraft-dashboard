@@ -2,12 +2,14 @@ import type { TranslationDictionary } from "../../../locales/types";
 
 export const sidebarTranslations: TranslationDictionary = {
   navigation: {
+    server: "Сервер",
     dashboard: "Дашборд",
     console: "Консоль",
     files: "Файлы",
     logViewer: "Логи",
     serverSettings: "Настройки сервера",
     panelSettings: "Настройки панели",
+    players: "Игроки",
     plugins: "Плагины",
     mods: "Моды",
     backups: "Резервные копии",
@@ -21,17 +23,30 @@ export const sidebarTranslations: TranslationDictionary = {
     locked: "Нет доступа",
     updateAvailable: "Доступно обновление панели",
   },
-  queryGrid: {
-    players: "Игроки",
-    playersOnline: "Игроков онлайн",
-    serverEmpty: "Сервер пуст",
-    uptime: "Время работы",
+  layout: {
+    mainNav: "Основная навигация",
+    resize: "Изменить ширину сайдбара",
+    resizeHint: "Потяните, чтобы изменить ширину. Двойной клик или ⌘B свернёт панель",
+    openMenu: "Открыть меню",
+    closeMenu: "Закрыть меню",
+    breadcrumb: "Навигационная цепочка",
+    search: "Поиск и команды",
   },
+  profile: {
+    roles: {
+      admin: "Администратор",
+      user: "Пользователь",
+    },
+    logout: "Выйти",
+    toggleTheme: "Сменить тему",
+  },
+  hostMetrics: "Ресурсы хоста",
   resources: {
     cpu: "ЦП",
     ram: "ОЗУ",
   },
   serverControls: {
+    stopping: "Останавливается…",
     noServerSelected: "Сервер не выбран",
     start: "Запустить",
     stop: "Остановить",
@@ -55,7 +70,9 @@ export const sidebarTranslations: TranslationDictionary = {
     },
   },
   serversList: {
-    kicker: "Серверы",
+    allServers: "Все серверы",
+    createServer: "Создать сервер",
+    findServer: "Найти сервер",
     title: "Выбор сервера",
     description: "Выберите сервер для управления и просмотра консоли",
     searchServers: "Поиск серверов...",
@@ -64,6 +81,7 @@ export const sidebarTranslations: TranslationDictionary = {
     notFound: "Серверы не найдены",
     selectServer: "Выбрать сервер",
     view: {
+      label: "Вид",
       cards: "Карточки",
       table: "Таблица",
     },
@@ -73,6 +91,11 @@ export const sidebarTranslations: TranslationDictionary = {
       type: "Тип",
       version: "Версия",
       players: "Игроки",
+      cpu: "CPU",
+      ram: "RAM",
+      uptime: "Аптайм",
+      memory: (used: string, limit: string) => `${used} / ${limit} ГБ`,
+      memoryUsed: (used: string) => `${used} ГБ`,
     },
     creation: {
       title: (count: number) =>
@@ -114,7 +137,9 @@ export const sidebarTranslations: TranslationDictionary = {
       rename: "Переименовать",
       export: "Экспорт",
       delete: "Удалить",
-      import: "Импорт сервера",
+      import: "Импорт сервера или модпака",
+      createNetwork: "Создать сеть Velocity",
+      beta: "Бета",
       more: "Ещё",
     },
     dialogs: {
@@ -128,7 +153,7 @@ export const sidebarTranslations: TranslationDictionary = {
         submitting: "Копирование...",
         successTitle: "Копия создаётся",
         successMessage: (name: string) =>
-          `Сервер «${name}» будет готов через несколько секунд.`,
+          `Сервер "${name}" будет готов через несколько секунд.`,
         errorTitle: "Не удалось создать копию",
         nameTaken: "Сервер с таким именем уже существует",
       },
@@ -171,10 +196,11 @@ export const sidebarTranslations: TranslationDictionary = {
           `Удалено: ${ok}, не удалось: ${fail}`,
       },
       export: {
-        triggerTitle: "Подготовка экспорта",
-        triggerMessage: (name: string) => `Готовим архив сервера «${name}»...`,
+        triggerTitle: (name: string) => `Экспорт "${name}"`,
+        packingMessage: "Упаковка файлов...",
+        downloadingMessage: "Скачивание архива...",
         readyTitle: "Архив готов",
-        readyMessage: (name: string) => `Сервер «${name}» скачивается.`,
+        readyMessage: (name: string) => `Сервер "${name}" скачивается.`,
         errorTitle: "Не удалось экспортировать сервер",
       },
       import: {
@@ -188,7 +214,7 @@ export const sidebarTranslations: TranslationDictionary = {
         submitting: "Загрузка...",
         successTitle: "Сервер импортируется",
         successMessage: (name: string) =>
-          `Сервер «${name}» появится в списке через несколько секунд.`,
+          `Сервер "${name}" появится в списке через несколько секунд.`,
         errorTitle: "Не удалось импортировать сервер",
         invalidArchive: "Неверный архив или отсутствует манифест",
         nameTaken: "Сервер с таким именем уже существует",
@@ -208,7 +234,7 @@ export const sidebarTranslations: TranslationDictionary = {
       delete: "Удалить",
       deleteConfirmTitle: "Удалить папку?",
       deleteConfirmDescription:
-        "Сервера из этой папки переместятся в раздел «Без папки»",
+        "Сервера из этой папки переместятся в раздел \"Без папки\"",
       moveToFolder: "Переместить в папку",
       moveTitle: "Выберите папку",
       moveConfirm: "Переместить",

@@ -1,0 +1,22 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile
+        working-directory: backend
+      - run: bun run typecheck
+        working-directory: backend
+      - run: bun run test
+        working-directory: backend
+      - run: bun test ./scripts

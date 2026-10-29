@@ -1,3 +1,3 @@
-// Shared layout classes for a single nav cell (mobile square card → desktop row)
+// One nav row: icon and label, icon only in the collapsed sidebar
 export const NAV_ITEM_BASE =
-  "flex aspect-square shrink-0 flex-col items-center justify-center gap-1.5 rounded-lg border border-sidebar-border/60 bg-card/40 p-3 text-center text-xs md:aspect-auto md:h-10 md:flex-row md:items-center md:justify-start md:gap-3 md:border-0 md:bg-transparent md:px-3 md:py-0 md:text-left md:text-sm md:font-medium";
+  "relative flex h-[38px] shrink-0 items-center gap-3 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors not-first:mt-0.5 [&>svg]:size-[18px] [&>svg]:shrink-0 sidebar-mini:justify-center sidebar-mini:px-0 [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate sidebar-mini:[&>span]:hidden";

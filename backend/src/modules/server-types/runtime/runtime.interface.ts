@@ -1,5 +1,11 @@
 import type { LaunchSpec } from "../server-types.types";
 
+/** One resource sample, CPU as a share of the whole host */
+export interface RuntimeStats {
+  cpu: number;
+  memory: number;
+}
+
 export type StopMethod =
   | { type: "command"; value: string }
   | { type: "signal"; signal: NodeJS.Signals };
@@ -17,6 +23,9 @@ export interface IServerRuntime {
   /** True while the server is alive, regardless of whether there is a host pid */
   isRunning(): boolean;
   readonly pid?: number;
+
+  /** Runtimes without a host pid measure themselves, native ones are sampled by pid */
+  stats?(): Promise<RuntimeStats>;
 
   /**
    * True when the runtime drives a real PTY

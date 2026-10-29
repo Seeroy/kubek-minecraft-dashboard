@@ -1,3 +1,4 @@
+import { ModrinthClient } from "@/modules/modrinth/modrinth-client.service";
 import { ServerPluginsRepository } from "@/modules/database/repositories/server-plugins.repository";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
@@ -19,8 +20,9 @@ export class PluginsService extends ModrinthContentService {
     pluginsRepository: ServerPluginsRepository,
     tasksService: TasksService,
     registry: ServerTypesRegistry,
+    modrinth: ModrinthClient,
   ) {
-    super(serversRepository, tasksService, pluginsRepository, {
+    super(serversRepository, tasksService, pluginsRepository, modrinth, {
       loggerName: PluginsService.name,
       projectType: "plugin",
       folder: "plugins",

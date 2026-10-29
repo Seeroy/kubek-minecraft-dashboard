@@ -46,7 +46,8 @@ export class ServerTypeDto {
   runtimeKind: string;
 
   @ApiProperty({
-    description: "Whether this blueprint can run in Docker (has a docker profile)",
+    description:
+      "Whether this blueprint can run in Docker (has a docker profile)",
     example: true,
   })
   dockerCapable: boolean;
@@ -65,6 +66,13 @@ export class ServerTypeDto {
 
   @ApiProperty({ description: "Optional blueprint features" })
   features: BlueprintFeature[];
+
+  @ApiProperty({
+    required: false,
+    description: "Status query protocol",
+    example: "minecraft-java",
+  })
+  queryProtocol?: string;
 
   @ApiProperty({
     description: "Where the blueprint was loaded from",

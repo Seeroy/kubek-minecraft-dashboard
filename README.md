@@ -13,7 +13,7 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 
 **English** · [Русский](README.ru.md)
 
-[Features](#-features) · [Roles & permissions](#-roles--permissions-rbac) · [Extensions](#-extensions--blueprints-for-developers) · [Quick start](#-quick-start) · [Migrating](#-migrating-from-a-previous-version-1x---3x) · [Configuration](#-configuration) · [Build from source](#-build-from-source) · [API reference ↗](https://rest.wiki/?https://raw.githubusercontent.com/Seeroy/kubek-minecraft-dashboard/refs/heads/main/openapi.json)
+[Features](#-features) · [Roles & access](#-roles--access-levels-rbac) · [Extensions](#-extensions--blueprints-for-developers) · [Quick start](#-quick-start) · [Migrating](#-migrating-from-a-previous-version-1x---3x) · [Configuration](#-configuration) · [Build from source](#-build-from-source) · [API reference ↗](https://rest.wiki/?https://raw.githubusercontent.com/Seeroy/kubek-minecraft-dashboard/refs/heads/main/openapi.json)
 
 </div>
 
@@ -54,7 +54,7 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 
 ### Access control
 
-- Multiple accounts with per-feature permissions (see [Roles & permissions](#-roles--permissions-rbac) below) and optional per-server access
+- Multiple accounts with per-feature permissions (see [Roles & access levels](#-roles--access-levels-rbac) below) and optional per-server access
 - Two-factor auth — a TOTP app or a tap-to-approve prompt in Telegram — and a list of your active sessions that you can revoke individually
 - An audit log of who did what, searchable and filterable
 
@@ -68,29 +68,36 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 
 ---
 
-## 🔐 Roles & permissions (RBAC)
+## 🔐 Roles & access levels (RBAC)
 
-Every account is granted exactly the permissions it needs, and nothing more
+Access is split into areas, and each area has up to three levels: **view**, **change** and **manage**. A higher level includes the lower ones. Accounts get access through roles, extra grants on top, or both
 
-| Permission          | Key                 | What it unlocks                         |
-| ------------------- | ------------------- | --------------------------------------- |
-| View servers        | `servers_view`      | See servers and their current state     |
-| Control servers     | `servers_control`   | Start / stop / restart, use the console |
-| Configure servers   | `servers_configure` | Edit settings and `server.properties`   |
-| Create servers      | `servers_create`    | Create, duplicate and import servers    |
-| Manage plugins/mods | `plugins_mgr`       | Install and update plugins and mods     |
-| File manager        | `file_manager`      | Read and write server files             |
-| Manage Java         | `java_mgr`          | Download and remove Java runtimes       |
-| Backups             | `backups`           | Create and restore backups              |
-| Scheduler           | `scheduler_mgr`     | Create and manage scheduled tasks       |
-| System monitoring   | `system_monitoring` | View host CPU / RAM / disk stats        |
-| Audit log           | `audit_log`         | Read the audit log                      |
-| Accounts            | `accounts_mgr`      | Create and edit other accounts          |
-| Panel settings      | `kubek_settings`    | Change panel-wide settings              |
+| Area             | Levels               | What it covers                                   |
+| ---------------- | -------------------- | ------------------------------------------------ |
+| Console          | view, change         | Server console and full log, sending commands    |
+| Power            | view, change, manage | Status, start / stop / restart, force kill       |
+| Server settings  | view, change, manage | Settings, `server.properties`, core, delete      |
+| Files            | view, change, manage | File manager, server logs and FTP                |
+| Plugins and mods | view, change, manage | Installed list, catalog, install, remove         |
+| Players          | view, change, manage | Whitelist, kick, operators and bans              |
+| Backups          | view, change, manage | Download, create, restore and delete             |
+| Scheduler        | view, change, manage | Scheduled tasks and their runs                   |
+| Servers          | change, manage       | Create, import, duplicate, modpacks, folders     |
+| Networks         | view, change, manage | Velocity networks                                |
+| Accounts         | view, change, manage | Accounts and roles                               |
+| Audit log        | view, manage         | The log and its rotation                         |
+| Monitoring       | view                 | Host CPU / RAM / disk                            |
+| Java             | view, change, manage | Installed versions, install, remove, custom Java |
+| Storages         | view, manage         | Backup storages and their keys                   |
+| Integrations     | manage               | Telegram bot, extensions and blueprints          |
+| AI assistant     | view, manage         | Using the assistant, providers and keys          |
+| Panel            | manage               | General settings, subnets, secrets, updates      |
 
-On top of that, a non-admin account can be **restricted to specific servers** — handy when you want to hand someone a single server without showing them the rest
+Ready-made roles: **Viewer**, **Moderator**, **Operator** and **Server admin**. You can make your own, and dangerous rights are marked in the editor
 
-And because permissions are just a registry, **extensions can declare their own**
+On top of that, a non-admin account can be **restricted to specific servers**. The first eight areas then apply only to those servers, and such an account can only manage accounts within the same servers
+
+Extensions can declare their own permissions, they show up in the editor next to the built-in ones
 
 ---
 
@@ -128,7 +135,7 @@ curl -fsSL .../install.sh | bash -s -- --docker
 curl -fsSL .../install.sh | bash -s -- --binary
 
 # Custom directory / version / install without starting
-curl -fsSL .../install.sh | bash -s -- --dir /opt/kubek --version v4.0.0 --no-run
+curl -fsSL .../install.sh | bash -s -- --dir /opt/kubek --version v4.1.0 --no-run
 ```
 
 </details>

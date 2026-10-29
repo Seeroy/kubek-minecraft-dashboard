@@ -1,148 +1,115 @@
 "use client";
 
-import { contentApi, type ContentKind } from "@/api";
+import { api, type ContentKind } from "@/api";
 import { useNotifications } from "@/modules/notifications";
 import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { ModalProps } from "@/shared/types/modal.types";
-import { Button } from "@/shared/ui/button";
+import { qk } from "@/shared/queries/query-keys";
+import { useRemoveContentMutation } from "@/shared/queries";
+import type { ModalProps } from "@/shared/types/modal.types";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
-import { Label } from "@/shared/ui/label";
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/shared/ui/alert-dialog";
+import { Button } from "@/shared/ui/button";
+import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
-import { InstalledPluginView } from "@shared/types/plugins";
-import { Loader2, Trash2 } from "lucide-react";
+import type { InstalledPluginView } from "@shared/types/plugins";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { getContentKind } from "../content-kind";
+import { displayName, fileNameOf, primaryCategory } from "../lib/installed";
+import { ProjectIcon } from "../ui/ProjectIcon";
 
-interface RemovePluginModalProps extends ModalProps {
-  kind?: ContentKind;
-  serverId?: string;
-  plugin?: InstalledPluginView;
-  onComplete?: () => void;
+export interface RemovePluginProps {
+  kind: ContentKind;
+  serverId: string;
+  item: InstalledPluginView;
+  installed: InstalledPluginView[];
 }
 
-function RemovePluginModalComponent({
-  isOpen,
-  onClose,
-  kind = "plugin",
-  serverId,
-  plugin,
-  onComplete,
-}: RemovePluginModalProps) {
-  const [removeDependants, setRemoveDependants] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { notify } = useNotifications();
+declare module "@/shared/types/modal-registry" {
+  interface ModalRegistry {
+    "plugins/remove": { props: RemovePluginProps; result: void };
+  }
+}
+
+type RemovePluginModalProps = ModalProps & RemovePluginProps;
+
+function RemovePluginModalComponent({ isOpen, onClose, kind, serverId, item, installed }: RemovePluginModalProps) {
   const config = getContentKind(kind);
-  const { t } = useTranslation(`${config.i18nNs}.modals.remove`);
-  const pluginTitle = plugin?.metadata?.title ?? t("summary.unknownPlugin");
-  const pluginVersion =
-    plugin?.version?.versionNumber ?? t("summary.unknownVersion");
+  const { t } = useTranslation(config.i18nNs);
+  const { t: tc } = useTranslation("modules.content.remove");
+  const { notify } = useNotifications();
+  const queryClient = useQueryClient();
+  const [withDependants, setWithDependants] = useState(true);
 
-  const handleRemove = async () => {
-    if (!serverId || !plugin) {
-      notify({ title: t("notifications.missingDetails"), type: "error" });
-      return;
-    }
+  const manual = item.type === "manual";
+  const name = displayName(item);
+  const file = fileNameOf(item);
+  const dependants = installed.filter((other) => other.dependencyOf === item.id);
 
-    setIsSubmitting(true);
-    try {
-      await contentApi(kind).remove(serverId, plugin.id, {
-        removeDependants,
-      });
-      onComplete?.();
-      onClose();
-    } catch (error: any) {
-      notify({
-        title: error?.message || t("notifications.removeFailed"),
-        type: "error",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const removeRecord = useRemoveContentMutation(kind, serverId);
+  // Manual jars are not tracked records, deleting the file is the whole removal
+  const removeFile = useMutation({
+    mutationFn: () => api.files.deleteFile(serverId, { path: `${config.installFolder}/${item.fileName}` }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: (kind === "mod" ? qk.mods : qk.plugins).installed(serverId) }),
+  });
+  const pending = removeRecord.isPending || removeFile.isPending;
+
+  const remove = async () => {
+    if (manual) await removeFile.mutateAsync();
+    else await removeRecord.mutateAsync({ recordId: item.id, payload: { removeDependants: withDependants } });
+    notify({ type: "success", title: t("remove.removed", file) });
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-destructive/10 p-2">
-              <Trash2 className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <DialogTitle>{t("title")}</DialogTitle>
-              <DialogDescription>
-                {plugin
-                  ? t("description.withName", pluginTitle)
-                  : t("description.fallback")}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && !pending && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogMedia className="tone-red">
+            <Trash2 />
+          </AlertDialogMedia>
+          <AlertDialogTitle>{t("remove.title")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("remove.description", name)}</AlertDialogDescription>
+        </AlertDialogHeader>
 
-        {plugin ? (
-          <div className="space-y-4 py-4 text-sm text-muted-foreground">
-            <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-foreground">
-              <p className="font-medium">{pluginTitle}</p>
-              <p className="text-xs text-muted-foreground">
-                {t("summary.version", pluginVersion)}
-              </p>
-            </div>
+        <div className="flex items-center gap-3 rounded-md border border-border bg-subtle p-3">
+          <ProjectIcon title={name} iconUrl={item.metadata?.iconUrl} category={primaryCategory(item.metadata?.categories)} />
+          <div className="min-w-0">
+            <b className="block truncate font-semibold">{name}</b>
+            <span className="block truncate font-mono text-xs text-muted-foreground">{tc("version", item.version?.versionNumber ?? "—", file)}</span>
+          </div>
+        </div>
 
-            <div className="flex items-center justify-between rounded-md border border-border/50 bg-background/40 p-3">
-              <div className="space-y-1">
-                <Label htmlFor="dependants" className="text-sm">
-                  {t("options.removeDependants")}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("options.removeDependantsDescription")}
-                </p>
-              </div>
-              <Switch
-                id="dependants"
-                checked={removeDependants}
-                onCheckedChange={setRemoveDependants}
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-lg border border-dashed border-border/50 p-4 text-center text-sm text-muted-foreground">
-            {t("summary.emptyState")}
-          </div>
+        {!manual && dependants.length > 0 && (
+          <label className="flex cursor-pointer items-start gap-2.5">
+            <Switch checked={withDependants} onCheckedChange={setWithDependants} disabled={pending} className="mt-0.5" />
+            <span>
+              <span className="block font-medium">{t("remove.dependants")}</span>
+              <span className="block text-[12.5px] text-muted-foreground">{t("remove.dependantsDescription", dependants.map(displayName).join(", "))}</span>
+            </span>
+          </label>
         )}
 
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            {t("buttons.cancel")}
+        <AlertDialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={pending}>
+            {tc("cancel")}
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleRemove}
-            disabled={!plugin || isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("buttons.removing")}
-              </>
-            ) : (
-              <>
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t("buttons.remove")}
-              </>
-            )}
+          <Button variant="destructive" onClick={() => void remove()} disabled={pending}>
+            {pending ? <Spinner /> : <Trash2 />}
+            {pending ? tc("removing") : t("remove.title")}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

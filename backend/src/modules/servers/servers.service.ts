@@ -1,28 +1,18 @@
 import { getErrorMessage } from "@/core/utils/error";
-import { getServerPath } from "@/core/utils/serverPath";
-import { AuthService } from "@/modules/auth/auth.service";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
-import { UsersRepository } from "@/modules/database/repositories/users.repository";
-import { ErrorRecognizerService } from "@/modules/error-recognition/error-recognizer.service";
-import { ServerInstance } from "@/modules/instances/instance";
+import type { ServerInstance } from "@/modules/instances/instance";
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
-import { JavaService } from "@/modules/java/java.service";
+import { ServerInstanceFactory } from "@/modules/instances/server-instance.factory";
 import { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
-import { QueryRegistry } from "@/modules/server-types/query-protocols/query-registry.service";
-import { DockerService } from "@/modules/server-types/runtime/docker.service";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
+import { ServerBootService } from "@/modules/servers/server-boot.service";
+import { ServerCoreChanger } from "@/modules/servers/server-core-changer";
 import { ServersFactory } from "@/modules/servers/servers.factory";
-import type {
-  BulkDeleteResult,
-  ExportArtifact,
-} from "@/modules/servers/servers.types";
 import { TasksService } from "@/modules/tasks/tasks.service";
-import { ServerEventsService } from "@/ws/services/server-events.service";
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  OnModuleInit,
 } from "@nestjs/common";
 import type { IServerDiagnostic } from "@shared/types/server/instance.types";
 import {
@@ -32,80 +22,37 @@ import {
 } from "@shared/types/server/server.types";
 import { TaskStatus, TaskType } from "@shared/types/task.types";
 import { IUser } from "@shared/types/user.types";
-import fs from "fs";
-import { Jimp } from "jimp";
-import { join } from "path";
 
 @Injectable()
-export class ServersService implements OnModuleInit {
+export class ServersService {
   constructor(
     private readonly serversRepo: ServersRepository,
     private readonly instancesRepo: InstancesRegistry,
-    private readonly javaService: JavaService,
+    private readonly instanceFactory: ServerInstanceFactory,
     private readonly serversFactory: ServersFactory,
+    private readonly coreChanger: ServerCoreChanger,
     private readonly tasks: TasksService,
-    private readonly serverEventsService: ServerEventsService,
-    private readonly errorRecognizerService: ErrorRecognizerService,
-    private readonly usersRepo: UsersRepository,
-    private readonly authService: AuthService,
     private readonly blueprintRegistry: ServerTypesRegistry,
-    private readonly queryRegistry: QueryRegistry,
     private readonly blueprintResolver: BlueprintResolver,
-    private readonly dockerService: DockerService,
+    private readonly boot: ServerBootService,
   ) {}
 
-  /**
-   * On module initialization, set all servers to stopped status
-   */
-  onModuleInit() {
-    const servers = this.serversRepo.findAll();
-    servers.forEach((server) => {
-      if (server.status !== ServerStatus.STOPPED) {
-        this.serversRepo.update(server.id, {
-          status: ServerStatus.STOPPED,
-        });
-      }
-    });
-
-    // Drop containers left over from a previous run, the panel cannot reattach to them
-    void this.dockerService.removeOrphans().catch(() => {
-      // non-fatal, the daemon may simply be unavailable
-    });
-  }
-
-  /**
-   * Find all servers
-   * @returns Array of all servers
-   */
   findAll(): IServer[] {
     return this.serversRepo.findAll();
   }
 
-  /**
-   * Find server by ID
-   * @param id - Server ID
-   * @returns Server or null if not found
-   */
   findById(id: string): IServer | null {
     return this.serversRepo.findById(id);
   }
 
-  /**
-   * Find server by name
-   * @param name - Server name
-   * @returns Server or null if not found
-   */
   findByName(name: string): IServer | null {
     return this.serversRepo.findByName(name);
   }
 
-  /**
-   * Get the server instance for a given server ID
-   * @param serverId - The ID of the server
-   * @returns The server instance
-   */
   getInstance(serverId: string) {
-    return this.ensureInstance(this.findById(serverId)!);
+    const server = this.findById(serverId);
+    if (!server) throw new NotFoundException("Server not found");
+    return this.ensureInstance(server);
   }
 
   /** Recent recognized errors / health issues for a server (in-memory buffer) */
@@ -116,13 +63,6 @@ export class ServersService implements OnModuleInit {
     return instance ? instance.getDiagnostics() : [];
   }
 
-  /**
-   * Create a new server
-   * @param props - Server creation properties
-   * @param ownerId - ID of the server owner
-   * @param customCoreFile - Optional custom core file
-   * @returns Object containing the created server and task ID
-   */
   create(
     props: NewServerProps,
     ownerId?: string,
@@ -139,38 +79,14 @@ export class ServersService implements OnModuleInit {
   private ensureInstance(server: IServer) {
     const existing = this.instancesRepo.getByServerId(server.id);
     if (existing) return existing;
-    const instance = new ServerInstance(
-      {
-        javaService: this.javaService,
-        serverEventsService: this.serverEventsService,
-        errorRecognizerService: this.errorRecognizerService,
-        serversRepo: this.serversRepo,
-        blueprintRegistry: this.blueprintRegistry,
-        queryRegistry: this.queryRegistry,
-        blueprintResolver: this.blueprintResolver,
-        dockerService: this.dockerService,
-      },
-      server,
-      server.id,
-    );
-    this.instancesRepo.add(instance);
-    return instance;
+    return this.instancesRepo.add(this.instanceFactory.create(server));
   }
 
-  /**
-   * Execute a server operation with task tracking
-   * @param taskType - The type of task to create
-   * @param server - The server to operate on
-   * @param ownerId - The ID of the user initiating the operation
-   * @param operation - The async operation to execute
-   * @param errorCode - Error code for failed operations
-   * @param errorMessage - Error message for failed operations
-   */
   private async executeServerOperation(
     taskType: TaskType,
     server: IServer,
     ownerId: string | undefined,
-    operation: (instance: any) => Promise<boolean>,
+    operation: (instance: ServerInstance) => Promise<boolean>,
     errorCode: string,
     errorMessage: string,
   ): Promise<void> {
@@ -204,14 +120,11 @@ export class ServersService implements OnModuleInit {
     }
   }
 
-  /**
-   * Start a server instance
-   * @param serverId - The ID of the server to start
-   * @param ownerId - The ID of the user initiating the start
-   */
   async start(serverId: string, ownerId?: string) {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
+    // Wait for boot reconcile, the container may be about to get adopted
+    await this.boot.containersReady;
 
     await this.executeServerOperation(
       TaskType.SERVER_START,
@@ -223,11 +136,6 @@ export class ServersService implements OnModuleInit {
     );
   }
 
-  /**
-   * Stop a server instance
-   * @param serverId - The ID of the server to stop
-   * @param byUser - The user initiating the stop operation
-   */
   async stop(serverId: string, byUser: IUser) {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
@@ -242,10 +150,6 @@ export class ServersService implements OnModuleInit {
     );
   }
 
-  /**
-   * Force kill a server instance
-   * @param serverId - The ID of the server to kill
-   */
   async kill(serverId: string) {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
@@ -255,11 +159,6 @@ export class ServersService implements OnModuleInit {
     return;
   }
 
-  /**
-   * Restart a server instance
-   * @param serverId - The ID of the server to restart
-   * @param byUser - The user initiating the restart operation
-   */
   async restart(serverId: string, byUser: IUser) {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
@@ -274,29 +173,23 @@ export class ServersService implements OnModuleInit {
     );
   }
 
-  /**
-   * Read server.properties file
-   */
-  async getServerProperties(serverId: string): Promise<Record<string, any>> {
+  async getServerProperties(serverId: string): Promise<Record<string, string>> {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
 
     const instance = this.ensureInstance(server);
     const properties = await instance.readServerProperties();
 
-    if (!properties || properties === false) {
+    if (!properties) {
       throw new NotFoundException("Server properties file not found");
     }
 
-    return properties as Record<string, any>;
+    return properties;
   }
 
-  /**
-   * Save server.properties file
-   */
   async saveServerProperties(
     serverId: string,
-    properties: Record<string, string>,
+    properties: Record<string, unknown>,
   ): Promise<void> {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
@@ -309,41 +202,15 @@ export class ServersService implements OnModuleInit {
     }
   }
 
-  /**
-   * Upload and convert server icon to 64x64 PNG
-   */
-  async uploadServerIcon(
-    serverId: string,
-    file: Express.Multer.File,
-  ): Promise<void> {
-    const server = this.serversRepo.findById(serverId);
-    if (!server) throw new NotFoundException("Server not found");
-
-    if (!file) {
-      throw new BadRequestException("No file provided");
-    }
-
-    try {
-      const serverPath = getServerPath(serverId);
-      const iconPath = join(serverPath, "server-icon.png");
-
-      // Convert and resize image to 64x64 PNG (cover = crop to fill, centered)
-      const image = await Jimp.read(file.buffer);
-      image.cover({ w: 64, h: 64 });
-      const buffer = await image.getBuffer("image/png");
-      fs.writeFileSync(iconPath, buffer);
-
-      return;
-    } catch (error: unknown) {
-      throw new BadRequestException(
-        `Failed to process icon: ${getErrorMessage(error)}`,
-      );
-    }
+  /** Blueprint variable names keyed by their settings path */
+  variableLabels(server: IServer): Record<string, string> {
+    const variables =
+      this.blueprintRegistry.get(server.blueprintId)?.manifest.variables ?? [];
+    return Object.fromEntries(
+      variables.map((v) => [`variables.${v.key}`, v.label ?? v.key]),
+    );
   }
 
-  /**
-   * Update server settings (name, restart settings, blueprint variables)
-   */
   async updateServerSettings(
     serverId: string,
     updates: {
@@ -358,6 +225,10 @@ export class ServersService implements OnModuleInit {
     const updateData: Partial<IServer> = {};
 
     if (updates.name !== undefined) {
+      const owner = this.serversRepo.findByName(updates.name);
+      if (owner && owner.id !== serverId) {
+        throw new BadRequestException("NAME_TAKEN");
+      }
       updateData.name = updates.name;
     }
 
@@ -393,9 +264,6 @@ export class ServersService implements OnModuleInit {
     return updated;
   }
 
-  /**
-   * Switch a server to another core/blueprint and version
-   */
   changeCore(
     serverId: string,
     dto: { blueprintId: string; version?: string },
@@ -405,11 +273,14 @@ export class ServersService implements OnModuleInit {
     const server = this.serversRepo.findById(serverId);
     if (!server) throw new NotFoundException("Server not found");
 
-    if (server.status !== ServerStatus.STOPPED) {
+    if (
+      server.status !== ServerStatus.STOPPED &&
+      server.status !== ServerStatus.CRASHED
+    ) {
       throw new BadRequestException("Stop the server before changing its core");
     }
 
-    const result = this.serversFactory.changeCore(
+    const result = this.coreChanger.changeCore(
       server,
       dto.blueprintId,
       dto.version,
@@ -423,156 +294,5 @@ export class ServersService implements OnModuleInit {
     }
 
     return result;
-  }
-
-  /**
-   * Verify whether the given user has access to a specific server
-   */
-  private userHasServerAccess(user: IUser, serverId: string): boolean {
-    if (user.isAdmin) return true;
-    if (!user.serversRestrict?.enabled) return true;
-    return !!user.serversRestrict.allowed?.includes(serverId);
-  }
-
-  /**
-   * Stop a running instance
-   */
-  private async tearDownInstance(serverId: string): Promise<void> {
-    const instance = this.instancesRepo.getByServerId(serverId);
-    if (!instance) return;
-    try {
-      await instance.kill();
-    } catch {
-      // ignore: process may already be dead
-    }
-    this.instancesRepo.delete(serverId);
-  }
-
-  /**
-   * Broadcast updated servers list over WebSocket
-   */
-  private broadcastServersList(): void {
-    this.serverEventsService.emitServerList(this.serversRepo.findAll());
-  }
-
-  /**
-   * Delete server permanently after verifying user password and confirmation name
-   */
-  async delete(
-    serverId: string,
-    user: IUser,
-    password: string,
-    confirmName: string,
-  ): Promise<void> {
-    const server = this.serversRepo.findById(serverId);
-    if (!server) throw new NotFoundException("Server not found");
-
-    if (server.name !== confirmName) {
-      throw new BadRequestException("NAME_MISMATCH");
-    }
-
-    const passwordValid = await this.authService.comparePasswords(
-      password,
-      user.password,
-    );
-    if (!passwordValid) {
-      // Not UnauthorizedException: 401 triggers the client's auto-logout hook
-      throw new BadRequestException("INVALID_PASSWORD");
-    }
-
-    await this.tearDownInstance(serverId);
-
-    const dir = getServerPath(serverId);
-    try {
-      fs.rmSync(dir, { recursive: true, force: true });
-    } catch (e: unknown) {
-      throw new BadRequestException(
-        `Failed to remove server files: ${getErrorMessage(e)}`,
-      );
-    }
-
-    this.serversRepo.delete(serverId);
-    this.broadcastServersList();
-  }
-
-  /**
-   * Delete multiple servers atomically (after a single password check)
-   * Returns lists of successfully deleted and failed server IDs
-   */
-  async bulkDelete(
-    ids: string[],
-    user: IUser,
-    password: string,
-  ): Promise<BulkDeleteResult> {
-    const passwordValid = await this.authService.comparePasswords(
-      password,
-      user.password,
-    );
-    if (!passwordValid) {
-      // Not UnauthorizedException: 401 triggers the client's auto-logout hook
-      throw new BadRequestException("INVALID_PASSWORD");
-    }
-
-    const deleted: string[] = [];
-    const failed: { id: string; reason: string }[] = [];
-
-    for (const id of ids) {
-      const server = this.serversRepo.findById(id);
-      if (!server) {
-        failed.push({ id, reason: "NOT_FOUND" });
-        continue;
-      }
-      if (!this.userHasServerAccess(user, id)) {
-        failed.push({ id, reason: "FORBIDDEN" });
-        continue;
-      }
-      try {
-        await this.tearDownInstance(id);
-        fs.rmSync(getServerPath(id), { recursive: true, force: true });
-        this.serversRepo.delete(id);
-        deleted.push(id);
-      } catch (e: unknown) {
-        failed.push({ id, reason: getErrorMessage(e) });
-      }
-    }
-
-    if (deleted.length > 0) this.broadcastServersList();
-    return { deleted, failed };
-  }
-
-  /**
-   * Duplicate an existing server: clone DB row + copy data directory under a new name
-   */
-  duplicate(
-    sourceId: string,
-    newName: string,
-    ownerId?: string,
-  ): { server: IServer; taskId: string } {
-    return this.serversFactory.duplicateServer(
-      sourceId,
-      newName,
-      ownerId || "",
-    );
-  }
-
-  /**
-   * Build a zip stream of the server directory plus a manifest file
-   */
-  async exportServer(serverId: string): Promise<ExportArtifact> {
-    const server = this.serversRepo.findById(serverId);
-    if (!server) throw new NotFoundException("Server not found");
-    return this.serversFactory.exportServer(server);
-  }
-
-  /**
-   * Import a server from a kubek-export zip archive
-   */
-  async importServer(
-    file: Express.Multer.File,
-    overrideName: string | undefined,
-    ownerId?: string,
-  ): Promise<{ server: IServer; taskId: string }> {
-    if (!file) throw new BadRequestException("No archive provided");
-    return this.serversFactory.importServer(file, overrideName, ownerId || "");
   }
 }

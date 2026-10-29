@@ -1,5 +1,29 @@
 import { ApiProperty } from "@nestjs/swagger";
 
+/** Stored secret state, the value is never returned */
+export class SecretHintDto {
+  @ApiProperty({ description: "Whether a value is stored", example: true })
+  set: boolean;
+
+  @ApiProperty({
+    description: "Last characters of the value, null for short secrets",
+    type: String,
+    nullable: true,
+    example: "x9Qa",
+  })
+  hint: string | null;
+}
+
+export class RevealedSecretDto {
+  @ApiProperty({ type: String, nullable: true, description: "Stored value" })
+  value: string | null;
+}
+
+export class ConfigSecretsDto {
+  @ApiProperty({ name: "telegramBot.token", type: SecretHintDto })
+  "telegramBot.token": SecretHintDto;
+}
+
 /** Embedded FTP service configuration */
 export class FtpServiceDto {
   @ApiProperty({
@@ -7,12 +31,6 @@ export class FtpServiceDto {
     example: false,
   })
   enabled: boolean;
-
-  @ApiProperty({ description: "FTP username", required: false })
-  username?: string;
-
-  @ApiProperty({ description: "FTP password", required: false })
-  password?: string;
 
   @ApiProperty({ description: "FTP port", required: false, example: 21 })
   port?: number;
@@ -42,7 +60,10 @@ export class TelegramBotDto {
   })
   enabled: boolean;
 
-  @ApiProperty({ description: "Telegram bot token", required: false })
+  @ApiProperty({
+    description: "Telegram bot token, blank on read, blank on write keeps it",
+    required: false,
+  })
   token?: string;
 
   @ApiProperty({
@@ -56,6 +77,15 @@ export class TelegramBotDto {
 /** Telemetry configuration */
 export class TelemetrySettingsDto {
   @ApiProperty({ description: "Whether telemetry is enabled", example: true })
+  enabled: boolean;
+}
+
+/** Server process sampling configuration */
+export class ServerStatsSettingsDto {
+  @ApiProperty({
+    description: "Whether server CPU and memory are sampled",
+    example: true,
+  })
   enabled: boolean;
 }
 
@@ -98,6 +128,13 @@ export class ConfigurationDto {
   })
   telemetry?: TelemetrySettingsDto;
 
+  @ApiProperty({
+    description: "Server process sampling configuration",
+    type: ServerStatsSettingsDto,
+    required: false,
+  })
+  serverStats?: ServerStatsSettingsDto;
+
   @ApiProperty({ description: "HTTP port the panel listens on", example: 3000 })
   port: number;
 
@@ -111,4 +148,11 @@ export class ConfigurationDto {
     example: "auto",
   })
   serverRuntime?: "auto" | "native" | "docker";
+
+  @ApiProperty({
+    description: "State of secret fields, which come back blank",
+    type: ConfigSecretsDto,
+    required: false,
+  })
+  secrets?: ConfigSecretsDto;
 }

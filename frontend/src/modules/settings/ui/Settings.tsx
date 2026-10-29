@@ -1,349 +1,167 @@
 "use client";
 
-import type { Account } from "@/api";
-import {
-  DynamicExtensionComponent,
-  ExtensionSlot,
-  useExtensionSettingsPanels,
-} from "@/modules/extensions";
-import { useNotifications } from "@/modules/notifications";
-import {
-  useAccounts,
-  useCreateAccountMutation,
-  useDeleteAccountMutation,
-  useUpdateAccountMutation,
-} from "@/modules/settings/api/accounts.queries";
-import {
-  MainConfigFormData,
-  mainConfigSchema,
-} from "@/modules/settings/validations/schema";
+import { DynamicExtensionComponent, ExtensionSlot, useExtensionSettingsPanels } from "@/modules/extensions";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { useMainConfig, useUpdateMainConfigMutation } from "@/shared/queries";
+import type { AccessRequirement } from "@/shared/lib/access";
+import { meetsAccess } from "@/shared/lib/access";
 import { useAuthStore } from "@/shared/stores/auth-store";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
-import { PageLayout } from "@/shared/ui/PageLayout";
-import { PageLoading } from "@/shared/ui/PageLoading";
-import { PageTabsHeader } from "@/shared/ui/PageTabsHeader";
-import { StatusButton } from "@/shared/ui/status-button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { IUser, UserPermissions } from "@shared/types/user.types";
-import {
-  AlertTriangle,
-  Blocks,
-  Bot,
-  Info,
-  KeyRound,
-  Save,
-  Server,
-  Shield,
-  ShieldCheck,
-  Sliders,
-  Users,
-} from "lucide-react";
-import * as React from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { PageHeader } from "@/shared/ui/page-header";
+import { SaveBar } from "@/shared/ui/settings";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
+import { AccessArea } from "@shared/access/areas";
+import { AlertTriangle, Blocks, Cloud, Globe, Info, Lock, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, type LucideIcon } from "lucide-react";
+import { useRouteTab } from "@/shared/hooks/useRouteTab";
+import { CrashScreen } from "@/shared/ui/ErrorBoundary";
+import { useSearchParams } from "next/navigation";
+import { Fragment, lazy, Suspense } from "react";
+import { useWatch } from "react-hook-form";
+import { useConfigForm } from "../hooks/useConfigForm";
+import { SETTINGS_EXT_TAB, SETTINGS_TABS, type SettingsTabId } from "../lib/tabs";
 import AboutPanel from "./AboutPanel";
+import AssistantSettings from "./AssistantSettings";
 import GeneralSettings from "./GeneralSettings";
+import RoleManagement from "./RoleManagement";
 import SecuritySettings from "./SecuritySettings";
 import SessionsTab from "./SessionsTab";
 import TelegramSettings from "./TelegramSettings";
 import TwoFactorTab from "./TwoFactorTab";
 import UserManagement from "./UserManagement";
 
-const accountToUser = (account: Account): IUser => ({
-  id: account.id,
-  username: account.username,
-  password: "",
-  secret: "",
-  permissions: account.permissions as UserPermissions[],
-  serversRestrict: account.serversRestrict || { enabled: false, allowed: [] },
-  isAdmin: account.permissions.includes(UserPermissions.KUBEK_SETTINGS),
-});
+type ConfigTab = "general" | "security" | "telegram";
+
+const BackupStoragesSettings = lazy(() => import("@/modules/backups/ui/storages/BackupStoragesSettings").then((m) => ({ default: m.BackupStoragesSettings })));
+
+// Personal tabs (sessions, 2FA, about) are open to everyone who reaches the page
+const TABS: { id: SettingsTabId; icon: LucideIcon; separatorBefore?: boolean; access?: AccessRequirement }[] = [
+  { id: "general", icon: SlidersHorizontal, access: [AccessArea.PANEL, "manage"] },
+  { id: "security", icon: Shield, access: [AccessArea.PANEL, "manage"] },
+  { id: "telegram", icon: Send, access: [AccessArea.PANEL, "manage"] },
+  { id: "storages", icon: Cloud, access: [AccessArea.STORAGES, "read"] },
+  { id: "assistant", icon: Sparkles, access: [AccessArea.ASSISTANT, "manage"] },
+  { id: "users", icon: Users, separatorBefore: true, access: [AccessArea.ACCOUNTS, "read"] },
+  { id: "roles", icon: ShieldCheck, access: [AccessArea.ACCOUNTS, "read"] },
+  { id: "sessions", icon: Globe },
+  { id: "twofa", icon: Lock },
+  { id: "about", icon: Info },
+];
+
+// Which tab shows each top level config field
+const FIELD_TAB: Record<string, ConfigTab> = {
+  port: "general",
+  ftpd: "general",
+  subnetsAccessRestriction: "security",
+  telemetry: "security",
+  telegramBot: "telegram",
+  skinName: "general",
+  serverStats: "general",
+};
+
+const BASE = "/panel-settings";
+const ROUTE_TABS = [...SETTINGS_TABS, SETTINGS_EXT_TAB] as const;
 
 export default function Settings() {
-  const { notify } = useNotifications();
   const { t } = useTranslation("modules.settings");
-  // Non-namespaced translator for extension labels like "ext.sentinel.settings"
+  // Extension labels are full keys like "ext.sentinel.settings"
   const { t: tGlobal } = useTranslation();
-
   const canAccessItem = useAuthStore((s) => s.canAccessItem);
-  const settingsPanels = useExtensionSettingsPanels().filter((p) =>
-    canAccessItem(p.permission)
-  );
+  const user = useAuthStore((s) => s.user);
+  const tabs = TABS.filter((item) => meetsAccess(user, item.access));
+  const panels = useExtensionSettingsPanels().filter((panel) => canAccessItem(panel.permission));
+  const config = useConfigForm();
+  const [routeTab, setRouteTab] = useRouteTab(BASE, ROUTE_TABS, "general");
+  const panelParam = useSearchParams().get("panel");
+  const tab = routeTab === SETTINGS_EXT_TAB ? `ext:${panelParam ?? ""}` : routeTab;
 
-  const configQuery = useMainConfig();
-  const accountsQuery = useAccounts();
-  const updateConfigMutation = useUpdateMainConfigMutation();
-  const createAccountMutation = useCreateAccountMutation();
-  const updateAccountMutation = useUpdateAccountMutation();
-  const deleteAccountMutation = useDeleteAccountMutation();
+  // Loaded config can already be invalid, so errors come from the live values rather than touched fields
+  const values = useWatch({ control: config.form.control });
+  const parsed = config.schema.safeParse(values);
+  const tabsWithErrors = new Set(parsed.success ? [] : parsed.error.issues.map((issue) => FIELD_TAB[String(issue.path[0])]));
 
-  const form = useForm<MainConfigFormData>({
-    resolver: zodResolver(mainConfigSchema),
-    defaultValues: {
-      ftpd: { enabled: false, username: "admin", password: "", port: 21 },
-      subnetsAccessRestriction: { enabled: false, subnets: [] },
-      telegramBot: { enabled: false, token: "", chatIds: [] },
-      telemetry: { enabled: true },
-      port: 8080,
-    },
-    mode: "onChange",
-  });
-  const { isDirty, isValid } = form.formState;
+  const tabIds = [...tabs.map((item) => item.id as string), ...panels.map((panel) => `ext:${panel.extId}:${panel.id}`)];
+  const active = tabIds.includes(tab) ? tab : (tabIds[0] ?? "about");
 
-  // Flag each tab whose fields fail validation
-  const watchedValues = useWatch({ control: form.control });
-  const tabErrors = { general: false, security: false, telegram: false };
-  const parsed = mainConfigSchema.safeParse(watchedValues);
-  if (!parsed.success) {
-    for (const issue of parsed.error.issues) {
-      const field = issue.path[0];
-      if (field === "port" || field === "ftpd") {
-        tabErrors.general = true;
-      } else if (
-        field === "subnetsAccessRestriction" ||
-        field === "telemetry"
-      ) {
-        tabErrors.security = true;
-      } else if (field === "telegramBot") {
-        tabErrors.telegram = true;
-      }
+  const changeTab = (next: string) => {
+    if (next.startsWith("ext:")) {
+      const panel = encodeURIComponent(next.slice("ext:".length));
+      window.history.replaceState(null, "", `${BASE}/${SETTINGS_EXT_TAB}?panel=${panel}`);
+    } else {
+      setRouteTab(next as SettingsTabId);
     }
-  }
-
-  React.useEffect(() => {
-    const config = configQuery.data;
-    if (!config) return;
-    form.reset({
-      ftpd: config.ftpd || {
-        enabled: false,
-        username: "",
-        password: "",
-        port: 21,
-      },
-      subnetsAccessRestriction: config.subnetsAccessRestriction || {
-        enabled: false,
-        subnets: [],
-      },
-      telegramBot: config.telegramBot || {
-        enabled: false,
-        token: "",
-        chatIds: [],
-      },
-      telemetry: config.telemetry ?? { enabled: true },
-      port: config.port || 8080,
-    });
-    // Surface errors for config loaded from the server that is already invalid
-    // (e.g. Telegram enabled with an empty token) without waiting for an edit
-    void form.trigger();
-  }, [configQuery.data, form]);
-
-  const users: IUser[] = React.useMemo(
-    () => (accountsQuery.data ?? []).map(accountToUser),
-    [accountsQuery.data]
-  );
-
-  const handleSave = async () => {
-    const valid = await form.trigger();
-    if (!valid) {
-      throw new Error("Form validation failed");
-    }
-    const saved = await updateConfigMutation.mutateAsync(form.getValues());
-    form.reset(saved);
-    notify({ title: t("notifications.settingsSaved"), type: "success" });
-    return saved;
   };
-
-  const handleUserCreate = async (userData: Omit<IUser, "id">) => {
-    await createAccountMutation.mutateAsync({
-      username: userData.username,
-      password: userData.password,
-      servers: userData.serversRestrict.enabled
-        ? userData.serversRestrict.allowed
-        : undefined,
-      permissions: userData.permissions,
-    });
-    notify({ title: t("notifications.userCreated"), type: "success" });
-  };
-
-  const handleUserUpdate = async (
-    userId: string,
-    userData: Partial<Omit<IUser, "id">>
-  ) => {
-    const user = users.find((u) => u.id === userId);
-    if (!user) return;
-
-    const updateData: Partial<Account> & { password?: string } = {
-      username: userData.username,
-      permissions: userData.permissions,
-      serversRestrict: userData.serversRestrict,
-    };
-    if (userData.password) {
-      updateData.password = userData.password;
-    }
-
-    await updateAccountMutation.mutateAsync({
-      username: user.username,
-      data: updateData,
-    });
-    notify({ title: t("notifications.userUpdated"), type: "success" });
-  };
-
-  const handleUserDelete = async (userId: string) => {
-    const user = users.find((u) => u.id === userId);
-    if (!user) return;
-    await deleteAccountMutation.mutateAsync(user.username);
-    notify({ title: t("notifications.userDeleted"), type: "success" });
-  };
-
-  if (configQuery.isLoading || accountsQuery.isLoading) {
-    return (
-      <PageLayout>
-        <BlockHeader
-          kicker={t("header.title")}
-          title={t("header.title")}
-          description={t("header.description")}
-          icon={Sliders}
-          color="primary"
-        />
-        <PageLoading />
-      </PageLayout>
-    );
-  }
 
   return (
-    <PageLayout>
-      <BlockHeader
-        kicker={t("header.title")}
-        title={t("header.title")}
-        description={t("header.description")}
-        icon={Sliders}
-        color="primary"
-      />
-      <Tabs defaultValue="general" className="space-y-4">
-        <PageTabsHeader
-          tabs={
-            <TabsList>
-              <TabsTrigger value="general" className="flex items-center gap-2">
-                <Server className="h-4 w-4" />
-                {t("tabs.general")}
-                {tabErrors.general && (
-                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                {t("tabs.security")}
-                {tabErrors.security && (
-                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="telegram" className="flex items-center gap-2">
-                <Bot className="h-4 w-4" />
-                {t("tabs.telegram")}
-                {tabErrors.telegram && (
-                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                {t("tabs.users")}
-              </TabsTrigger>
-              <TabsTrigger value="sessions" className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4" />
-                {t("tabs.sessions")}
-              </TabsTrigger>
-              <TabsTrigger value="twofa" className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                2FA
-              </TabsTrigger>
-              <TabsTrigger value="about" className="flex items-center gap-2">
-                <Info className="h-4 w-4" />
-                {t("tabs.about")}
-              </TabsTrigger>
-              {settingsPanels.map((p) => (
-                <TabsTrigger
-                  key={`${p.extId}:${p.id}`}
-                  value={`ext:${p.extId}:${p.id}`}
-                  className="flex items-center gap-2"
-                >
-                  <Blocks className="h-4 w-4" />
-                  {tGlobal(p.label)}
+    <div className="stagger-enter">
+      <PageHeader title={t("title")} description={t("description")} />
+      <Tabs value={active} onValueChange={(value) => changeTab(String(value))} className="gap-5">
+        <div className="sticky top-0 z-10 w-fit max-w-full rounded-lg bg-background">
+          <TabsList>
+            {tabs.map(({ id, icon: Icon, separatorBefore }) => (
+              <Fragment key={id}>
+                {separatorBefore && <TabsSeparator />}
+                <TabsTrigger value={id}>
+                  <Icon />
+                  {t(`tabs.${id}`)}
+                  {tabsWithErrors.has(id as ConfigTab) && <AlertTriangle className="size-3.5 text-danger" aria-label={t("tabs.hasErrors")} />}
                 </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-          actions={
-            <>
-              {!isValid && (
-                <span className="flex items-center gap-1.5 text-sm text-destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  {t("buttons.invalidHint")}
-                </span>
-              )}
-              <StatusButton
-                onSave={handleSave}
-                idleText={t("buttons.save")}
-                loadingText={t("buttons.saving")}
-                successText={t("buttons.saved")}
-                errorText={t("buttons.error")}
-                disabled={!isDirty || !isValid}
-                idleIcon={<Save className="h-4 w-4" />}
-                className="flex-shrink-0"
-              />
-            </>
-          }
-        />
+              </Fragment>
+            ))}
+            {panels.map((panel) => (
+              <TabsTrigger key={`${panel.extId}:${panel.id}`} value={`ext:${panel.extId}:${panel.id}`}>
+                <Blocks />
+                {tGlobal(panel.label)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
-        <TabsContent value="general" className="space-y-6">
-          <GeneralSettings form={form} />
+        {config.loading ? (
+          <Skeleton className="h-96 rounded-lg" />
+        ) : (
+          <>
+            <TabsContent value="general">
+              <GeneralSettings form={config.form} />
+            </TabsContent>
+            <TabsContent value="security">
+              <SecuritySettings form={config.form} />
+            </TabsContent>
+            <TabsContent value="telegram">
+              <TelegramSettings form={config.form} />
+            </TabsContent>
+          </>
+        )}
+        <TabsContent value="storages">
+          <Suspense fallback={<Skeleton className="h-96 rounded-lg" />}>
+            <BackupStoragesSettings />
+          </Suspense>
         </TabsContent>
-
-        <TabsContent value="security" className="space-y-6">
-          <SecuritySettings form={form} />
+        <TabsContent value="assistant">
+          <AssistantSettings />
         </TabsContent>
-
-        <TabsContent value="telegram" className="space-y-6">
-          <TelegramSettings form={form} />
+        <TabsContent value="users">
+          <UserManagement />
         </TabsContent>
-
-        <TabsContent value="users" className="space-y-6">
-          <UserManagement
-            users={users}
-            onUserCreate={handleUserCreate}
-            onUserUpdate={handleUserUpdate}
-            onUserDelete={handleUserDelete}
-          />
+        <TabsContent value="roles">
+          <RoleManagement />
         </TabsContent>
-
-        <TabsContent value="sessions" className="space-y-6">
+        <TabsContent value="sessions">
           <SessionsTab />
         </TabsContent>
-
-        <TabsContent value="twofa" className="space-y-6">
+        <TabsContent value="twofa">
           <TwoFactorTab />
         </TabsContent>
-
-        <TabsContent value="about" className="space-y-6">
+        <TabsContent value="about">
           <AboutPanel />
         </TabsContent>
-
-        {settingsPanels.map((p) => (
-          <TabsContent
-            key={`${p.extId}:${p.id}`}
-            value={`ext:${p.extId}:${p.id}`}
-            className="space-y-6"
-          >
-            <DynamicExtensionComponent
-              bundleUrl={p.bundleUrl}
-              name={p.component}
-            />
+        {panels.map((panel) => (
+          <TabsContent key={`${panel.extId}:${panel.id}`} value={`ext:${panel.extId}:${panel.id}`}>
+            <DynamicExtensionComponent bundleUrl={panel.bundleUrl} name={panel.component} fallback={(props) => <CrashScreen {...props} />} />
           </TabsContent>
         ))}
       </Tabs>
 
+      <SaveBar count={config.changes} saving={config.saving} onSave={() => void config.save()} onReset={config.reset} />
       <ExtensionSlot name="settings.footer" />
-    </PageLayout>
+    </div>
   );
 }

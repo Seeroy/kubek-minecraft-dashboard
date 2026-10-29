@@ -1,540 +1,300 @@
 "use client";
 
-import type { CreateServerDto } from "@/api";
-import { api } from "@/api";
+import { api, type CreateServerDto } from "@/api";
 import { useNotifications } from "@/modules/notifications";
 import { useServerStore } from "@/modules/server";
-import { useLanguageContext } from "@/shared/context/language-context";
+import { useMoveServersMutation } from "@/modules/server/api/server-folders.queries";
+import { upsertServerInList } from "@/modules/server/api/servers.queries";
+import { useTranslation } from "@/shared/hooks/useTranslation";
+import { ApiError } from "@/shared/lib/http";
 import { cn } from "@/shared/lib/cn";
-import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Switch } from "@/shared/ui/switch";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Kbd } from "@/shared/ui/kbd";
+import { Plate } from "@/shared/ui/plate";
+import { TaskStatus } from "@shared/types/task.types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Container, Server, SlidersHorizontal, TriangleAlert } from "lucide-react";
+import { Check, Plus, Terminal, TriangleAlert } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
-import { getLatestActiveCreation } from "../../store/server-creation.store";
-import { CreationProgressStageList } from "./CreationProgressStageList";
-import { CreateServerModalProps } from "./types";
+import { useRef, useState, type KeyboardEvent } from "react";
+import { useForm, useWatch, type FieldPath, type Resolver } from "react-hook-form";
+import { startIfRequested } from "../../ui/ServerCreationBridge";
+import { getLatestActiveCreation, useServerCreationStore } from "../../store/server-creation.store";
+import type { ModalProps } from "@/shared/types/modal.types";
 import { useBlueprintSelection } from "./useBlueprintSelection";
 import { useJavaAutoResolution } from "./useJavaAutoResolution";
-import { useServerCreationProgress } from "./useServerCreationProgress";
-import { AdvancedSection } from "./wizard/AdvancedSection";
-import { BlueprintVariableField } from "./wizard/BlueprintVariableField";
-import {
-  blueprintNeedsCoreFile,
-  buildBlueprintForm,
-  EMPTY_WIZARD_VALUES,
-  primaryPort,
-  type WizardValues,
-} from "./wizard/buildBlueprintSchema";
-import { CoreFileUploadZone } from "./wizard/CoreFileUploadZone";
-import { JavaVersionField } from "./wizard/JavaVersionField";
-import { ServerBasicsSection } from "./wizard/ServerBasicsSection";
+import { AdvancedStep } from "./wizard/AdvancedStep";
+import { BasicsStep } from "./wizard/BasicsStep";
+import { blueprintNeedsCoreFile, buildBlueprintForm, EMPTY_WIZARD_VALUES, primaryPort, type WizardValues } from "./wizard/buildBlueprintSchema";
+import { CreationView } from "./wizard/CreationView";
+import { buildJvmArgs, splitArgs } from "./wizard/jvm";
+import { StepNav, WIZARD_STEPS } from "./wizard/StepNav";
+import { TypeStep } from "./wizard/TypeStep";
+import { useModal } from "@/shared/hooks/useModalsManager";
 
-// Map well-known variable keys to existing translation keys
-const VARIABLE_LABEL_KEYS: Record<string, string> = {
-  GAME_VERSION: "modules.newServerModal.core.version.label",
-  JAVA_VERSION: "modules.newServerModal.java.version.label",
-};
+const CREATE_STEP = WIZARD_STEPS.length - 1;
 
-// JVM-level variables rendered by the dedicated Advanced section
-const ADVANCED_VARIABLE_KEYS = new Set(["XMS", "XMX", "JVM_ARGS"]);
+// Every numeric value under a *PORT variable of an existing server
+function usedPorts(servers: { name: string; variables?: Record<string, unknown> }[]) {
+  const owners = new Map<number, string>();
+  for (const server of servers)
+    for (const [key, value] of Object.entries(server.variables ?? {})) if (/PORT$/i.test(key) && Number(value)) owners.set(Number(value), server.name);
+  return owners;
+}
 
-export function CreateServerModal({ isOpen, onClose }: CreateServerModalProps) {
+export function CreateServerModal({ isOpen, onClose }: ModalProps) {
+  const { openModal } = useModal();
+  const { t } = useTranslation("modules.newServerModal");
   const { notify } = useNotifications();
-  const { servers, setServers, selectServer } = useServerStore();
-  const { t } = useLanguageContext();
+  const { servers, selectServer } = useServerStore();
+  const queryClient = useQueryClient();
   const router = useRouter();
+  const moveServers = useMoveServersMutation();
+  const setAutostart = useServerCreationStore((s) => s.setAutostart);
 
-  const [view, setView] = useState<"form" | "progress">("form");
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  // Custom Java path override lives outside RHF, the per-blueprint zod schema would strip it
-  const [javaPath, setJavaPath] = useState("");
+  // Reopening during a creation shows its progress
+  const [taskId, setTaskId] = useState(() => getLatestActiveCreation()?.taskId ?? null);
+  const [step, setStep] = useState(taskId ? CREATE_STEP : 0);
+  const creation = useServerCreationStore((s) => (taskId ? s.creations[taskId] : undefined));
+  const autostart = useServerCreationStore((s) => (taskId ? !!s.autostart[taskId] : false));
 
   // The validation schema changes per blueprint
-  const schemaRef = useRef<
-    ReturnType<typeof buildBlueprintForm>["schema"] | null
-  >(null);
-  const resolver: Resolver<WizardValues> = useCallback(
-    (values, ctx, options) => {
-      if (!schemaRef.current) return { values, errors: {} };
-      // The schema is built dynamically per blueprint, so its inferred type cannot
-      // line up with the static WizardValues generic. Bridge RHF and zod here
-      return (
-        zodResolver(
-          schemaRef.current as never
-        ) as unknown as Resolver<WizardValues>
-      )(values, ctx, options);
-    },
-    []
-  );
+  const schemaRef = useRef<ReturnType<typeof buildBlueprintForm>["schema"] | null>(null);
+  const resolver: Resolver<WizardValues> = (values, ctx, options) =>
+    schemaRef.current
+      ? // The per blueprint schema cannot line up with the static WizardValues generic
+        (zodResolver(schemaRef.current as never) as unknown as Resolver<WizardValues>)(values, ctx, options)
+      : { values, errors: {} };
+  const form = useForm<WizardValues>({ resolver, mode: "onTouched", defaultValues: EMPTY_WIZARD_VALUES });
+  const [blueprintId, runtimeDocker, variables] = useWatch({ control: form.control, name: ["blueprintId", "runtimeDocker", "variables"] });
 
-  const form = useForm<WizardValues>({
-    resolver,
-    mode: "onChange",
-    defaultValues: EMPTY_WIZARD_VALUES,
-  });
+  const ports = usedPorts(servers);
+  const nextFreePort = (from: number) => {
+    let port = from;
+    while (ports.has(port)) port++;
+    return port;
+  };
 
-  const blueprintId = form.watch("blueprintId");
-  const variables = form.watch("variables");
-  const { errors } = form.formState;
+  const selection = useBlueprintSelection({ form, schemaRef, freePort: nextFreePort });
+  const blueprint = selection.selectedBlueprint;
+  const docker = !!blueprint?.dockerCapable && selection.dockerAvailable && runtimeDocker;
+  const { javaResolving, resolvedJava } = useJavaAutoResolution({ form, selectedBlueprint: blueprint, versionVarKey: selection.versionVarKey });
 
-  const {
-    blueprintsLoading,
-    blueprintsError,
-    supportedBlueprints,
-    selectedBlueprint,
-    selectBlueprint,
-    versionVarKey,
-    versions,
-    versionsLoading,
-    dockerAvailable,
-  } = useBlueprintSelection({ isOpen, form, schemaRef });
+  const defaultPort = blueprint ? (primaryPort(blueprint)?.default ?? 25565) : 25565;
 
-  // The block shows whenever the blueprint can run in docker, the toggle only applies when the daemon is up
-  const blueprintDockerCapable = !!selectedBlueprint?.dockerCapable;
-  const canChooseDocker = blueprintDockerCapable && dockerAvailable;
-  const runtimeDocker = form.watch("runtimeDocker");
+  const pickBlueprint: typeof selection.selectBlueprint = (bp) => {
+    if (bp.id === blueprintId) return;
+    selection.selectBlueprint(bp);
+  };
 
-  const { javaResolving, resolvedJava } = useJavaAutoResolution({
-    form,
-    selectedBlueprint,
-    versionVarKey,
-  });
+  const fieldsOf = (index: number): FieldPath<WizardValues>[] => {
+    if (!blueprint) return [];
+    if (index === 1)
+      return [
+        "name",
+        "port",
+        ...(blueprintNeedsCoreFile(blueprint) ? (["customFile"] as const) : []),
+        ...blueprint.variables.filter((v) => !["XMS", "XMX", "JVM_ARGS"].includes(v.key)).map((v) => `variables.${v.key}` as const),
+      ];
+    if (index === 2) return ["variables.XMS", "variables.XMX", "eula"];
+    return [];
+  };
 
-  const {
-    creation,
-    creationStages,
-    isCreationSuccess,
-    isCreationFailed,
-    creationMessage,
-    clearCreation,
-  } = useServerCreationProgress(activeTaskId);
-
-  // On open: resume a running creation, otherwise start a fresh form
-  useEffect(() => {
-    if (!isOpen) return;
-    const active = getLatestActiveCreation();
-    if (active) {
-      setActiveTaskId(active.taskId);
-      setView("progress");
-      return;
+  const submit = form.handleSubmit(async (values) => {
+    if (!blueprint) return;
+    const merged: CreateServerDto["variables"] = { ...values.variables };
+    const port = primaryPort(blueprint);
+    if (port) merged[port.key] = values.port;
+    if (blueprint.variables.some((v) => v.key === "JVM_ARGS")) {
+      merged.JVM_ARGS = buildJvmArgs({
+        maxMemoryMb: Number(values.variables.XMX) || 0,
+        useAikarFlags: values.aikar,
+        extraArguments: splitArgs(values.extraArgs),
+      }).join(" ");
     }
-    setActiveTaskId(null);
-    setView("form");
-    schemaRef.current = null;
-    setJavaPath("");
-    form.reset(EMPTY_WIZARD_VALUES);
-  }, [form, isOpen]);
+    // Docker images ship their own Java, a host path means nothing inside the container
+    if (values.javaPath && !docker) merged.JAVA_PATH = values.javaPath;
 
-  // Blueprint switch resets the Java override along with the rest of the form
-  useEffect(() => {
-    setJavaPath("");
-  }, [blueprintId]);
+    const payload: CreateServerDto = { name: values.name, blueprintId: blueprint.id, variables: merged };
+    // An explicit runtime only when the user could actually pick one
+    if (blueprint.dockerCapable && selection.dockerAvailable) payload.runtime = values.runtimeDocker ? "docker" : "native";
 
-  const handleSubmit = useCallback(
-    async (values: WizardValues) => {
-      const bp = selectedBlueprint;
-      if (!bp) return;
-
-      const port = primaryPort(bp);
-      const mergedVariables: Record<string, string | number | boolean> = {
-        ...values.variables,
-      };
-      if (port) mergedVariables[port.key] = values.port;
-      // Docker images ship their own Java, a host path means nothing inside the container
-      const isDocker = canChooseDocker && !!values.runtimeDocker;
-      if (javaPath && !isDocker) mergedVariables.JAVA_PATH = javaPath;
-
-      const payload: CreateServerDto = {
-        name: values.name,
-        blueprintId: bp.id,
-        variables: mergedVariables,
-      };
-      // Send an explicit runtime only when the user could actually pick one
-      if (canChooseDocker) {
-        payload.runtime = values.runtimeDocker ? "docker" : "native";
+    try {
+      const response = await api.servers.create(payload, blueprintNeedsCoreFile(blueprint) ? values.customFile : undefined);
+      upsertServerInList(queryClient, response.server);
+      if (values.folderId) moveServers.mutate({ serverIds: [response.server.id], folderId: values.folderId });
+      if (values.autostart) {
+        setAutostart(response.taskId, true);
+        // The task may already be done by the time the response lands
+        startIfRequested(response.taskId);
       }
-
-      const coreFile = blueprintNeedsCoreFile(bp)
-        ? values.customFile
-        : undefined;
-
-      try {
-        const response = await api.servers.create(payload, coreFile);
-        setServers([
-          response.server,
-          ...servers.filter((s) => s.id !== response.server.id),
-        ]);
-        setActiveTaskId(response.taskId);
-        setView("progress");
-      } catch (error: unknown) {
-        notify({
-          title: t("modules.newServerModal.modal.notifications.creationFailed"),
-          message:
-            error instanceof Error
+      setTaskId(response.taskId);
+      setStep(CREATE_STEP);
+    } catch (error) {
+      notify({
+        type: "error",
+        title: t("modal.notifications.creationFailed"),
+        message:
+          error instanceof ApiError && error.message.includes("NAME_TAKEN")
+            ? t("modal.notifications.nameTaken")
+            : error instanceof Error
               ? error.message
-              : t("modules.newServerModal.modal.notifications.creationError"),
-          type: "error",
-          duration: 8000,
-          icon: TriangleAlert,
-        });
-      }
-    },
-    [selectedBlueprint, canChooseDocker, javaPath, servers, setServers, notify, t]
-  );
+              : t("modal.notifications.creationError"),
+        duration: 8000,
+        icon: TriangleAlert,
+      });
+    }
+  });
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) onClose();
+  const next = async () => {
+    // Enter can fire again while the create request is in flight
+    if (form.formState.isSubmitting) return;
+    if (!blueprint || !(await form.trigger(fieldsOf(step), { shouldFocus: true }))) return;
+    if (step === CREATE_STEP - 1) await submit();
+    else setStep(step + 1);
   };
 
-  const handleOpenServer = () => {
-    const serverId = creation?.serverId;
-    if (serverId) {
-      selectServer(serverId);
-      if (typeof window !== "undefined")
-        window.localStorage.setItem("selected_server_id", serverId);
-      router.push("/");
-    }
-    if (activeTaskId) clearCreation(activeTaskId);
+  const restart = () => {
+    setTaskId(null);
+    setStep(0);
+    schemaRef.current = null;
+    form.reset(EMPTY_WIZARD_VALUES);
+  };
+
+  const openConsole = () => {
+    if (creation?.serverId) selectServer(creation.serverId);
     onClose();
+    router.push("/console");
   };
 
-  // Reset back to a blank form
-  const resetToForm = useCallback(
-    (keepCreation: boolean) => {
-      if (!keepCreation && activeTaskId) clearCreation(activeTaskId);
-      setActiveTaskId(null);
-      setView("form");
-      schemaRef.current = null;
-      form.reset(EMPTY_WIZARD_VALUES);
-    },
-    [activeTaskId, clearCreation, form]
-  );
-
-  const handleCreateAnother = () => resetToForm(false);
-
-  // Start another server while the current one is still being created in the background
-  const handleStartAnother = () => resetToForm(true);
-
-  const editableVariables = (selectedBlueprint?.variables ?? []).filter(
-    (v) => v.userEditable !== false && !ADVANCED_VARIABLE_KEYS.has(v.key)
-  );
-  // The Advanced section only applies to JVM blueprints that expose a max-heap variable
-  const hasMemoryVariable =
-    selectedBlueprint?.variables.some((v) => v.key === "XMX") ?? false;
-  const port = selectedBlueprint ? primaryPort(selectedBlueprint) : undefined;
-  const showProgress = view === "progress" && !!creation;
-
-  // Prefer a localized label for known variables, fall back to the blueprint-provided one
-  const labelFor = (key: string, fallback?: string) => {
-    const i18nKey = VARIABLE_LABEL_KEYS[key];
-    if (i18nKey) {
-      const translated = t(i18nKey);
-      if (!translated.startsWith("NOT TRANSLATED")) return translated;
-    }
-    return fallback ?? key;
+  const onKeyDown = (event: KeyboardEvent) => {
+    const target = event.target as HTMLElement;
+    if (event.key !== "Enter" || event.shiftKey || step >= CREATE_STEP || target.closest("button, textarea, [role=listbox], [role=combobox]")) return;
+    event.preventDefault();
+    void next();
   };
 
-  // Translate the primary port label by its blueprint label (Game/Proxy), falling back to the
-  // blueprint-provided label and finally the generic port label
-  const portLabel = (() => {
-    const key = port?.label?.toLowerCase();
-    if (key) {
-      const translated = t(`modules.newServerModal.blueprint.ports.${key}`);
-      if (!translated.startsWith("NOT TRANSLATED")) return translated;
-    }
-    return port?.label ?? t("modules.newServerModal.general.port.label");
-  })();
+  const succeeded = creation?.status === TaskStatus.SUCCESS;
+  const failed = creation?.status === TaskStatus.FAILED || creation?.status === TaskStatus.CANCELLED;
+  const submitting = form.formState.isSubmitting;
+  const stepKey = WIZARD_STEPS[step];
+  const meta = blueprint
+    ? [
+        [blueprint.shortName ?? blueprint.name, selection.versionVarKey && variables?.[selection.versionVarKey]].filter(Boolean).join(" "),
+        variables?.JAVA_VERSION && `Java ${variables.JAVA_VERSION}`,
+        variables?.XMX && `${variables.XMX} ${t("advanced.memory.unit")}`,
+        `${form.getValues("port")}`,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : undefined;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex max-h-[92vh] min-h-[70vh] w-[96vw] max-w-6xl flex-col sm:max-w-6xl">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Server className="h-5 w-5 text-primary" />
-            </div>
-            <DialogTitle>
-              {showProgress
-                ? `${t("modules.newServerModal.modal.progress.title")}${creation?.serverName ? `: ${creation.serverName}` : ""}`
-                : t("modules.newServerModal.modal.title")}
-            </DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="h-[min(720px,92vh)] max-h-none max-sm:h-dvh max-sm:max-w-full max-sm:rounded-none sm:max-w-[880px]">
+        <DialogHeader className="flex-row items-center gap-3">
+          <Plate tone="primary">
+            <Plus />
+          </Plate>
+          <div className="min-w-0">
+            <DialogTitle>{t("modal.title")}</DialogTitle>
+            <DialogDescription>{t(`steps.${stepKey}.hint`)}</DialogDescription>
           </div>
         </DialogHeader>
+        <StepNav current={step} />
 
-        {showProgress ? (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex-1 overflow-y-auto pr-1">
-              <CreationProgressStageList
-                stages={creationStages}
-                message={
-                  !isCreationSuccess && !isCreationFailed
-                    ? creationMessage
-                    : null
-                }
-              />
-              {isCreationFailed && creation?.error && (
-                <p className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {creation.error}
-                </p>
-              )}
-            </div>
-
-            <DialogFooter className="mt-4 gap-2">
-              {isCreationSuccess ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCreateAnother}
-                  >
-                    {t("modules.newServerModal.modal.progress.buttons.another")}
-                  </Button>
-                  <Button type="button" onClick={handleOpenServer}>
-                    {t("modules.newServerModal.modal.progress.buttons.open")}
-                  </Button>
-                </>
-              ) : isCreationFailed ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCreateAnother}
-                  >
-                    {t("modules.newServerModal.modal.progress.buttons.back")}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={onClose}>
-                    {t("modules.newServerModal.modal.progress.buttons.close")}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <span className="flex-1 self-center text-xs text-muted-foreground">
-                    {t("modules.newServerModal.modal.progress.runningHint")}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleStartAnother}
-                  >
-                    {t("modules.newServerModal.modal.progress.buttons.another")}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={onClose}>
-                    {t("modules.newServerModal.modal.progress.buttons.close")}
-                  </Button>
-                </>
-              )}
-            </DialogFooter>
-          </div>
-        ) : (
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="flex min-h-0 flex-1 flex-col"
-          >
-            <div className="flex-1 space-y-6 overflow-y-auto pr-1">
-              {blueprintsError && (
-                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {t("modules.newServerModal.modal.notifications.catalogError")}
-                </div>
-              )}
-
-              {/* Zone: basics - name and core selection */}
-              <ServerBasicsSection
-                form={form}
-                blueprints={supportedBlueprints}
+        <DialogBody className="p-5" onKeyDown={onKeyDown}>
+          <div key={stepKey} className="animate-enter">
+            {step === CREATE_STEP && creation ? (
+              <CreationView creation={creation} blueprint={blueprint} meta={meta} autostart={autostart} />
+            ) : step === 0 || !blueprint ? (
+              <TypeStep
+                blueprints={selection.supportedBlueprints}
+                loading={selection.blueprintsLoading}
+                error={!!selection.blueprintsError}
                 selectedId={blueprintId}
-                onSelectBlueprint={selectBlueprint}
-                blueprintsLoading={blueprintsLoading}
+                onSelect={pickBlueprint}
+                onConfirm={() => void next()}
+                onImportModpack={() => {
+                  onClose();
+                  openModal("sidebar/import-server", { source: "modrinth" });
+                }}
               />
+            ) : step === 1 ? (
+              <BasicsStep
+                form={form}
+                blueprint={blueprint}
+                versionVarKey={selection.versionVarKey}
+                versions={selection.versions}
+                versionsLoading={selection.versionsLoading}
+                javaResolving={javaResolving}
+                recommendedJava={resolvedJava}
+                docker={docker}
+                portOwner={(port) => ports.get(port)}
+                freePort={nextFreePort(defaultPort)}
+              />
+            ) : (
+              <AdvancedStep form={form} blueprint={blueprint} dockerAvailable={selection.dockerAvailable} />
+            )}
+          </div>
+        </DialogBody>
 
-              {selectedBlueprint && (
-                <div
-                  className={cn(
-                    "grid grid-cols-1 gap-6 lg:items-stretch",
-                    hasMemoryVariable && "lg:grid-cols-2"
-                  )}
-                >
-                  {/* Left column: parameters and the docker runtime toggle stacked */}
-                  <div className="space-y-6">
-                  {/* Zone: parameters - variables, port, optional core file */}
-                  <section className="space-y-4 rounded-xl border border-border/60 bg-muted/20 p-4">
-                    <div className="flex items-center gap-2">
-                      <SlidersHorizontal className="size-4 text-primary" />
-                      <h3 className="text-sm font-semibold">
-                        {t("modules.newServerModal.general.parameters")}
-                      </h3>
-                    </div>
+        <DialogFooter className="flex-row items-center">
+          <span className={cn("mr-auto hidden text-[12.5px] text-muted-foreground sm:inline", step === CREATE_STEP && "inline")}>
+            {step === 0 ? (
+              blueprint ? (
+                t("nav.picked", blueprint.shortName ?? blueprint.name)
+              ) : (
+                t("nav.pickType")
+              )
+            ) : step < CREATE_STEP ? (
+              <>
+                <Kbd>Enter</Kbd> {t("nav.keys")}
+              </>
+            ) : (
+              !succeeded && !failed && t("nav.running")
+            )}
+          </span>
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {editableVariables.map((variable) => {
-                        if (variable.key === "JAVA_VERSION") {
-                          return (
-                            <JavaVersionField
-                              key={variable.key}
-                              label={labelFor(variable.key, variable.label)}
-                              value={
-                                variables?.JAVA_VERSION as number | undefined
-                              }
-                              isResolving={javaResolving}
-                              recommendedVersion={resolvedJava}
-                              onChange={(value) =>
-                                form.setValue("variables.JAVA_VERSION", value, {
-                                  shouldValidate: true,
-                                })
-                              }
-                              pathValue={javaPath}
-                              onPathChange={
-                                canChooseDocker && runtimeDocker
-                                  ? undefined
-                                  : setJavaPath
-                              }
-                            />
-                          );
-                        }
-                        return (
-                          <BlueprintVariableField
-                            key={variable.key}
-                            variable={variable}
-                            label={labelFor(variable.key, variable.label)}
-                            value={variables?.[variable.key]}
-                            onChange={(value) =>
-                              form.setValue(
-                                `variables.${variable.key}`,
-                                value,
-                                { shouldValidate: true }
-                              )
-                            }
-                            versions={
-                              variable.key === versionVarKey
-                                ? (versions ?? [])
-                                : undefined
-                            }
-                            versionsLoading={
-                              variable.key === versionVarKey
-                                ? versionsLoading
-                                : undefined
-                            }
-                            error={errors.variables?.[variable.key]?.message}
-                          />
-                        );
-                      })}
-
-                      <div className="space-y-2">
-                        <Label htmlFor="port">{portLabel}</Label>
-                        <Input
-                          id="port"
-                          type="number"
-                          {...form.register("port", { valueAsNumber: true })}
-                        />
-                        {errors.port && (
-                          <p className="text-sm text-destructive">
-                            {t(
-                              "modules.newServerModal.general.port.errors.range"
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {blueprintNeedsCoreFile(selectedBlueprint) && (
-                      <CoreFileUploadZone form={form} />
-                    )}
-                  </section>
-
-                  {/* Runtime: run the server in Docker instead of a host process */}
-                  {blueprintDockerCapable && (
-                    <div
-                      className={cn(
-                        "flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-muted/20 p-4 transition-opacity",
-                        !dockerAvailable &&
-                          "pointer-events-none select-none opacity-50"
-                      )}
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Container className="size-4 text-primary" />
-                          <span className="font-medium">
-                            {t("modules.newServerModal.advanced.docker.label")}
-                          </span>
-                          <Badge
-                            variant="outline"
-                            className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                          >
-                            {t("modules.newServerModal.advanced.docker.beta")}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {t(
-                            "modules.newServerModal.advanced.docker.description"
-                          )}
-                        </p>
-                        {!dockerAvailable && (
-                          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                            {t(
-                              "modules.newServerModal.advanced.docker.unavailable"
-                            )}
-                          </p>
-                        )}
-                      </div>
-                      <Switch
-                        disabled={!dockerAvailable}
-                        checked={!!runtimeDocker}
-                        onCheckedChange={(checked) =>
-                          form.setValue("runtimeDocker", checked)
-                        }
-                      />
-                    </div>
-                  )}
-                  </div>
-
-                  {/* Right column: advanced - memory, Aikar flags, extra arguments */}
-                  {hasMemoryVariable && (
-                    <AdvancedSection
-                      key={selectedBlueprint.id}
-                      form={form}
-                      minMemoryKey="XMS"
-                      maxMemoryKey="XMX"
-                      argsKey="JVM_ARGS"
-                    />
-                  )}
-                </div>
+          {step === CREATE_STEP ? (
+            <>
+              {(succeeded || failed) && (
+                <Button variant="outline" onClick={restart}>
+                  {t("nav.another")}
+                </Button>
               )}
-            </div>
-
-            <DialogFooter className="mt-4 gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                {t("modules.newServerModal.modal.buttons.cancel")}
+              {!succeeded && (
+                <Button variant="outline" onClick={onClose}>
+                  {t("modal.close")}
+                </Button>
+              )}
+              {succeeded && (
+                <>
+                  <Button variant="outline" onClick={onClose}>
+                    {t("nav.done")}
+                  </Button>
+                  <Button onClick={openConsole}>
+                    <Terminal />
+                    {t("nav.openConsole")}
+                  </Button>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {step > 0 && (
+                <Button variant="ghost" disabled={submitting} onClick={() => setStep(step - 1)}>
+                  {t("nav.back")}
+                </Button>
+              )}
+              <Button disabled={!blueprint || submitting} onClick={() => void next()}>
+                {step === CREATE_STEP - 1 && <Check />}
+                {submitting ? t("nav.creating") : step === CREATE_STEP - 1 ? t("nav.create") : t("nav.next")}
               </Button>
-              <Button
-                type="submit"
-                disabled={
-                  !form.formState.isValid || form.formState.isSubmitting
-                }
-              >
-                {form.formState.isSubmitting ? (
-                  t("modules.newServerModal.modal.buttons.creating")
-                ) : (
-                  <span className="inline-flex items-center gap-2">
-                    <Server className="h-4 w-4" />
-                    {t("modules.newServerModal.modal.buttons.create")}
-                  </span>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
+            </>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

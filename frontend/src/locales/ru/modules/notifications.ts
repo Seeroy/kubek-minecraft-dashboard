@@ -1,12 +1,13 @@
 import type { TranslationDictionary } from "../../../locales/types";
 
 export const notificationsTranslations: TranslationDictionary = {
+  close: "Закрыть",
   serverStatus: {
     started: "Экземпляр теперь запущен",
     stopped: "Экземпляр был остановлен",
-    startedTitle: (name: string) => `Сервер «${name}» запущен`,
-    stoppedTitle: (name: string) => `Сервер «${name}» остановлен`,
-    crashedTitle: (name: string) => `Сервер «${name}» завершился с ошибкой`,
+    startedTitle: (name: string) => `Сервер "${name}" запущен`,
+    stoppedTitle: (name: string) => `Сервер "${name}" остановлен`,
+    crashedTitle: (name: string) => `Сервер "${name}" завершился с ошибкой`,
     crashed: {
       message: "Экземпляр вышел неожиданно. Проверьте логи для деталей",
       action: "Перейти в консоль",
@@ -28,6 +29,9 @@ export const notificationsTranslations: TranslationDictionary = {
       downloadingJava: "Загрузка среды выполнения Java…",
       unpackingJava: "Распаковка среды выполнения Java…",
       creatingBat: "Завершение скриптов запуска…",
+      downloadingMods: (progress: string) => `Загрузка модов ${progress}`,
+      applyingOverrides: "Применяем настройки пака…",
+      registeringContent: "Связываем моды с Modrinth…",
       completed: "Завершение настройки…",
     },
     plugin: {
@@ -59,6 +63,9 @@ export const notificationsTranslations: TranslationDictionary = {
         `Восстановление резервной копии сервера ${name}`,
       deleteInProgressTitle: (name: string) =>
         `Удаление резервной копии сервера ${name}`,
+      uploadInProgressTitle: (name: string) => `Выгрузка бэкапа ${name}`,
+      uploadedTitle: (name: string) => `Бэкап ${name} выгружен`,
+      uploadFailedTitle: (name: string) => `Не удалось выгрузить бэкап ${name}`,
       inProgressMessage: "Операция выполняется в фоне…",
       createdTitle: (name: string) => `Резервная копия сервера ${name} создана`,
       restoredTitle: (name: string) =>
@@ -97,10 +104,5 @@ export const notificationsTranslations: TranslationDictionary = {
         "Смена ядра была прервана. Проверьте логи и попробуйте снова",
     },
     defaultProgress: "Подготовка вашего сервера…",
-  },
-  updateAvailable: {
-    title: "Доступно обновление",
-    message: (version: string, notes: string) => `Доступна версия ${version}`,
-    viewRelease: "Посмотреть релиз",
   },
 };

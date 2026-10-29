@@ -32,7 +32,12 @@ const resolver: VersionResolver = {
   },
 
   async resolveDownload(version, ctx) {
-    const loader = await latestStable(ctx, "/versions/loader");
+    // Modpacks pin the loader they were built with, plain servers take the latest
+    const pinned = String(ctx.variables.FABRIC_LOADER_VERSION ?? "").trim();
+    if (pinned && !/^[\w.+-]+$/.test(pinned)) {
+      throw new Error(`Invalid Fabric loader version: ${pinned}`);
+    }
+    const loader = pinned || (await latestStable(ctx, "/versions/loader"));
     const installer = await latestStable(ctx, "/versions/installer");
     return {
       url: `${BASE}/versions/loader/${version}/${loader}/${installer}/server/jar`,

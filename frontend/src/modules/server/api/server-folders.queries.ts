@@ -2,6 +2,7 @@ import type { CreateServerFolderProps, UpdateServerFolderProps } from "@/api";
 import { api } from "@/api";
 import { qk } from "@/shared/queries/query-keys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { patchServersInList } from "./servers.queries";
 
 export function useServerFoldersQuery() {
   return useQuery({
@@ -49,7 +50,9 @@ export function useMoveServersMutation() {
       serverIds: string[];
       folderId: string | null;
     }) => api.serverFolders.move(serverIds, folderId),
-    onSuccess: () => {
+    onSuccess: (_, { serverIds, folderId }) => {
+      // Move right away, refetch confirms it
+      patchServersInList(qc, serverIds, { folderId });
       qc.invalidateQueries({ queryKey: qk.servers.all });
       qc.invalidateQueries({ queryKey: qk.serverFolders.all });
     },

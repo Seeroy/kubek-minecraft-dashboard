@@ -7,5 +7,6 @@ import { ServerLogsService } from "./server-logs.service";
   imports: [FilesModule],
   controllers: [ServerLogsController],
   providers: [ServerLogsService],
+  exports: [ServerLogsService],
 })
 export class ServerLogsModule {}

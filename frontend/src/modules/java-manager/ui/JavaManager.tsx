@@ -1,272 +1,218 @@
 "use client";
 
+import type { JavaVersion } from "@/api/java/java.model";
 import { useNotifications } from "@/modules/notifications";
 import { useServerStore } from "@/modules/server";
+import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import {
-  useDeleteJavaMutation,
-  useInstallJavaMutation,
-  useJavaVersions,
-} from "@/modules/java-manager/api/java.queries";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
+import { confirmDialog } from "@/shared/modals";
+import { useAuthStore } from "@/shared/stores/auth-store";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { PageLayout } from "@/shared/ui/PageLayout";
-import { PageLoading } from "@/shared/ui/PageLoading";
-import { PageTabsHeader } from "@/shared/ui/PageTabsHeader";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import type { JavaVersion } from "@/api/java/java.model";
-import {
-  Cpu,
-  FolderSearch,
-  Loader2,
-  Package,
-  RefreshCcw,
-  Server,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import AvailableJavaVersionsTab from "./AvailableJavaVersionsTab";
-import CustomJavaTab from "./CustomJavaTab";
-import InstalledJavaVersionsTab from "./InstalledJavaVersionsTab";
-import ServerJavaUsageTab from "./ServerJavaUsageTab";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { PageHeader } from "@/shared/ui/page-header";
+import { SettingsGroup } from "@/shared/ui/settings";
+import type { Tone } from "@/shared/ui/tone";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { AccessArea } from "@shared/access/areas";
+import { Check, Coffee, Download, Folder, RotateCw, Server, Trash2, type LucideIcon } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
+import { useDeleteJavaMutation, useInstallJavaMutation, useJavaVersions, useRemoveCustomJavaMutation } from "../api/java.queries";
+import { useJavaTasks } from "../hooks/useJavaTasks";
+import { majorOf, serverJavaUsage } from "../lib/java";
+import { JAVA_TABS, type JavaTab } from "../lib/tabs";
+import { AvailableTab } from "./AvailableTab";
+import { CustomJavaForm } from "./CustomJavaForm";
+import { JavaRow } from "./JavaRow";
+import { UsageTab } from "./UsageTab";
 
-interface ServerJavaUsage {
-  serverId: string;
-  serverName: string;
-  javaVersion: string;
-  isManaged: boolean;
-  isCustom?: boolean;
+const TABS: { id: JavaTab; icon: LucideIcon }[] = [
+  { id: "installed", icon: Check },
+  { id: "available", icon: Download },
+  { id: "custom", icon: Folder },
+  { id: "usage", icon: Server },
+];
+
+interface ListPanelProps {
+  tone: Tone;
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  children: ReactNode;
+}
+
+function ListPanel({ tone, icon, title, description, children }: ListPanelProps) {
+  return (
+    <SettingsGroup tone={tone} icon={icon} title={title} description={description} className="mb-0" flush>
+      {children}
+    </SettingsGroup>
+  );
+}
+
+function EmptyList({ title, description }: { title: string; description: string }) {
+  return (
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Coffee />
+        </EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
 }
 
 const JavaManager = () => {
   const { t } = useTranslation("modules.javaManager");
-  const { servers } = useServerStore();
   const { notify } = useNotifications();
+  const { servers } = useServerStore();
+  const java = useJavaVersions();
+  const install = useInstallJavaMutation();
+  const remove = useDeleteJavaMutation();
+  const removeCustom = useRemoveCustomJavaMutation();
+  const progress = useJavaTasks();
+  const [tab, changeTab] = useRouteTab("/java", JAVA_TABS, "installed");
+  const canInstall = useAuthStore((s) => s.can(AccessArea.JAVA, "write"));
+  const canManage = useAuthStore((s) => s.can(AccessArea.JAVA, "manage"));
 
-  const javaQuery = useJavaVersions();
-  const installMutation = useInstallJavaMutation();
-  const deleteMutation = useDeleteJavaMutation();
+  // One list from the API holds all three kinds, a path means it is on disk
+  const { installed, available, customs } = useMemo(() => {
+    const all = java.data ?? [];
+    return {
+      installed: all.filter((v) => v.path && !v.custom).sort((a, b) => (majorOf(b.version) ?? 0) - (majorOf(a.version) ?? 0)),
+      available: all.filter((v) => !v.path),
+      customs: all.filter((v) => v.custom),
+    };
+  }, [java.data]);
+  const usage = useMemo(() => serverJavaUsage(servers, customs), [servers, customs]);
 
-  const [installingVersions, setInstallingVersions] = useState<Set<string>>(
-    new Set()
-  );
-  const [deletingVersions, setDeletingVersions] = useState<Set<string>>(
-    new Set()
-  );
+  const counts: Record<JavaTab, number> = { installed: installed.length, available: available.length, custom: customs.length, usage: usage.length };
+  const usersOf = (version: JavaVersion) =>
+    usage
+      .filter((item) => (version.custom ? item.path === version.path : item.kind === "managed" && item.major === majorOf(version.version)))
+      .map((item) => item.server);
 
-  const allVersions = javaQuery.data ?? [];
-  const installedVersions = useMemo(
-    () => allVersions.filter((v) => v.path && !v.custom),
-    [allVersions]
-  );
-  const availableVersions = useMemo(
-    () => allVersions.filter((v) => !v.path),
-    [allVersions]
-  );
-  const customVersions = useMemo(
-    () => allVersions.filter((v) => v.custom),
-    [allVersions]
-  );
-
-  const serverUsage = useMemo<ServerJavaUsage[]>(() => {
-    const usage: ServerJavaUsage[] = [];
-    for (const server of servers) {
-      // A JAVA_PATH override points at a custom local installation
-      const javaPath = server.variables?.JAVA_PATH;
-      if (
-        server.runtimeKind !== "docker" &&
-        typeof javaPath === "string" &&
-        javaPath
-      ) {
-        usage.push({
-          serverId: server.id,
-          serverName: server.name,
-          javaVersion: javaPath,
-          isManaged: false,
-          isCustom: true,
-        });
-        continue;
-      }
-
-      // The Java a server runs on is the JAVA_VERSION blueprint variable
-      const rawJava = server.variables?.JAVA_VERSION;
-      if (rawJava === undefined || rawJava === null || rawJava === "") continue;
-
-      const isSystem = String(rawJava) === "system";
-      usage.push({
-        serverId: server.id,
-        serverName: server.name,
-        javaVersion: isSystem ? "system" : String(rawJava),
-        isManaged: !isSystem,
-      });
-    }
-    return usage;
-  }, [servers]);
-
-  const handleInstall = async (version: JavaVersion) => {
-    if (installingVersions.has(version.version)) return;
-    setInstallingVersions((prev) => new Set(prev).add(version.version));
-    try {
-      await installMutation.mutateAsync(version.version);
-      notify({
-        title: t("notifications.installStarted", version.version),
-        message: t("notifications.installMessage"),
-        type: "success",
-      });
-    } catch (error) {
-      notify({
-        title: t("errors.installFailed"),
-        message: error instanceof Error ? error.message : undefined,
-        type: "error",
-      });
-    } finally {
-      setInstallingVersions((prev) => {
-        const next = new Set(prev);
-        next.delete(version.version);
-        return next;
-      });
-    }
+  const confirmRemove = async (version: JavaVersion) => {
+    const ok = await confirmDialog({
+      title: t("confirmRemove.title", version.name),
+      description: version.custom ? t("confirmRemove.customDescription") : t("confirmRemove.description"),
+      confirmText: t("confirmRemove.confirm"),
+      cancelText: t("confirmRemove.cancel"),
+      variant: "destructive",
+      icon: Trash2,
+    });
+    if (!ok) return;
+    if (version.custom && version.id) await removeCustom.mutateAsync(version.id);
+    else await remove.mutateAsync(version.version);
+    notify({ type: "success", title: t("toasts.removed", version.name) });
   };
 
-  const handleDelete = async (version: JavaVersion) => {
-    if (deletingVersions.has(version.version)) return;
-
-    const isUsed = serverUsage.some(
-      (usage) => usage.javaVersion === version.version && usage.isManaged
-    );
-    if (isUsed) {
-      notify({
-        title: t("errors.deleteInUseTitle"),
-        message: t("errors.deleteInUseMessage"),
-        type: "error",
-      });
-      return;
-    }
-
-    setDeletingVersions((prev) => new Set(prev).add(version.version));
-    try {
-      await deleteMutation.mutateAsync(version.version);
-      notify({
-        title: t("notifications.deleteSuccess", version.version),
-        type: "success",
-      });
-    } catch (error: any) {
-      notify({
-        title: error?.message || t("notifications.deleteFailed"),
-        type: "error",
-      });
-    } finally {
-      setDeletingVersions((prev) => {
-        const next = new Set(prev);
-        next.delete(version.version);
-        return next;
-      });
-    }
-  };
-
-  const isLoading = javaQuery.isLoading;
-  const isFetching = javaQuery.isFetching;
-
-  if (isLoading) {
-    return (
-      <PageLayout>
-        <BlockHeader
-          kicker={t("header.kicker")}
-          title={t("header.title")}
-          description={t("header.description")}
-          icon={Cpu}
-          color="orange"
-        />
-        <PageLoading />
-      </PageLayout>
-    );
-  }
+  const onInstall = (version: JavaVersion) =>
+    install.mutate(version.version, { onSuccess: () => notify({ type: "info", title: t("toasts.installStarted", version.version) }) });
 
   return (
-    <PageLayout>
-      <BlockHeader
-        kicker={t("header.kicker")}
-        title={t("header.title")}
-        description={t("header.description")}
-        icon={Cpu}
-        color="orange"
+    <div className="stagger-enter">
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <Button variant="outline" disabled={java.isFetching} onClick={() => void java.refetch()}>
+            <RotateCw className={java.isFetching ? "animate-spin" : undefined} />
+            {t("refresh")}
+          </Button>
+        }
       />
-      <Tabs defaultValue="installed">
-        <PageTabsHeader
-          tabs={
-            <TabsList>
-              <TabsTrigger
-                value="installed"
-                className="flex items-center gap-2"
-              >
-                <Cpu className="h-4 w-4" />
-                {t("tabs.installed", installedVersions.length)}
-              </TabsTrigger>
-              <TabsTrigger
-                value="available"
-                className="flex items-center gap-2"
-              >
-                <Package className="h-4 w-4" />
-                {t("tabs.available", availableVersions.length)}
-              </TabsTrigger>
-              <TabsTrigger value="custom" className="flex items-center gap-2">
-                <FolderSearch className="h-4 w-4" />
-                {t("tabs.custom", customVersions.length)}
-              </TabsTrigger>
-              <TabsTrigger value="servers" className="flex items-center gap-2">
-                <Server className="h-4 w-4" />
-                {t("tabs.serverUsage", serverUsage.length)}
-              </TabsTrigger>
-            </TabsList>
-          }
-          actions={
-            <Button
-              variant="outline"
-              onClick={() => javaQuery.refetch()}
-              disabled={isFetching}
-              className="flex-shrink-0"
-            >
-              {isFetching ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("buttons.refreshing")}
-                </>
-              ) : (
-                <>
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  {t("buttons.refresh")}
-                </>
-              )}
-            </Button>
-          }
-        />
 
-        <TabsContent value="installed" className="mt-6 space-y-6">
-          <InstalledJavaVersionsTab
-            installedVersions={installedVersions}
-            serverUsage={serverUsage}
-            deletingVersions={deletingVersions}
-            onDelete={handleDelete}
-          />
-        </TabsContent>
+      <Tabs value={tab} onValueChange={(value) => changeTab(value as JavaTab)} className="gap-4">
+        <TabsList>
+          {TABS.map(({ id, icon: Icon }) => (
+            <TabsTrigger key={id} value={id}>
+              <Icon />
+              {t(`tabs.${id}`)}
+              {java.data && <TabsCount>{counts[id]}</TabsCount>}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-        <TabsContent value="available" className="mt-6 space-y-6">
-          <AvailableJavaVersionsTab
-            availableVersions={availableVersions}
-            installedVersions={installedVersions}
-            installingVersions={installingVersions}
-            onInstall={handleInstall}
-          />
-        </TabsContent>
+        {java.isLoading ? (
+          <Skeleton className="h-72 rounded-lg" />
+        ) : (
+          <>
+            <TabsContent value="installed">
+              <ListPanel tone="green" icon={Coffee} title={t("installed.title")} description={t("installed.description")}>
+                {installed.length === 0 ? (
+                  <EmptyList title={t("installed.empty.title")} description={t("installed.empty.description")} />
+                ) : (
+                  installed.map((version) => (
+                    <JavaRow
+                      key={version.version}
+                      major={majorOf(version.version)}
+                      title={version.name}
+                      badges={
+                        <>
+                          <Badge variant="success">{t("installed.badge")}</Badge>
+                          <Badge variant="secondary" className="uppercase">
+                            {version.type}
+                          </Badge>
+                        </>
+                      }
+                      meta={
+                        <>
+                          {version.vendor && <span>{t("installed.vendor", version.vendor)}</span>}
+                          {version.runtime && <span className="font-mono">{version.runtime}</span>}
+                        </>
+                      }
+                      path={version.path}
+                      usedBy={usersOf(version)}
+                      removing={remove.isPending}
+                      onRemove={canManage ? () => void confirmRemove(version) : undefined}
+                    />
+                  ))
+                )}
+              </ListPanel>
+            </TabsContent>
 
-        <TabsContent value="custom" className="mt-6 space-y-6">
-          <CustomJavaTab customVersions={customVersions} />
-        </TabsContent>
+            <TabsContent value="available">
+              <AvailableTab available={available} progress={progress} pending={install.isPending ? install.variables : undefined} onInstall={canInstall ? onInstall : undefined} />
+            </TabsContent>
 
-        <TabsContent value="servers" className="mt-6 space-y-6">
-          <ServerJavaUsageTab serverUsage={serverUsage} />
-        </TabsContent>
+            <TabsContent value="custom" className="grid gap-4">
+              {canManage && <CustomJavaForm />}
+              <ListPanel tone="purple" icon={Folder} title={t("custom.list.title")} description={t("custom.list.description")}>
+                {customs.length === 0 ? (
+                  <EmptyList title={t("custom.list.empty.title")} description={t("custom.list.empty.description")} />
+                ) : (
+                  customs.map((version) => (
+                    <JavaRow
+                      key={version.id ?? version.path}
+                      major={majorOf(version.version)}
+                      title={version.name}
+                      badges={<Badge variant="info">{t("custom.list.badge")}</Badge>}
+                      meta={
+                        <>
+                          <span>Java {version.version}</span>
+                          {version.vendor && <span>{version.vendor}</span>}
+                        </>
+                      }
+                      path={version.path}
+                      usedBy={usersOf(version)}
+                      removing={removeCustom.isPending}
+                      onRemove={canManage ? () => void confirmRemove(version) : undefined}
+                    />
+                  ))
+                )}
+              </ListPanel>
+            </TabsContent>
+
+            <TabsContent value="usage">
+              <UsageTab usage={usage} />
+            </TabsContent>
+          </>
+        )}
       </Tabs>
-    </PageLayout>
+    </div>
   );
 };
 

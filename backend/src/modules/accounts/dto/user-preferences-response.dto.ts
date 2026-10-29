@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-/** Current user's editable preferences (2FA primary, notifications, dashboard) */
+/** Current user's editable preferences (2FA primary, dashboard, avatar) */
 export class UserPreferencesResponseDto {
   @ApiProperty({
     description: "Primary 2FA method, or null when none is set",
@@ -10,12 +10,6 @@ export class UserPreferencesResponseDto {
     example: "totp",
   })
   twofaPrimary: "totp" | "telegram" | null;
-
-  @ApiProperty({
-    description: "Whether the user receives task-result notifications",
-    example: true,
-  })
-  notifyTaskResults: boolean;
 
   @ApiProperty({
     description: "Whether TOTP 2FA is enabled",
@@ -32,12 +26,12 @@ export class UserPreferencesResponseDto {
   telegram2faEnabled?: boolean;
 
   @ApiProperty({
-    description: "Persisted dashboard layout (opaque structure), or null",
+    description: "Persisted dashboard layout as serialized JSON, or null",
     nullable: true,
     required: false,
-    type: Object,
+    type: String,
   })
-  dashboardLayout: unknown;
+  dashboardLayout?: string | null;
 
   @ApiProperty({
     description: "Panel version for which the what's-new modal was last seen",
@@ -46,6 +40,15 @@ export class UserPreferencesResponseDto {
     example: "4.0.0",
   })
   lastSeenWhatsNewVersion: string | null;
+
+  @ApiProperty({
+    description:
+      "Minecraft nickname used for the avatar, null to use the username",
+    nullable: true,
+    type: String,
+    example: "Notch",
+  })
+  skinName: string | null;
 
   @ApiProperty({
     description: "Current running panel version",

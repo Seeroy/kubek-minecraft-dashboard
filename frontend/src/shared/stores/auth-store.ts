@@ -1,6 +1,9 @@
 import type { UserProfile } from "@/api";
 import { authAdapter, type SafeUser } from "@/shared/queries/auth.adapter";
-import { IUser, UserPermissions } from "@shared/types/user.types";
+import type { AccessArea, AccessLevel } from "@shared/access/areas";
+import { can, canOnServer, hasExtPermission, reachesServer, seesServers } from "@shared/access/can";
+import { isLegacyPermission, legacyFromAccess } from "@shared/access/legacy";
+import type { IUser } from "@shared/types/user.types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -10,18 +13,24 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   user: IUserSafe | null;
-  isLoading: boolean;
   isHydrated: boolean;
 
   login: (token: string, user: UserProfile) => void;
   logout: () => Promise<void>;
   clearAuth: () => void;
-  setLoading: (loading: boolean) => void;
   setUser: (user: UserProfile) => void;
   getToken: () => string | null;
   getUser: () => IUserSafe | null;
-  hasPermission: (permission: UserPermissions) => boolean;
+  /** Level in a panel or server area, ignoring the server list */
+  can: (area: AccessArea, level: AccessLevel) => boolean;
+  /** Level in a server area on that server */
+  canOnServer: (area: AccessArea, level: AccessLevel, serverId: string) => boolean;
+  /** Read in any server area */
+  seesServers: () => boolean;
+  /** Extension item gate, an old flat key or an extension key, none means open */
   canAccessItem: (permission?: string | null) => boolean;
+  /** Same as canAccessItem, kept for extensions written before access levels */
+  hasPermission: (permission: string) => boolean;
   hasServerAccess: (serverId: string) => boolean;
   isUserAdmin: () => boolean;
   updateUser: (user: Partial<IUserSafe>) => void;
@@ -34,7 +43,6 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       user: null,
-      isLoading: false,
       isHydrated: false,
 
       login: (token: string, user: UserProfile) => {
@@ -42,7 +50,6 @@ export const useAuthStore = create<AuthState>()(
           token,
           isAuthenticated: true,
           user: authAdapter.toInternal(user),
-          isLoading: false,
         });
       },
 
@@ -64,12 +71,7 @@ export const useAuthStore = create<AuthState>()(
           token: null,
           isAuthenticated: false,
           user: null,
-          isLoading: false,
         });
-      },
-
-      setLoading: (loading: boolean) => {
-        set({ isLoading: loading });
       },
 
       setUser: (user: UserProfile) => {
@@ -82,29 +84,21 @@ export const useAuthStore = create<AuthState>()(
       getToken: () => get().token,
       getUser: () => get().user,
 
-      hasPermission: (permission: UserPermissions) => {
-        const user = get().user;
-        if (!user) return false;
-        if (user.isAdmin) return true;
-        return user.permissions.includes(permission);
-      },
+      can: (area, level) => can(get().user, area, level),
+      canOnServer: (area, level, serverId) => canOnServer(get().user, area, level, serverId),
+      seesServers: () => seesServers(get().user),
 
-      // Like hasPermission but for optionally-gated items (no permission means open to all)
       canAccessItem: (permission?: string | null) => {
         if (!permission) return true;
         const user = get().user;
         if (!user) return false;
-        if (user.isAdmin) return true;
-        return user.permissions.includes(permission as UserPermissions);
+        if (isLegacyPermission(permission)) return !!user.isAdmin || legacyFromAccess(user.access.levels).includes(permission);
+        return hasExtPermission(user, permission);
       },
 
-      hasServerAccess: (serverId: string) => {
-        const user = get().user;
-        if (!user) return false;
-        if (user.isAdmin) return true;
-        if (!user.serversRestrict.enabled) return true;
-        return user.serversRestrict.allowed.includes(serverId);
-      },
+      hasPermission: (permission: string) => get().canAccessItem(permission),
+
+      hasServerAccess: (serverId: string) => reachesServer(get().user, serverId),
 
       isUserAdmin: () => get().user?.isAdmin ?? false,
 
@@ -122,16 +116,20 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      version: 3,
+      version: 4,
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.isHydrated = true;
         }
       },
+      // Before v3 the 2FA secret was kept too, before v4 the user had flat permissions
+      // instead of access, so the cached user goes and the profile is loaded again
       migrate: (persistedState, version) => {
-        const p = persistedState as Record<string, any>;
-        if (version === 3) return p;
-        const { secret, ...rest } = p;
+        const p = persistedState as Record<string, unknown>;
+        if (version === 4) return p;
+        const rest = { ...p };
+        delete rest.secret;
+        delete rest.user;
         return rest;
       },
       partialize: (state) => ({

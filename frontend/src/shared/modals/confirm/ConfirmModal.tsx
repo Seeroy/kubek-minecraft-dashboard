@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/shared/ui/alert-dialog";
 import { LucideIcon } from "lucide-react";
+import { toneClass } from "@/shared/ui/tone";
 
 export interface ConfirmProps {
   title?: string;
@@ -52,7 +53,7 @@ function ConfirmModalComponent({
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
       <AlertDialogContent>
         {Icon && (
-          <AlertDialogMedia>
+          <AlertDialogMedia className={variant === "destructive" ? toneClass.red : undefined}>
             <Icon />
           </AlertDialogMedia>
         )}

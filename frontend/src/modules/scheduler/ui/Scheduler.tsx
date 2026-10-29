@@ -1,93 +1,95 @@
 "use client";
-import { useServerStore } from "@/modules/server";
+import { useServerStore, type Server } from "@/modules/server";
 import { useModal } from "@/shared/hooks/useModalsManager";
+import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
+import { useAccess } from "@/shared/lib/access";
 import { Button } from "@/shared/ui/button";
-import { PageLayout } from "@/shared/ui/PageLayout";
-import { PageTabsHeader } from "@/shared/ui/PageTabsHeader";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { AccessArea } from "@shared/access/areas";
 import type { IScheduledTask } from "@shared/types/scheduler.types";
-import { Calendar, History, Plus } from "lucide-react";
-import { useState } from "react";
-import { RunsTab } from "./RunsTab";
-import { TASK_FORM_MODAL_ID } from "./TaskFormDialog";
-import { TasksTab } from "./TasksTab";
+import { CalendarClock, Plus, ScrollText, ServerOff } from "lucide-react";
+import { useScheduledTasksByServer, useTaskRunsByServer } from "../api/scheduler.queries";
+import { SCHEDULER_TABS, type SchedulerTab } from "../lib/tabs";
+import { TASK_FORM_MODAL_ID } from "../modals";
+import { RunsPanel } from "./RunsPanel";
+import { TasksPanel } from "./TasksPanel";
 
-export const Scheduler = () => {
+
+function ServerScheduler({ server }: { server: Server }) {
   const { t } = useTranslation("modules.scheduler");
-  const { selectedServer } = useServerStore();
-  const { open } = useModal();
+  const { openModal } = useModal();
+  const [tab, changeTab] = useRouteTab("/scheduler", SCHEDULER_TABS, "tasks");
+  const tasks = useScheduledTasksByServer(server.id);
+  // Unfiltered runs only feed the counter, the panel keeps its own filtered query
+  const runs = useTaskRunsByServer(server.id);
+  const canCreate = useAccess([AccessArea.SCHEDULER, "write"], server.id);
 
-  const [tab, setTab] = useState<"tasks" | "runs">("tasks");
-
-  if (!selectedServer) {
-    return (
-      <div className="py-12 text-center text-muted-foreground">
-        <p>{t("page.noServerSelected")}</p>
-      </div>
-    );
-  }
-
-  const openCreate = () => {
-    void open(TASK_FORM_MODAL_ID, {
-      serverId: selectedServer.id,
-      editingTask: null,
-    });
-  };
-
-  const openEdit = (task: IScheduledTask) => {
-    void open(TASK_FORM_MODAL_ID, {
-      serverId: selectedServer.id,
-      editingTask: task,
-    });
-  };
+  const openForm = (task?: IScheduledTask) => openModal(TASK_FORM_MODAL_ID, { serverId: server.id, editingTask: task ?? null });
 
   return (
-    <PageLayout>
-      <BlockHeader
-        kicker={t("tabs.tasks")}
-        title={t("page.header.title")}
-        description={t("page.header.description")}
-        icon={Calendar}
-        color="blue"
+    <>
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        actions={
+          canCreate && (
+            <Button onClick={() => openForm()}>
+              <Plus />
+              {t("create")}
+            </Button>
+          )
+        }
       />
-      <Tabs
-        value={tab}
-        onValueChange={(value) => setTab(value as "tasks" | "runs")}
-      >
-        <PageTabsHeader
-          tabs={
-            <TabsList>
-              <TabsTrigger value="tasks">
-                <Calendar className="h-4 w-4" />
-                {t("tabs.tasks")}
-              </TabsTrigger>
-              <TabsTrigger value="runs">
-                <History className="h-4 w-4" />
-                {t("tabs.runs")}
-              </TabsTrigger>
-            </TabsList>
-          }
-          actions={
-            tab === "tasks" && (
-              <Button onClick={openCreate} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                {t("page.header.createButton")}
-              </Button>
-            )
-          }
-        />
-
-        <TabsContent value="tasks" className="mt-6">
-          <TasksTab serverId={selectedServer.id} onEdit={openEdit} />
+      <Tabs value={tab} onValueChange={(value) => changeTab(value as SchedulerTab)} className="gap-4">
+        <TabsList>
+          <TabsTrigger value="tasks">
+            <CalendarClock />
+            {t("tabs.tasks")}
+            {tasks.data && <TabsCount>{tasks.data.length}</TabsCount>}
+          </TabsTrigger>
+          <TabsTrigger value="runs">
+            <ScrollText />
+            {t("tabs.runs")}
+            {runs.data && <TabsCount>{runs.data.total}</TabsCount>}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="tasks">
+          <TasksPanel serverId={server.id} tasks={tasks.data} loading={tasks.isLoading} onEdit={openForm} onCreate={() => openForm()} />
         </TabsContent>
-        <TabsContent value="runs" className="mt-6">
-          <RunsTab serverId={selectedServer.id} />
+        <TabsContent value="runs">
+          <RunsPanel serverId={server.id} tasks={tasks.data ?? []} />
         </TabsContent>
       </Tabs>
-    </PageLayout>
+    </>
   );
-};
+}
 
-export default Scheduler;
+export default function Scheduler() {
+  const { t } = useTranslation("modules.scheduler");
+  const { selectedServer } = useServerStore();
+
+  return (
+    <div className="stagger-enter">
+      {selectedServer ? (
+        // Keyed so filters reset on a server switch
+        <ServerScheduler key={selectedServer.id} server={selectedServer} />
+      ) : (
+        <>
+          <PageHeader title={t("title")} description={t("description")} />
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <ServerOff />
+              </EmptyMedia>
+              <EmptyTitle>{t("noServer.title")}</EmptyTitle>
+              <EmptyDescription>{t("noServer.description")}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </>
+      )}
+    </div>
+  );
+}

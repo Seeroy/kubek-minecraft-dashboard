@@ -12,6 +12,20 @@ export class GenerateOtpResponseDto {
 /** Telegram bot identity / connectivity status */
 export class BotInfoResponseDto {
   @ApiProperty({
+    required: false,
+    description: "Telegram id of the bot",
+    example: 7012345678,
+  })
+  id?: number;
+
+  @ApiProperty({
+    required: false,
+    description:
+      "Whether the bot has a profile photo, served by GET /api/telegram-bot/avatar",
+  })
+  hasAvatar?: boolean;
+
+  @ApiProperty({
     description: "Bot display name (empty when unavailable)",
     example: "Kubek Bot",
   })
@@ -71,4 +85,12 @@ export class LinkedUserResponseDto {
 
   @ApiProperty({ description: "Kubek account username", example: "admin" })
   accountName: string;
+
+  @ApiProperty({
+    nullable: true,
+    type: String,
+    description: "Account's avatar nickname, null to use the account name",
+    example: "Notch",
+  })
+  accountSkinName: string | null;
 }

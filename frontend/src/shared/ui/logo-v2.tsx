@@ -34,7 +34,7 @@ const LogoV2: React.FC<LogoV2Props> = ({
       {withText && (
         <span
           className={cn(
-            "skew-x-[7deg] leading-none font-extrabold tracking-tight lowercase",
+            "skew-x-[7deg] leading-none font-bold tracking-tight lowercase",
             text,
             offset
           )}

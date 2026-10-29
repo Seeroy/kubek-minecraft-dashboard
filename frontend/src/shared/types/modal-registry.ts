@@ -8,18 +8,17 @@
 //     }
 //   }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- filled by declaration merging
 export interface ModalRegistry {}
 
 export type ModalId = keyof ModalRegistry & string;
 
-export type PropsOf<K extends string> = K extends keyof ModalRegistry
-  ? ModalRegistry[K] extends { props: infer P }
-    ? P
-    : Record<string, never>
-  : Record<string, any>;
+// For modals that take nothing besides isOpen/onClose
+export type NoModalProps = Record<never, never>;
 
-export type ResultOf<K extends string> = K extends keyof ModalRegistry
-  ? ModalRegistry[K] extends { result: infer R }
-    ? R
-    : void
-  : any;
+export type PropsOf<K extends ModalId> = ModalRegistry[K] extends { props: infer P } ? P : NoModalProps;
+
+export type ResultOf<K extends ModalId> = ModalRegistry[K] extends { result: infer R } ? R : void;
+
+// props can be skipped when every field is optional
+export type OpenModalArgs<K extends ModalId> = NoModalProps extends PropsOf<K> ? [props?: PropsOf<K>] : [props: PropsOf<K>];

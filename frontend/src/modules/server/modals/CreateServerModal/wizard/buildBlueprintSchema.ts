@@ -14,6 +14,13 @@ export interface WizardValues {
   customFile?: File;
   /** Run the server in Docker, only meaningful when the blueprint is docker-capable */
   runtimeDocker: boolean;
+  aikar: boolean;
+  extraArgs: string;
+  autostart: boolean;
+  eula: boolean;
+  folderId: string | null;
+  /** Custom Java path override, empty when a managed version is used */
+  javaPath: string;
 }
 
 /** Blank form state before a blueprint is picked */
@@ -24,6 +31,12 @@ export const EMPTY_WIZARD_VALUES: WizardValues = {
   variables: {},
   customFile: undefined,
   runtimeDocker: false,
+  aikar: true,
+  extraArgs: "",
+  autostart: true,
+  eula: true,
+  folderId: null,
+  javaPath: "",
 };
 
 const CUSTOM_BLUEPRINT_ID = "com.kubek.custom";
@@ -93,16 +106,25 @@ export function buildBlueprintForm(bp: BlueprintSummary): {
 
   const port = primaryPort(bp);
   const fileSchema = blueprintNeedsCoreFile(bp)
-    ? z.instanceof(File, { message: "A .jar file is required" })
+    ? z.instanceof(File, { message: "modules.newServerModal.core.custom.required" })
     : z.instanceof(File).optional();
 
   const baseSchema = z.object({
     name: serverNameSchema,
     blueprintId: z.string().min(1),
-    port: z.coerce.number().min(1).max(65535),
+    port: z.coerce
+      .number()
+      .min(1024, "modules.newServerModal.general.port.errors.range")
+      .max(65535, "modules.newServerModal.general.port.errors.range"),
     variables: z.object(variableShape),
     customFile: fileSchema,
     runtimeDocker: z.coerce.boolean().optional(),
+    aikar: z.boolean(),
+    extraArgs: z.string(),
+    autostart: z.boolean(),
+    eula: z.literal(true, { message: "modules.newServerModal.advanced.eula.required" }),
+    folderId: z.string().nullable(),
+    javaPath: z.string(),
   });
 
   // When the blueprint exposes both memory variables, the initial heap must not exceed the max
@@ -126,13 +148,10 @@ export function buildBlueprintForm(bp: BlueprintSummary): {
   return {
     schema,
     defaults: {
-      name: "",
+      ...EMPTY_WIZARD_VALUES,
       blueprintId: bp.id,
       port: port?.default ?? 25565,
       variables: variableDefaults,
-      customFile: undefined,
-      // Default off, docker runtime is still in beta and opt-in only
-      runtimeDocker: false,
     },
   };
 }

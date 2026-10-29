@@ -1,4 +1,5 @@
 import type { TranslationDictionary } from "../../../locales/types";
+import { plural } from "../plural";
 
 export const filesTranslations: TranslationDictionary = {
   header: {
@@ -6,11 +7,6 @@ export const filesTranslations: TranslationDictionary = {
     description: "Просмотр, редактирование и управление файлами сервера",
   },
   modals: {
-    confirmDialog: {
-      defaultTitle: "Вы уверены?",
-      confirmText: "Подтвердить",
-      cancelText: "Отмена",
-    },
     newDirectory: {
       title: "Создать новую директорию",
       description: "Введите имя для новой директории в",
@@ -42,6 +38,7 @@ export const filesTranslations: TranslationDictionary = {
       cancel: "Отмена",
     },
     editor: {
+      modified: "изменён",
       title: "Редактировать файл",
       cancel: "Отмена",
       viewInLogViewer: "Посмотреть в Log Viewer",
@@ -69,22 +66,25 @@ export const filesTranslations: TranslationDictionary = {
   },
   ui: {
     files: {
+      breadcrumb: "Путь",
       noServerSelected: "Пожалуйста, выберите сервер для просмотра файлов",
       buttons: {
+        create: "Создать",
         createFile: "Создать файл",
         createFolder: "Создать папку",
         upload: "Загрузить",
       },
       delete: {
-        title: "Удалить",
-        description: "Вы уверены, что хотите удалить",
+        fileTitle: "Удалить файл?",
+        directoryTitle: "Удалить папку?",
+        confirmDesc: (name: string) => `"${name}" будет удалён без возможности восстановления`,
         confirmText: "Удалить",
         cancelText: "Отмена",
-        undoWarning: "Это действие нельзя отменить",
-        confirmManyTitle: ({ count }: { count: number }) => `Удалить ${ count } элементов?`,
+        confirmManyTitle: ({ count }: { count: number }) => `Удалить ${count} ${plural(count, ["элемент", "элемента", "элементов"])}?`,
         confirmManyDesc: "Это действие нельзя отменить",
       },
       selection: {
+        clear: "Снять выделение",
         count: ({ count }: { count: number }) => `Выбрано: ${ count }`,
         actions: {
           delete: "Удалить",
@@ -105,6 +105,8 @@ export const filesTranslations: TranslationDictionary = {
       },
     },
     filesList: {
+      selectAll: "Выбрать все",
+      summary: (count: number, size: string) => `${count} объектов · ${size}`,
       loading: "Загрузка файлов...",
       searchPlaceholder: "Поиск файлов...",
       noMatches: "Ничего не найдено",
@@ -115,7 +117,7 @@ export const filesTranslations: TranslationDictionary = {
           all: "Везде",
         },
         found: ({ count }: { count: number }) => `Найдено: ${ count }`,
-        empty: ({ query }: { query: string }) => `По запросу «${ query }» ничего не найдено`,
+        empty: ({ query }: { query: string }) => `По запросу "${ query }" ничего не найдено`,
       },
       empty: {
         title: "Файлы не найдены",
@@ -133,6 +135,8 @@ export const filesTranslations: TranslationDictionary = {
     },
     fileItem: {
       actions: {
+        menu: "Действия",
+        open: "Открыть",
         edit: "Редактировать",
         download: "Скачать",
         copyPath: "Копировать путь",

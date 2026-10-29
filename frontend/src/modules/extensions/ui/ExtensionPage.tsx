@@ -1,6 +1,7 @@
 "use client";
 
 import { useExtensionRegistry } from "@/modules/extensions/api/extensions.queries";
+import { CrashScreen } from "@/shared/ui/ErrorBoundary";
 import { PageError } from "@/shared/ui/PageError";
 import { PageLayout } from "@/shared/ui/PageLayout";
 import { DynamicExtensionComponent } from "./DynamicExtensionComponent";
@@ -27,10 +28,7 @@ export const ExtensionPage = ({ slug }: Props) => {
 
   return (
     <PageLayout>
-      <DynamicExtensionComponent
-        bundleUrl={ext.bundleUrl}
-        name={componentName}
-      />
+      <DynamicExtensionComponent bundleUrl={ext.bundleUrl} name={componentName} fallback={(props) => <CrashScreen {...props} />} />
     </PageLayout>
   );
 };

@@ -1,12 +1,15 @@
 import { Transform } from "class-transformer";
 import {
   IsArray,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
   Max,
   Min,
 } from "class-validator";
+
+export const SEARCH_INDEXES = ["relevance", "downloads", "follows", "newest", "updated"] as const;
 
 export class SearchPluginsDto {
   @IsOptional()
@@ -54,6 +57,10 @@ export class SearchPluginsDto {
     return [String(value)];
   })
   categories?: string[];
+
+  @IsOptional()
+  @IsIn(SEARCH_INDEXES)
+  index?: (typeof SEARCH_INDEXES)[number];
 }
 
 export class ProjectVersionsQueryDto {

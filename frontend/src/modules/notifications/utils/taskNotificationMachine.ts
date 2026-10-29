@@ -1,7 +1,8 @@
 import type {
   Notification,
   NotificationAction,
-} from "@/shared/types/notification.types";
+} from "@/shared/types/toast.types";
+import { isTaskActive } from "@/shared/lib/task-status";
 import { type ITask, TaskStatus } from "@shared/types/task.types";
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle } from "lucide-react";
@@ -50,8 +51,7 @@ export function applyTaskNotification(
   api: TaskNotificationApi
 ): void {
   const existingNotificationId = registry.getId(task.id);
-  const isRunning =
-    task.status === TaskStatus.PENDING || task.status === TaskStatus.RUNNING;
+  const isRunning = isTaskActive(task);
   const isFailed =
     task.status === TaskStatus.FAILED || task.status === TaskStatus.CANCELLED;
 

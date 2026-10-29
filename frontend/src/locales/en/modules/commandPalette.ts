@@ -1,10 +1,14 @@
 export const commandPaletteTranslations = {
   title: "Command palette",
-  trigger: "Commands & search",
   placeholder: "Search pages, servers and actions...",
   empty: "No results",
   hints: {
     current: "Current",
+  },
+  footer: {
+    navigate: "select",
+    open: "open",
+    close: "close",
   },
   groups: {
     navigation: "Navigation",

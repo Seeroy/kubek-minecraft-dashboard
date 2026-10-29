@@ -1,7 +1,11 @@
+import {
+  RequireAccess,
+  RequireServerView,
+} from "@/modules/auth/decorators/require-access.decorator";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
+import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import { CreateFolderDto } from "@/modules/server-folders/dto/create-folder.dto";
 import { FolderMoveResponseDto } from "@/modules/server-folders/dto/folder-mutation-response.dto";
 import { MoveServersDto } from "@/modules/server-folders/dto/move-servers.dto";
@@ -23,18 +27,16 @@ import {
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
-  ApiExtension,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
-import { UserPermissions } from "@shared/types/user.types";
 
 @ApiTags("Server folders")
 @ApiBearerAuth()
 @Controller("api/server-folders")
-@UseGuards(BearerAuthGuard, PermissionsGuard)
+@UseGuards(BearerAuthGuard, AccessGuard)
 export class ServerFoldersController {
   constructor(private readonly service: ServerFoldersService) {}
 
@@ -42,8 +44,7 @@ export class ServerFoldersController {
   @ApiOperation({ summary: "List folders" })
   @ApiOkResponse({ type: [ServerFolderEntity], description: "List of folders" })
   @ApiErrorResponses([401, 403])
-  @RequirePermissions(UserPermissions.SERVERS_VIEW)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_VIEW])
+  @RequireServerView()
   list(): ServerFolderEntity[] {
     return this.service.list();
   }
@@ -56,8 +57,7 @@ export class ServerFoldersController {
     description: "Created folder",
   })
   @ApiErrorResponses([400, 401, 403])
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
+  @RequireAccess(AccessArea.SERVERS, "manage")
   create(@Body() body: CreateFolderDto): ServerFolderEntity {
     return this.service.create(body);
   }
@@ -67,8 +67,7 @@ export class ServerFoldersController {
   @ApiOperation({ summary: "Update folder" })
   @ApiOkResponse({ type: ServerFolderEntity, description: "Updated folder" })
   @ApiErrorResponses([400, 401, 403, 404])
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
+  @RequireAccess(AccessArea.SERVERS, "manage")
   update(
     @Param("id") id: string,
     @Body() body: UpdateFolderDto,
@@ -83,8 +82,7 @@ export class ServerFoldersController {
   })
   @ApiNoContentResponse({ description: "Folder deleted" })
   @ApiErrorResponses([401, 403, 404])
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
+  @RequireAccess(AccessArea.SERVERS, "manage")
   remove(@Param("id") id: string): void {
     this.service.delete(id);
   }
@@ -96,8 +94,7 @@ export class ServerFoldersController {
   })
   @ApiOkResponse({ type: FolderMoveResponseDto, description: "Move summary" })
   @ApiErrorResponses([400, 401, 403, 404])
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
+  @RequireAccess(AccessArea.SERVERS, "manage")
   move(@Body() body: MoveServersDto): FolderMoveResponseDto {
     return this.service.move(body.serverIds, body.folderId ?? null);
   }

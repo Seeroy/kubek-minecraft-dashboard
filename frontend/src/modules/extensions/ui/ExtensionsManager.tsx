@@ -1,7 +1,24 @@
 "use client";
 
 import { useNotifications } from "@/modules/notifications";
-import { useLanguageContext } from "@/shared/context/language-context";
+import { useTranslation } from "@/shared/hooks/useTranslation";
+import { confirmDialog } from "@/shared/modals";
+import { qk } from "@/shared/queries/query-keys";
+import { useAuthStore } from "@/shared/stores/auth-store";
+import type { InstalledExtension } from "@/shared/types/extensions.types";
+import { Button } from "@/shared/ui/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { FileDropZone } from "@/shared/ui/file-drop-zone";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Panel, PanelActions, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
+import { Plate } from "@/shared/ui/plate";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { Toggle } from "@/shared/ui/toggle";
+import { ToggleGroup } from "@/shared/ui/toggle-group";
+import { useIsFetching, useQueryClient } from "@tanstack/react-query";
+import { AccessArea } from "@shared/access/areas";
+import { Blocks, RotateCw, Shield, Trash2 } from "lucide-react";
+import { useState } from "react";
 import {
   useConsentExtensionMutation,
   useDisableExtensionMutation,
@@ -9,198 +26,166 @@ import {
   useExtensions,
   useInstallExtensionMutation,
   useRemoveExtensionMutation,
-} from "@/modules/extensions/api/extensions.queries";
-import { useAuthStore } from "@/shared/stores/auth-store";
-import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
-import { Button } from "@/shared/ui/button";
-import { PageLayout } from "@/shared/ui/PageLayout";
-import {
-  Blocks,
-  Loader2,
-  Power,
-  Trash2,
-  TriangleAlert,
-  UploadCloud,
-} from "lucide-react";
-import { useRef } from "react";
-import { ExtensionCard } from "./ExtensionCard";
+} from "../api/extensions.queries";
+import { ExtensionRow, needsConsent } from "./ExtensionRow";
+
+type Filter = "all" | "active" | "attention";
+
+const FILTERS: Record<Filter, (ext: InstalledExtension) => boolean> = {
+  all: () => true,
+  active: (ext) => ext.active,
+  attention: (ext) => ext.status === "error" || needsConsent(ext),
+};
 
 export const ExtensionsManager = () => {
+  const { t } = useTranslation("modules.extensions");
   const { notify } = useNotifications();
-  const { t } = useLanguageContext();
-  const isAdmin = useAuthStore((s) => s.user?.isAdmin ?? false);
-  const { data: extensions, isLoading } = useExtensions();
+  const queryClient = useQueryClient();
+  const canManage = useAuthStore((s) => s.can(AccessArea.INTEGRATIONS, "manage"));
+  const extensions = useExtensions();
   const install = useInstallExtensionMutation();
   const consent = useConsentExtensionMutation();
   const enable = useEnableExtensionMutation();
   const disable = useDisableExtensionMutation();
   const remove = useRemoveExtensionMutation();
+  const reloading = useIsFetching({ queryKey: qk.extensions.all }) > 0;
+  const [filter, setFilter] = useState<Filter>("all");
+  // Freshly installed extensions open so their access request is in view
+  const [open, setOpen] = useState<Set<string>>(new Set());
+  const busy = consent.isPending || enable.isPending || disable.isPending || remove.isPending;
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const all = extensions.data ?? [];
+  const shown = all.filter(FILTERS[filter]);
 
-  const fail = (title: string, error: unknown) =>
-    notify({
-      title,
-      message:
-        error instanceof Error
-          ? error.message
-          : t("modules.extensions.notifications.operationFailed"),
-      type: "error",
-      duration: 8000,
-      icon: TriangleAlert,
+  const toggleOpen = (id: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
     });
 
-  const runInstall = async (file: File) => {
-    try {
-      const result = await install.mutateAsync(file);
-      notify({
-        title: t("modules.extensions.notifications.installed"),
-        message: result.manifest.name,
-        type: "success",
-        duration: 5000,
-        icon: Blocks,
-      });
-    } catch (error) {
-      fail(t("modules.extensions.notifications.installFailed"), error);
-    }
+  const onFile = (file: File) =>
+    install.mutate(file, {
+      onSuccess: (result) => {
+        setOpen((prev) => new Set(prev).add(result.id));
+        notify({ type: "success", title: t("toasts.installed", result.manifest.name) });
+      },
+    });
+
+  const onConsent = (ext: InstalledExtension, capabilities: InstalledExtension["grantedCapabilities"]) =>
+    consent.mutate(
+      { id: ext.id, capabilities },
+      {
+        onSuccess: () => {
+          const complete = (ext.manifest.permissions?.requires ?? []).every((cap) => capabilities.includes(cap));
+          notify(complete ? { type: "success", title: t("toasts.consent") } : { type: "warning", title: t("access.incomplete") });
+        },
+      }
+    );
+
+  const onEnabledChange = (ext: InstalledExtension, enabled: boolean) =>
+    (enabled ? enable : disable).mutate(ext.id, {
+      onSuccess: () => notify({ type: enabled ? "success" : "info", title: t(enabled ? "toasts.enabled" : "toasts.disabled", ext.manifest.name) }),
+    });
+
+  const onRemove = async (ext: InstalledExtension) => {
+    const ok = await confirmDialog({
+      title: t("confirmRemove.title", ext.manifest.name),
+      description: t("confirmRemove.description"),
+      confirmText: t("confirmRemove.confirm"),
+      cancelText: t("confirmRemove.cancel"),
+      variant: "destructive",
+      icon: Trash2,
+    });
+    if (!ok) return;
+    await remove.mutateAsync(ext.id);
+    notify({ type: "success", title: t("toasts.removed", ext.manifest.name) });
   };
 
   return (
-    <PageLayout>
-      <BlockHeader
-        kicker={t("modules.extensions.header.kicker")}
-        title={t("modules.extensions.header.title")}
-        description={t("modules.extensions.header.description")}
-        icon={Blocks}
-        color="purple"
+    <div className="stagger-enter grid gap-4">
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        className="mb-1"
+        actions={
+          <Button variant="outline" disabled={reloading} onClick={() => void queryClient.invalidateQueries({ queryKey: qk.extensions.all })}>
+            <RotateCw className={reloading ? "animate-spin" : undefined} />
+            {t("reload")}
+          </Button>
+        }
       />
 
-      <div className="flex flex-col gap-4 md:flex-row">
-        <Alert variant="destructive" className="md:max-w-md">
-          <TriangleAlert className="size-4" />
-          <AlertTitle>
-            {t("modules.extensions.securityNotice.title")}
-          </AlertTitle>
-          <AlertDescription>
-            {t("modules.extensions.securityNotice.description")}
-          </AlertDescription>
-        </Alert>
-
-        {isAdmin && (
-          <div className="flex w-full flex-col gap-2 rounded-xl border border-dashed border-muted p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <UploadCloud className="size-4" />
-              {t("modules.extensions.upload.hint")}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".kubekext,.zip,.json"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                e.target.value = "";
-                if (file) void runInstall(file);
-              }}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={install.isPending}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {install.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <UploadCloud className="size-4" />
-              )}
-              {t("modules.extensions.upload.choose")}
-            </Button>
-          </div>
-        )}
+      <div className="tone-amber grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-lg border border-tone/25 bg-tone/9 px-4 py-3 text-[13px]">
+        <Plate tone="amber">
+          <Shield />
+        </Plate>
+        <div>
+          <b className="mb-0.5 block font-semibold">{t("notice.title")}</b>
+          <span className="text-muted-foreground">{t("notice.description")}</span>
+        </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex h-32 items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          {t("modules.extensions.list.loading")}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {(extensions ?? []).map((ext) => (
-            <ExtensionCard
-              key={ext.id}
-              ext={ext}
-              busy={
-                consent.isPending ||
-                enable.isPending ||
-                disable.isPending ||
-                remove.isPending
-              }
-              onConsent={async (caps) => {
-                try {
-                  await consent.mutateAsync({ id: ext.id, capabilities: caps });
-                } catch (error) {
-                  fail(
-                    t("modules.extensions.notifications.consentFailed"),
-                    error
-                  );
-                }
-              }}
-              onEnable={async () => {
-                try {
-                  await enable.mutateAsync(ext.id);
-                  notify({
-                    title: t("modules.extensions.notifications.enabled"),
-                    message: ext.manifest.name,
-                    type: "success",
-                    duration: 4000,
-                    icon: Power,
-                  });
-                } catch (error) {
-                  fail(
-                    t("modules.extensions.notifications.enableFailed"),
-                    error
-                  );
-                }
-              }}
-              onDisable={async () => {
-                try {
-                  await disable.mutateAsync(ext.id);
-                } catch (error) {
-                  fail(
-                    t("modules.extensions.notifications.disableFailed"),
-                    error
-                  );
-                }
-              }}
-              onRemove={async () => {
-                try {
-                  await remove.mutateAsync(ext.id);
-                  notify({
-                    title: t("modules.extensions.notifications.removed"),
-                    message: ext.manifest.name,
-                    type: "success",
-                    duration: 4000,
-                    icon: Trash2,
-                  });
-                } catch (error) {
-                  fail(
-                    t("modules.extensions.notifications.removeFailed"),
-                    error
-                  );
-                }
-              }}
-            />
-          ))}
-          {!(extensions ?? []).length && (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              {t("modules.extensions.list.empty")}
-            </p>
-          )}
-        </div>
+      {canManage && (
+        <FileDropZone
+          icon={<Blocks />}
+          tone="purple"
+          title={t("upload.title")}
+          hint={t("upload.hint")}
+          accept=".kubekext,.zip,.json"
+          buttonLabel={t("upload.choose")}
+          busyLabel={t("upload.installing")}
+          busy={install.isPending}
+          onFile={onFile}
+        />
       )}
-    </PageLayout>
+
+      <Panel>
+        <PanelHead className="flex-wrap py-2">
+          <PanelTitle>{t("list.title")}</PanelTitle>
+          <PanelMeta>{all.length}</PanelMeta>
+          <PanelActions>
+            <ToggleGroup variant="segmented" value={[filter]} onValueChange={(next) => next[0] && setFilter(next[0] as Filter)}>
+              {(Object.keys(FILTERS) as Filter[]).map((key) => (
+                <Toggle key={key} variant="segmented" value={key}>
+                  {t(`list.filters.${key}`)}
+                </Toggle>
+              ))}
+            </ToggleGroup>
+          </PanelActions>
+        </PanelHead>
+
+        {extensions.isLoading ? (
+          <div className="grid gap-2 p-4">
+            <Skeleton className="h-14" />
+            <Skeleton className="h-14" />
+          </div>
+        ) : shown.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Blocks />
+              </EmptyMedia>
+              <EmptyTitle>{all.length ? t("list.noMatches") : t("list.empty")}</EmptyTitle>
+              {!all.length && canManage && <EmptyDescription>{t("list.emptyHint")}</EmptyDescription>}
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          shown.map((ext) => (
+            <ExtensionRow
+              key={`${ext.id}:${ext.grantedCapabilities.join(",")}`}
+              ext={ext}
+              open={open.has(ext.id)}
+              busy={busy}
+              canManage={canManage}
+              onToggleOpen={() => toggleOpen(ext.id)}
+              onConsent={(capabilities) => onConsent(ext, capabilities)}
+              onEnabledChange={(enabled) => onEnabledChange(ext, enabled)}
+              onRemove={() => void onRemove(ext)}
+            />
+          ))
+        )}
+      </Panel>
+    </div>
   );
 };

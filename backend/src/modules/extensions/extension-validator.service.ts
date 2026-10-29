@@ -3,10 +3,8 @@ import type {
   KubekExtensionManifest,
 } from "@kubekpanel/extension-sdk";
 import { Injectable } from "@nestjs/common";
+import { getVersion, satisfiesKubekVersion } from "@/core/utils/updates";
 import semver from "semver";
-
-// kept in sync with the panel version; extensions declare engines.kubek against this
-const KUBEK_VERSION = "4.0.0";
 
 const ID_PATTERN = /^[a-z0-9]+(\.[a-z0-9-]+)+$/;
 
@@ -47,9 +45,9 @@ export class ExtensionValidator {
     }
     if (!manifest?.engines?.kubek) {
       errors.push("engines.kubek is required");
-    } else if (!semver.satisfies(KUBEK_VERSION, manifest.engines.kubek)) {
+    } else if (!satisfiesKubekVersion(manifest.engines.kubek)) {
       errors.push(
-        `engines.kubek ${manifest.engines.kubek} not satisfied by ${KUBEK_VERSION}`,
+        `engines.kubek ${manifest.engines.kubek} not satisfied by ${getVersion()}`,
       );
     }
 

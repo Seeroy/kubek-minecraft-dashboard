@@ -59,7 +59,7 @@ export interface InstanceLog_BotControl {
 export interface InstanceLog_Error {
   type: "error";
   errorType: string;
-  severity: string;
+  severity: ServerDiagnosticSeverity;
 }
 
 export type ServerDiagnosticSeverity = "critical" | "high" | "medium" | "low";

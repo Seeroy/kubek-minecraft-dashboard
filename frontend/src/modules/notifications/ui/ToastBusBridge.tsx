@@ -2,10 +2,10 @@
 
 import { setToastNotifier } from "@/shared/lib/toast-bus";
 import { useEffect } from "react";
-import { useNotificationsContext } from "../contexts/NotificationProvider";
+import { useNotifications } from "../hooks/useNotifications";
 
 export function ToastBusBridge() {
-  const { addNotification } = useNotificationsContext();
+  const { notify: addNotification } = useNotifications();
 
   useEffect(() => {
     setToastNotifier(addNotification);

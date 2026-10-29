@@ -1,5 +1,6 @@
 import { aboutKeys } from "./about.keys";
 import { accountsKeys } from "./accounts.keys";
+import { assistantKeys } from "./assistant.keys";
 import { auditLogKeys } from "./audit-log.keys";
 import { authKeys } from "./auth.keys";
 import { backupsKeys } from "./backups.keys";
@@ -8,8 +9,13 @@ import { extensionsKeys } from "./extensions.keys";
 import { filesKeys } from "./files.keys";
 import { javaKeys } from "./java.keys";
 import { metricsHistoryKeys } from "./metrics-history.keys";
+import { modpacksKeys } from "./modpacks.keys";
 import { modsKeys } from "./mods.keys";
+import { networksKeys } from "./networks.keys";
+import { notificationsKeys } from "./notifications.keys";
+import { playersKeys } from "./players.keys";
 import { pluginsKeys } from "./plugins.keys";
+import { preferencesKeys } from "./preferences.keys";
 import { schedulerKeys } from "./scheduler.keys";
 import { serverFoldersKeys } from "./server-folders.keys";
 import { serverLogsKeys } from "./server-logs.keys";
@@ -28,7 +34,10 @@ export const qk = {
   files: filesKeys,
   backups: backupsKeys,
   plugins: pluginsKeys,
+  players: playersKeys,
   mods: modsKeys,
+  modpacks: modpacksKeys,
+  networks: networksKeys,
   serverTypes: serverTypesKeys,
   java: javaKeys,
   accounts: accountsKeys,
@@ -44,11 +53,15 @@ export const qk = {
   extensions: extensionsKeys,
   telegram: telegramKeys,
   twofa: twofaKeys,
+  preferences: preferencesKeys,
+  notifications: notificationsKeys,
+  assistant: assistantKeys,
 } as const;
 
 export {
   aboutKeys,
   accountsKeys,
+  assistantKeys,
   auditLogKeys,
   authKeys,
   backupsKeys,
@@ -57,8 +70,13 @@ export {
   filesKeys,
   javaKeys,
   metricsHistoryKeys,
+  modpacksKeys,
   modsKeys,
+  networksKeys,
+  notificationsKeys,
+  playersKeys,
   pluginsKeys,
+  preferencesKeys,
   schedulerKeys,
   serverFoldersKeys,
   serverLogsKeys,
@@ -68,6 +86,5 @@ export {
   systemMonitoringKeys,
   tasksKeys,
   telegramKeys,
-  twofaKeys
+  twofaKeys,
 };
-

@@ -3,8 +3,12 @@ import { PublicUserDto } from "@/core/dto/public-user.dto";
 import { toPublicUser } from "@/core/utils/publicUser";
 import { extractClientIp } from "@/core/utils/request";
 import { Audit } from "@/modules/audit-log/audit.decorator";
+import {
+  loginKey,
+  RateLimitService,
+} from "@/modules/rate-limit/rate-limit.service";
+import { ipKey } from "@/modules/rate-limit/ip-key";
 import { SessionsService } from "@/modules/sessions/sessions.service";
-import { NotificationService } from "@/modules/telegram-bot/notification.service";
 import {
   Body,
   Controller,
@@ -35,18 +39,18 @@ import { Public } from "./decorators/public.decorator";
 import { LoginResponseDto } from "./dto/login-response.dto";
 import { LoginDto } from "./dto/login.dto";
 import { BearerAuthGuard } from "./guards/bearer.guard";
-import { PermissionsGuard } from "./guards/permission.guard";
+import { AccessGuard } from "./guards/access.guard";
 import { TwofaService } from "./twofa/twofa.service";
 
 @ApiTags("Auth")
 @ApiBearerAuth()
 @Controller("api/auth")
-@UseGuards(BearerAuthGuard, PermissionsGuard)
+@UseGuards(BearerAuthGuard, AccessGuard)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly notificationService: NotificationService,
     private readonly sessionsService: SessionsService,
+    private readonly rateLimit: RateLimitService,
     private readonly twofaService: TwofaService,
   ) {}
 
@@ -75,16 +79,28 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Req() request: Request,
   ): Promise<LoginResponseDto> {
+    const ip = extractClientIp(request);
+    const userAgent = request.headers["user-agent"] ?? null;
+    const key = loginKey(ip, loginDto.username);
+    const username = loginDto.username.toLowerCase();
+    this.rateLimit.hit("login.ip", ipKey(ip));
+    this.rateLimit.check("login", key);
+    this.rateLimit.check("login.user", username);
+
     const user = await this.authService.validateUser(
       loginDto.username,
       loginDto.password,
     );
     if (!user) {
+      this.rateLimit.fail("login", key, { username: loginDto.username, ip });
+      this.rateLimit.fail("login.user", username, {
+        username: loginDto.username,
+        ip,
+      });
       throw new UnauthorizedException("Invalid credentials");
     }
-
-    const ip = extractClientIp(request);
-    const userAgent = request.headers["user-agent"] ?? null;
+    this.rateLimit.succeed("login", key);
+    this.rateLimit.succeed("login.user", username);
 
     // 2FA branch
     if (this.twofaService.isEnabledFor(user)) {
@@ -105,11 +121,6 @@ export class AuthController {
     }
 
     const { token } = this.sessionsService.create(user.id, ip, userAgent);
-
-    this.notificationService.sendUserNotification(
-      user.id,
-      `🔐 Account "${user.username}" logged in successfully.`,
-    );
 
     return {
       user: toPublicUser(user),

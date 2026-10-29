@@ -1,11 +1,7 @@
-import {
-  api,
-  type CreateScheduledTaskRequest,
-  type UpdateScheduledTaskRequest,
-} from "@/api";
-import type { ScheduledRunStatus } from "@shared/types/scheduler.types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, type CreateScheduledTaskRequest, type UpdateScheduledTaskRequest } from "@/api";
 import { qk } from "@/shared/queries/query-keys";
+import type { ScheduledRunStatus } from "@shared/types/scheduler.types";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useScheduledTasksByServer(serverId: string | undefined) {
   return useQuery({
@@ -15,99 +11,62 @@ export function useScheduledTasksByServer(serverId: string | undefined) {
   });
 }
 
-export function useTaskRunsByServer(
-  serverId: string | undefined,
-  filters: { taskId?: string; status?: ScheduledRunStatus } = {}
-) {
+export function useTaskRunsByServer(serverId: string | undefined, filters: { taskId?: string; status?: ScheduledRunStatus } = {}) {
   return useQuery({
-    queryKey: qk.scheduler.runsByServer(
-      serverId ?? "",
-      filters.taskId,
-      filters.status
-    ),
-    queryFn: () =>
-      api.scheduler.listRuns(serverId!, { ...filters, limit: 100 }),
+    queryKey: qk.scheduler.runsByServer(serverId ?? "", filters.taskId, filters.status),
+    queryFn: () => api.scheduler.listRuns(serverId!, { ...filters, limit: 100 }),
     enabled: !!serverId,
     refetchInterval: 15_000,
+    placeholderData: keepPreviousData,
   });
 }
 
-export function useCreateScheduledTaskMutation(serverId: string | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: CreateScheduledTaskRequest) =>
-      api.scheduler.create(serverId!, data),
-    onSuccess: () => {
-      if (serverId) {
-        queryClient.invalidateQueries({
-          queryKey: qk.scheduler.tasksByServer(serverId),
-        });
-      }
-    },
+/** Next fire times, computed by the same cron engine the backend registers jobs with */
+export function useCronPreview(expression: string, timezone: string, enabled: boolean) {
+  return useQuery({
+    queryKey: qk.scheduler.cronPreview(expression, timezone),
+    queryFn: () => api.scheduler.previewCron({ expression, timezone: timezone || undefined }),
+    enabled: enabled && !!expression,
+    staleTime: 60_000,
+    retry: false,
+    placeholderData: keepPreviousData,
   });
 }
 
-export function useUpdateScheduledTaskMutation(serverId: string | undefined) {
+// Every change can move next and last runs, so both lists refresh together
+function useInvalidateScheduler(serverId: string) {
   const queryClient = useQueryClient();
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: qk.scheduler.tasksByServer(serverId) }),
+      queryClient.invalidateQueries({ queryKey: qk.scheduler.runs(serverId) }),
+    ]);
+}
+
+export function useCreateScheduledTaskMutation(serverId: string) {
+  const onSuccess = useInvalidateScheduler(serverId);
+  return useMutation({ mutationFn: (data: CreateScheduledTaskRequest) => api.scheduler.create(serverId, data), onSuccess });
+}
+
+export function useUpdateScheduledTaskMutation(serverId: string) {
+  const onSuccess = useInvalidateScheduler(serverId);
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateScheduledTaskRequest;
-    }) => api.scheduler.update(id, data),
-    onSuccess: () => {
-      if (serverId) {
-        queryClient.invalidateQueries({
-          queryKey: qk.scheduler.tasksByServer(serverId),
-        });
-      }
-    },
+    mutationFn: ({ id, data }: { id: string; data: UpdateScheduledTaskRequest }) => api.scheduler.update(id, data),
+    onSuccess,
   });
 }
 
-export function useDeleteScheduledTaskMutation(serverId: string | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => api.scheduler.delete(id),
-    onSuccess: () => {
-      if (serverId) {
-        queryClient.invalidateQueries({
-          queryKey: qk.scheduler.tasksByServer(serverId),
-        });
-      }
-    },
-  });
+export function useDeleteScheduledTaskMutation(serverId: string) {
+  const onSuccess = useInvalidateScheduler(serverId);
+  return useMutation({ mutationFn: (id: string) => api.scheduler.delete(id), onSuccess });
 }
 
-export function useToggleScheduledTaskMutation(serverId: string | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => api.scheduler.toggle(id),
-    onSuccess: () => {
-      if (serverId) {
-        queryClient.invalidateQueries({
-          queryKey: qk.scheduler.tasksByServer(serverId),
-        });
-      }
-    },
-  });
+export function useToggleScheduledTaskMutation(serverId: string) {
+  const onSuccess = useInvalidateScheduler(serverId);
+  return useMutation({ mutationFn: (id: string) => api.scheduler.toggle(id), onSuccess });
 }
 
-export function useRunNowMutation(serverId: string | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => api.scheduler.runNow(id),
-    onSuccess: () => {
-      if (serverId) {
-        queryClient.invalidateQueries({
-          queryKey: qk.scheduler.tasksByServer(serverId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: qk.scheduler.runs(serverId),
-        });
-      }
-    },
-  });
+export function useRunNowMutation(serverId: string) {
+  const onSuccess = useInvalidateScheduler(serverId);
+  return useMutation({ mutationFn: (id: string) => api.scheduler.runNow(id), onSuccess });
 }

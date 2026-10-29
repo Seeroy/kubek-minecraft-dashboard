@@ -1,3 +1,4 @@
+import { canAccessServer, seesAllServers } from "@/core/utils/serverAccess";
 import {
   BadRequestException,
   CanActivate,
@@ -22,7 +23,7 @@ export class ServerAccessGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // If serverId field empty - disallow anyway
+    // Guard is on the whole controller, handlers opt in with @CheckServerAccess
     if (!serverIdField) {
       return true;
     }
@@ -34,67 +35,75 @@ export class ServerAccessGuard implements CanActivate {
       throw new ForbiddenException("User not authenticated");
     }
 
-    // Admins can access all servers
-    if (user.isAdmin) {
+    // All sources have to match, the handler can read any of them
+    const serverId = resolveServerId(request, serverIdField);
+
+    if (seesAllServers(user)) {
       return true;
     }
-
-    // Is user has no server restrictions
-    if (!user.serversRestrict?.enabled) {
-      return true;
-    }
-
-    // Check for serverId in request
-    const serverId = this.extractServerId(request, serverIdField);
 
     if (!serverId) {
       throw new BadRequestException(`Server ID is empty`);
     }
 
-    // Check server access
-    const hasAccess = user.serversRestrict.allowed.includes(serverId);
-
-    if (!hasAccess) {
+    if (!canAccessServer(user, serverId)) {
       throw new ForbiddenException(`Access to server ${serverId} denied`);
     }
 
     return true;
   }
+}
 
-  private extractServerId(request: any, fieldName: string): string | null {
-    // Search in url params
-    if (request.params && request.params[fieldName]) {
-      return request.params[fieldName];
-    }
+/** All values of the field in params, query and body */
+function presentValues(request: any, fieldName: string): unknown[] {
+  const sources: unknown[] = [request.params, request.query, request.body];
+  const values = sources.map((source) =>
+    source && typeof source === "object"
+      ? (source as Record<string, unknown>)[fieldName]
+      : undefined,
+  );
+  if (fieldName.includes(".")) {
+    values.push(nestedValue(request.body, fieldName));
+  }
+  return values.filter(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
+}
 
-    // Search in query string
-    if (request.query && request.query[fieldName]) {
-      return request.query[fieldName];
-    }
+/** Server id of the request, 400 if sources disagree so query and body can't be mixed */
+export function resolveServerId(
+  request: any,
+  fieldName: string,
+): string | null {
+  const values = presentValues(request, fieldName);
+  if (values.some((value) => typeof value !== "string")) {
+    throw new BadRequestException("Invalid server id");
+  }
+  const distinct = new Set(values as string[]);
+  if (distinct.size > 1) {
+    throw new BadRequestException("Conflicting server ids in request");
+  }
+  return distinct.size === 1 ? [...distinct][0] : null;
+}
 
-    // Search in body for POST, PUT, PATCH
-    if (request.body && request.body[fieldName]) {
-      return request.body[fieldName];
-    }
-
-    // Search nested body, e.g. body.server.id
-    if (request.body) {
-      const value = this.getNestedValue(request.body, fieldName);
-      if (typeof value === "string") {
-        return value;
-      }
-    }
-
+/** Same, but null instead of throwing */
+export function requestServerId(
+  request: any,
+  fieldName: string,
+): string | null {
+  try {
+    return resolveServerId(request, fieldName);
+  } catch {
     return null;
   }
+}
 
-  // Get a nested value by dotted path, e.g. "server.id"
-  private getNestedValue(obj: unknown, path: string): unknown {
-    return path.split(".").reduce<unknown>((current, key) => {
-      if (current && typeof current === "object" && key in current) {
-        return (current as Record<string, unknown>)[key];
-      }
-      return undefined;
-    }, obj);
-  }
+// Get a nested value by dotted path, e.g. "server.id"
+function nestedValue(obj: unknown, path: string): unknown {
+  return path.split(".").reduce<unknown>((current, key) => {
+    if (current && typeof current === "object" && key in current) {
+      return (current as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, obj);
 }

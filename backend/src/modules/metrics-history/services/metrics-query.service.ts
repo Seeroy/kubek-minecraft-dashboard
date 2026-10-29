@@ -1,7 +1,6 @@
 import {
-  Metrics1mRepository,
-  Metrics5mRepository,
-  MetricsRawRepository,
+  MetricsRepository,
+  MetricsResolution,
 } from "@/modules/database/repositories/metrics.repository";
 import { Injectable } from "@nestjs/common";
 
@@ -18,46 +17,33 @@ const HOUR = 60 * 60 * 1000;
 
 @Injectable()
 export class MetricsQueryService {
-  constructor(
-    private readonly raw: MetricsRawRepository,
-    private readonly m1m: Metrics1mRepository,
-    private readonly m5m: Metrics5mRepository,
-  ) {}
+  constructor(private readonly metrics: MetricsRepository) {}
 
   range(scope: string, window: MetricsWindow): MetricPointDto[] {
     const now = Date.now();
     let from: number;
-    let source: "raw" | "1m" | "5m";
+    let resolution: MetricsResolution;
 
     switch (window) {
       case "1h":
         from = now - 1 * HOUR;
-        source = "raw";
+        resolution = MetricsResolution.RAW;
         break;
       case "6h":
         from = now - 6 * HOUR;
-        source = "1m";
+        resolution = MetricsResolution.ONE_MINUTE;
         break;
       case "12h":
         from = now - 12 * HOUR;
-        source = "5m";
+        resolution = MetricsResolution.FIVE_MINUTES;
         break;
       case "24h":
         from = now - 24 * HOUR;
-        source = "5m";
+        resolution = MetricsResolution.FIVE_MINUTES;
         break;
     }
 
-    if (source === "raw") {
-      return this.raw.range(scope, from, now).map((p) => ({
-        ts: p.ts,
-        cpu: p.cpu,
-        ramUsed: p.ramUsed,
-        ramTotal: p.ramTotal,
-      }));
-    }
-    const repo = source === "1m" ? this.m1m : this.m5m;
-    return repo.range(scope, from, now).map((p) => ({
+    return this.metrics.range(resolution, scope, from, now).map((p) => ({
       ts: p.ts,
       cpu: p.cpuAvg,
       ramUsed: p.ramAvg,

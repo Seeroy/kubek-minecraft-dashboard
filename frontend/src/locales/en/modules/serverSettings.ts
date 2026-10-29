@@ -13,11 +13,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
     world: "World",
     network: "Network",
     other: "Other",
-    reset: "Reset",
-    saveChanges: "Save Changes",
-    saving: "Saving...",
-    saved: "Saved!",
-    error: "Error!",
+    velocity: "Velocity network",
   },
   modal: {
     title: "Server Restart Required",
@@ -40,13 +36,9 @@ export const serverSettingsTranslations: TranslationDictionary = {
       serverName: "Server Name",
       serverNamePlaceholder: "Enter server name",
     },
-    performanceSettings: {
-      title: "Performance Settings",
-      description: "Memory allocation and startup parameters",
-      startupArguments: "Startup Arguments",
-      startupArgumentsPlaceholder: "-Xmx2G",
-      startupArgumentsHelp:
-        "Add JVM arguments for memory allocation and performance tuning",
+    variables: {
+      title: "Core variables",
+      description: "Options provided by the server type",
     },
     autoRestartSettings: {
       title: "Auto-Restart Settings",
@@ -80,28 +72,24 @@ export const serverSettingsTranslations: TranslationDictionary = {
       customDropzone: "Drop your `.jar` file here or browse your files",
       customSelected: ({ name }: { name: string }) => `Selected file: ${name}`,
     },
-    stopConfiguration: {
-      title: "Stop Configuration",
-      description: "How to properly stop the server",
-      customCommand: "Custom Command",
-      customCommandDescription: "Send a specific command to stop the server",
-      ctrlCSignal: "Ctrl+C Signal",
-      ctrlCSignalDescription:
-        "Send interrupt signal (recommended for most servers)",
-      stopCommand: "Stop Command",
-      stopCommandPlaceholder: "stop",
-      stopCommandHelp: "Command to send when stopping the server",
-    },
   },
   java: {
     noServerSelected: "No server selected",
     title: "Java Configuration",
     description: "Select Java version or use system Java",
+    memory: "Memory (Xmx)",
+    memoryHint: (free: string) => `Maximum JVM heap. Free on the host: ${free} GB`,
+    memoryHintNoHost: "Maximum JVM heap",
+    initialMemory: "Initial memory (Xms), MB",
+    initialMemoryHint: "Heap the JVM reserves at start",
+    arguments: "Startup arguments",
+    argumentsHint: "Extra JVM flags",
+    presets: {
+      aikar: "Aikar flags",
+      minimal: "Minimal",
+    },
+    requires: (version: string, java: number) => `${version} needs Java ${java}`,
     javaVersion: "Java Version",
-    javaBinaryPath: "Java Binary Path",
-    javaBinaryPathPlaceholder: "C:/Java/bin/java.exe or /usr/bin/java",
-    javaBinaryPathHelp: "Provide the full path to the Java executable",
-    save: "Save",
   },
   information: {
     serverInformation: {
@@ -117,6 +105,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       onlineMode: "Online Mode",
       onlineModeDescription: "Verify player authentication with Mojang",
       whitelist: "Whitelist",
+      onlineModeOffWarning: "Players with pirated clients will be able to join and use any name",
       whitelistDescription: "Only allow whitelisted players to join",
     },
   },
@@ -161,6 +150,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       title: "World Generation",
       description: "Configure world creation and terrain settings",
       worldSeed: "World Seed",
+      randomSeed: "Random seed",
       worldSeedPlaceholder: "Leave empty for random seed",
       maxWorldSize: "Max World Size",
       maxWorldSizeHelp: "Maximum world border radius in blocks",
@@ -179,7 +169,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       title: "Dimension Settings",
       description: "Manage available dimensions and features",
       allowNether: "Allow Nether",
-      allowNetherDescription: "Enable the Nether dimension",
+      allowNetherDescription: "Enable the Nether, the hell dimension",
     },
     spawnSettings: {
       title: "Spawn Settings",
@@ -212,48 +202,29 @@ export const serverSettingsTranslations: TranslationDictionary = {
   other: {
     customProperties: {
       title: "Custom Properties",
-      description:
-        "Additional server properties not included in main categories",
+      description: "Map directly to server.properties. Wrong values can keep the server from starting",
       propertyNamePlaceholder: "property-name",
       propertyValuePlaceholder: "property value",
+      search: "Find property",
+      restore: "Restore",
+      remove: "Remove",
+      notFound: "No such property",
+      notFoundHint: "Add it in the first row of the table",
+      cancel: "Cancel",
       addProperty: "Add Property",
     },
-    aboutServerProperties: {
-      title: "About Server Properties",
-      description: "Understanding custom property configuration",
-      advancedConfiguration: "Advanced Configuration",
-      advancedConfigurationText:
-        'These properties correspond directly to the server.properties file. Changes made here will be saved to that file when you click "Save Changes". Modify these settings with caution as they can affect server stability',
-    },
-    advancedSettings: {
-      title: "Advanced Settings",
-      description: "Proceed with caution",
-      warning: "Warning",
-      warningText:
-        "These are advanced server properties. Incorrect values may cause your server to fail to start or behave unexpectedly. Only modify properties if you know what they do",
-    },
+  },
+  state: {
+    loadFailed: "Could not load the server settings",
+    retry: "Retry",
   },
   notifications: {
     selectImageFile: "Please select an image file",
     serverIconUploaded: "Server icon uploaded successfully",
-    failedToUploadIcon: "Failed to upload icon",
     settingUpdated: "Setting updated successfully",
-    failedToUpdateSetting: "Failed to update setting",
-    failedToLoadProperties: "Failed to load server properties",
     serverRestartInitiated: "Server restart initiated",
-    failedToRestartServer: "Failed to restart server",
+    nameTaken: "A server with this name already exists",
     settingsSaved:
       "Settings saved successfully. Restart server later to apply all changes",
-    settingsReset: "Settings reset to saved values",
-    failedToResetSettings: "Failed to reset settings",
-    noServerSelected: "No server selected",
-    failedToSaveProperties: "Failed to save server properties",
-    javaSettingsUpdated: "Java settings updated",
-    failedToUpdateJavaSettings: "Failed to update Java settings",
-  },
-  status: {
-    saving: "Saving...",
-    saved: "Saved!",
-    error: "Error",
   },
 };

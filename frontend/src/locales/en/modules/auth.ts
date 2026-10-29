@@ -31,9 +31,7 @@ export const authTranslations: TranslationDictionary = {
       }
     },
     errors: {
-      loginFailed: "Login failed",
-      invalidResponse: "Login failed: Invalid server response",
-      networkError: "Network error: Please check your connection",
+      rateLimited: (wait: string) => `Too many attempts. Try again in ${wait}`,
       unexpected: "An unexpected error occurred",
     }
   },
@@ -50,6 +48,7 @@ export const authTranslations: TranslationDictionary = {
     useTelegram: "Confirm via Telegram",
     attemptsLeft: (n: number) => `Attempts left: ${ n }`,
     errors: {
+      rateLimited: (wait: string) => `Too many attempts. Try again in ${wait}`,
       invalidCode: "Invalid code",
       locked: "Too many attempts. The challenge is locked, please start over.",
       telegramDenied: "Sign-in denied in Telegram",

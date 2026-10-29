@@ -1,9 +1,9 @@
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { Audit } from "@/modules/audit-log/audit.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
+import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
 import { AdminGuard } from "@/modules/auth/guards/admin.guard";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import type { Capability } from "@kubekpanel/extension-sdk";
 import {
   BadRequestException,
@@ -29,11 +29,12 @@ import {
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiProduces,
   ApiTags,
 } from "@nestjs/swagger";
+import { AccessArea } from "@shared/access/areas";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
-import { UserPermissions } from "@shared/types/user.types";
 import type { Request, Response } from "express";
 import {
   ExtensionRegistryEntryDto,
@@ -44,13 +45,13 @@ import { ExtensionManager } from "./extension-manager.service";
 @ApiTags("Extensions")
 @ApiBearerAuth()
 @Controller("api/extensions")
-@UseGuards(BearerAuthGuard, PermissionsGuard)
+@UseGuards(BearerAuthGuard, AccessGuard)
 export class ExtensionsController {
   constructor(private readonly manager: ExtensionManager) {}
 
   @Get()
   @ApiOperation({ summary: "List installed extensions" })
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @ApiOkResponse({
     type: [ExtensionSummaryDto],
     description: "Installed extensions",
@@ -75,6 +76,12 @@ export class ExtensionsController {
 
   @Get(":id/assets/*path")
   @ApiOperation({ summary: "Serve a static asset bundled with an extension" })
+  // Wildcard route, OpenAPI can only show it as one param
+  @ApiParam({
+    name: "path",
+    type: String,
+    description: "Asset path inside the extension, may contain slashes",
+  })
   @ApiProduces("application/octet-stream")
   @ApiOkResponse({ description: "Static asset file stream" })
   @ApiErrorResponses()
@@ -93,7 +100,7 @@ export class ExtensionsController {
   @ApiOperation({ summary: "Install an extension from an uploaded package" })
   @ApiConsumes("multipart/form-data")
   // Installing runs the extension code in-process - restrict to admins
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @UseGuards(AdminGuard)
   @UseInterceptors(
     FileInterceptor("file", { limits: { fileSize: 50 * 1024 * 1024 } }),
@@ -119,9 +126,17 @@ export class ExtensionsController {
   @Post(":id/consent")
   @HttpCode(204)
   @ApiOperation({ summary: "Grant the capabilities an extension requested" })
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @ApiNoContentResponse({ description: "Capabilities granted" })
   @ApiErrorResponses()
+  @Audit({
+    action: AuditAction.EXTENSION_CONSENT,
+    category: AuditCategory.SETTINGS,
+    resourceType: "extension",
+    resolve: ({ req }) => ({
+      details: { capabilities: req.body?.capabilities ?? [] },
+    }),
+  })
   consent(
     @Param("id") id: string,
     @Body("capabilities") capabilities: Capability[],
@@ -132,7 +147,7 @@ export class ExtensionsController {
   @Post(":id/enable")
   @HttpCode(200)
   @ApiOperation({ summary: "Enable and activate an extension" })
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @Audit({
     action: AuditAction.EXTENSION_ENABLE,
     category: AuditCategory.SETTINGS,
@@ -150,7 +165,7 @@ export class ExtensionsController {
   @Post(":id/disable")
   @HttpCode(200)
   @ApiOperation({ summary: "Disable an extension" })
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @Audit({
     action: AuditAction.EXTENSION_DISABLE,
     category: AuditCategory.SETTINGS,
@@ -168,7 +183,7 @@ export class ExtensionsController {
   @Delete(":id")
   @HttpCode(204)
   @ApiOperation({ summary: "Uninstall an extension" })
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @Audit({
     action: AuditAction.EXTENSION_DELETE,
     category: AuditCategory.SETTINGS,

@@ -4,27 +4,23 @@ import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { ModalProps } from "@/shared/types/modal.types";
 import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { AlertTriangle } from "lucide-react";
 
-interface SaveConfirmationModalProps extends ModalProps {
+export interface SaveConfirmationProps {
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-function SaveConfirmationModal({
-  isOpen,
-  onClose,
-  onConfirm,
-  onCancel,
-}: SaveConfirmationModalProps) {
+declare module "@/shared/types/modal-registry" {
+  interface ModalRegistry {
+    "server-settings/save-confirmation": { props: SaveConfirmationProps; result: void };
+  }
+}
+
+type SaveConfirmationModalProps = ModalProps & SaveConfirmationProps;
+
+function SaveConfirmationModal({ isOpen, onClose, onConfirm, onCancel }: SaveConfirmationModalProps) {
   const { t } = useTranslation("modules.serverSettings.modal");
 
   const handleConfirm = () => {
@@ -42,14 +38,12 @@ function SaveConfirmationModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-yellow-500/10 p-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            <div className="rounded-lg bg-warn/10 p-2">
+              <AlertTriangle className="h-5 w-5 text-warn" />
             </div>
             <div>
               <DialogTitle>{t("title")}</DialogTitle>
-              <DialogDescription className="pt-1">
-                {t("description")}
-              </DialogDescription>
+              <DialogDescription className="pt-1">{t("description")}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -57,11 +51,7 @@ function SaveConfirmationModal({
         <p className="text-sm text-muted-foreground">{t("question")}</p>
 
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            className="sm:flex-1"
-          >
+          <Button variant="outline" onClick={handleCancel} className="sm:flex-1">
             {t("restartLater")}
           </Button>
           <Button onClick={handleConfirm} className="sm:flex-1">

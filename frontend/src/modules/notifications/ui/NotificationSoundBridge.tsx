@@ -1,31 +1,16 @@
 "use client";
 
 import { useNotificationTitleStore } from "@/shared/stores/notification-title-store";
-import { useEffect, useRef } from "react";
-import { useNotificationsContext } from "../contexts/NotificationProvider";
-import { NOTIFICATION_SOUND_STORAGE_KEY } from "../utils/soundPreference";
+import { useEffect } from "react";
+import { useNotificationStore } from "../store/notifications.store";
+import { readNotificationSound } from "../utils/soundPreference";
 
 const SOUND_URL = "/sounds/notification.mp3";
 
-const isSoundEnabled = () => {
-  if (typeof window === "undefined") return true;
-  return (
-    window.localStorage.getItem(NOTIFICATION_SOUND_STORAGE_KEY) !== "false"
-  );
-};
-
-const NotificationSoundBridge = () => {
-  const { notifications } = useNotificationsContext();
+/** Plays a sound and bumps the tab title for toasts that arrive while the tab is hidden */
+export default function NotificationSoundBridge() {
   const increment = useNotificationTitleStore((s) => s.increment);
   const reset = useNotificationTitleStore((s) => s.reset);
-  const seenIdsRef = useRef<Set<string>>(new Set());
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const didInitRef = useRef(false);
-
-  if (!didInitRef.current) {
-    notifications.forEach((n) => seenIdsRef.current.add(n.id));
-    didInitRef.current = true;
-  }
 
   useEffect(() => {
     const onVisibility = () => {
@@ -36,34 +21,27 @@ const NotificationSoundBridge = () => {
   }, [reset]);
 
   useEffect(() => {
-    let shouldPlay = false;
-    for (const n of notifications) {
-      if (seenIdsRef.current.has(n.id)) continue;
-      seenIdsRef.current.add(n.id);
-      // Skip background progress updates
-      if (n.type === "progress") continue;
-      if (typeof document !== "undefined" && document.hidden) {
+    const seen = new Set(useNotificationStore.getState().notifications.map((n) => n.id));
+    let audio: HTMLAudioElement | null = null;
+
+    // Store subscription instead of a selector, this bridge never needs to render
+    return useNotificationStore.subscribe(({ notifications }) => {
+      let shouldPlay = false;
+      for (const notification of notifications) {
+        if (seen.has(notification.id)) continue;
+        seen.add(notification.id);
+        // Background progress updates are not worth a sound
+        if (notification.type === "progress" || !document.hidden) continue;
         increment();
         shouldPlay = true;
       }
-    }
-
-    if (shouldPlay && isSoundEnabled()) {
-      try {
-        if (!audioRef.current) {
-          audioRef.current = new Audio(SOUND_URL);
-          audioRef.current.preload = "auto";
-        }
-        audioRef.current.currentTime = 0;
-        // Browsers may reject playback without prior user gesture
-        void audioRef.current.play().catch(() => undefined);
-      } catch {
-        // I dont care
-      }
-    }
-  }, [notifications, increment]);
+      if (!shouldPlay || !readNotificationSound()) return;
+      audio ??= new Audio(SOUND_URL);
+      audio.currentTime = 0;
+      // Browsers may reject playback without a prior user gesture
+      void audio.play().catch(() => undefined);
+    });
+  }, [increment]);
 
   return null;
-};
-
-export default NotificationSoundBridge;
+}

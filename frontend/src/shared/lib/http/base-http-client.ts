@@ -30,12 +30,8 @@ export class BaseHttpClient {
       return text as T;
     } catch (err) {
       if (err instanceof HTTPError) {
-        let body: ApiErrorBody | undefined;
-        try {
-          body = await err.response.json<ApiErrorBody>();
-        } catch {
-          body = undefined;
-        }
+        // ky reads the error body itself, response.json() would throw here
+        const body = err.data as ApiErrorBody | string | undefined;
         if (body && typeof body === "object" && "message" in body) {
           throw new ApiError(body);
         }

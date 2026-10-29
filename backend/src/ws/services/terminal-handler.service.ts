@@ -1,6 +1,8 @@
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { Injectable } from "@nestjs/common";
-import { IUser, UserPermissions } from "@shared/types/user.types";
+import { AccessArea } from "@shared/access/areas";
+import { canOnServer } from "@shared/access/can";
+import type { IUser } from "@shared/types/user.types";
 
 /** Result of a server-side completion request, mirrored from the instance */
 export interface CompletionResponse {
@@ -33,15 +35,7 @@ export class TerminalHandlerService {
     return instance.complete(line);
   }
 
-  private hasServerAccess(user: IUser, serverId: string): boolean {
-    if (!user.serversRestrict?.enabled) return true;
-    return (user.serversRestrict.allowed ?? []).includes(serverId);
-  }
-
   private canManageServer(user: IUser, serverId: string): boolean {
-    const allowed =
-      user.isAdmin ||
-      user.permissions?.includes(UserPermissions.SERVERS_CONTROL);
-    return Boolean(allowed) && this.hasServerAccess(user, serverId);
+    return canOnServer(user, AccessArea.CONSOLE, "write", serverId);
   }
 }

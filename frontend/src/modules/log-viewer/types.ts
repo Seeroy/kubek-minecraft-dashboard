@@ -6,11 +6,6 @@ export interface ILogFile {
   gzipped: boolean;
 }
 
-export interface ILogSearchResult {
-  lineNumber: number;
-  line: string;
-}
-
 export type LogLineLevel = "INFO" | "WARN" | "ERROR" | "DEBUG" | "OTHER";
 
 export interface ParsedLogLine {

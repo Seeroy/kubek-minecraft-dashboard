@@ -1,383 +1,253 @@
-import { AuthService } from "@/modules/auth/auth.service";
-import { FileManagerService } from "@/modules/files/file-manager.service";
+import { AppEventsService } from "@/core/events/app-events.service";
+import type { FTPService } from "@/core/types/config";
+import { getErrorMessage } from "@/core/utils/error";
+import { extractClientIp } from "@/core/utils/request";
+import { checkSubnetAccess } from "@/core/utils/subnets";
+import { AccountsService } from "@/modules/accounts/accounts.service";
+import { FtpPasswordService } from "@/modules/accounts/ftp-password.service";
+import { ConfigService } from "@/modules/config/config.service";
+import { ipKey } from "@/modules/rate-limit/ip-key";
+import {
+  loginKey,
+  RateLimitService,
+} from "@/modules/rate-limit/rate-limit.service";
 import { ServersService } from "@/modules/servers/servers.service";
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { IServer } from "@shared/types/server/server.types";
-import { IUser, UserPermissions } from "@shared/types/user.types";
-import { createReadStream, createWriteStream, promises as fs } from "fs";
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
+import { AccessArea } from "@shared/access/areas";
+import { can } from "@shared/access/can";
 import { FtpServer } from "ftpd";
-import { resolve } from "path";
+import type { Socket } from "net";
+import { FtpFs } from "./ftp-fs";
+
+const DEFAULT_PORT = 21;
+
+// ftpd ships without types
+interface FtpServerHandle {
+  listen(port: number): void;
+  close(): void;
+  on(event: string, listener: (...args: any[]) => void): void;
+}
+
+/** Port, FTP_PORT wins over the panel setting */
+export function resolveFtpPort(
+  config: FTPService | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const fromEnv = Number(env.FTP_PORT);
+  if (env.FTP_PORT && Number.isInteger(fromEnv) && fromEnv > 0) return fromEnv;
+  const fromConfig = Number(config?.port);
+  if (Number.isInteger(fromConfig) && fromConfig > 0) return fromConfig;
+  return DEFAULT_PORT;
+}
+
+/**
+ * Address for the 227 reply. FTP_PASV_HOST for NAT and Docker, otherwise
+ * the address the client connected to. PASV is IPv4 only
+ */
+export function resolvePasvHost(
+  localAddress: string | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const configured = env.FTP_PASV_HOST?.trim();
+  if (configured) return configured;
+  const local = (localAddress ?? "").replace(/^::ffff:/i, "");
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(local) && local !== "0.0.0.0") return local;
+  return "127.0.0.1";
+}
 
 @Injectable()
-export class FtpService implements OnModuleInit {
-  private server: FtpServer;
+export class FtpService implements OnModuleInit, OnModuleDestroy {
+  private server: FtpServerHandle | null = null;
+  private port: number | null = null;
+  private readonly sockets = new Set<Socket>();
+  // Logged in sockets per account
+  private readonly sessions = new Map<string, Set<Socket>>();
   private readonly logger = new Logger(FtpService.name);
 
   constructor(
-    private readonly authService: AuthService,
-    private readonly fileManagerService: FileManagerService,
+    private readonly accounts: AccountsService,
+    private readonly ftpPasswords: FtpPasswordService,
     private readonly serversService: ServersService,
+    private readonly configService: ConfigService,
+    private readonly rateLimit: RateLimitService,
+    private readonly events: AppEventsService,
   ) {}
 
-  async onModuleInit() {
-    const port = process.env.FTP_PORT || 21;
+  onModuleInit() {
+    this.apply(this.configService.get("ftpd"));
+    this.events.on("config.changed", ({ after }) => this.apply(after.ftpd));
+    this.events.on("account.ftp_password_changed", ({ userId }) =>
+      this.dropSessions(userId),
+    );
+  }
+
+  onModuleDestroy() {
+    this.stop();
+  }
+
+  /** Start, stop or move to a new port to match the settings */
+  private apply(config: FTPService | undefined): void {
+    const port = resolveFtpPort(config);
+    if (!config?.enabled) {
+      if (this.server) this.logger.log("FTP disabled, stopping");
+      this.stop();
+      return;
+    }
+    if (this.server && this.port === port) return;
+    this.stop();
+    this.start(port);
+  }
+
+  private start(port: number): void {
     const pasvStart = Number(process.env.FTP_PASV_START ?? 50000);
     const pasvEnd = Number(process.env.FTP_PASV_END ?? 50100);
-    this.server = new FtpServer("0.0.0.0", {
-      port: port,
+    const server: FtpServerHandle = new FtpServer(resolvePasvHost(undefined), {
       getInitialCwd: () => "/",
-      getRoot: () => "./servers",
+      // Fake root, FtpFs turns the first segment into a server folder
+      getRoot: () => "/",
       pasvPortRangeStart: pasvStart,
       pasvPortRangeEnd: pasvEnd,
       hideDotFiles: true,
     });
 
-    this.server.on("client:connected", (connection) => {
-      let authenticatedUser: IUser | null = null;
-      let usernameSaved = "";
-
-      connection.on("command:user", (user, success, failure) => {
-        usernameSaved = user;
-        connection.username = user;
-        success();
-      });
-
-      connection.on("command:pass", async (pass, success, failure) => {
-        try {
-          const user = await this.authService.validateUser(usernameSaved, pass);
-          if (user) {
-            authenticatedUser = user;
-            success(usernameSaved);
-          } else {
-            failure(new Error("Invalid username or password"));
-          }
-        } catch (err) {
-          failure(new Error("Authentication failed"));
-        }
-      });
-
-      connection.on("command:list", async (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        try {
-          const targetPath = path || "/";
-
-          // For root directory, list server directories
-          if (targetPath === "/") {
-            const servers = this.serversService.findAll();
-            const allowedServers = servers.filter((server) => {
-              if (authenticatedUser!.serversRestrict.enabled) {
-                return authenticatedUser!.serversRestrict.allowed.includes(
-                  server.id,
-                );
-              }
-              return true;
-            });
-            const list = allowedServers.map((server) => {
-              return `drwxrwxrwx 1 user group 0 Jan 01 1970 ${server.name}`;
-            });
-            return success(list);
-          }
-
-          // For server subdirectories, use our custom logic
-          const { serverName, subpath } = this.parsePath(targetPath);
-          if (!serverName) return failure(new Error("Invalid path"));
-
-          const server = this.getServer(serverName);
-          const serverId = server.id;
-          this.checkAccess(authenticatedUser, serverId);
-
-          const files = await this.fileManagerService.scanDirectory(
-            serverId,
-            subpath,
-          );
-          const list = files.map((file) => {
-            const type = file.type === "directory" ? "d" : "-";
-            const size = file.size || 0;
-            const mtime = file.modify
-              ? new Date(file.modify).toISOString().split("T")[0]
-              : "Jan 01 1970";
-            return `${type}rwxrwxrwx 1 user group ${size} ${mtime} ${file.name}`;
-          });
-          success(list);
-        } catch (err) {
-          this.logger.warn(
-            `LIST failed for "${path}": ${(err as Error).message}`,
-          );
-          failure(err);
-        }
-      });
-
-      connection.on("command:retr", async (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        try {
-          const { serverName, subpath } = this.parsePath(path);
-          if (!serverName || subpath === "/") throw new Error("Invalid path");
-          const server = this.getServer(serverName);
-          const serverId = server.id;
-          this.checkAccess(authenticatedUser, serverId);
-          const safePath = this.fileManagerService.resolveSafePath(
-            serverId,
-            subpath,
-          );
-          success(createReadStream(safePath));
-        } catch (err) {
-          failure(err);
-        }
-      });
-
-      connection.on("command:stor", async (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        try {
-          const { serverName, subpath } = this.parsePath(path);
-          if (!serverName || subpath === "/") throw new Error("Invalid path");
-          const server = this.getServer(serverName);
-          const serverId = server.id;
-          this.checkAccess(authenticatedUser, serverId);
-          const safePath = this.fileManagerService.resolveSafePath(
-            serverId,
-            subpath,
-          );
-          const dir = resolve(safePath, "..");
-          await fs.mkdir(dir, { recursive: true });
-          success(createWriteStream(safePath));
-        } catch (err) {
-          failure(err);
-        }
-      });
-
-      connection.on("command:dele", async (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        try {
-          await this.handleUnlink(path, authenticatedUser);
-          success();
-        } catch (err) {
-          failure(err);
-        }
-      });
-
-      connection.on("command:mkd", async (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        try {
-          await this.handleMkdir(path, authenticatedUser);
-          success();
-        } catch (err) {
-          failure(err);
-        }
-      });
-
-      connection.on("command:rmd", async (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        try {
-          await this.handleRmdir(path, authenticatedUser);
-          success();
-        } catch (err) {
-          failure(err);
-        }
-      });
-
-      connection.on("command:rnfr", (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        connection._rnfr = path;
-        success();
-      });
-
-      connection.on("command:rnto", async (path, success, failure) => {
-        if (!authenticatedUser) return failure(new Error("Not authenticated"));
-        if (!connection._rnfr) return failure(new Error("RNFR not set"));
-        try {
-          await this.handleRename(connection._rnfr, path, authenticatedUser);
-          delete connection._rnfr;
-          success();
-        } catch (err) {
-          failure(err);
-        }
-      });
+    server.on("client:connected", (connection) =>
+      this.onConnection(connection),
+    );
+    server.on("error", (err: Error) => {
+      this.logger.error(`FTP server error: ${getErrorMessage(err)}`);
     });
 
-    this.server.listen(port);
+    server.listen(port);
+    this.server = server;
+    this.port = port;
+    this.logger.log(`FTP listening on port ${port}`);
   }
 
-  public checkAccess(user: IUser, serverId?: string): void {
-    if (!user.permissions.includes(UserPermissions.FILE_MANAGER)) {
-      throw new Error("Access denied: FILE_MANAGER permission required");
-    }
-    if (
-      serverId &&
-      user.serversRestrict.enabled &&
-      !user.serversRestrict.allowed.includes(serverId)
-    ) {
-      throw new Error("Access denied: server not allowed");
-    }
-  }
-
-  public parsePath(path: string): { serverName?: string; subpath: string } {
-    const parts = path.split("/").filter((p) => p);
-    if (parts.length === 0) {
-      return { subpath: "/" };
-    }
-    return {
-      serverName: parts[0],
-      subpath: parts.length > 1 ? "/" + parts.slice(1).join("/") : "/",
-    };
-  }
-
-  public getServer(serverName: string): IServer {
-    const server =
-      this.serversService.findByName(serverName) ||
-      this.serversService.findById(serverName);
-    if (!server) {
-      throw new Error("Server not found");
-    }
-    return server;
-  }
-
-  public async handleReaddir(path: string, user: IUser): Promise<any[]> {
-    if (path === "/") {
-      const servers = this.serversService.findAll();
-      const allowedServers = servers.filter((server) => {
-        if (user.serversRestrict.enabled) {
-          return user.serversRestrict.allowed.includes(server.id);
-        }
-        return true;
-      });
-      return allowedServers.map((server) => ({
-        name: server.name,
-        type: "directory",
-      }));
-    }
-
-    const { serverName, subpath } = this.parsePath(path);
-    if (!serverName) throw new Error("Invalid path");
-    const server = this.getServer(serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-
-    const files = await this.fileManagerService.scanDirectory(
-      serverId,
-      subpath,
-    );
-    return files.map((file) => ({
-      name: file.name,
-      type: file.type === "directory" ? "directory" : "file",
-      size: file.size,
-      modify: file.modify,
-    }));
-  }
-
-  public async handleStat(path: string, user: IUser): Promise<any> {
-    this.checkAccess(user);
-
-    if (path === "/") {
-      return { isDirectory: () => true, size: 0, mtime: new Date() };
-    }
-
-    const { serverName, subpath } = this.parsePath(path);
-    if (!serverName) throw new Error("Invalid path");
-    const server = this.getServer(serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-
-    if (subpath === "/") {
-      return { isDirectory: () => true, size: 0, mtime: new Date() };
-    }
-
+  private stop(): void {
+    if (!this.server) return;
     try {
-      await this.fileManagerService.scanDirectory(serverId, subpath);
-      return { isDirectory: () => true, size: 0, mtime: new Date() };
-    } catch {
-      try {
-        const buffer = await this.fileManagerService.readFile(
-          serverId,
-          subpath,
-        );
-        return {
-          isDirectory: () => false,
-          size: buffer.length,
-          mtime: new Date(),
-        };
-      } catch {
-        throw new Error("Path not found");
-      }
+      this.server.close();
+    } catch (err) {
+      this.logger.warn(`FTP close failed: ${getErrorMessage(err)}`);
     }
+    for (const socket of this.sockets) socket.destroy();
+    this.sockets.clear();
+    this.sessions.clear();
+    this.server = null;
+    this.port = null;
   }
 
-  public async handleReadFile(path: string, user: IUser): Promise<Buffer> {
-    const { serverName, subpath } = this.parsePath(path);
-    if (!serverName || subpath === "/") throw new Error("Invalid path");
-    const server = this.getServer(serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-    return await this.fileManagerService.readFile(serverId, subpath);
-  }
-
-  public async handleWriteFile(
-    path: string,
-    data: string,
-    user: IUser,
-  ): Promise<void> {
-    const { serverName, subpath } = this.parsePath(path);
-    if (!serverName || subpath === "/") throw new Error("Invalid path");
-    const server = this.getServer(serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-    await this.fileManagerService.writeFile(serverId, subpath, data);
-  }
-
-  public async handleMkdir(path: string, user: IUser): Promise<void> {
-    const { serverName, subpath } = this.parsePath(path);
-    if (!serverName || subpath === "/") throw new Error("Invalid path");
-    const server = this.getServer(serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-    const parent = subpath.substring(0, subpath.lastIndexOf("/")) || "/";
-    const name = subpath.substring(subpath.lastIndexOf("/") + 1);
-    await this.fileManagerService.createDirectory(serverId, parent, name);
-  }
-
-  public async handleRmdir(path: string, user: IUser): Promise<void> {
-    const { serverName, subpath } = this.parsePath(path);
-    if (!serverName || subpath === "/") throw new Error("Invalid path");
-    const server = this.getServer(serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-    await this.fileManagerService.deleteDirectory(serverId, subpath);
-  }
-
-  public async handleUnlink(path: string, user: IUser): Promise<void> {
-    const { serverName, subpath } = this.parsePath(path);
-    if (!serverName || subpath === "/") throw new Error("Invalid path");
-    const server = this.getServer(serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-    await this.fileManagerService.deleteFile(serverId, subpath);
-  }
-
-  public async handleRename(
-    oldPath: string,
-    newPath: string,
-    user: IUser,
-  ): Promise<void> {
-    const oldParsed = this.parsePath(oldPath);
-    const newParsed = this.parsePath(newPath);
-    if (
-      !oldParsed.serverName ||
-      !newParsed.serverName ||
-      oldParsed.serverName !== newParsed.serverName
-    ) {
-      throw new Error("Rename across servers not supported");
+  private onConnection(connection: any): void {
+    const socket: Socket = connection.socket;
+    const ip = extractClientIp({ socket });
+    if (!this.subnetAllowed(ip)) {
+      this.logger.warn(`FTP connection from ${ip} rejected by subnet rules`);
+      socket.destroy();
+      return;
     }
-    const server = this.getServer(oldParsed.serverName);
-    const serverId = server.id;
-    this.checkAccess(user, serverId);
-    const oldName = oldParsed.subpath.split("/").pop()!;
-    const newName = newParsed.subpath.split("/").pop()!;
-    if (oldParsed.subpath !== newParsed.subpath.replace(newName, oldName)) {
-      throw new Error("Rename to different directory not supported");
-    }
-    await this.fileManagerService.renameFile(
-      serverId,
-      oldParsed.subpath,
-      newName,
+    this.sockets.add(socket);
+    socket.once("close", () => this.sockets.delete(socket));
+
+    // ftpd takes the PASV address from server.host, so set it per session
+    connection.server = Object.create(connection.server as object, {
+      host: { value: resolvePasvHost(socket.localAddress) },
+    });
+
+    let pendingUsername = "";
+
+    // ftpd thinks a set username means logged in, so set it only on PASS
+    connection.on("command:user", (user: string, success: () => void) => {
+      pendingUsername = String(user ?? "");
+      success();
+    });
+
+    connection.on(
+      "command:pass",
+      (
+        pass: string,
+        success: (username: string, fs: FtpFs) => void,
+        failure: () => void,
+      ) => {
+        let userId: string | null;
+        try {
+          userId = this.authenticate(pendingUsername, pass, ip);
+        } catch (err) {
+          this.logger.warn(`FTP login failed: ${getErrorMessage(err)}`);
+          return failure();
+        }
+        if (!userId) return failure();
+        const id = userId;
+        const fs = new FtpFs({
+          getUser: () => this.accounts.findById(id),
+          listServerIds: () =>
+            this.serversService.findAll().map((server) => server.id),
+        });
+        this.track(id, socket);
+        success(pendingUsername, fs);
+      },
     );
+  }
+
+  /**
+   * Same limits as the panel login, only the FTP password works,
+   * returns the user id
+   */
+  authenticate(
+    username: string,
+    password: string,
+    ip: string | null,
+  ): string | null {
+    if (!username || !this.subnetAllowed(ip)) return null;
+    const key = loginKey(ip, username);
+    const name = username.toLowerCase();
+    // Throws while locked, the caller sends 530
+    this.rateLimit.hit("login.ip", ipKey(ip));
+    this.rateLimit.check("login", key);
+    this.rateLimit.check("login.user", name);
+
+    const user = this.accounts.findByUsername(username);
+    // Unknown users go through the same compare
+    const valid = this.ftpPasswords.verify(user?.id ?? "", password);
+    if (!user || !valid) {
+      this.rateLimit.fail("login", key, { username, ip });
+      this.rateLimit.fail("login.user", name, { username, ip });
+      return null;
+    }
+    this.rateLimit.succeed("login", key);
+    this.rateLimit.succeed("login.user", name);
+
+    if (!can(user, AccessArea.FILES, "read")) {
+      this.logger.warn(`FTP login of ${username} without files access`);
+      return null;
+    }
+    return user.id;
+  }
+
+  private track(userId: string, socket: Socket): void {
+    let set = this.sessions.get(userId);
+    if (!set) {
+      set = new Set();
+      this.sessions.set(userId, set);
+    }
+    set.add(socket);
+    socket.once("close", () => set.delete(socket));
+  }
+
+  /** New or removed FTP password kicks the old sessions */
+  private dropSessions(userId: string): void {
+    for (const socket of this.sessions.get(userId) ?? []) socket.destroy();
+    this.sessions.delete(userId);
+  }
+
+  private subnetAllowed(ip: string | null): boolean {
+    return checkSubnetAccess(
+      this.configService.get("subnetsAccessRestriction"),
+      ip,
+    ).allowed;
   }
 }

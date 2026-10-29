@@ -41,6 +41,8 @@ export interface IServer {
   blueprintVersion?: string;
   variables: Record<string, ServerVariableValue>;
   runtimeKind?: "native" | "docker";
+  /** Account that created the server, null when unknown or deleted */
+  createdBy?: string | null;
 }
 
 export interface NewServerProps {
@@ -61,4 +63,6 @@ export enum ServerStatus {
   RUNNING = "running",
   STARTING = "starting",
   STOPPING = "stopping",
+  /** Stopped by a crash, kept until the next start */
+  CRASHED = "crashed",
 }

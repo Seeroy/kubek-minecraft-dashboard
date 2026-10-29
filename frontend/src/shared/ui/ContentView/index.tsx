@@ -1,5 +1,6 @@
 "use client";
 
+import { sectionPath } from "@/shared/lib/routeTabs";
 import { usePathname } from "next/navigation";
 import React, { ViewTransition } from "react";
 
@@ -8,11 +9,11 @@ export default function ContentView({
 }: {
   children: React.ReactNode;
 }) {
-  // path only forces React to swap the subtree on navigation
-  const pathname = usePathname();
+  // Keyed by section, a tab change inside a page keeps the page mounted
+  const section = sectionPath(usePathname());
 
   return (
-    <ViewTransition enter="slide" exit="slide" key={pathname}>
+    <ViewTransition enter="slide" exit="slide" key={section}>
       {children}
     </ViewTransition>
   );

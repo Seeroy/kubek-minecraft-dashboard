@@ -1,53 +1,51 @@
+import { AppEventsService } from "@/core/events/app-events.service";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { ExtensionEventBus } from "@/modules/extensions/extension-event-bus.service";
-import { NotificationService } from "@/modules/telegram-bot/notification.service";
+import { toServerListItem } from "@/ws/server-list";
 import { ServerBroadcastService } from "@/ws/services/server-broadcast.service";
 import { Injectable } from "@nestjs/common";
 import type { IInstanceLog } from "@shared/types/server/instance.types";
-import type { IServer } from "@shared/types/server/server.types";
+import { type IServer, ServerStatus } from "@shared/types/server/server.types";
+import type {
+  WsServerCrashInfo,
+  WsServerErrorInfo,
+  WsServerQueryInfo,
+  WsServerStatusChange,
+  WsServerStopInfo,
+} from "@shared/types/ws/server-payloads.types";
 
 @Injectable()
 export class ServerEventsService {
-  // Tracks the last Telegram-notified error per server to avoid spamm
-  private readonly lastErrorNotify = new Map<
-    string,
-    { errorType: string; at: number }
-  >();
-  private static readonly ERROR_NOTIFY_DEDUP_MS = 60_000;
-
   constructor(
     private readonly broadcast: ServerBroadcastService,
-    private readonly notificationService: NotificationService,
     private readonly serversRepo: ServersRepository,
     private readonly bus: ExtensionEventBus,
+    private readonly events: AppEventsService,
   ) {}
 
   emitServerList(servers: IServer[]) {
-    const payload = servers.map((server) => ({
-      id: server.id,
-      name: server.name,
-      status: server.status,
-      folderId: server.folderId ?? null,
-      blueprintId: server.blueprintId,
-      variables: server.variables,
-    }));
-    this.broadcast.emitServersList(payload);
+    this.broadcast.emitServersList(servers.map(toServerListItem));
   }
 
-  emitServerStatus(serverId: string, status: any) {
+  emitServerStatus(serverId: string, status: WsServerStatusChange) {
     this.broadcast.emitServerStatusUpdate(serverId, status);
+
+    // Stopped and crashed get their own events below
+    if (status.status === ServerStatus.RUNNING) {
+      this.bus.publish("server.started", { serverId });
+    }
 
     const server = this.serversRepo.findById(serverId);
     if (server) {
-      this.notificationService.sendServerStatusNotification(
+      this.events.emit("server.status_changed", {
         serverId,
-        server.name,
-        status.status,
-      );
+        serverName: server.name,
+        status: status.status,
+      });
     }
   }
 
-  emitServerQueryData(serverId: string, queryData: any) {
+  emitServerQueryData(serverId: string, queryData: WsServerQueryInfo) {
     this.broadcast.emitServerQueryData(serverId, queryData);
   }
 
@@ -67,82 +65,49 @@ export class ServerEventsService {
     });
   }
 
-  emitServerStarted(serverId: string, instanceInfo: any) {
+  emitServerStopped(serverId: string, instanceInfo: WsServerStopInfo) {
     this.broadcast.emitServerStatusUpdate(serverId, {
-      status: "running",
-      instance: instanceInfo,
-    });
-    this.bus.publish("server.started", {
-      serverId,
-      pid: instanceInfo?.pid,
-      port: instanceInfo?.port,
-    });
-  }
-
-  emitServerStopped(serverId: string, instanceInfo: any) {
-    this.broadcast.emitServerStatusUpdate(serverId, {
-      status: "stopped",
+      // A crash keeps its status instead of flickering through stopped
+      status: instanceInfo.crashed ? ServerStatus.CRASHED : ServerStatus.STOPPED,
       instance: instanceInfo,
     });
     this.bus.publish("server.stopped", {
       serverId,
-      exitCode: instanceInfo?.exitCode ?? null,
+      exitCode: instanceInfo.exitCode ?? null,
     });
   }
 
-  emitServerCrashed(serverId: string, error: any) {
+  emitServerCrashed(serverId: string, error: WsServerCrashInfo) {
     this.broadcast.emitServerStatusUpdate(serverId, {
-      status: "crashed",
+      status: ServerStatus.CRASHED,
       error,
     });
     this.bus.publish("server.crashed", {
       serverId,
-      exitCode: error?.exitCode ?? null,
-      restartAttempts: error?.restartAttempts ?? 0,
+      exitCode: error.exitCode ?? null,
+      restartAttempts: error.restartAttempts ?? 0,
     });
   }
 
-  emitServerError(serverId: string, errorData: any) {
+  emitServerError(serverId: string, errorData: WsServerErrorInfo) {
     this.broadcast.emitServerError(serverId, errorData);
-    this.maybeNotifyError(serverId, errorData);
-    this.bus.publish("server.error", {
-      serverId,
-      errorType: errorData?.errorType ?? "unknown",
-      severity: errorData?.severity ?? "low",
-    });
+    const errorType = errorData.errorType ?? "unknown";
+    const severity = errorData.severity ?? "low";
+    this.bus.publish("server.error", { serverId, errorType, severity });
+    const server = this.serversRepo.findById(serverId);
+    if (server) {
+      this.events.emit("server.error", {
+        serverId,
+        serverName: server.name,
+        errorType,
+        severity,
+      });
+    }
   }
 
   /** Signal that a previously emitted error no longer applies */
   emitServerErrorResolved(serverId: string, errorType: string) {
     this.broadcast.emitServerErrorResolved(serverId, errorType);
-    // Clear the dedup record so a future recurrence notifies again immediately
-    this.lastErrorNotify.delete(serverId);
-  }
-
-  /** Send a Telegram alert for severe errors, deduplicated per server/errorType */
-  private maybeNotifyError(serverId: string, errorData: any) {
-    const severity = errorData?.severity;
-    if (severity !== "critical" && severity !== "high") return;
-
-    const errorType = errorData?.errorType ?? "unknown";
-    const now = Date.now();
-    const last = this.lastErrorNotify.get(serverId);
-    if (
-      last &&
-      last.errorType === errorType &&
-      now - last.at < ServerEventsService.ERROR_NOTIFY_DEDUP_MS
-    ) {
-      return;
-    }
-    this.lastErrorNotify.set(serverId, { errorType, at: now });
-
-    const server = this.serversRepo.findById(serverId);
-    if (server) {
-      this.notificationService.sendServerErrorNotification(
-        serverId,
-        server.name,
-        errorType,
-      );
-    }
+    this.events.emit("server.error_resolved", { serverId, errorType });
   }
 }

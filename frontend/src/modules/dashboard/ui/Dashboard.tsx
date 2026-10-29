@@ -1,11 +1,14 @@
 "use client";
 import { ExtensionSlot } from "@/modules/extensions";
+import { CREATE_SERVER_MODAL_ID } from "@/modules/server";
+import { useServersModal } from "@/modules/sidebar/store/servers-modal.store";
+import { TopbarActions } from "@/modules/topbar";
 import { useIsMobile } from "@/shared/hooks/useIsMobile";
+import { useModal } from "@/shared/hooks/useModalsManager";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { meetsAccess, useAccess } from "@/shared/lib/access";
 import { useAuthStore } from "@/shared/stores/auth-store";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
-import { PageLayout } from "@/shared/ui/PageLayout";
-import { PageLoading } from "@/shared/ui/PageLoading";
+import { AccessArea } from "@shared/access/areas";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -13,212 +16,181 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { LayoutDashboard, Pencil, Plus, RotateCcw } from "lucide-react";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { LayoutGrid, Pencil, Plus, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Layout, ResponsiveLayouts } from "react-grid-layout";
 import { ResponsiveGridLayout, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import { useDashboardLayout } from "../hooks/useDashboardLayout";
 import { useDashboardWidgets } from "../hooks/useDashboardWidgets";
-import {
-  DASHBOARD_BREAKPOINTS,
-  DASHBOARD_COLS,
-  DASHBOARD_ROW_HEIGHT,
-} from "../lib/widgetRegistry";
-import type { WidgetId } from "../types/widget.types";
+import { useServersSummary } from "../hooks/useServersSummary";
+import { DASHBOARD_BREAKPOINTS, DASHBOARD_COLS, DASHBOARD_ROW_HEIGHT } from "../lib/widgetRegistry";
+import type { WidgetDefinition, WidgetId } from "../types/widget.types";
+import DashboardStats from "./DashboardStats";
 import DashboardWidget from "./DashboardWidget";
-import DashboardStatsRow from "./stats/DashboardStatsRow";
+
+const GRID_GAP = 16;
+
+function partOfDay(hour: number) {
+  if (hour < 5) return "night";
+  if (hour < 12) return "morning";
+  if (hour < 18) return "day";
+  return "evening";
+}
+
+function DashboardHeader() {
+  const { t } = useTranslation("modules.dashboard");
+  const username = useAuthStore((s) => s.user?.username);
+  const summary = useServersSummary();
+  const openServers = useServersModal((s) => s.setOpen);
+  const { open: openModal } = useModal();
+  const canCreate = useAccess([AccessArea.SERVERS, "write"]);
+  const greeting = t(`header.greeting.${partOfDay(new Date().getHours())}`, username ?? "");
+
+  return (
+    <PageHeader
+      title={greeting}
+      description={t("header.summary", summary.running, summary.total, summary.players)}
+      actions={
+        <>
+          <Button variant="outline" onClick={() => openServers(true)}>
+            <LayoutGrid />
+            {t("actions.allServers")}
+          </Button>
+          {canCreate && (
+            <Button onClick={() => void openModal(CREATE_SERVER_MODAL_ID)}>
+              <Plus />
+              {t("actions.createServer")}
+            </Button>
+          )}
+        </>
+      }
+    />
+  );
+}
 
 export default function Dashboard() {
   const { t } = useTranslation("modules.dashboard");
-  const hasPermission = useAuthStore((s) => s.hasPermission);
-  const username = useAuthStore((s) => s.user?.username);
-  const welcomeTitle = username
-    ? t("header.welcome", username)
-    : t("header.title");
+  const user = useAuthStore((s) => s.user);
   const widgets = useDashboardWidgets();
-  const { state, isLoading, setLayouts, setVisible, reset } =
-    useDashboardLayout(widgets);
+  const { state, isLoading, setLayouts, setVisible, reset } = useDashboardLayout(widgets);
   const { width, containerRef, mounted } = useContainerWidth();
   const isMobile = useIsMobile();
   const [editMode, setEditMode] = useState(false);
 
-  // The drag/resize bento grid is a desktop view; phones get a plain stack
-  const effectiveEditMode = editMode && !isMobile;
+  // Dragging and resizing is a desktop affair, phones get a plain stack
+  const editing = editMode && !isMobile;
 
-  // Widgets the user is allowed to see at all
   const permitted = useMemo(
-    () =>
-      widgets.filter(
-        (w) => !w.requiredPermission || hasPermission(w.requiredPermission)
-      ),
-    [widgets, hasPermission]
+    () => widgets.filter((w) => meetsAccess(user, w.access)),
+    [widgets, user]
   );
+  const visibleWidgets = permitted.filter((w) => state?.visible[w.id] ?? true);
+  const hiddenWidgets = permitted.filter((w) => !(state?.visible[w.id] ?? true));
 
-  const visibleWidgets = useMemo(
-    () => permitted.filter((w) => state?.visible[w.id] ?? true),
-    [permitted, state]
-  );
-
-  const hiddenWidgets = useMemo(
-    () => permitted.filter((w) => !(state?.visible[w.id] ?? true)),
-    [permitted, state]
-  );
-
-  // Restrict layouts to currently rendered widgets
   const layouts = useMemo<ResponsiveLayouts>(() => {
     if (!state) return {};
-    const visibleIds = new Set(visibleWidgets.map((w) => w.id));
-    const filtered: ResponsiveLayouts = {};
-    for (const [bp, layout] of Object.entries(state.layouts)) {
-      filtered[bp] = (layout as Layout).filter((item) =>
-        visibleIds.has(item.i as WidgetId)
-      );
-    }
-    return filtered;
+    const ids = new Set<WidgetId>(visibleWidgets.map((w) => w.id));
+    return Object.fromEntries(
+      Object.entries(state.layouts).map(([bp, layout]) => [bp, (layout as Layout).filter((item) => ids.has(item.i))])
+    );
   }, [state, visibleWidgets]);
 
-  // On mobile stack widgets like a flex
-  const stackedWidgets = useMemo(() => {
+  // The mobile stack follows the desktop reading order
+  const stacked = useMemo(() => {
     const lg = state?.layouts.lg ?? [];
-    const pos = (id: WidgetId) => {
-      const item = lg.find((i) => i.i === id);
+    const order = (id: WidgetId) => {
+      const item = lg.find((entry) => entry.i === id);
       return item ? item.y * 1000 + item.x : Number.MAX_SAFE_INTEGER;
     };
-    return [...visibleWidgets].sort((a, b) => pos(a.id) - pos(b.id));
+    return [...visibleWidgets].sort((a, b) => order(a.id) - order(b.id));
   }, [visibleWidgets, state]);
 
-  if (isLoading || !state) {
+  const renderWidget = (widget: WidgetDefinition) => {
+    const Widget = widget.component;
     return (
-      <PageLayout className="mx-auto w-full max-w-7xl">
-        <BlockHeader
-          kicker={welcomeTitle}
-          title={welcomeTitle}
-          description={t("header.description")}
-          icon={LayoutDashboard}
-          color="primary"
-        />
-        <PageLoading />
-      </PageLayout>
+      <DashboardWidget
+        title={widget.title ?? t(widget.titleKey)}
+        editMode={editing}
+        onHide={() => setVisible(widget.id, false)}
+        contentClassName={widget.contentClassName}
+      >
+        <Widget />
+      </DashboardWidget>
     );
-  }
+  };
 
   return (
-    <PageLayout className="mx-auto w-full">
-      <BlockHeader
-        kicker={welcomeTitle}
-        title={welcomeTitle}
-        description={t("header.description")}
-        icon={LayoutDashboard}
-        color="blue"
-        actions={
-          isMobile ? undefined : (
-            <>
-              {editMode && hiddenWidgets.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <Button variant="outline" size="sm">
-                        <Plus className="mr-1.5 h-4 w-4" />
-                        {t("toolbar.addWidget")}
-                      </Button>
-                    }
-                  />
-                  <DropdownMenuContent align="end">
-                    {hiddenWidgets.map((widget) => (
-                      <DropdownMenuItem
-                        key={widget.id}
-                        onClick={() => setVisible(widget.id, true)}
-                      >
-                        <widget.icon className="mr-2 h-4 w-4" />
-                        {widget.title ?? t(widget.titleKey)}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              {editMode && (
-                <Button variant="ghost" size="sm" onClick={reset}>
-                  <RotateCcw className="mr-1.5 h-4 w-4" />
-                  {t("toolbar.reset")}
-                </Button>
-              )}
-              <Button
-                variant={editMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => setEditMode((v) => !v)}
-              >
-                <Pencil className="mr-1.5 h-4 w-4" />
-                {editMode ? t("toolbar.done") : t("toolbar.edit")}
-              </Button>
-            </>
-          )
-        }
-      />
+    <div className="stagger-enter">
+      <DashboardHeader />
 
-      <DashboardStatsRow />
+      {!isMobile && (
+        <TopbarActions>
+          {editing && hiddenWidgets.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+                <Plus />
+                {t("toolbar.addWidget")}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {hiddenWidgets.map((widget) => (
+                  <DropdownMenuItem key={widget.id} onClick={() => setVisible(widget.id, true)}>
+                    <widget.icon />
+                    {widget.title ?? t(widget.titleKey)}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {editing && (
+            <Button variant="ghost" size="sm" onClick={reset}>
+              <RotateCcw />
+              {t("toolbar.reset")}
+            </Button>
+          )}
+          <Button variant={editing ? "default" : "ghost"} size="sm" onClick={() => setEditMode((v) => !v)}>
+            <Pencil />
+            {editing ? t("toolbar.done") : t("toolbar.edit")}
+          </Button>
+        </TopbarActions>
+      )}
 
+      <DashboardStats />
       <ExtensionSlot name="dashboard.header" />
 
-      {isMobile ? (
-        // Plain vertical stack
-        <div className="mt-4 flex flex-col gap-4">
-          {stackedWidgets.map((widget) => {
-            const Widget = widget.component;
-            return (
-              <DashboardWidget
-                key={widget.id}
-                title={widget.title ?? t(widget.titleKey)}
-                icon={widget.icon}
-                editMode={false}
-                contentClassName={widget.contentClassName}
-                bare={widget.bare}
-              >
-                <Widget />
-              </DashboardWidget>
-            );
-          })}
-        </div>
-      ) : (
-        <div ref={containerRef} className="mt-4">
-          {mounted && (
-            <ResponsiveGridLayout
-              width={width}
-              breakpoints={DASHBOARD_BREAKPOINTS}
-              cols={DASHBOARD_COLS}
-              rowHeight={DASHBOARD_ROW_HEIGHT}
-              layouts={layouts}
-              margin={[16, 16]}
-              containerPadding={[0, 0]}
-              dragConfig={{
-                enabled: effectiveEditMode,
-                handle: ".dashboard-drag-handle",
-                cancel: "button, a",
-              }}
-              resizeConfig={{ enabled: effectiveEditMode }}
-              onLayoutChange={(_layout, allLayouts) => setLayouts(allLayouts)}
-            >
-              {visibleWidgets.map((widget) => {
-                const Widget = widget.component;
-                return (
-                  <div key={widget.id}>
-                    <DashboardWidget
-                      title={widget.title ?? t(widget.titleKey)}
-                      icon={widget.icon}
-                      editMode={effectiveEditMode}
-                      onHide={() => setVisible(widget.id, false)}
-                      contentClassName={widget.contentClassName}
-                      bare={widget.bare}
-                    >
-                      <Widget />
-                    </DashboardWidget>
-                  </div>
-                );
-              })}
-            </ResponsiveGridLayout>
-          )}
-        </div>
-      )}
-    </PageLayout>
+      {/* Always mounted, the width observer attaches to this node once on mount */}
+      <div ref={containerRef} className="mt-4">
+        {isMobile ? (
+          <div className="flex flex-col gap-4">
+            {stacked.map((widget) => (
+              <div key={widget.id} className="min-h-64">
+                {renderWidget(widget)}
+              </div>
+            ))}
+          </div>
+        ) : isLoading || !state || !mounted ? (
+          <Skeleton className="h-96 rounded-lg" />
+        ) : (
+          <ResponsiveGridLayout
+            width={width}
+            breakpoints={DASHBOARD_BREAKPOINTS}
+            cols={DASHBOARD_COLS}
+            rowHeight={DASHBOARD_ROW_HEIGHT}
+            layouts={layouts}
+            margin={[GRID_GAP, GRID_GAP]}
+            containerPadding={[0, 0]}
+            dragConfig={{ enabled: editing, handle: ".dashboard-drag-handle", cancel: "button, a" }}
+            resizeConfig={{ enabled: editing }}
+            onLayoutChange={(_layout, allLayouts) => editing && setLayouts(allLayouts)}
+          >
+            {visibleWidgets.map((widget) => (
+              <div key={widget.id}>{renderWidget(widget)}</div>
+            ))}
+          </ResponsiveGridLayout>
+        )}
+      </div>
+    </div>
   );
 }

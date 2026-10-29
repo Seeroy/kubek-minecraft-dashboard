@@ -1,15 +1,18 @@
 import { api } from "@/api";
+import type { KubekFrontendModule } from "@kubekpanel/extension-sdk";
 import type { ComponentType } from "react";
+import { loadIcons } from "./icons";
 
 /**
  * Loads an extension's ESM bundle. The bundle is fetched with the auth token attached, turned into
  * a blob URL and dynamically imported (webpack must not touch the runtime specifier). Modules are
  * cached per bundle URL so repeated slot/page mounts share one instance
  */
-const moduleCache = new Map<string, Promise<any>>();
+const moduleCache = new Map<string, Promise<KubekFrontendModule | undefined>>();
 
-async function loadModule(bundleUrl: string): Promise<any> {
-  const code = await api.extensions.fetchAsset(bundleUrl);
+async function loadModule(bundleUrl: string): Promise<KubekFrontendModule | undefined> {
+  const [code, icons] = await Promise.all([api.extensions.fetchAsset(bundleUrl), loadIcons()]);
+  if (window.Kubek) window.Kubek.icons = icons;
   const blob = new Blob([code], { type: "text/javascript" });
   const url = URL.createObjectURL(blob);
   try {
@@ -20,7 +23,7 @@ async function loadModule(bundleUrl: string): Promise<any> {
   }
 }
 
-export function loadExtensionModule(bundleUrl: string): Promise<any> {
+export function loadExtensionModule(bundleUrl: string): Promise<KubekFrontendModule | undefined> {
   let pending = moduleCache.get(bundleUrl);
   if (!pending) {
     pending = loadModule(bundleUrl);
@@ -30,13 +33,12 @@ export function loadExtensionModule(bundleUrl: string): Promise<any> {
 }
 
 /** Resolve a named component exported by an extension's KubekFrontendModule */
-export async function loadExtensionComponent(
+export async function loadExtensionComponent<P extends object = Record<string, unknown>>(
   bundleUrl: string,
   name: string
-): Promise<ComponentType<any>> {
+): Promise<ComponentType<P>> {
   const mod = await loadExtensionModule(bundleUrl);
   const component = mod?.components?.[name];
-  if (!component)
-    throw new Error(`Component "${name}" not found in extension bundle`);
-  return component;
+  if (!component) throw new Error(`Component "${name}" not found in extension bundle`);
+  return component as ComponentType<P>;
 }

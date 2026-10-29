@@ -32,5 +32,7 @@ export interface BlueprintSummary {
   ports: PortSpec[];
   configFiles: ConfigFileSpec[];
   features: BlueprintFeature[];
+  /** Status query protocol, minecraft-java or minecraft-bedrock for bundled types */
+  queryProtocol?: string;
   source: "bundled" | "installed";
 }

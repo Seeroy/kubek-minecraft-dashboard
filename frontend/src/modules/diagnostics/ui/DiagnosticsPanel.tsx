@@ -1,11 +1,11 @@
 "use client";
 import { useServerStore } from "@/modules/server";
-import { useServerStatus } from "@/modules/server/store/server-statuses.store";
+import { useServerLive } from "@/modules/server/store/server-statuses.store";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
-import { useAuthStore } from "@/shared/stores/auth-store";
+import { useAccess } from "@/shared/lib/access";
 import { ServerStatus } from "@shared/types/server/server.types";
-import { UserPermissions } from "@shared/types/user.types";
+import { AccessArea } from "@shared/access/areas";
 import { ShieldAlert } from "lucide-react";
 import React from "react";
 import { useDiagnostics } from "../hooks/useDiagnostics";
@@ -26,14 +26,13 @@ const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
 }) => {
   const { t } = useTranslation("modules.diagnostics");
   const { selectedServer } = useServerStore();
-  const hasPermission = useAuthStore((s) => s.hasPermission);
-  const hasServerAccess = useAuthStore((s) => s.hasServerAccess);
-
   const serverId = selectedServer?.id;
+  const canView = useAccess("serverView", serverId);
+  const canControl = useAccess([AccessArea.POWER, "write"], serverId);
   const { data } = useDiagnostics(serverId);
-  const status = useServerStatus(serverId);
+  const status = useServerLive(serverId);
 
-  if (!serverId || !hasServerAccess(serverId)) return null;
+  if (!serverId || !canView) return null;
 
   // Drop diagnostics that predate the current run - once the server is up,
   // start-time errors (port bind, java mismatch, etc.) are no longer actionable
@@ -50,8 +49,6 @@ const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
   // Most recent first
   const diagnostics = [...filtered].reverse();
   if (hideWhenEmpty && diagnostics.length === 0) return null;
-
-  const canControl = hasPermission(UserPermissions.SERVERS_CONTROL);
 
   return (
     <div

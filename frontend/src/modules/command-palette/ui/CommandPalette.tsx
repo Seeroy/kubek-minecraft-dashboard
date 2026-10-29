@@ -1,9 +1,10 @@
 "use client";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { cn } from "@/shared/lib/cn";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog";
+import { Kbd } from "@/shared/ui/kbd";
+import { menuLabel } from "@/shared/ui/styles";
 import { Search } from "lucide-react";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useMemo, useState, type KeyboardEvent } from "react";
 import { useCommandActions } from "../hooks/useCommandActions";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { fuzzyScore } from "../lib/fuzzy";
@@ -44,25 +45,24 @@ export default function CommandPalette() {
 
   const isSearching = query.trim().length > 0;
 
-  useEffect(() => {
+  const updateQuery = (value: string) => {
+    setQuery(value);
     setActiveIndex(0);
-  }, [query]);
+  };
 
-  // Reset query whenever the palette closes so it reopens clean
-  useEffect(() => {
-    if (!open) setQuery("");
-  }, [open]);
+  // Reset whenever the palette closes so it reopens clean
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) updateQuery("");
+  };
 
-  const runAction = useCallback(
-    (action: CommandAction | undefined) => {
-      if (!action) return;
-      setOpen(false);
-      void action.perform();
-    },
-    [setOpen]
-  );
+  const runAction = (action: CommandAction | undefined) => {
+    if (!action) return;
+    onOpenChange(false);
+    void action.perform();
+  };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIndex((i) => (results.length ? (i + 1) % results.length : 0));
@@ -78,57 +78,53 @@ export default function CommandPalette() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="top-[12vh] w-[calc(100%-2rem)] max-w-lg translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-xl"
+        className="top-[14vh] w-[min(560px,calc(100%-2rem))] max-w-none translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-none"
       >
         <DialogTitle className="sr-only">{t("title")}</DialogTitle>
 
-        <div className="flex items-center gap-2 border-b border-border/60 px-4">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="flex items-center gap-2.5 border-b border-border px-4">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
           <input
             autoFocus
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(event) => updateQuery(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t("placeholder")}
-            className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            role="combobox"
+            aria-expanded
+            aria-controls="command-palette-results"
+            className="h-12 w-full bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
           />
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto p-2">
+        <div id="command-palette-results" role="listbox" className="max-h-[340px] scrollbar-thin overflow-y-auto p-1">
           {results.length === 0 ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              {t("empty")}
-            </div>
+            <div className="py-6 text-center text-[13px] text-muted-foreground">{t("empty")}</div>
           ) : (
             results.map((action, index) => {
-              const showHeader =
-                !isSearching &&
-                (index === 0 || results[index - 1].group !== action.group);
+              const showHeader = !isSearching && (index === 0 || results[index - 1].group !== action.group);
               return (
-                <React.Fragment key={action.id}>
-                  {showHeader && (
-                    <div
-                      className={cn(
-                        "px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground/70 uppercase",
-                        index !== 0 && "mt-1"
-                      )}
-                    >
-                      {t(`groups.${action.group}`)}
-                    </div>
-                  )}
+                <Fragment key={action.id}>
+                  {showHeader && <div className={menuLabel}>{t(`groups.${action.group}`)}</div>}
                   <CommandItem
                     action={action}
                     active={index === activeIndex}
                     onSelect={() => runAction(action)}
                     onHover={() => setActiveIndex(index)}
                   />
-                </React.Fragment>
+                </Fragment>
               );
             })
           )}
+        </div>
+
+        <div className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-muted-foreground">
+          <Kbd>↑↓</Kbd> {t("footer.navigate")}
+          <Kbd>↵</Kbd> {t("footer.open")}
+          <Kbd>esc</Kbd> {t("footer.close")}
         </div>
       </DialogContent>
     </Dialog>

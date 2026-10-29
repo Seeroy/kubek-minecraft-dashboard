@@ -4,7 +4,6 @@ import {
   useCreateFolderMutation,
   useUpdateFolderMutation,
 } from "@/modules/server";
-import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { ModalProps } from "@/shared/types/modal.types";
 import { Button } from "@/shared/ui/button";
@@ -18,14 +17,12 @@ import {
 import { Input } from "@/shared/ui/input";
 import type { IServerFolder } from "@shared/types/server/folder.types";
 import { Folder } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export interface FolderFormProps {
   // If provided - modal works in "rename" mode for this folder
   editTarget?: IServerFolder | null;
 }
-
-export const FOLDER_FORM_MODAL_ID = "sidebar/folder-form";
 
 declare module "@/shared/types/modal-registry" {
   interface ModalRegistry {
@@ -53,19 +50,8 @@ const FolderFormDialog: React.FC<ModalProps<boolean> & FolderFormProps> = ({
   const createMut = useCreateFolderMutation();
   const updateMut = useUpdateFolderMutation();
 
-  const [name, setName] = useState("");
-  const [color, setColor] = useState<string>("");
-
-  useEffect(() => {
-    if (!isOpen) return;
-    if (editTarget) {
-      setName(editTarget.name);
-      setColor(editTarget.color ?? "");
-    } else {
-      setName("");
-      setColor("");
-    }
-  }, [isOpen, editTarget]);
+  const [name, setName] = useState(editTarget?.name ?? "");
+  const [color, setColor] = useState(editTarget?.color ?? "");
 
   const isEdit = !!editTarget;
   const isBusy = createMut.isPending || updateMut.isPending;
@@ -165,14 +151,5 @@ const FolderFormDialog: React.FC<ModalProps<boolean> & FolderFormProps> = ({
     </Dialog>
   );
 };
-
-export function FolderFormDialogRegistration() {
-  useThisModal({
-    id: FOLDER_FORM_MODAL_ID,
-    component: FolderFormDialog,
-    module: "sidebar",
-  });
-  return null;
-}
 
 export default FolderFormDialog;

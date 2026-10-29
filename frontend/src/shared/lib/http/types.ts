@@ -10,6 +10,7 @@ export interface ApiErrorBody {
   path: string;
   details?: { field: string; message: string }[];
   attemptsLeft?: number;
+  retryAfter?: number;
 }
 
 export class ApiError extends Error {
@@ -20,6 +21,7 @@ export class ApiError extends Error {
   public readonly path: string;
   public readonly details?: { field: string; message: string }[];
   public readonly attemptsLeft?: number;
+  public readonly retryAfter?: number;
 
   constructor(error: ApiErrorBody) {
     super(error.message);
@@ -31,5 +33,6 @@ export class ApiError extends Error {
     this.path = error.path;
     this.details = error.details;
     this.attemptsLeft = error.attemptsLeft;
+    this.retryAfter = error.retryAfter;
   }
 }

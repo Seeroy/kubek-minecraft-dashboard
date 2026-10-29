@@ -2,7 +2,6 @@
 import { useNotifications } from "@/modules/notifications";
 import type { Server } from "@/modules/server";
 import { useRenameServerMutation } from "@/modules/server";
-import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { ModalProps } from "@/shared/types/modal.types";
 import { Button } from "@/shared/ui/button";
@@ -15,13 +14,11 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Pencil, TriangleAlert } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export interface RenameServerProps {
   server: Server;
 }
-
-export const RENAME_SERVER_MODAL_ID = "sidebar/rename-server";
 
 declare module "@/shared/types/modal-registry" {
   interface ModalRegistry {
@@ -35,16 +32,12 @@ const RenameServerDialog: React.FC<ModalProps<boolean> & RenameServerProps> = ({
   server,
 }) => {
   const { t: tRoot } = useTranslation("modules.sidebar.serversList");
-  const t = (key: string, ...args: any[]) =>
+  const t = (key: string, ...args: unknown[]) =>
     tRoot(`dialogs.rename.${key}`, ...args);
   const { notify } = useNotifications();
   const mutation = useRenameServerMutation();
 
-  const [name, setName] = useState("");
-
-  useEffect(() => {
-    if (isOpen && server) setName(server.name);
-  }, [isOpen, server]);
+  const [name, setName] = useState(server?.name ?? "");
 
   const trimmed = name.trim();
   const isBusy = mutation.isPending;
@@ -61,11 +54,11 @@ const RenameServerDialog: React.FC<ModalProps<boolean> & RenameServerProps> = ({
         duration: 4000,
       });
       onClose(true);
-    } catch (e: any) {
+    } catch (e) {
       notify({
         type: "error",
         title: t("errorTitle"),
-        message: e?.message,
+        message: e instanceof Error ? e.message : undefined,
         icon: TriangleAlert,
       });
     }
@@ -117,14 +110,5 @@ const RenameServerDialog: React.FC<ModalProps<boolean> & RenameServerProps> = ({
     </Dialog>
   );
 };
-
-export function RenameServerDialogRegistration() {
-  useThisModal({
-    id: RENAME_SERVER_MODAL_ID,
-    component: RenameServerDialog,
-    module: "sidebar",
-  });
-  return null;
-}
 
 export default RenameServerDialog;

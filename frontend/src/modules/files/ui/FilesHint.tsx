@@ -10,7 +10,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/shared/ui/popover";
-import { Archive, Lightbulb, Upload } from "lucide-react";
+import { Archive, Info, Upload } from "lucide-react";
 
 /** Discoverability popover surfacing the file manager's non-obvious interactions */
 const FilesHint = () => {
@@ -21,8 +21,8 @@ const FilesHint = () => {
     <Popover>
       <PopoverTrigger
         render={
-          <Button variant="ghost" size="icon-sm" aria-label={t("ui.files.tips.button")}>
-            <Lightbulb className="h-4 w-4" />
+          <Button variant="ghost" size="icon" aria-label={t("ui.files.tips.button")} title={t("ui.files.tips.button")}>
+            <Info />
           </Button>
         }
       />
@@ -31,7 +31,7 @@ const FilesHint = () => {
           <PopoverTitle>{t("ui.files.tips.title")}</PopoverTitle>
         </PopoverHeader>
 
-        <ul className="flex flex-col gap-3 text-sm">
+        <ul className="flex flex-col gap-2.5 text-[13px]">
           <li className="flex items-center gap-3">
             <span className="flex shrink-0 items-center gap-1">
               <Kbd>{mod}</Kbd>
@@ -53,13 +53,13 @@ const FilesHint = () => {
             </span>
           </li>
           <li className="flex items-center gap-3">
-            <Archive className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Archive className="size-4 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">
               {t("ui.files.tips.archive")}
             </span>
           </li>
           <li className="flex items-center gap-3">
-            <Upload className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Upload className="size-4 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">
               {t("ui.files.tips.dragUpload")}
             </span>

@@ -1,9 +1,18 @@
+import type { AccessMap } from "../access/areas";
+import type { UserAccess } from "../access/can";
+
 export interface IUser {
   id: string;
   username: string;
   password: string;
-  secret: string;
-  permissions: UserPermissions[];
+  /** Assigned role ids */
+  roles: string[];
+  /** Personal levels on top of the roles */
+  grants: AccessMap;
+  /** Personal extension permission keys */
+  extPermissions: string[];
+  /** Effective access from roles and personal grants, computed on read */
+  access: UserAccess;
   serversRestrict: UserServersRestrict;
   isAdmin?: boolean;
   oobeCompleted?: boolean;
@@ -11,11 +20,14 @@ export interface IUser {
   totpEnabled?: boolean;
   telegram2faEnabled?: boolean;
   twofaPrimary?: TwoFactorMethod | null;
-  notifyTaskResults?: boolean;
   /** Serialized dashboard layout (widget visibility + grid positions per breakpoint) */
   dashboardLayout?: string | null;
   /** Panel version for which this user last saw the what's-new modal */
   lastSeenWhatsNewVersion?: string | null;
+  /** Minecraft nickname whose skin is shown as the avatar, username is used when empty */
+  skinName?: string | null;
+  /** When the FTP password was set, null if there's none */
+  ftpPasswordSetAt?: number | null;
 }
 
 export type TwoFactorMethod = "totp" | "telegram";
@@ -25,18 +37,3 @@ export interface UserServersRestrict {
   allowed: string[];
 }
 
-export enum UserPermissions {
-  ACCOUNTS_MANAGEMENT = "accounts_mgr",
-  FILE_MANAGER = "file_manager",
-  SERVERS_VIEW = "servers_view",
-  SERVERS_CONTROL = "servers_control",
-  SERVERS_CONFIGURE = "servers_configure",
-  CREATE_SERVERS = "servers_create",
-  MANAGE_JAVA = "java_mgr",
-  MANAGE_PLUGINS = "plugins_mgr",
-  KUBEK_SETTINGS = "kubek_settings",
-  BACKUPS = "backups",
-  SYSTEM_MONITORING = "system_monitoring",
-  SCHEDULER_MANAGEMENT = "scheduler_mgr",
-  AUDIT_LOG = "audit_log",
-}

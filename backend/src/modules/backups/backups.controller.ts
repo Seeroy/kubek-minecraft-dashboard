@@ -1,111 +1,111 @@
+import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
+import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { TaskRefResponseDto } from "@/core/dto/task-ref-response.dto";
-import { Audit } from "@/modules/audit-log/audit.decorator";
+import { canAccessServer } from "@/core/utils/serverAccess";
+import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
 import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
+  Patch,
   Post,
-  Req,
   Res,
   UseGuards,
 } from "@nestjs/common";
 import {
   ApiAcceptedResponse,
   ApiBearerAuth,
-  ApiExtension,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
-  ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
+import type { Backup } from "@shared/types/backup.types";
 import type { IUser } from "@shared/types/user.types";
-import { UserPermissions } from "@shared/types/user.types";
 import type { Request, Response } from "express";
 import { CheckServerAccess } from "../auth/decorators/check-server-access.decorator";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { RequirePermissions } from "../auth/decorators/require-permissions.decorator";
 import { BearerAuthGuard } from "../auth/guards/bearer.guard";
-import { PermissionsGuard } from "../auth/guards/permission.guard";
+import { BackupCreatorService } from "./backup-creator.service";
 import { BackupsService } from "./backups.service";
+import { BackupStoragesService } from "./storage/backup-storages.service";
+import {
+  DownloadUrlDto,
+  PinBackupDto,
+  UploadBackupDto,
+} from "./dto/backup-actions.dto";
 import { BackupOperationResponseDto } from "./dto/backup-operation-response.dto";
 import { BackupEntity } from "./dto/backup.entity";
 import { CreateBackupDto } from "./dto/create-backup.dto";
 
+// Handlers name the backup and its server through auditNote
+const backupAudit = (action: string) =>
+  Audit({ action, category: AuditCategory.SERVER, resourceType: "backup" });
+
+const createDetails = (req: Request) => {
+  const body = (req.body ?? {}) as Partial<CreateBackupDto>;
+  return {
+    type: body.type,
+    description: body.description,
+    files: body.selectedFiles?.length,
+  };
+};
+
 @ApiTags("Backups")
 @ApiBearerAuth()
 @Controller("api/backups")
-@UseGuards(BearerAuthGuard, PermissionsGuard, ServerAccessGuard)
+@UseGuards(BearerAuthGuard, AccessGuard, ServerAccessGuard)
+@RequireAccess(AccessArea.BACKUPS, "read")
 export class BackupsController {
-  constructor(private readonly backupsService: BackupsService) {}
+  constructor(
+    private readonly backups: BackupsService,
+    private readonly creator: BackupCreatorService,
+    private readonly storages: BackupStoragesService,
+  ) {}
 
   @Get()
-  @ApiOperation({ summary: "Get all backups" })
+  @ApiOperation({ summary: "Backups of every server the user can access" })
   @ApiOkResponse({ type: [BackupEntity] })
-  @ApiErrorResponses()
-  @RequirePermissions(UserPermissions.BACKUPS)
-  @ApiExtension("x-permissions", [UserPermissions.BACKUPS])
-  @ApiResponse({ status: 403, description: "Requires BACKUPS permission" })
-  getAllBackups(): BackupEntity[] {
-    return this.backupsService.findAll();
+  @ApiErrorResponses([401, 403])
+  list(@CurrentUser() user: IUser): Backup[] {
+    return this.backups
+      .findAll()
+      .filter((b) => canAccessServer(user, b.serverId));
   }
 
   @Get("server/:serverId")
-  @ApiOperation({ summary: "Get backups for a server" })
-  @ApiParam({
-    name: "serverId",
-    description: "Server ID",
-    example: "server-123",
-  })
-  @ApiOkResponse({ type: [BackupEntity] })
-  @ApiErrorResponses()
-  @RequirePermissions(UserPermissions.BACKUPS)
   @CheckServerAccess("serverId")
-  @ApiExtension("x-permissions", [UserPermissions.BACKUPS])
-  @ApiResponse({
-    status: 403,
-    description: "Requires BACKUPS permission and server access",
-  })
-  getServerBackups(@Param("serverId") serverId: string): BackupEntity[] {
-    return this.backupsService.findByServerId(serverId);
+  @ApiOperation({ summary: "Backups of a server" })
+  @ApiOkResponse({ type: [BackupEntity] })
+  @ApiErrorResponses([401, 403])
+  listForServer(@Param("serverId") serverId: string): Backup[] {
+    return this.backups.findByServerId(serverId);
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Get backup by ID" })
-  @ApiParam({ name: "id", description: "Backup ID", example: "backup-123" })
+  @ApiOperation({ summary: "Get a backup" })
   @ApiOkResponse({ type: BackupEntity })
-  @ApiErrorResponses()
-  @ApiResponse({ status: 404, description: "Backup not found" })
-  @RequirePermissions(UserPermissions.BACKUPS)
-  @ApiExtension("x-permissions", [UserPermissions.BACKUPS])
-  @ApiResponse({ status: 403, description: "Requires BACKUPS permission" })
-  getBackup(@Param("id") id: string): BackupEntity | null {
-    return this.backupsService.findById(id);
+  @ApiErrorResponses([401, 403, 404])
+  get(@Param("id") id: string, @CurrentUser() user: IUser): Backup {
+    return this.access(user, id);
   }
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: "Create a new backup" })
-  @ApiAcceptedResponse({
-    description: "Backup creation started",
-    type: BackupOperationResponseDto,
-  })
-  @ApiErrorResponses()
-  @ApiResponse({ status: 400, description: "Invalid backup data" })
-  @RequirePermissions(UserPermissions.BACKUPS)
+  @RequireAccess(AccessArea.BACKUPS, "write")
   @CheckServerAccess("serverId")
-  @ApiExtension("x-permissions", [UserPermissions.BACKUPS])
-  @ApiResponse({
-    status: 403,
-    description: "Requires BACKUPS permission and server access",
-  })
+  @ApiOperation({ summary: "Create a backup" })
+  @ApiAcceptedResponse({ type: BackupOperationResponseDto })
+  @ApiErrorResponses([400, 401, 403, 404])
   @Audit({
     action: AuditAction.BACKUP_CREATE,
     category: AuditCategory.SERVER,
@@ -113,113 +113,133 @@ export class BackupsController {
     resolve: ({ req, result }) => ({
       resourceId: result?.backup?.id,
       resourceName: req.body?.name,
-      details: { serverId: req.body?.serverId, type: req.body?.type },
+      details: createDetails(req),
     }),
     resolveError: ({ req }) => ({
       resourceName: req.body?.name,
-      details: { serverId: req.body?.serverId },
+      details: createDetails(req),
     }),
   })
-  createBackup(
+  create(
     @Body() dto: CreateBackupDto,
     @CurrentUser() user: IUser,
-  ): Promise<BackupOperationResponseDto> {
-    return this.backupsService.createBackup(dto, user.id);
+  ): BackupOperationResponseDto {
+    return this.creator.create(dto, user.id);
   }
 
   @Post(":id/restore")
   @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: "Restore a backup" })
-  @ApiParam({ name: "id", description: "Backup ID", example: "backup-123" })
-  @ApiAcceptedResponse({
-    description: "Backup restoration started",
-    type: TaskRefResponseDto,
-  })
-  @ApiErrorResponses()
-  @ApiResponse({ status: 404, description: "Backup not found" })
-  @RequirePermissions(UserPermissions.BACKUPS)
-  @CheckServerAccess("id")
-  @ApiExtension("x-permissions", [UserPermissions.BACKUPS])
-  @ApiResponse({
-    status: 403,
-    description: "Requires BACKUPS permission and server access",
-  })
-  @Audit({
-    action: AuditAction.BACKUP_RESTORE,
-    category: AuditCategory.SERVER,
-    resourceType: "backup",
-    resolve: ({ req }) => ({
-      resourceName: (req as Request & { auditBackupName?: string })
-        .auditBackupName,
-    }),
-  })
-  restoreBackup(
+  @RequireAccess(AccessArea.BACKUPS, "manage")
+  @ApiOperation({ summary: "Restore a backup, the server must be stopped" })
+  @ApiAcceptedResponse({ type: TaskRefResponseDto })
+  @ApiErrorResponses([400, 401, 403, 404, 409])
+  @backupAudit(AuditAction.BACKUP_RESTORE)
+  restore(
     @Param("id") id: string,
     @CurrentUser() user: IUser,
-    @Req() req: Request & { auditBackupName?: string },
-  ): Promise<TaskRefResponseDto> {
-    req.auditBackupName = this.backupsService.findById(id)?.name;
-    return this.backupsService.restoreBackup(id, user.id);
+    @Res({ passthrough: true }) res: Response,
+  ): TaskRefResponseDto {
+    this.remember(res, this.access(user, id));
+    return this.backups.restore(id, user.id);
+  }
+
+  @Post(":id/upload")
+  @HttpCode(HttpStatus.ACCEPTED)
+  @RequireAccess(AccessArea.BACKUPS, "write")
+  @ApiOperation({ summary: "Upload the local archive to a remote storage" })
+  @ApiAcceptedResponse({ type: TaskRefResponseDto })
+  @ApiErrorResponses([400, 401, 403, 404])
+  @backupAudit(AuditAction.BACKUP_UPLOAD)
+  upload(
+    @Param("id") id: string,
+    @Body() dto: UploadBackupDto,
+    @CurrentUser() user: IUser,
+    @Res({ passthrough: true }) res: Response,
+  ): TaskRefResponseDto {
+    this.remember(res, this.access(user, id));
+    auditNote(res.req, {
+      details: { storage: this.storageName(dto.storageId) },
+    });
+    return this.backups.upload(id, dto.storageId, user.id);
+  }
+
+  @Patch(":id/pin")
+  @RequireAccess(AccessArea.BACKUPS, "write")
+  @ApiOperation({ summary: "Pin or unpin a backup" })
+  @ApiOkResponse({ type: BackupEntity })
+  @ApiErrorResponses([400, 401, 403, 404])
+  @backupAudit(AuditAction.BACKUP_PIN)
+  pin(
+    @Param("id") id: string,
+    @Body() dto: PinBackupDto,
+    @CurrentUser() user: IUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Backup {
+    this.remember(res, this.access(user, id));
+    auditNote(res.req, { details: { pinned: dto.pinned } });
+    return this.backups.setPinned(id, dto.pinned);
   }
 
   @Get(":id/download")
-  @ApiOperation({ summary: "Download backup file" })
-  @ApiParam({ name: "id", description: "Backup ID", example: "backup-123" })
-  @ApiResponse({
-    status: 200,
-    description: "Backup file download (binary archive stream)",
-  })
-  @ApiErrorResponses()
-  @ApiResponse({
-    status: 404,
-    description: "Backup not found or not available",
-  })
-  @RequirePermissions(UserPermissions.BACKUPS)
-  @CheckServerAccess("id")
-  @ApiExtension("x-permissions", [UserPermissions.BACKUPS])
-  @ApiResponse({
-    status: 403,
-    description: "Requires BACKUPS permission and server access",
-  })
-  async downloadBackup(
+  @ApiOperation({ summary: "Download the local archive" })
+  @ApiOkResponse({ description: "Archive stream" })
+  @ApiErrorResponses([400, 401, 403, 404])
+  download(
     @Param("id") id: string,
+    @CurrentUser() user: IUser,
     @Res() res: Response,
-  ): Promise<void> {
-    await this.backupsService.downloadBackup(id, res);
+  ): void {
+    this.access(user, id);
+    this.backups.download(id, res);
+  }
+
+  @Get(":id/download-url")
+  @ApiOperation({
+    summary: "Direct link to an archive kept only in a remote storage",
+  })
+  @ApiOkResponse({ type: DownloadUrlDto })
+  @ApiErrorResponses([400, 401, 403, 404])
+  downloadUrl(
+    @Param("id") id: string,
+    @CurrentUser() user: IUser,
+  ): DownloadUrlDto {
+    this.access(user, id);
+    return this.backups.downloadUrl(id);
   }
 
   @Delete(":id")
   @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: "Delete a backup" })
-  @ApiParam({ name: "id", description: "Backup ID", example: "backup-123" })
-  @ApiAcceptedResponse({
-    description: "Backup deletion started",
-    type: TaskRefResponseDto,
-  })
-  @ApiErrorResponses()
-  @ApiResponse({ status: 404, description: "Backup not found" })
-  @RequirePermissions(UserPermissions.BACKUPS)
-  @CheckServerAccess("id")
-  @ApiExtension("x-permissions", [UserPermissions.BACKUPS])
-  @ApiResponse({
-    status: 403,
-    description: "Requires BACKUPS permission and server access",
-  })
-  @Audit({
-    action: AuditAction.BACKUP_DELETE,
-    category: AuditCategory.SERVER,
-    resourceType: "backup",
-    resolve: ({ req }) => ({
-      resourceName: (req as Request & { auditBackupName?: string })
-        .auditBackupName,
-    }),
-  })
-  deleteBackup(
+  @RequireAccess(AccessArea.BACKUPS, "manage")
+  @ApiOperation({ summary: "Delete a backup with all its copies" })
+  @ApiAcceptedResponse({ type: TaskRefResponseDto })
+  @ApiErrorResponses([400, 401, 403, 404])
+  @backupAudit(AuditAction.BACKUP_DELETE)
+  remove(
     @Param("id") id: string,
     @CurrentUser() user: IUser,
-    @Req() req: Request & { auditBackupName?: string },
-  ): Promise<TaskRefResponseDto> {
-    req.auditBackupName = this.backupsService.findById(id)?.name;
-    return this.backupsService.deleteBackup(id, user.id);
+    @Res({ passthrough: true }) res: Response,
+  ): TaskRefResponseDto {
+    this.remember(res, this.access(user, id));
+    return this.backups.delete(id, user.id);
+  }
+
+  // The route id is a backup, access is checked against the server it belongs to
+  private access(user: IUser, id: string): Backup {
+    const backup = this.backups.findById(id);
+    if (!backup) throw new NotFoundException("Backup not found");
+    if (!canAccessServer(user, backup.serverId))
+      throw new ForbiddenException("No access to this server");
+    return backup;
+  }
+
+  private remember(res: Response, backup: Backup): void {
+    auditNote(res.req, {
+      resourceName: backup.name,
+      serverId: backup.serverId,
+    });
+  }
+
+  private storageName(id: string): string {
+    return this.storages.list().find((s) => s.id === id)?.name ?? id;
   }
 }

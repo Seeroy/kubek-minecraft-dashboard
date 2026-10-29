@@ -1,3 +1,5 @@
+import type { ModrinthDependencyType } from "./modrinth.types";
+
 export interface ServerPluginRecord {
   id: string;
   serverId: string;
@@ -59,14 +61,13 @@ export interface ModrinthFileArtifact {
     [key: string]: string | undefined;
   };
   fileType?: string;
-  file_type?: string;
   size?: number;
 }
 
 export interface ModrinthDependency {
   projectId?: string;
   versionId?: string;
-  dependencyType: "required" | "optional" | "incompatible" | "embedded";
+  dependencyType: ModrinthDependencyType;
   fileName?: string;
 }
 

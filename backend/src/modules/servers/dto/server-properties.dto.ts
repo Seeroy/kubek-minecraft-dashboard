@@ -10,6 +10,7 @@ export class ServerPropertiesDto {
       "online-mode": "true",
     },
   })
+  // Non-string scalars are stringified when the file is written
   @IsObject()
-  properties!: Record<string, string>;
+  properties!: Record<string, unknown>;
 }

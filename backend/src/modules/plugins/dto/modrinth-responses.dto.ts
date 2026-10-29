@@ -205,11 +205,13 @@ export class ModrinthVersionFileDto {
   })
   hashes: Record<string, string | undefined>;
 
-  @ApiProperty({ required: false, description: "File type" })
-  fileType?: string;
-
-  @ApiProperty({ required: false, description: "Alternative file type field" })
-  file_type?: string;
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+    description: "File type",
+  })
+  file_type?: string | null;
 
   @ApiProperty({ required: false, description: "File size in bytes" })
   size?: number;
@@ -217,20 +219,35 @@ export class ModrinthVersionFileDto {
 
 /** A dependency declared by a Modrinth version */
 export class ModrinthVersionDependencyDto {
-  @ApiProperty({ required: false, description: "Dependency project id" })
-  project_id?: string;
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+    description: "Dependency project id",
+  })
+  project_id?: string | null;
 
-  @ApiProperty({ required: false, description: "Dependency version id" })
-  version_id?: string;
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+    description: "Dependency version id",
+  })
+  version_id?: string | null;
 
   @ApiProperty({
     enum: ["required", "optional", "incompatible", "embedded"],
     description: "Dependency relation",
   })
-  dependencyType: "required" | "optional" | "incompatible" | "embedded";
+  dependency_type: "required" | "optional" | "incompatible" | "embedded";
 
-  @ApiProperty({ required: false, description: "Bundled file name" })
-  fileName?: string;
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+    description: "Bundled file name",
+  })
+  file_name?: string | null;
 }
 
 /** Full Modrinth version details */

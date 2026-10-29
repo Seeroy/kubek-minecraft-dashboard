@@ -19,22 +19,20 @@ export const velocity = {
     kind: "native",
   },
   dockerProfile: {
-    image: "itzg/minecraft-server:{{JAVA_IMAGE_TAG}}",
+    // The minecraft-server image has no proxy types, mc-proxy runs in the working dir
+    image: "itzg/mc-proxy:{{JAVA_IMAGE_TAG}}",
     stdinOpen: true,
     stop: {
       type: "signal:SIGTERM",
     },
     env: {
-      EULA: "TRUE",
       TYPE: "VELOCITY",
-      VERSION: "{{GAME_VERSION}}",
+      VELOCITY_VERSION: "{{GAME_VERSION}}",
       MAX_MEMORY: "{{XMX}}M",
       INIT_MEMORY: "{{XMS}}M",
       JVM_OPTS: "{{JVM_ARGS}}",
-      SERVER_PORT: "{{SERVER_PORT}}",
-      OVERRIDE_SERVER_PROPERTIES: "false",
-      PUID: "{{HOST_UID}}",
-      PGID: "{{HOST_GID}}",
+      UID: "{{HOST_UID}}",
+      GID: "{{HOST_GID}}",
     },
   },
   variables: [

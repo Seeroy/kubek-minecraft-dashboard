@@ -1,3 +1,4 @@
+import type { CreateServerFolderProps } from "@shared/types/server/folder.types";
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsInt,
@@ -7,7 +8,7 @@ import {
   MinLength,
 } from "class-validator";
 
-export class CreateFolderDto {
+export class CreateFolderDto implements CreateServerFolderProps {
   @ApiProperty({ example: "Production" })
   @IsString()
   @MinLength(1)

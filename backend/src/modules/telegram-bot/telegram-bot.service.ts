@@ -4,33 +4,89 @@ import { ConfigService } from "@/modules/config/config.service";
 import { autoRetry } from "@grammyjs/auto-retry";
 import { limit } from "@grammyjs/ratelimiter";
 import { run } from "@grammyjs/runner";
-import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
-import type { ITelegramUser, TelegramLang } from "@/modules/telegram-bot/telegram.types";
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
+import type {
+  ITelegramUser,
+  TelegramLang,
+} from "@/modules/telegram-bot/telegram.types";
 import { Bot, GrammyError, session } from "grammy";
 import { languageKeyboard } from "./bot-keyboards";
 import { BotLinkingService } from "./bot-linking.service";
 import { replyOrEdit } from "./bot-reply";
-import { BotTwofaService, type TwofaResolver } from "./bot-twofa.service";
+import { BotTwofaService } from "./bot-twofa.service";
 import type { MyContext, SessionData } from "./bot-types";
 import { BotUsersService } from "./bot-users.service";
 import { BotViewsService, type ServerControlAction } from "./bot-views.service";
 import { CreateServerWizard } from "./create-server-wizard.service";
 import { SUPPORTED_LANGS, t } from "./i18n";
-import { NotificationService } from "./notification.service";
+import { TelegramNotifier } from "./telegram-notifier";
 
-export type { TwofaResolver };
+export interface BotInfo {
+  id?: number;
+  name: string;
+  username: string;
+  hasAvatar?: boolean;
+  error?: string;
+}
+
+interface CallbackScope {
+  ctx: MyContext;
+  lang: TelegramLang;
+  data: string;
+  /** Callback data without the route prefix */
+  rest: string;
+}
+
+interface LinkedCallbackScope extends CallbackScope {
+  tgUser: ITelegramUser;
+}
+
+type CallbackRoute<S> = {
+  /** Exact match, or prefix if it ends with ":" */
+  match: string;
+  handle: (scope: S) => Promise<void>;
+};
+
+// Whole data, or its start for routes ending with ":"
+function findRoute<S>(
+  routes: CallbackRoute<S>[],
+  data: string,
+): { route: CallbackRoute<S>; rest: string } | null {
+  for (const route of routes) {
+    if (
+      route.match.endsWith(":")
+        ? data.startsWith(route.match)
+        : data === route.match
+    ) {
+      return { route, rest: data.slice(route.match.length) };
+    }
+  }
+  return null;
+}
 
 /**
  * Telegram bot orchestrator
  */
 @Injectable()
 export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(TelegramBotService.name);
   private bot: Bot<MyContext> | null = null;
   private runner: ReturnType<typeof run> | null = null;
+  // Pending start, info requests wait for it instead of reporting "not started"
+  private starting: Promise<void> | null = null;
+  // Why the last start failed, shown instead of a bare "not started"
+  private startError: string | null = null;
+  private avatar: { fileUniqueId: string; data: Buffer; mime: string } | null =
+    null;
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly notificationService: NotificationService,
+    private readonly notifier: TelegramNotifier,
     private readonly users: BotUsersService,
     private readonly views: BotViewsService,
     private readonly linking: BotLinkingService,
@@ -39,24 +95,33 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    void this.initializeBot();
+    void this.start(1200);
+  }
+
+  private start(delayMs = 0): Promise<void> {
+    const starting = this.initializeBot(delayMs).finally(() => {
+      if (this.starting === starting) this.starting = null;
+    });
+    this.starting = starting;
+    return starting;
   }
 
   onModuleDestroy() {
     if (this.runner) {
-      this.runner.stop();
+      void this.runner.stop();
       this.runner = null;
     }
     if (this.bot) {
       this.bot = null;
-      this.notificationService.setBot(null);
+      this.notifier.setBot(null);
       this.twofa.setBot(null);
     }
   }
 
-  private async initializeBot() {
+  private async initializeBot(delayMs: number) {
+    this.startError = null;
     try {
-      await asyncTimeout(1200);
+      if (delayMs > 0) await asyncTimeout(delayMs);
 
       const telegramConfig = this.configService.get("telegramBot");
       if (!telegramConfig.enabled || !telegramConfig.token) return;
@@ -71,28 +136,30 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
       this.registerMessageHandlers();
 
       this.bot.catch((err) =>
-        console.error("[TelegramBot] Handler error:", err),
+        this.logger.error(`Handler error: ${getErrorMessage(err.error)}`),
       );
 
       await this.bot.init();
       await this.publishCommands();
       this.runner = run(this.bot);
     } catch (error: unknown) {
-      console.error(
-        "[TelegramBot] Failed to start bot:",
-        error instanceof GrammyError
-          ? error.error_code
-          : getErrorMessage(error),
+      this.logger.error(
+        `Failed to start bot: ${
+          error instanceof GrammyError
+            ? error.error_code
+            : getErrorMessage(error)
+        }`,
       );
       if (error instanceof GrammyError && error.error_code === 401) {
-        console.error(
-          "[TelegramBot] Invalid bot token provided. Bot will not start.",
-        );
+        this.logger.error("Invalid bot token provided. Bot will not start.");
+        this.startError = "Invalid bot token";
+      } else {
+        this.startError = "Network error or service unavailable";
       }
       this.bot = null;
     }
 
-    this.notificationService.setBot(this.bot);
+    this.notifier.setBot(this.bot);
     this.twofa.setBot(this.bot);
   }
 
@@ -100,12 +167,12 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
   private async publishCommands() {
     if (!this.bot) return;
     const build = (lang: TelegramLang) =>
-      (["start", "help", "servers", "language", "unlink"] as const).map(
-        (command) => ({
-          command,
-          description: t(lang, `commands.${command}`),
-        }),
-      );
+      (
+        ["start", "help", "servers", "status", "language", "unlink"] as const
+      ).map((command) => ({
+        command,
+        description: t(lang, `commands.${command}`),
+      }));
     try {
       await this.bot.api.setMyCommands(build("en"));
       await this.bot.api.setMyCommands(build("ru"), { language_code: "ru" });
@@ -171,7 +238,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
       const lang = this.users.langFor(ctx);
       const tgUser = this.users.getActiveUser(ctx);
       if (!tgUser) return void ctx.reply(t(lang, "unlink.notLinked"));
-      this.linking.deactivate(tgUser.id);
+      this.linking.unlinkSelf(tgUser);
       await ctx.reply(t(lang, "unlink.done"));
     });
   }
@@ -180,6 +247,75 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
   /// Callback queries
   ///
 
+  // Before the link check, the 2FA resolver checks the user itself
+  private readonly publicRoutes: CallbackRoute<CallbackScope>[] = [
+    {
+      match: "2fa:",
+      handle: ({ ctx, lang, data }) =>
+        this.twofa.handleCallback(ctx, lang, data),
+    },
+    {
+      match: "menu:lang",
+      handle: async ({ ctx, lang }) => {
+        await replyOrEdit(
+          ctx,
+          true,
+          t(lang, "language.choose"),
+          languageKeyboard(),
+        );
+        await ctx.answerCallbackQuery();
+      },
+    },
+    {
+      match: "lang:",
+      handle: ({ ctx, rest }) => this.handleLanguageChange(ctx, rest),
+    },
+  ];
+
+  // start/stop/restart answer the query with their own result
+  private readonly controlRoutes: CallbackRoute<LinkedCallbackScope>[] = (
+    ["start", "stop", "restart"] as const
+  ).map((action: ServerControlAction) => ({
+    match: `srv:${action}:`,
+    handle: ({ ctx, lang, tgUser, rest }) =>
+      this.views.handleServerAction(ctx, lang, tgUser, rest, action),
+  }));
+
+  // Router answers with an empty ack, or an error toast if it fails
+  private readonly linkedRoutes: CallbackRoute<LinkedCallbackScope>[] = [
+    {
+      match: "wiz:",
+      handle: ({ ctx, lang, tgUser, rest }) =>
+        this.wizard.onCallback(ctx, lang, tgUser.userId, rest),
+    },
+    {
+      match: "menu",
+      handle: ({ ctx, lang }) => this.views.sendMainMenu(ctx, lang, true),
+    },
+    {
+      match: "srv:page:",
+      handle: ({ ctx, lang, tgUser, rest }) =>
+        this.views.sendServersPage(
+          ctx,
+          lang,
+          tgUser.userId,
+          Number(rest.split(":")[0]) || 0,
+          true,
+        ),
+    },
+    {
+      match: "srv:status:",
+      handle: ({ ctx, lang, tgUser, rest }) =>
+        this.views.sendServerStatus(
+          ctx,
+          lang,
+          tgUser.userId,
+          rest.split(":")[0],
+          true,
+        ),
+    },
+  ];
+
   private registerCallbackHandlers() {
     if (!this.bot) return;
 
@@ -187,71 +323,39 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
       const data = ctx.callbackQuery.data;
       const lang = this.users.langFor(ctx);
 
-      // 2FA approval is handled before the link check (resolver enforces mapping)
-      if (data.startsWith("2fa:")) {
-        await this.twofa.handleCallback(ctx, lang, data);
-        return;
-      }
-
-      // Language can be changed before/without an active link
-      if (data === "menu:lang") {
-        await replyOrEdit(
-          ctx,
-          true,
-          t(lang, "language.choose"),
-          languageKeyboard(),
-        );
-        return void ctx.answerCallbackQuery();
-      }
-      if (data.startsWith("lang:")) {
-        await this.handleLanguageChange(ctx, data.slice("lang:".length));
-        return;
-      }
+      const open = findRoute(this.publicRoutes, data);
+      if (open) return open.route.handle({ ctx, lang, data, rest: open.rest });
 
       const tgUser = this.users.getActiveUser(ctx);
       if (!tgUser) {
         return void ctx.answerCallbackQuery(t(lang, "common.linkFirst"));
       }
 
+      const control = findRoute(this.controlRoutes, data);
+      if (control && control.rest) {
+        return control.route.handle({
+          ctx,
+          lang,
+          data,
+          tgUser,
+          rest: control.rest,
+        });
+      }
+
       try {
-        if (data.startsWith("wiz:")) {
-          await this.wizard.onCallback(
+        const linked = findRoute(this.linkedRoutes, data);
+        if (linked) {
+          await linked.route.handle({
             ctx,
             lang,
-            tgUser.userId,
-            data.slice("wiz:".length),
-          );
-        } else if (data === "menu") {
-          await this.views.sendMainMenu(ctx, lang, true);
-        } else if (data.startsWith("srv:page:")) {
-          await this.views.sendServersPage(
-            ctx,
-            lang,
-            tgUser.userId,
-            Number(data.split(":")[2]) || 0,
-            true,
-          );
-        } else if (data.startsWith("srv:status:")) {
-          await this.views.sendServerStatus(
-            ctx,
-            lang,
-            tgUser.userId,
-            data.split(":")[2],
-            true,
-          );
-        } else if (/^srv:(start|stop|restart):/.test(data)) {
-          const [, action, serverId] = data.split(":");
-          await this.views.handleServerAction(
-            ctx,
-            lang,
+            data,
             tgUser,
-            serverId,
-            action as ServerControlAction,
-          );
+            rest: linked.rest,
+          });
         }
         await ctx.answerCallbackQuery();
       } catch (error) {
-        console.error("[TelegramBot] Callback error:", error);
+        this.logger.error(`Callback error: ${getErrorMessage(error)}`);
         await ctx.answerCallbackQuery(t(lang, "common.error"));
       }
     });
@@ -294,58 +398,20 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
   }
 
   ///
-  /// Public API (controller / 2FA / settings)
+  /// Public API (settings)
   ///
 
-  generateOtp(userId: string): { otp: string; expiresAt: number } {
-    return this.linking.generateOtp(userId);
-  }
-
-  validateOtp(userId: string, otpCode: string): boolean {
-    return this.linking.validateOtp(userId, otpCode);
-  }
-
-  getLinkedUsers(): Array<{
-    telegramUser: ITelegramUser;
-    accountName: string;
-  }> {
-    return this.linking.getLinkedUsers();
-  }
-
-  unlinkUser(_adminUserId: string, telegramId: number): void {
-    this.linking.unlinkUser(telegramId);
-  }
-
-  setTwofaResolver(resolver: TwofaResolver | null): void {
-    this.twofa.setTwofaResolver(resolver);
-  }
-
-  sendApprovalRequest(
-    userId: string,
-    challengeId: string,
-    meta: { username: string; ip: string | null; userAgent: string | null },
-  ): Promise<{ chatId: number; messageId: number } | null> {
-    return this.twofa.sendApprovalRequest(userId, challengeId, meta);
-  }
-
-  restartBot() {
+  restartBot(): Promise<void> {
     if (this.runner) {
-      this.runner.stop();
+      void this.runner.stop();
       this.runner = null;
     }
     this.bot = null;
-    void this.initializeBot();
+    this.avatar = null;
+    return this.start();
   }
 
-  isBotReady(): boolean {
-    return this.bot !== null;
-  }
-
-  async getBotInfo(): Promise<{
-    name: string;
-    username: string;
-    error?: string;
-  }> {
+  async getBotInfo(): Promise<BotInfo> {
     const telegramConfig = this.configService.get("telegramBot");
     if (!telegramConfig.enabled || !telegramConfig.token) {
       return {
@@ -354,12 +420,25 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
         error: "Bot is not configured or disabled",
       };
     }
-    if (!this.bot) return { name: "", username: "", error: "Bot not started" };
+    if (this.starting) await this.starting;
+    if (!this.bot) {
+      return {
+        name: "",
+        username: "",
+        error: this.startError ?? "Bot not started",
+      };
+    }
     try {
-      const botInfo = await this.bot.api.getMe();
-      return { name: botInfo.first_name, username: botInfo.username || "" };
+      const me = await this.bot.api.getMe();
+      const avatar = await this.loadAvatar(me.id);
+      return {
+        id: me.id,
+        name: me.first_name,
+        username: me.username || "",
+        hasAvatar: !!avatar,
+      };
     } catch (error) {
-      console.error("[TelegramBot] Failed to get bot info:", error);
+      this.logger.error(`Failed to get bot info: ${getErrorMessage(error)}`);
       if (error instanceof GrammyError && error.error_code === 401) {
         return { name: "", username: "", error: "Invalid bot token" };
       }
@@ -368,6 +447,53 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
         username: "",
         error: "Network error or service unavailable",
       };
+    }
+  }
+
+  /** Bot profile photo, null when the bot has none */
+  async getBotAvatar(): Promise<{ data: Buffer; mime: string } | null> {
+    if (this.starting) await this.starting;
+    if (!this.bot) return null;
+    const me = await this.bot.api.getMe();
+    return this.loadAvatar(me.id);
+  }
+
+  // Smallest photo size is enough for a 30px avatar, cached until the photo changes
+  private async loadAvatar(
+    botId: number,
+  ): Promise<{ data: Buffer; mime: string } | null> {
+    if (!this.bot) return null;
+    try {
+      const photos = await this.bot.api.getUserProfilePhotos(botId, {
+        limit: 1,
+      });
+      const sizes = photos.photos[0];
+      if (!sizes?.length) {
+        this.avatar = null;
+        return null;
+      }
+      const photo =
+        sizes.find((p) => p.width >= 160) ?? sizes[sizes.length - 1];
+      if (this.avatar?.fileUniqueId === photo.file_unique_id)
+        return this.avatar;
+
+      const file = await this.bot.api.getFile(photo.file_id);
+      if (!file.file_path) return null;
+      // The token is part of the URL, the file is proxied so it never reaches the browser
+      const token = this.configService.get("telegramBot").token;
+      const response = await fetch(
+        `https://api.telegram.org/file/bot${token}/${file.file_path}`,
+      );
+      if (!response.ok) return null;
+      this.avatar = {
+        fileUniqueId: photo.file_unique_id,
+        data: Buffer.from(await response.arrayBuffer()),
+        mime: response.headers.get("content-type") || "image/jpeg",
+      };
+      return this.avatar;
+    } catch (error) {
+      this.logger.error(`Failed to load bot avatar: ${getErrorMessage(error)}`);
+      return null;
     }
   }
 }

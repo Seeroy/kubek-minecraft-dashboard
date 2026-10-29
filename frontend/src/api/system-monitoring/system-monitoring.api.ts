@@ -4,6 +4,7 @@ import type {
   CpuUsage,
   DiskInfo,
   NetworkInfo,
+  ServerStatsResponse,
   SystemInfo,
 } from "./system-monitoring.model";
 
@@ -24,6 +25,9 @@ export class SystemMonitoringApi {
 
   getCombinedMonitoringData = (): Promise<CombinedMonitoringData> =>
     this.authHttp.get<CombinedMonitoringData>("system-monitoring/combined");
+
+  getServerStats = (): Promise<ServerStatsResponse> =>
+    this.authHttp.get<ServerStatsResponse>("server-stats");
 }
 
 export const systemMonitoringApi = new SystemMonitoringApi(authHttp);

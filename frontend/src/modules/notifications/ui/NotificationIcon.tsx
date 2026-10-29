@@ -1,24 +1,9 @@
 "use client";
-import { cn } from "@/shared/lib/cn";
-import {
-  AlertTriangle,
-  Check,
-  Info,
-  LoaderCircle,
-  LucideIcon,
-  X,
-} from "lucide-react";
+import type { NotificationType } from "@/shared/types/toast.types";
+import { AlertTriangle, Check, Info, LoaderCircle, type LucideIcon, X } from "lucide-react";
 import Image from "next/image";
 
-const bgMap: Record<string, string> = {
-  info: "bg-blue-500",
-  success: "bg-emerald-500",
-  warning: "bg-amber-500",
-  error: "bg-red-500",
-  progress: "bg-slate-500",
-};
-
-const defaultIconMap: Record<string, LucideIcon> = {
+const iconByType: Record<NotificationType, LucideIcon> = {
   info: Info,
   success: Check,
   warning: AlertTriangle,
@@ -26,45 +11,15 @@ const defaultIconMap: Record<string, LucideIcon> = {
   progress: LoaderCircle,
 };
 
-export default function NotificationIcon({
-  icon,
-  type,
-}: {
-  icon?: LucideIcon | string;
-  type?: string;
-}) {
-  const t = type ?? "info";
-
-  // Custom image icon - render inside a neutral circle
+export default function NotificationIcon({ icon, type = "info" }: { icon?: LucideIcon | string; type?: NotificationType }) {
   if (typeof icon === "string") {
-    return (
-      <div className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-muted">
-        <Image
-          src={icon}
-          alt=""
-          width={36}
-          height={36}
-          className="size-full object-cover"
-        />
-      </div>
-    );
+    return <Image src={icon} alt="" width={32} height={32} className="relative size-8 shrink-0 rounded-full object-cover" />;
   }
 
-  const Icon = icon ?? defaultIconMap[t] ?? Info;
-  const spin = t === "progress" && !icon;
-
+  const Icon = icon ?? iconByType[type];
   return (
-    <div
-      className={cn(
-        "grid size-9 shrink-0 place-items-center rounded-full text-white shadow-sm",
-        bgMap[t] ?? bgMap.info
-      )}
-    >
-      <Icon
-        size={18}
-        strokeWidth={2.75}
-        className={spin ? "animate-spin" : ""}
-      />
-    </div>
+    <span className="relative grid size-8 shrink-0 place-items-center rounded-full bg-tone/16 text-tone">
+      <Icon data-spin={(type === "progress" && !icon) || undefined} className="size-4 stroke-[2.5] data-spin:animate-spin" />
+    </span>
   );
 }

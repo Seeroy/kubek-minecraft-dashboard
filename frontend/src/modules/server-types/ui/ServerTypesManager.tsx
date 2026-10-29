@@ -1,89 +1,149 @@
 "use client";
 
 import { useNotifications } from "@/modules/notifications";
-import { useLanguageContext } from "@/shared/context/language-context";
-import {
-  useBlueprints,
-  useRemoveBlueprintMutation,
-} from "@/modules/server-types/api/server-types.queries";
+import { useServerStore } from "@/modules/server";
+import { useTranslation } from "@/shared/hooks/useTranslation";
+import { confirmDialog } from "@/shared/modals";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import type { BlueprintSummary } from "@/shared/types/server-types.types";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
-import { PageLayout } from "@/shared/ui/PageLayout";
-import { Boxes, Loader2, Trash2, TriangleAlert } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { FileDropZone } from "@/shared/ui/file-drop-zone";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Plate } from "@/shared/ui/plate";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { Toggle } from "@/shared/ui/toggle";
+import { ToggleGroup } from "@/shared/ui/toggle-group";
+import { AccessArea } from "@shared/access/areas";
+import { Boxes, RotateCw, Search, Shield, Trash2, Upload } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useBlueprints, useInstallBlueprintMutation, useRemoveBlueprintMutation } from "../api/server-types.queries";
 import { BlueprintCard } from "./BlueprintCard";
-import { BlueprintSecurityNotice } from "./BlueprintSecurityNotice";
-import { BlueprintUploadZone } from "./BlueprintUploadZone";
+
+type Filter = "all" | BlueprintSummary["source"];
+const FILTERS: Filter[] = ["all", "bundled", "installed"];
 
 export const ServerTypesManager = () => {
+  const { t } = useTranslation("modules.serverTypes");
   const { notify } = useNotifications();
-  const { t } = useLanguageContext();
-  const isAdmin = useAuthStore((s) => s.user?.isAdmin ?? false);
-  const { data: blueprints, isLoading } = useBlueprints();
+  const canManage = useAuthStore((s) => s.can(AccessArea.INTEGRATIONS, "manage"));
+  const { servers } = useServerStore();
+  const blueprints = useBlueprints();
   const remove = useRemoveBlueprintMutation();
+  const install = useInstallBlueprintMutation();
+  const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
 
-  const handleRemove = async (bp: BlueprintSummary) => {
-    try {
-      await remove.mutateAsync(bp.id);
-      notify({
-        title: t("modules.serverTypes.notifications.removed"),
-        message: bp.name,
-        type: "success",
-        duration: 4000,
-        icon: Trash2,
-      });
-    } catch (error: unknown) {
-      notify({
-        title: t("modules.serverTypes.notifications.removeFailed"),
-        message:
-          error instanceof Error
-            ? error.message
-            : t("modules.serverTypes.notifications.removeError"),
-        type: "error",
-        duration: 8000,
-        icon: TriangleAlert,
-      });
-    }
+  const all = blueprints.data ?? [];
+  const usage = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const server of servers) if (server.blueprintId) counts.set(server.blueprintId, (counts.get(server.blueprintId) ?? 0) + 1);
+    return counts;
+  }, [servers]);
+  const q = query.trim().toLowerCase();
+  const shown = all.filter((bp) => (filter === "all" || bp.source === filter) && (!q || `${bp.name} ${bp.id}`.toLowerCase().includes(q)));
+  const count = (key: Filter) => (key === "all" ? all.length : all.filter((bp) => bp.source === key).length);
+
+  const confirmRemove = async (bp: BlueprintSummary) => {
+    const ok = await confirmDialog({
+      title: t("confirmRemove.title", bp.name),
+      description: t("confirmRemove.description"),
+      confirmText: t("confirmRemove.confirm"),
+      cancelText: t("confirmRemove.cancel"),
+      variant: "destructive",
+      icon: Trash2,
+    });
+    if (!ok) return;
+    await remove.mutateAsync(bp.id);
+    notify({ type: "success", title: t("toasts.removed", bp.name) });
   };
 
-  const list = blueprints ?? [];
-
   return (
-    <PageLayout>
-      <BlockHeader
-        kicker={t("modules.serverTypes.header.kicker")}
-        title={t("modules.serverTypes.header.title")}
-        description={t("modules.serverTypes.header.description")}
-        icon={Boxes}
-        color="blue"
+    <div className="stagger-enter grid gap-4">
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        className="mb-1"
+        actions={
+          <Button variant="outline" disabled={blueprints.isFetching} onClick={() => void blueprints.refetch()}>
+            <RotateCw className={blueprints.isFetching ? "animate-spin" : undefined} />
+            {t("refresh")}
+          </Button>
+        }
       />
 
-      <div className="flex flex-col gap-4 md:flex-row">
-        <BlueprintSecurityNotice />
-        {isAdmin && <BlueprintUploadZone />}
+      <div className="tone-amber grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-lg border border-tone/25 bg-tone/9 px-4 py-3 text-[13px]">
+        <Plate tone="amber">
+          <Shield />
+        </Plate>
+        <div>
+          <b className="mb-0.5 block font-semibold">{t("notice.title")}</b>
+          <span className="text-muted-foreground">{t("notice.description")}</span>
+        </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex h-32 items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          {t("modules.serverTypes.list.loading")}
+      {canManage && (
+        <FileDropZone
+          icon={<Upload />}
+          tone="blue"
+          title={t("upload.title")}
+          hint={t("upload.hint")}
+          accept=".kbp,.json,.zip"
+          buttonLabel={t("upload.choose")}
+          busyLabel={t("upload.installing")}
+          busy={install.isPending}
+          onFile={(file) => install.mutate(file, { onSuccess: (result) => notify({ type: "success", title: t("toasts.installed", result.name) }) })}
+        />
+      )}
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <ToggleGroup variant="segmented" value={[filter]} onValueChange={(next) => next[0] && setFilter(next[0] as Filter)}>
+          {FILTERS.map((key) => (
+            <Toggle key={key} variant="segmented" value={key}>
+              {t(`filters.${key}`)}
+              <span className="text-[11px] text-muted-foreground tabular-nums">{count(key)}</span>
+            </Toggle>
+          ))}
+        </ToggleGroup>
+        <InputGroup className="ml-auto w-full sm:w-60">
+          <InputGroupAddon>
+            <Search className="size-3.5" />
+          </InputGroupAddon>
+          <InputGroupInput value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("filters.search")} />
+        </InputGroup>
+      </div>
+
+      {blueprints.isLoading ? (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Skeleton key={i} className="h-60 rounded-lg" />
+          ))}
         </div>
-      ) : list.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          {t("modules.serverTypes.list.empty")}
-        </p>
+      ) : shown.length === 0 ? (
+        <Empty className="rounded-lg border border-border bg-card">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Boxes />
+            </EmptyMedia>
+            <EmptyTitle>{t("empty.title")}</EmptyTitle>
+            <EmptyDescription>{t("empty.description")}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {list.map((bp) => (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+          {shown.map((bp) => (
             <BlueprintCard
               key={bp.id}
               blueprint={bp}
+              usedBy={usage.get(bp.id) ?? 0}
+              canRemove={canManage}
               busy={remove.isPending}
-              onRemove={() => void handleRemove(bp)}
+              onRemove={() => void confirmRemove(bp)}
             />
           ))}
         </div>
       )}
-    </PageLayout>
+    </div>
   );
 };

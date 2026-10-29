@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { UserPermissions } from "@shared/types/user.types";
+import { AccessMapDto, IsAccessMap } from "@/core/dto/access.dto";
+import type { AccessMap } from "@shared/access/areas";
 import {
   IsArray,
   IsOptional,
@@ -41,13 +42,37 @@ export class CreateAccountDto {
   })
   @IsArray()
   @IsOptional()
+  @IsString({ each: true })
   servers?: string[];
 
   @ApiProperty({
-    description: "User permissions",
-    example: ["servers_view", "file_manager"],
+    description: "Assigned role ids",
     type: [String],
+    required: false,
+    example: ["builtin:viewer"],
   })
+  @IsOptional()
   @IsArray()
-  permissions: UserPermissions[];
+  @IsString({ each: true })
+  roles?: string[];
+
+  @ApiProperty({
+    type: AccessMapDto,
+    required: false,
+    description: "Personal levels on top of the roles",
+  })
+  @IsOptional()
+  @IsAccessMap()
+  grants?: AccessMap;
+
+  @ApiProperty({
+    description: "Personal extension permission keys",
+    type: [String],
+    required: false,
+    example: [],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  extPermissions?: string[];
 }

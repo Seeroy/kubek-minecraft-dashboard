@@ -1,92 +1,67 @@
 import type { TranslationDictionary } from "../../../locales/types";
+import { plural } from "../plural";
 
 export const consoleTranslations: TranslationDictionary = {
-  commandInput: {
+  explainPrompt: (line: string) => `Объясни эту ошибку консоли и как её исправить:\n\n\`\`\`\n${line}\n\`\`\``,
+  noServer: {
+    title: "Сервер не выбран",
+    description: "Выберите сервер в сайдбаре, чтобы открыть его консоль",
+  },
+  log: {
+    title: "Журнал",
+    lines: (n: number) => `${n} ${plural(n, ["строка", "строки", "строк"])}`,
+    search: "Фильтр по логу",
+    download: "Скачать",
+    empty: "Вывода пока нет, строки сервера появятся здесь",
+    noMatches: "Нет строк под фильтр",
+    newLines: (n: number) => `${n} ${plural(n, ["новая", "новых", "новых"])}`,
+  },
+  command: {
     placeholder: "Введите команду",
+    send: "Отправить",
   },
-  header: {
-    kicker: "Консоль",
-    title: "Консоль сервера",
-    description: "Просматривайте логи в реальном времени и выполняйте команды на выбранном сервере",
+  cards: {
+    address: "Адрес",
+    copyAddress: "Скопировать адрес",
+    version: "Версия",
+    players: "Игроки",
+    playersOnline: "Игроки онлайн",
+    serverEmpty: "Никого нет",
+    status: "Статус",
+    uptime: "Аптайм",
+    lastUpdate: "Данные получены",
+    secondsAgo: (s: number) => (s < 1 ? "только что" : `${s} с назад`),
+    bufferedLogs: "Строк в буфере",
   },
-  console: {
-    noServerSelected: "Сервер не выбран",
-    noLogs: "Логов пока нет. Логи сервера появятся здесь",
-    cards: {
-      address: "Адрес",
-      copyAddress: "Скопировать адрес",
-      version: "Версия",
-      players: "Игроки",
-      playersOnline: "Игроков онлайн",
-      serverEmpty: "Сервер пуст",
-      status: "Статус",
-      uptime: "Аптайм",
-      lastUpdate: "Обновлено",
-      bufferedLogs: "Буфер логов",
-    },
-    status: {
-      online: "Онлайн",
-      offline: "Офлайн",
-      running: "Запущен",
-      stopped: "Остановлен",
-      active: "Активен",
-      inactive: "Неактивен",
-      starting: "Запускается",
-      restarting: "Перезапускается",
-      stopping: "Останавливается",
-      error: "Ошибка",
-      crashed: "Аварийно завершился",
-      unknown: "Неизвестно",
-    },
+  status: {
+    running: "Работает",
+    stopped: "Остановлен",
+    starting: "Запускается",
+    stopping: "Останавливается",
+    crashed: "Упал",
   },
-  kubekLogLine: {
-    notSpecified: "Не указано",
+  events: {
     unknownUser: "Неизвестный пользователь",
-    badges: {
-      telegram: "Telegram",
-      kubek: "Kubek",
+    executed: "выполнил команду",
+    statusChanged: "Статус сервера изменён на",
+    stopped: (code: number) => `Сервер остановлен, код выхода ${code}`,
+    restartFailed: (attempts: number) =>
+      `Не удалось перезапустить сервер после ${attempts} ${plural(attempts, ["попытки", "попыток", "попыток"])}`,
+    telegramControl: "через Telegram:",
+    causes: {
+      killed: "Остановлен по запросу",
+      crashed: "Аварийное завершение",
     },
-    userInput: {
-      executedCommand: " выполнил команду: ",
-      labels: {
-        user: "👤 Пользователь:",
-        id: "🆔 ID:",
-        exactTime: "🕒 Точное время:",
-      },
-    },
-    statusChange: {
-      statusChanged: "Статус сервера изменен: ",
-      labels: {
-        status: "📊 Статус:",
-        exactTime: "🕒 Точное время:",
-      },
-    },
-    stop: {
-      serverStopped: "Сервер остановлен",
-      exitCode: "(код выхода: ",
-      labels: {
-        cause: "🛑 Причина:",
-        exitCode: "🔢 Код выхода:",
-        exactTime: "🕒 Точное время:",
-      },
-    },
-    restartFailed: {
-      failedToRestart: "Не удалось перезапустить сервер после ",
-      attempts: " попыток",
-      labels: {
-        attempts: "⚠️ Попытки:",
-        exactTime: "🕒 Точное время:",
-      },
-    },
-    botControl: {
-      controlledViaTelegram: " управлял сервером через Telegram: ",
-      labels: {
-        user: "👤 Пользователь:",
-        userId: "🆔 ID пользователя:",
-        telegramId: "🤖 Telegram ID:",
-        action: "🎮 Действие:",
-        exactTime: "🕒 Точное время:",
-      },
+    details: {
+      user: "Пользователь",
+      id: "ID",
+      telegramId: "Telegram ID",
+      action: "Действие",
+      status: "Статус",
+      cause: "Причина",
+      exitCode: "Код выхода",
+      attempts: "Попытки",
+      time: "Время",
     },
   },
 };

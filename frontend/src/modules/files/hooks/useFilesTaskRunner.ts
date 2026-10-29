@@ -6,7 +6,7 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { toTask } from "@/shared/queries/tasks.adapter";
 import { ITask, TaskStatus } from "@shared/types/task.types";
 import { WsTaskEventsTypes } from "@shared/types/ws/task-events.types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useLayoutEffect } from "react";
 
 export interface FilesTaskRunnerOptions {
   progressTitle: string;
@@ -37,7 +37,9 @@ export function useFilesTaskRunner(
   const trackedIdRef = useRef<string | null>(null);
   const toastIdRef = useRef<string | null>(null);
   const optionsRef = useRef(options);
-  optionsRef.current = options;
+  useLayoutEffect(() => {
+    optionsRef.current = options;
+  });
 
   const handleUpdate = useCallback(
     (task: ITask) => {

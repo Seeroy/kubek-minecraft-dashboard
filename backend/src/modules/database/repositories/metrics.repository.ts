@@ -1,6 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { SqliteProvider } from "../sqlite.provider";
 
+// Bucket size in ms. Raw samples have avg equal to max
+export enum MetricsResolution {
+  RAW = 0,
+  ONE_MINUTE = 60_000,
+  FIVE_MINUTES = 300_000,
+}
+
 export interface RawMetricPoint {
   ts: number;
   scope: string;
@@ -19,175 +26,98 @@ export interface AggregatedMetricPoint {
   ramTotal: number;
 }
 
+const SYSTEM_SCOPE = "system";
+const SERVER_SCOPE_PREFIX = "server:";
+
+// "system" is the host (NULL), "server:<id>" is a server
+function scopeToServerId(scope: string): string | null {
+  return scope.startsWith(SERVER_SCOPE_PREFIX)
+    ? scope.slice(SERVER_SCOPE_PREFIX.length)
+    : null;
+}
+
+function serverIdToScope(serverId: string | null): string {
+  return serverId == null ? SYSTEM_SCOPE : `${SERVER_SCOPE_PREFIX}${serverId}`;
+}
+
 @Injectable()
-export class MetricsRawRepository {
+export class MetricsRepository {
   constructor(private readonly sqlite: SqliteProvider) {}
 
-  insertMany(points: Omit<RawMetricPoint, never>[]): void {
+  insertRaw(points: RawMetricPoint[]): void {
     if (points.length === 0) return;
     const stmt = this.sqlite.connection.prepare(
-      `INSERT OR REPLACE INTO metrics_raw (ts, scope, cpu, ram_used, ram_total) VALUES (?, ?, ?, ?, ?)`,
+      `INSERT OR REPLACE INTO metrics
+       (resolution, serverId, ts, cpuAvg, cpuMax, ramAvg, ramMax, ramTotal)
+       SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8
+        WHERE ?2 IS NULL OR EXISTS (SELECT 1 FROM servers WHERE id = ?2)`,
     );
     const tx = this.sqlite.connection.transaction((rows: RawMetricPoint[]) => {
       for (const r of rows) {
-        stmt.run(r.ts, r.scope, r.cpu, r.ramUsed, r.ramTotal);
+        stmt.run(
+          MetricsResolution.RAW,
+          scopeToServerId(r.scope),
+          r.ts,
+          r.cpu,
+          r.cpu,
+          r.ramUsed,
+          r.ramUsed,
+          r.ramTotal,
+        );
       }
     });
     tx(points);
   }
 
-  range(scope: string, fromTs: number, toTs: number): RawMetricPoint[] {
-    const rows = this.sqlite.connection
-      .query(
-        "SELECT * FROM metrics_raw WHERE scope = ? AND ts >= ? AND ts <= ? ORDER BY ts ASC",
-      )
-      .all(scope, fromTs, toTs) as any[];
-    return rows.map((r) => ({
-      ts: Number(r.ts),
-      scope: String(r.scope),
-      cpu: Number(r.cpu),
-      ramUsed: Number(r.ram_used),
-      ramTotal: Number(r.ram_total),
-    }));
-  }
-
-  // Aggregate closed buckets (avg/max) since last bucket end
-  aggregateBuckets(
-    bucketMs: number,
+  range(
+    resolution: MetricsResolution,
+    scope: string,
     fromTs: number,
     toTs: number,
   ): AggregatedMetricPoint[] {
-    // Group by floor(ts / bucketMs) * bucketMs and scope
     const rows = this.sqlite.connection
       .query(
-        `SELECT (ts / ?) * ? AS bucket_ts, scope,
-                AVG(cpu) AS cpu_avg, MAX(cpu) AS cpu_max,
-                AVG(ram_used) AS ram_avg, MAX(ram_used) AS ram_max,
-                MAX(ram_total) AS ram_total
-           FROM metrics_raw
-          WHERE ts >= ? AND ts < ?
-          GROUP BY bucket_ts, scope`,
+        `SELECT * FROM metrics
+          WHERE resolution = ? AND IFNULL(serverId, '') = ? AND ts >= ? AND ts <= ?
+          ORDER BY ts ASC`,
       )
-      .all(bucketMs, bucketMs, fromTs, toTs) as any[];
-    return rows.map((r) => ({
-      ts: Number(r.bucket_ts),
-      scope: String(r.scope),
-      cpuAvg: Number(r.cpu_avg),
-      cpuMax: Number(r.cpu_max),
-      ramAvg: Math.round(Number(r.ram_avg)),
-      ramMax: Number(r.ram_max),
-      ramTotal: Number(r.ram_total),
-    }));
-  }
-
-  deleteOlderThan(ts: number): number {
-    const res = this.sqlite.connection
-      .prepare(`DELETE FROM metrics_raw WHERE ts < ?`)
-      .run(ts);
-    return res.changes ?? 0;
-  }
-}
-
-abstract class BucketRepository {
-  constructor(
-    protected readonly sqlite: SqliteProvider,
-    protected readonly table: "metrics_1m" | "metrics_5m",
-  ) {}
-
-  upsertMany(points: AggregatedMetricPoint[]): void {
-    if (points.length === 0) return;
-    const stmt = this.sqlite.connection.prepare(
-      `INSERT OR REPLACE INTO ${this.table}
-       (ts, scope, cpu_avg, cpu_max, ram_avg, ram_max, ram_total)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    );
-    const tx = this.sqlite.connection.transaction(
-      (rows: AggregatedMetricPoint[]) => {
-        for (const r of rows) {
-          stmt.run(
-            r.ts,
-            r.scope,
-            r.cpuAvg,
-            r.cpuMax,
-            r.ramAvg,
-            r.ramMax,
-            r.ramTotal,
-          );
-        }
-      },
-    );
-    tx(points);
-  }
-
-  range(scope: string, fromTs: number, toTs: number): AggregatedMetricPoint[] {
-    const rows = this.sqlite.connection
-      .query(
-        `SELECT * FROM ${this.table} WHERE scope = ? AND ts >= ? AND ts <= ? ORDER BY ts ASC`,
-      )
-      .all(scope, fromTs, toTs) as any[];
+      .all(resolution, scopeToServerId(scope) ?? "", fromTs, toTs) as any[];
     return rows.map((r) => ({
       ts: Number(r.ts),
-      scope: String(r.scope),
-      cpuAvg: Number(r.cpu_avg),
-      cpuMax: Number(r.cpu_max),
-      ramAvg: Number(r.ram_avg),
-      ramMax: Number(r.ram_max),
-      ramTotal: Number(r.ram_total),
+      scope: serverIdToScope(r.serverId ?? null),
+      cpuAvg: Number(r.cpuAvg),
+      cpuMax: Number(r.cpuMax),
+      ramAvg: Number(r.ramAvg),
+      ramMax: Number(r.ramMax),
+      ramTotal: Number(r.ramTotal),
     }));
   }
 
-  // Aggregate from a finer-grained source bucket table
-  aggregateFrom(
-    sourceTable: "metrics_raw" | "metrics_1m",
-    bucketMs: number,
+  // Averages finished buckets into the next resolution
+  rollUp(
+    from: MetricsResolution,
+    to: MetricsResolution,
     fromTs: number,
     toTs: number,
-  ): AggregatedMetricPoint[] {
-    const cpuExpr = sourceTable === "metrics_raw" ? "cpu" : "cpu_avg";
-    const cpuMaxExpr = sourceTable === "metrics_raw" ? "cpu" : "cpu_max";
-    const ramExpr = sourceTable === "metrics_raw" ? "ram_used" : "ram_avg";
-    const ramMaxExpr = sourceTable === "metrics_raw" ? "ram_used" : "ram_max";
-
-    const rows = this.sqlite.connection
-      .query(
-        `SELECT (ts / ?) * ? AS bucket_ts, scope,
-                AVG(${cpuExpr}) AS cpu_avg, MAX(${cpuMaxExpr}) AS cpu_max,
-                AVG(${ramExpr}) AS ram_avg, MAX(${ramMaxExpr}) AS ram_max,
-                MAX(ram_total) AS ram_total
-           FROM ${sourceTable}
-          WHERE ts >= ? AND ts < ?
-          GROUP BY bucket_ts, scope`,
+  ): void {
+    this.sqlite.connection
+      .prepare(
+        `INSERT OR REPLACE INTO metrics
+         (resolution, serverId, ts, cpuAvg, cpuMax, ramAvg, ramMax, ramTotal)
+         SELECT ?1, serverId, (ts / ?1) * ?1 AS bucketTs,
+                AVG(cpuAvg), MAX(cpuMax),
+                CAST(ROUND(AVG(ramAvg)) AS INTEGER), MAX(ramMax), MAX(ramTotal)
+           FROM metrics
+          WHERE resolution = ?2 AND ts >= ?3 AND ts < ?4
+          GROUP BY bucketTs, serverId`,
       )
-      .all(bucketMs, bucketMs, fromTs, toTs) as any[];
-    return rows.map((r) => ({
-      ts: Number(r.bucket_ts),
-      scope: String(r.scope),
-      cpuAvg: Number(r.cpu_avg),
-      cpuMax: Number(r.cpu_max),
-      ramAvg: Math.round(Number(r.ram_avg)),
-      ramMax: Number(r.ram_max),
-      ramTotal: Number(r.ram_total),
-    }));
+      .run(to, from, fromTs, toTs);
   }
 
-  deleteOlderThan(ts: number): number {
+  deleteOlderThan(resolution: MetricsResolution, ts: number): number {
     const res = this.sqlite.connection
-      .prepare(`DELETE FROM ${this.table} WHERE ts < ?`)
-      .run(ts);
+      .prepare(`DELETE FROM metrics WHERE resolution = ? AND ts < ?`)
+      .run(resolution, ts);
     return res.changes ?? 0;
-  }
-}
-
-@Injectable()
-export class Metrics1mRepository extends BucketRepository {
-  constructor(sqlite: SqliteProvider) {
-    super(sqlite, "metrics_1m");
-  }
-}
-
-@Injectable()
-export class Metrics5mRepository extends BucketRepository {
-  constructor(sqlite: SqliteProvider) {
-    super(sqlite, "metrics_5m");
   }
 }

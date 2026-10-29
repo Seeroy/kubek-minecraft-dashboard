@@ -9,7 +9,9 @@ import {
   writeFileSync,
 } from "fs";
 import path from "path";
+import { asciiCommentsPlugin } from "./ascii-comments.ts";
 import type { IBuildTarget } from "./build.types.ts";
+import { writeChecksums } from "./checksums.ts";
 
 // Directories
 const rootDir = path.resolve(__dirname, "..");
@@ -26,12 +28,20 @@ const targets: IBuildTarget[] = [
     outputName: "main.exe",
   },
   { platform: "bun-linux-x64", suffix: "linux-x64", outputName: "main" },
+  // Old CPUs without AVX2, common on cheap VPS
+  {
+    platform: "bun-linux-x64-baseline",
+    suffix: "linux-x64-baseline",
+    outputName: "main",
+  },
+  { platform: "bun-linux-arm64", suffix: "linux-arm64", outputName: "main" },
   { platform: "bun-darwin-arm64", suffix: "darwin-arm64", outputName: "main" },
 ];
 
 interface BuildOptions {
   skipFrontend: boolean;
   skipBackend: boolean;
+  skipTests: boolean;
   platform?: string;
   help: boolean;
 }
@@ -41,6 +51,7 @@ function parseArgs(): BuildOptions {
   const options: BuildOptions = {
     skipFrontend: false,
     skipBackend: false,
+    skipTests: false,
     help: false,
   };
 
@@ -54,6 +65,10 @@ function parseArgs(): BuildOptions {
       case "--skip-backend":
       case "-b":
         options.skipBackend = true;
+        break;
+      case "--skip-tests":
+      case "-t":
+        options.skipTests = true;
         break;
       case "--platform":
       case "-p":
@@ -83,27 +98,32 @@ function showHelp() {
 Build Script for Kubek
 
 Usage:
-  bun run build.ts [options]
+  bun run build [options]
 
 Options:
   -h, --help                    Show this help message
   -f, --skip-frontend           Skip frontend build (use existing build)
   -b, --skip-backend            Skip backend build (use existing build)
+  -t, --skip-tests              Skip typecheck and unit tests before the build
   -p, --platform <platform>     Build for specific platform only
 
 Available platforms:
-  - win         Windows x64
-  - linux       Linux x64
-  - mac         macOS ARM64
-  - native      Host platform/arch (used by Docker for multi-arch builds)
-  - all         All platforms (default)
+  - win                 Windows x64
+  - linux, linux-x64    Linux x64
+  - linux-x64-baseline  Linux x64 for CPUs without AVX2
+  - linux-arm64         Linux ARM64
+  - mac                 macOS ARM64
+  - native              Host platform/arch (used by Docker for multi-arch builds)
+  - all                 All platforms (default)
 
 Examples:
-  bun run build.ts                          # Build everything for all platforms
-  bun run build.ts --skip-frontend          # Skip frontend, build backend and all platforms
-  bun run build.ts --platform win           # Build only Windows binary
-  bun run build.ts -f -b --platform linux   # Skip builds, only compile Linux binary
-  bun run build.ts --help                   # Show this help
+  bun run build                          # Build everything for all platforms
+  bun run build --skip-frontend          # Skip frontend, build backend and all platforms
+  bun run build --platform win           # Build only Windows binary
+  bun run build -f -b --platform linux   # Skip builds, only compile Linux binary
+  bun run build --help                   # Show this help
+
+Release binaries get a SHA256SUMS file next to them in dist/
 `);
 }
 
@@ -126,16 +146,20 @@ function getTargets(platformArg?: string): IBuildTarget[] {
     ];
   }
 
-  const platformMap: { [key: string]: IBuildTarget } = {
-    win: targets.find((t) => t.suffix.includes("win"))!,
-    linux: targets.find((t) => t.suffix.includes("linux"))!,
-    mac: targets.find((t) => t.suffix.includes("darwin"))!,
+  const bySuffix = (suffix: string) => targets.find((t) => t.suffix === suffix);
+  const platformMap: { [key: string]: IBuildTarget | undefined } = {
+    win: bySuffix("win-x64.exe"),
+    linux: bySuffix("linux-x64"),
+    "linux-x64": bySuffix("linux-x64"),
+    "linux-x64-baseline": bySuffix("linux-x64-baseline"),
+    "linux-arm64": bySuffix("linux-arm64"),
+    mac: bySuffix("darwin-arm64"),
   };
 
   const target = platformMap[platformArg];
   if (!target) {
     throw new Error(
-      `Unknown platform: ${platformArg}. Available: win, linux, mac, all`,
+      `Unknown platform: ${platformArg}. Available: ${Object.keys(platformMap).join(", ")}, native, all`,
     );
   }
 
@@ -160,11 +184,22 @@ async function main() {
   console.log("🔧 Build Configuration:");
   console.log(`   Skip Frontend: ${options.skipFrontend}`);
   console.log(`   Skip Backend: ${options.skipBackend}`);
+  console.log(`   Skip Tests: ${options.skipTests}`);
   console.log(`   Platform: ${options.platform || "all"}`);
   console.log(`   Version: ${version}`);
   console.log("");
 
   const selectedTargets = getTargets(options.platform);
+
+  // Unit tests only, the e2e suites need a running backend and real game servers
+  if (!options.skipTests) {
+    log("Running typecheck and tests...");
+    run("bun run typecheck", backendDir);
+    run("bun run test", backendDir);
+    run("bun test ./scripts", rootDir);
+  } else {
+    log("Skipping tests");
+  }
 
   // 2️⃣ Build frontend (Next.js) if not skipped
   if (!options.skipFrontend) {
@@ -176,13 +211,8 @@ async function main() {
     });
 
     log("Creating VFS from frontend output...");
-    const bundleDir = path.join(frontendDir, "bundle");
-    if (existsSync(bundleDir)) rmSync(bundleDir, { recursive: true });
-    mkdirSync(bundleDir, { recursive: true });
-
-    const vfsPath = "./../shared/vfs.js";
     const outDir = path.join(frontendDir, "out");
-    generateVfsFromDirectory(outDir, path.join(frontendDir, vfsPath));
+    generateVfsFromDirectory(outDir, path.join(sharedDir, "vfs.js"));
   } else {
     log("Skipping frontend build");
   }
@@ -238,7 +268,9 @@ async function main() {
 
     const isWindowsTarget = t.platform.includes("windows");
 
-    await Bun.build({
+    const result = await Bun.build({
+      // Get errors in result.logs instead of an AggregateError
+      throw: false,
       entrypoints: allEntries,
       outdir: outputDir,
       external: [
@@ -249,9 +281,12 @@ async function main() {
       // Embed the version at compile time — the binary has no package.json on disk.
       define: {
         "process.env.KUBEK_VERSION": JSON.stringify(version),
+        // Bun inlines "development" by default
+        "process.env.NODE_ENV": JSON.stringify("production"),
       },
       target: "bun",
       sourcemap: "none",
+      plugins: [asciiCommentsPlugin],
       compile: t.native
         ? true
         : {
@@ -259,7 +294,7 @@ async function main() {
             ...(isWindowsTarget
               ? {
                   windows: {
-                    icon: "./frontend/public/favicon.ico",
+                    icon: path.join(frontendDir, "public", "favicon.ico"),
                     title: "Kubek",
                     publisher: "Seeroy",
                     version,
@@ -269,16 +304,26 @@ async function main() {
           },
     });
 
+    if (!result.success) {
+      for (const message of result.logs) console.error(message);
+      throw new Error(`❌ Compilation failed for ${t.platform}`);
+    }
+    for (const message of result.logs) console.warn(message);
+
     // Rename the compiled binary
     const builtFile = path.join(outputDir, t.outputName);
-    if (existsSync(builtFile)) {
-      rmSync(outFile, { force: true });
-      cpSync(builtFile, outFile);
-      rmSync(builtFile, { force: true });
-      console.log(`✅ Binary built: ${outFile}`);
-    } else {
-      console.warn(`⚠️ Binary not found after build: ${builtFile}`);
+    if (!existsSync(builtFile)) {
+      throw new Error(`❌ Binary not found after build: ${builtFile}`);
     }
+    rmSync(outFile, { force: true });
+    cpSync(builtFile, outFile);
+    rmSync(builtFile, { force: true });
+    console.log(`✅ Binary built: ${outFile}`);
+  }
+
+  if (selectedTargets.some((t) => !t.native)) {
+    const sums = writeChecksums(outputDir, version);
+    console.log(`✅ Checksums written: ${sums}`);
   }
 
   log("✅ All builds completed successfully!");

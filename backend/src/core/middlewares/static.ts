@@ -33,16 +33,9 @@ export class StaticMiddleware implements NestMiddleware {
           .send(Buffer.from(staticRoutes[routeHtml], "base64"));
         return;
       }
-      if (staticRoutes["index.html"]) {
-        res
-          .status(200)
-          .type("text/html")
-          .send(Buffer.from(staticRoutes["index.html"], "base64"));
-        return;
-      }
     }
 
-    // 404 fallback for missing assets/files
+    // Every page is prerendered, anything else is a real 404 rather than the dashboard
     if (!normalizedPath || !staticRoutes[normalizedPath]) {
       res
         .status(404)

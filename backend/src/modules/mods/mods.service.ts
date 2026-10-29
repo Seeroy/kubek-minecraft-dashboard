@@ -1,3 +1,4 @@
+import { ModrinthClient } from "@/modules/modrinth/modrinth-client.service";
 import { ServerModsRepository } from "@/modules/database/repositories/server-mods.repository";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import {
@@ -19,8 +20,9 @@ export class ModsService extends ModrinthContentService {
     modsRepository: ServerModsRepository,
     tasksService: TasksService,
     registry: ServerTypesRegistry,
+    modrinth: ModrinthClient,
   ) {
-    super(serversRepository, tasksService, modsRepository, {
+    super(serversRepository, tasksService, modsRepository, modrinth, {
       loggerName: ModsService.name,
       projectType: "mod",
       folder: "mods",

@@ -1,11 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
+  type IServer,
+  type ServerRestartProps,
   ServerStatus,
   type ServerVariableValue,
 } from "@shared/types/server/server.types";
 
 /** Restart-on-error policy for a server */
-export class ServerRestartPropsDto {
+export class ServerRestartPropsDto implements ServerRestartProps {
   @ApiProperty({ example: true })
   enabled: boolean;
 
@@ -14,7 +16,7 @@ export class ServerRestartPropsDto {
 }
 
 /** Domain projection of a server */
-export class ServerEntity {
+export class ServerEntity implements IServer {
   @ApiProperty({ description: "Server ID", example: "a1b2c3d4" })
   id: string;
 
@@ -53,4 +55,11 @@ export class ServerEntity {
     example: "native",
   })
   runtimeKind?: "native" | "docker";
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    description: "Id of the account that created the server",
+  })
+  createdBy?: string | null;
 }

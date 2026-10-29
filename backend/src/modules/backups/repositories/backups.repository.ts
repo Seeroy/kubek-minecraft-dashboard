@@ -1,113 +1,171 @@
 import { Injectable } from "@nestjs/common";
+import {
+  type Backup,
+  type BackupFile,
+  BackupFormat,
+  BackupStatus,
+  BackupType,
+  SelectionMode,
+} from "@shared/types/backup.types";
+import { basename } from "path";
 import { SqliteProvider } from "../../database/sqlite.provider";
-import { BackupEntity, BackupStatus } from "../dto/backup.entity";
-import { BackupType } from "../dto/create-backup.dto";
 
-export abstract class IBackupsRepository {
-  abstract findAll(): BackupEntity[];
+/** Backup row without its copies */
+export type BackupRecord = Omit<Backup, "copies">;
 
-  abstract findById(id: string): BackupEntity | null;
+type RuleKind = "include" | "exclude";
 
-  abstract findByServerId(serverId: string): BackupEntity[];
-
-  abstract create(backup: BackupEntity): void;
-
-  abstract update(backup: BackupEntity): void;
-
-  abstract delete(id: string): void;
-}
+const COLUMNS = `name, description, type, status, createdAt, updatedAt,
+  fileCount, totalSize, serverId, ownerId, format, compressionRatio, pinned, checksum`;
 
 @Injectable()
-export class BackupsRepository implements IBackupsRepository {
+export class BackupsRepository {
   constructor(private readonly sqlite: SqliteProvider) {}
 
-  findAll(): BackupEntity[] {
-    const rows = this.sqlite.connection
-      .query("SELECT * FROM backups ORDER BY createdAt DESC")
-      .all();
-    return rows.map((r: any) => this.deserialize(r));
+  findAll(): BackupRecord[] {
+    return this.query("ORDER BY createdAt DESC");
   }
 
-  findById(id: string): BackupEntity | null {
-    const row = this.sqlite.connection
-      .query("SELECT * FROM backups WHERE id = ?")
-      .get(id);
-    return row ? this.deserialize(row) : null;
+  findById(id: string): BackupRecord | null {
+    return this.query("WHERE id = ?", id)[0] ?? null;
   }
 
-  findByServerId(serverId: string): BackupEntity[] {
-    const rows = this.sqlite.connection
-      .query("SELECT * FROM backups WHERE serverId = ? ORDER BY createdAt DESC")
-      .all(serverId);
-    return rows.map((r: any) => this.deserialize(r));
+  findByServerId(serverId: string): BackupRecord[] {
+    return this.query("WHERE serverId = ? ORDER BY createdAt DESC", serverId);
   }
 
-  create(backup: BackupEntity): void {
-    const stmt = this.sqlite.connection.prepare(`INSERT INTO backups
-      (id, name, description, type, status, progress, createdAt, updatedAt, fileCount, totalSize, selectedFiles, serverId, path, ownerId)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    stmt.run(
-      backup.id,
-      backup.name,
-      backup.description || null,
-      backup.type,
-      backup.status,
-      backup.progress,
-      backup.createdAt,
-      backup.updatedAt,
-      backup.fileCount,
-      backup.totalSize,
-      backup.selectedFiles ? JSON.stringify(backup.selectedFiles) : null,
-      backup.serverId,
-      backup.path || null,
-      backup.ownerId || null,
+  findByStatus(status: BackupStatus): BackupRecord[] {
+    return this.query("WHERE status = ?", status);
+  }
+
+  create(backup: BackupRecord): void {
+    const db = this.sqlite.connection;
+    db.transaction(() => {
+      db.prepare(
+        `INSERT INTO backups (id, ${COLUMNS})
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).run(backup.id, ...this.values(backup));
+      this.writeRules(backup);
+    })();
+  }
+
+  /**
+   * Rules are fixed when the backup is created and the pin has its own
+   * setter, so a running task never overwrites a pin set meanwhile
+   */
+  update(backup: BackupRecord): void {
+    const columns = COLUMNS.split(",").map((c) => c.trim());
+    const assignments = columns
+      .filter((c) => c !== "pinned")
+      .map((c) => `${c} = ?`)
+      .join(", ");
+    const values = this.values(backup).filter(
+      (_, i) => columns[i] !== "pinned",
     );
+    this.sqlite.connection
+      .prepare(`UPDATE backups SET ${assignments} WHERE id = ?`)
+      .run(...values, backup.id);
   }
 
-  update(backup: BackupEntity): void {
-    const stmt = this.sqlite.connection.prepare(`UPDATE backups SET
-      name = ?, description = ?, type = ?, status = ?, progress = ?, updatedAt = ?,
-      fileCount = ?, totalSize = ?, selectedFiles = ?, serverId = ?, path = ?, ownerId = ?
-      WHERE id = ?`);
-    stmt.run(
-      backup.name,
-      backup.description || null,
-      backup.type,
-      backup.status,
-      backup.progress,
-      backup.updatedAt,
-      backup.fileCount,
-      backup.totalSize,
-      backup.selectedFiles ? JSON.stringify(backup.selectedFiles) : null,
-      backup.serverId,
-      backup.path || null,
-      backup.ownerId || null,
-      backup.id,
-    );
+  setPinned(id: string, pinned: boolean): void {
+    this.sqlite.connection
+      .prepare("UPDATE backups SET pinned = ?, updatedAt = ? WHERE id = ?")
+      .run(pinned ? 1 : 0, Date.now(), id);
   }
 
   delete(id: string): void {
     this.sqlite.connection.prepare("DELETE FROM backups WHERE id = ?").run(id);
   }
 
-  private deserialize(row: any): BackupEntity {
+  private writeRules(backup: BackupRecord): void {
+    const insert = this.sqlite.connection.prepare(
+      "INSERT INTO backup_file_rules (backupId, kind, position, path) VALUES (?, ?, ?, ?)",
+    );
+    (backup.selectedFiles ?? []).forEach((file, i) =>
+      insert.run(backup.id, "include", i, file.path),
+    );
+    (backup.globExceptions ?? []).forEach((pattern, i) =>
+      insert.run(backup.id, "exclude", i, pattern),
+    );
+  }
+
+  private query(clause: string, ...params: string[]): BackupRecord[] {
+    const rows = this.sqlite.connection
+      .query(`SELECT * FROM backups ${clause}`)
+      .all(...params);
+    const rules = this.rulesOf(rows.map((row: any) => String(row.id)));
+    return rows.map((row) => this.deserialize(row, rules));
+  }
+
+  private rulesOf(ids: string[]): Map<string, Record<RuleKind, string[]>> {
+    const byBackup = new Map<string, Record<RuleKind, string[]>>();
+    if (ids.length === 0) return byBackup;
+    const rows = this.sqlite.connection
+      .query(
+        `SELECT backupId, kind, path FROM backup_file_rules
+        WHERE backupId IN (${ids.map(() => "?").join(", ")})
+        ORDER BY backupId, kind, position`,
+      )
+      .all(...ids) as { backupId: string; kind: RuleKind; path: string }[];
+    for (const row of rows) {
+      const entry = byBackup.get(row.backupId) ?? { include: [], exclude: [] };
+      entry[row.kind].push(row.path);
+      byBackup.set(row.backupId, entry);
+    }
+    return byBackup;
+  }
+
+  private values(b: BackupRecord) {
+    return [
+      b.name,
+      b.description ?? null,
+      b.type,
+      b.status,
+      b.createdAt,
+      b.updatedAt,
+      b.fileCount,
+      b.totalSize,
+      b.serverId,
+      b.ownerId ?? null,
+      b.format,
+      b.compressionRatio ?? null,
+      b.pinned ? 1 : 0,
+      b.checksum ?? null,
+    ];
+  }
+
+  private deserialize(
+    row: any,
+    rules: Map<string, Record<RuleKind, string[]>>,
+  ): BackupRecord {
+    const id = String(row.id);
+    const type = row.type as BackupType;
+    const { include, exclude } = rules.get(id) ?? { include: [], exclude: [] };
     return {
-      id: String(row.id),
+      id,
       name: String(row.name),
       description: row.description ? String(row.description) : undefined,
-      type: row.type as BackupType,
+      type,
       status: row.status as BackupStatus,
-      progress: Number(row.progress),
       createdAt: Number(row.createdAt),
       updatedAt: Number(row.updatedAt),
       fileCount: Number(row.fileCount),
       totalSize: Number(row.totalSize),
-      selectedFiles: row.selectedFiles
-        ? JSON.parse(row.selectedFiles)
-        : undefined,
+      selectedFiles: include.length ? include.map(toBackupFile) : undefined,
       serverId: String(row.serverId),
-      path: row.path ? String(row.path) : undefined,
       ownerId: row.ownerId ? String(row.ownerId) : undefined,
+      format: (row.format as BackupFormat) ?? BackupFormat.ZIP,
+      compressionRatio: row.compressionRatio ?? undefined,
+      selectionMode:
+        type === BackupType.PARTIAL ? SelectionMode.CUSTOM : SelectionMode.ALL,
+      globExceptions: exclude.length ? exclude : undefined,
+      pinned: !!row.pinned,
+      checksum: row.checksum ? String(row.checksum) : undefined,
     };
   }
 }
+
+const toBackupFile = (path: string): BackupFile => ({
+  name: basename(path),
+  path,
+});

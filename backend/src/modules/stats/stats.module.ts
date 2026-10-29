@@ -4,6 +4,7 @@ import { AccountsModule } from "../accounts/accounts.module";
 import { ConfigModule } from "../config/config.module";
 import { DatabaseModule } from "../database/database.module";
 import { JavaModule } from "../java/java.module";
+import { StatsController } from "./stats.controller";
 import { StatsService } from "./stats.service";
 
 @Module({
@@ -14,6 +15,7 @@ import { StatsService } from "./stats.service";
     AccountsModule,
     ScheduleModule.forRoot(),
   ],
+  controllers: [StatsController],
   providers: [StatsService],
   exports: [StatsService],
 })

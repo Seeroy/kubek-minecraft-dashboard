@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-/** A grantable permission descriptor (core or extension-declared). Mirrors PermissionDef */
+/** A grantable extension permission. Mirrors PermissionDef */
 export class PermissionDescriptorDto {
   @ApiProperty({
     description: "Permission key",
@@ -22,9 +22,8 @@ export class PermissionDescriptorDto {
   group?: string;
 
   @ApiProperty({
-    description:
-      '"core" for built-in permissions, otherwise the declaring extension id',
-    example: "core",
+    description: "Id of the extension that declares it",
+    example: "com.author.name",
   })
   source: string;
 }

@@ -30,6 +30,7 @@ export const en = {
     servers: "List your servers",
     language: "Change language",
     unlink: "Unlink your account",
+    status: "Server status by id",
   },
   servers: {
     none: "📭 You have no accessible servers.",
@@ -37,6 +38,7 @@ export const en = {
       `🎮 <b>Servers</b> · page ${p.page}/${p.total}`,
     fetchError: "❌ Failed to fetch servers. Please try again later.",
     invalidPage: "❌ Invalid page number.",
+    columns: { name: "Server", status: "Status", version: "Version" },
   },
   status: {
     usage: "📝 Usage: /status &lt;server_id&gt;",
@@ -63,6 +65,8 @@ export const en = {
   },
   otp: {
     invalid: "❌ Invalid or expired OTP code.",
+    tooMany: (p: { minutes: number }) =>
+      `⛔ Too many wrong codes. Try again in ${p.minutes} min.`,
     accountLinkedElsewhere:
       "❌ This Kubek account is already linked to another Telegram account.",
     telegramLinkedElsewhere:
@@ -87,10 +91,16 @@ export const en = {
     createServer: "➕ New server",
     cancel: "✖️ Cancel",
     confirm: "✅ Create",
+    open: "Open",
+    copyAddress: "📋 Address",
+    copyId: "🆔 ID",
   },
   twofa: {
     request: (p: { username: string; ip: string; ua: string }) =>
       `🔐 <b>Login request</b>\n\n👤 ${p.username}\n🌐 IP: <code>${p.ip}</code>\n🖥️ UA: <code>${p.ua}</code>\n\nApprove or deny within 3 minutes.`,
+    title: "🔐 Login request",
+    hint: "Approve or deny within 3 minutes.",
+    labels: { account: "Account", ip: "IP", browser: "Browser", time: "Time" },
     approve: "✅ Approve",
     deny: "❌ Deny",
     approved: "✅ Login approved",
@@ -128,11 +138,32 @@ export const en = {
     progress: (p: { name: string; bar: string; progress: number }) =>
       `🚀 Creating "${p.name}"…\n<code>${p.bar} ${p.progress}%</code>`,
   },
+  notify: {
+    serverStatus: (p: { name: string; status: string }) =>
+      `🖥️ <b>${p.name}</b>: ${p.status}`,
+    serverError: (p: { name: string; error: string }) =>
+      `🚨 <b>${p.name}</b>: error <code>${p.error}</code>`,
+    login: (p: { username: string; ip: string }) =>
+      `🔐 Signed in to <b>${p.username}</b> from <code>${p.ip}</code>`,
+    backupOps: { create: "creation", upload: "upload", restore: "restore" },
+    backupFailed: (p: {
+      name: string;
+      backup: string;
+      op: string;
+      error: string;
+    }) =>
+      `💾 <b>${p.name}</b>: backup ${p.op} failed for <b>${p.backup}</b>\n<code>${p.error}</code>`,
+    storageUnreachable: (p: { name: string; error: string }) =>
+      `☁️ Storage <b>${p.name}</b> is unreachable\n<code>${p.error}</code>`,
+    locked: (p: { ip: string; minutes: number }) =>
+      `⛔ Too many failed sign-in attempts from <code>${p.ip}</code>. Attempts are blocked for ${p.minutes} min`,
+  },
   statusValues: {
     running: "🟢 Running",
     stopped: "🔴 Stopped",
     starting: "🟡 Starting",
     stopping: "🟠 Stopping",
+    crashed: "💥 Crashed",
     error: "❌ Error",
     unknown: "⚪ Unknown",
   },
@@ -142,10 +173,12 @@ export const en = {
     cancelled: "cancelled",
     title: (p: { emoji: string; type: string; status: string }) =>
       `${p.emoji} Task "${p.type}" ${p.status}`,
-    duration: (p: { value: string }) => `⏱️ Duration: ${p.value}`,
-    server: (p: { name: string }) => `🖥️ Server: ${p.name}`,
-    plugin: (p: { name: string }) => `🧩 Plugin: ${p.name}`,
-    error: (p: { message: string }) => `Error: ${p.message}`,
+    labels: {
+      server: "🖥️ Server",
+      plugin: "🧩 Plugin",
+      duration: "⏱️ Duration",
+      finishedAt: "🕒 Finished",
+    },
     units: { ms: "ms", sec: "s", min: "m", hour: "h" },
   },
 };

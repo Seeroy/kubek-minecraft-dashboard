@@ -37,12 +37,14 @@ export function useTaskNotificationsBridge() {
         case TaskType.BACKUP_CREATE:
         case TaskType.BACKUP_RESTORE:
         case TaskType.BACKUP_DELETE:
+        case TaskType.BACKUP_UPLOAD:
           handleBackupTask(task);
           return;
         case TaskType.JAVA_INSTALL:
           handleJavaTask(task);
           return;
         case TaskType.SERVER_CREATE:
+        case TaskType.SERVER_CREATE_MODPACK:
           handleServerCreateTask(task);
           return;
         case TaskType.SERVER_CHANGE_CORE:

@@ -1,5 +1,6 @@
 "use client";
 import { api } from "@/api";
+import { ExplainButton } from "@/modules/assistant";
 import type { Translator } from "@/locales/types";
 import { useNotifications } from "@/modules/notifications";
 import {
@@ -24,6 +25,7 @@ import { getDiagnosticFixes } from "../lib/diagnosticFixes";
 const KNOWN_ERROR_TYPES = new Set([
   "out_of_memory",
   "port_bind_failed",
+  "port_invalid",
   "world_corruption",
   "plugin_error",
   "disk_space",
@@ -82,7 +84,7 @@ const DiagnosticItem: React.FC<DiagnosticItemProps> = ({
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card/40 p-3">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{definition.title}</span>
@@ -100,6 +102,7 @@ const DiagnosticItem: React.FC<DiagnosticItemProps> = ({
       </div>
 
       <div className="flex flex-wrap gap-2 pl-7">
+        <ExplainButton prompt={t("explainPrompt", definition.title, diagnostic.errorType)} />
         {fixes.map((fix, index) => {
           if (fix.type === "restart") {
             if (!canControl) return null;

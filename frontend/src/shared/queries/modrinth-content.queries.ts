@@ -1,110 +1,92 @@
-import { contentApi, type ContentKind } from "@/api";
-import type { ModrinthSearchResponse } from "@shared/types/plugins";
-import {
-  keepPreviousData,
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { contentApi, type ContentKind, type ContentSearchParams } from "@/api";
+import { keepPreviousData, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { qk } from "./query-keys";
 
-function keysFor(kind: ContentKind) {
-  return kind === "mod" ? qk.mods : qk.plugins;
-}
+const keysFor = (kind: ContentKind) => (kind === "mod" ? qk.mods : qk.plugins);
 
-export function useInstalledContent(
-  kind: ContentKind,
-  serverId: string | undefined
-) {
-  const keys = keysFor(kind);
+// Modrinth project data barely changes while a dialog is open
+const PROJECT_STALE_MS = 5 * 60_000;
+
+export function useInstalledContent(kind: ContentKind, serverId: string | undefined) {
   return useQuery({
-    queryKey: keys.installed(serverId ?? ""),
+    queryKey: keysFor(kind).installed(serverId ?? ""),
     queryFn: () => contentApi(kind).getInstalled(serverId!),
     enabled: !!serverId,
   });
 }
 
-interface InfiniteContentParams {
-  query: string;
-  pageSize: number;
-  gameVersion?: string;
-  loader?: string;
-  categories?: string[];
-}
-
 export function useAvailableContentInfinite(
   kind: ContentKind,
-  params: InfiniteContentParams
+  { pageSize, ...params }: Omit<ContentSearchParams, "offset" | "limit"> & { pageSize: number }
 ) {
-  const keys = keysFor(kind);
   return useInfiniteQuery({
-    queryKey: keys.availableInfinite(
-      params.query,
-      params.gameVersion,
-      params.loader
-    ),
+    queryKey: keysFor(kind).search(params),
     initialPageParam: 0,
-    queryFn: ({ pageParam }) =>
-      contentApi(kind).search({
-        query: params.query || undefined,
-        limit: params.pageSize,
-        offset: pageParam,
-        gameVersion: params.gameVersion,
-        loader: params.loader,
-        categories: params.categories,
-      }),
-    getNextPageParam: (
-      lastPage: ModrinthSearchResponse,
-      allPages: ModrinthSearchResponse[]
-    ) => {
-      const loaded = allPages.reduce((acc, p) => acc + p.hits.length, 0);
+    queryFn: ({ pageParam }) => contentApi(kind).search({ ...params, query: params.query || undefined, limit: pageSize, offset: pageParam }),
+    getNextPageParam: (lastPage, pages) => {
+      const loaded = pages.reduce((sum, page) => sum + page.hits.length, 0);
       return loaded < lastPage.total_hits ? loaded : undefined;
     },
     placeholderData: keepPreviousData,
   });
 }
 
-export function useInstallContentMutation(kind: ContentKind, serverId: string) {
+export function useContentProject(kind: ContentKind, projectId: string | undefined) {
+  return useQuery({
+    queryKey: keysFor(kind).project(projectId ?? ""),
+    queryFn: () => contentApi(kind).getProject(projectId!),
+    enabled: !!projectId,
+    staleTime: PROJECT_STALE_MS,
+  });
+}
+
+/** Several projects at once, for naming dependencies */
+export function useContentProjects(kind: ContentKind, projectIds: string[]) {
+  return useQueries({
+    queries: projectIds.map((id) => ({
+      queryKey: keysFor(kind).project(id),
+      queryFn: () => contentApi(kind).getProject(id),
+      staleTime: PROJECT_STALE_MS,
+    })),
+  });
+}
+
+export function useContentVersions(kind: ContentKind, projectId: string | undefined) {
+  return useQuery({
+    queryKey: keysFor(kind).versions(projectId ?? ""),
+    queryFn: () => contentApi(kind).getProjectVersions(projectId!),
+    enabled: !!projectId,
+    staleTime: PROJECT_STALE_MS,
+  });
+}
+
+function useInvalidateInstalled(kind: ContentKind, serverId: string) {
   const queryClient = useQueryClient();
-  const keys = keysFor(kind);
+  return () => queryClient.invalidateQueries({ queryKey: keysFor(kind).installed(serverId) });
+}
+
+export function useInstallContentMutation(kind: ContentKind, serverId: string) {
+  const onSuccess = useInvalidateInstalled(kind, serverId);
   return useMutation({
-    mutationFn: (
-      payload: Parameters<ReturnType<typeof contentApi>["install"]>[0]
-    ) => contentApi(kind).install(payload),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: keys.installed(serverId) }),
+    mutationFn: (payload: Parameters<ReturnType<typeof contentApi>["install"]>[0]) => contentApi(kind).install(payload),
+    onSuccess,
   });
 }
 
 export function useUpdateContentMutation(kind: ContentKind, serverId: string) {
-  const queryClient = useQueryClient();
-  const keys = keysFor(kind);
+  const onSuccess = useInvalidateInstalled(kind, serverId);
   return useMutation({
-    mutationFn: ({
-      recordId,
-      payload,
-    }: {
-      recordId: string;
-      payload: Parameters<ReturnType<typeof contentApi>["update"]>[2];
-    }) => contentApi(kind).update(serverId, recordId, payload),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: keys.installed(serverId) }),
+    mutationFn: ({ recordId, payload }: { recordId: string; payload: Parameters<ReturnType<typeof contentApi>["update"]>[2] }) =>
+      contentApi(kind).update(serverId, recordId, payload),
+    onSuccess,
   });
 }
 
 export function useRemoveContentMutation(kind: ContentKind, serverId: string) {
-  const queryClient = useQueryClient();
-  const keys = keysFor(kind);
+  const onSuccess = useInvalidateInstalled(kind, serverId);
   return useMutation({
-    mutationFn: ({
-      recordId,
-      payload,
-    }: {
-      recordId: string;
-      payload?: Parameters<ReturnType<typeof contentApi>["remove"]>[2];
-    }) => contentApi(kind).remove(serverId, recordId, payload),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: keys.installed(serverId) }),
+    mutationFn: ({ recordId, payload }: { recordId: string; payload?: Parameters<ReturnType<typeof contentApi>["remove"]>[2] }) =>
+      contentApi(kind).remove(serverId, recordId, payload),
+    onSuccess,
   });
 }

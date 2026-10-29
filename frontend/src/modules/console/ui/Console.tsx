@@ -1,299 +1,146 @@
 "use client";
 
-import CommandInput from "@/modules/console/ui/CommandInput";
-import LogRow from "@/modules/console/ui/LogRow";
 import { DiagnosticsPanel } from "@/modules/diagnostics";
 import { ExtensionSlot } from "@/modules/extensions";
-import { useServerStatus, useServerStore } from "@/modules/server";
-import { useSocketStore } from "@/shared/context/socket-context";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
-import { PageLayout } from "@/shared/ui/PageLayout";
+import { resolveServerStatus, useServerLive, useServerStore, type Server } from "@/modules/server";
+import { TopbarActions } from "@/modules/topbar";
+import { useSocketApi, useSocketState } from "@/shared/context/socket-context";
+import { useTranslation } from "@/shared/hooks/useTranslation";
+import { useAccess } from "@/shared/lib/access";
+import { Badge } from "@/shared/ui/badge";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import InputWithHistory from "@/shared/ui/InputWithHistory";
+import { StatusDot } from "@/shared/ui/status-dot";
 import { TooltipProvider } from "@/shared/ui/tooltip";
-import { IInstanceLog } from "@shared/types/server/instance.types";
+import { AccessArea } from "@shared/access/areas";
+import { ServerStatus } from "@shared/types/server/server.types";
 import { WsServerEventTypes } from "@shared/types/ws/server-events.types";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { Terminal } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import { useTranslation } from "../../../shared/hooks/useTranslation";
-import { ConsoleInfoCards } from "./ConsoleInfoCards";
+import { useCallback } from "react";
+import { useConsoleLogFeed } from "../hooks/useConsoleLog";
+import { ConsoleRail } from "./ConsoleRail";
+import { LogPanel } from "./LogPanel";
+import { ServerOff } from "lucide-react";
 
-const MAX_LOG_LINES = 5000;
-const AUTOSCROLL_THRESHOLD_PX = 32;
+const statusBadge: Record<ServerStatus, "success" | "secondary" | "warning" | "destructive"> = {
+  [ServerStatus.RUNNING]: "success",
+  [ServerStatus.STOPPED]: "secondary",
+  [ServerStatus.STARTING]: "warning",
+  [ServerStatus.STOPPING]: "warning",
+  [ServerStatus.CRASHED]: "destructive",
+};
 
-function appendCapped(
-  prev: IInstanceLog[],
-  next: IInstanceLog
-): IInstanceLog[] {
-  if (prev.length < MAX_LOG_LINES) return [...prev, next];
-  return [...prev.slice(prev.length - MAX_LOG_LINES + 1), next];
-}
-
-function formatUptime(startedAt?: string): string {
-  if (!startedAt) return "-";
-  const start = new Date(startedAt).getTime();
-  if (Number.isNaN(start)) return "-";
-
-  const diff = Math.max(0, Math.floor((Date.now() - start) / 1000));
-  const days = Math.floor(diff / 86400);
-  const hours = Math.floor((diff % 86400) / 3600);
-  const minutes = Math.floor((diff % 3600) / 60);
-  const seconds = diff % 60;
-
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
-  return `${seconds}s`;
-}
-
-function formatTime(timestamp?: string): string {
-  if (!timestamp) return "-";
-  const date = new Date(timestamp);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
-const Console = () => {
+function ServerConsole({ server }: { server: Server }) {
   const { t } = useTranslation("modules.console");
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const stickToBottomRef = useRef(true);
+  const { t: tStatus } = useTranslation("modules.components.serverStatus");
+  const { getSocket } = useSocketApi();
+  const { status: socketStatus } = useSocketState();
+  const live = useServerLive(server.id);
+  const canSend = useAccess([AccessArea.CONSOLE, "write"], server.id);
+  useConsoleLogFeed(server.id);
 
-  const [log, setLog] = useState<IInstanceLog[]>([]);
-  const { selectedServer } = useServerStore();
-  // Docker servers run through rcon and have no PTY, so server-side completion is native only
-  const completionAvailable = selectedServer?.runtimeKind !== "docker";
-  const serverStatus = useServerStatus(selectedServer?.id);
-  const { socket, status, subscribe, unsubscribe } = useSocketStore();
+  const status = resolveServerStatus(live, server.status);
+  // The status store keeps the last sample after a stop, so players only count while running
+  const running = status === ServerStatus.RUNNING;
+  const players = running
+    ? {
+        online: live?.players?.online ?? live?.runtime?.playersOnline ?? 0,
+        max: live?.players?.max ?? null,
+        list: live?.players?.list ?? [],
+      }
+    : null;
+  const connected = socketStatus === "connected";
 
-  const serverState =
-    selectedServer?.status || serverStatus?.status || "unknown";
-  // Live runtime stats are only meaningful while the server is running, the
-  // status store keeps the last sample around after a stop
-  const isRunning = serverState.toLowerCase() === "running";
-
-  const playersList = isRunning ? serverStatus?.players?.list || [] : [];
-  const playersOnline = isRunning
-    ? (serverStatus?.players?.online ??
-      serverStatus?.runtime?.playersOnline ??
-      0)
-    : 0;
-  const playersMax = isRunning ? (serverStatus?.players?.max ?? null) : null;
-  const version = serverStatus?.version || selectedServer?.core?.version || "-";
-  const uptime = isRunning
-    ? formatUptime(serverStatus?.runtime?.startedAt)
-    : "-";
-  const lastUpdate = formatTime(serverStatus?.timestamp);
-
-  const virtualizer = useVirtualizer({
-    count: log.length,
-    getScrollElement: () => scrollerRef.current,
-    estimateSize: () => 22,
-    overscan: 20,
-  });
-
-  const requestFullLog = useCallback(async () => {
-    if (!selectedServer?.id) return;
-    const fullLog: any[] = await socket?.emitWithAck(
-      WsServerEventTypes.REQUEST_FULL_LOG,
-      { serverId: selectedServer.id }
-    );
-    if (fullLog && fullLog.length > 0) {
-      const capped =
-        fullLog.length > MAX_LOG_LINES
-          ? fullLog.slice(fullLog.length - MAX_LOG_LINES)
-          : fullLog;
-      setLog(capped as IInstanceLog[]);
-    }
-  }, [selectedServer?.id, socket]);
-
-  useEffect(() => {
-    setLog([]);
-    stickToBottomRef.current = true;
-    requestFullLog();
-  }, [selectedServer?.id, requestFullLog]);
-
-  useEffect(() => {
-    if (status !== "connected" || !socket || !selectedServer) return;
-
-    const handleFullLog = (data: {
-      serverId: string;
-      data: IInstanceLog[];
-      timestamp: string;
-    }) => {
-      if (data?.serverId !== selectedServer.id) return;
-      const incoming = data.data;
-      const capped =
-        incoming.length > MAX_LOG_LINES
-          ? incoming.slice(incoming.length - MAX_LOG_LINES)
-          : incoming;
-      setLog(capped);
-    };
-
-    const handleLogUpdate = (data: IInstanceLog) => {
-      if (data?.serverId !== selectedServer.id) return;
-      setLog((prev) => appendCapped(prev, data));
-    };
-
-    subscribe(WsServerEventTypes.LOG_UPDATE, handleLogUpdate);
-    subscribe(WsServerEventTypes.FULL_LOG, handleFullLog);
-
-    return () => {
-      unsubscribe(WsServerEventTypes.LOG_UPDATE, handleLogUpdate);
-      unsubscribe(WsServerEventTypes.FULL_LOG, handleFullLog);
-    };
-  }, [status, socket, selectedServer, subscribe, unsubscribe]);
-
-  const handleCommand = useCallback(
+  const sendCommand = useCallback(
     (command: string) => {
-      if (!selectedServer || !socket || status !== "connected") return;
-      socket.emit(WsServerEventTypes.SUBMIT_COMMAND, {
-        serverId: selectedServer.id,
-        command,
-      });
+      const value = command.trim();
+      if (!value || !connected) return;
+      getSocket()?.emit(WsServerEventTypes.SUBMIT_COMMAND, { serverId: server.id, command: value });
     },
-    [selectedServer, socket, status]
+    [connected, getSocket, server.id]
   );
 
-  // Ask the server's own line editor (JLine) to complete the current console line
+  // Asks the server's own line editor to complete the line, docker servers have no PTY for it
   const requestCompletion = useCallback(
-    async (
-      line: string
-    ): Promise<{ completion: string; candidates: string[] }> => {
+    async (line: string): Promise<{ completion: string; candidates: string[] }> => {
       const empty = { completion: line, candidates: [] };
-      if (!selectedServer || !socket || status !== "connected") return empty;
+      const socket = getSocket();
+      if (!socket || !connected) return empty;
       try {
-        const result = await socket.emitWithAck(
-          WsServerEventTypes.REQUEST_COMPLETION,
-          { serverId: selectedServer.id, line }
-        );
-        return result ?? empty;
+        return (await socket.emitWithAck(WsServerEventTypes.REQUEST_COMPLETION, { serverId: server.id, line })) ?? empty;
       } catch {
         return empty;
       }
     },
-    [selectedServer, socket, status]
+    [connected, getSocket, server.id]
   );
 
-  const handleScroll = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    stickToBottomRef.current = distanceFromBottom <= AUTOSCROLL_THRESHOLD_PX;
-  }, []);
+  return (
+    <div className="grid gap-4 lg:h-full lg:min-h-[520px] lg:grid-cols-[minmax(0,1fr)_300px]">
+      <TopbarActions>
+        <Badge variant={statusBadge[status]} className="max-md:hidden">
+          <StatusDot status={status} className="size-1.5" />
+          {tStatus(status)}
+        </Badge>
+      </TopbarActions>
 
-  useLayoutEffect(() => {
-    if (!stickToBottomRef.current || log.length === 0) return;
-    virtualizer.scrollToIndex(log.length - 1, { align: "end" });
-  }, [log.length, virtualizer]);
+      <TooltipProvider delay={300}>
+        <LogPanel
+          serverName={server.name}
+          headerActions={<ExtensionSlot name="server.console.actions" context={{ serverId: server.id }} />}
+          footer={
+            canSend && (
+              <div className="flex h-13 shrink-0 items-center gap-2 border-t border-border pr-2 pl-4">
+                <span aria-hidden className="font-mono text-sm font-semibold text-primary">
+                  ›
+                </span>
+                <InputWithHistory
+                  placeholder={t("command.placeholder")}
+                  submitLabel={t("command.send")}
+                  onInputSubmit={sendCommand}
+                  extraSuggestions={players?.list ?? []}
+                  onRequestCompletion={server.runtimeKind !== "docker" ? requestCompletion : undefined}
+                  inputClassName="h-9 border-0 bg-transparent px-0 font-mono text-[13px] focus-visible:ring-0"
+                />
+              </div>
+            )
+          }
+        />
+      </TooltipProvider>
+
+      <div className="grid content-start gap-4 lg:min-h-0 lg:overflow-y-auto">
+        <ConsoleRail
+          serverId={server.id}
+          blueprintId={server.blueprintId}
+          status={status}
+          version={live?.version || (server.variables?.GAME_VERSION as string | undefined) || "—"}
+          players={players}
+          startedAt={live?.runtime?.startedAt}
+          timestamp={live?.timestamp}
+        />
+        <DiagnosticsPanel hideWhenEmpty />
+      </div>
+    </div>
+  );
+}
+
+export default function Console() {
+  const { t } = useTranslation("modules.console");
+  const { selectedServer } = useServerStore();
 
   if (!selectedServer) {
     return (
-      <PageLayout className="flex h-full flex-col">
-        <BlockHeader
-          kicker={t("header.kicker")}
-          title={t("header.title")}
-          description={t("header.description")}
-          icon={Terminal}
-          color="primary"
-        />
-        <div className="flex min-h-0 flex-1 items-center justify-center">
-          <div className="text-muted-foreground">
-            {t("console.noServerSelected")}
-          </div>
-        </div>
-      </PageLayout>
+      <Empty className="h-full">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <ServerOff />
+          </EmptyMedia>
+          <EmptyTitle>{t("noServer.title")}</EmptyTitle>
+          <EmptyDescription>{t("noServer.description")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
-  const items = virtualizer.getVirtualItems();
-
-  return (
-    <PageLayout className="flex h-full flex-col">
-      <BlockHeader
-        kicker={t("header.kicker")}
-        title={t("header.title")}
-        description={t("header.description")}
-        icon={Terminal}
-        color="primary"
-      />
-      <div className="flex flex-1 flex-col gap-5 md:min-h-0 md:flex-row">
-        <div className="flex h-[calc(100svh-10rem)] shrink-0 flex-col gap-5 md:h-auto md:min-h-0 md:flex-1 md:shrink">
-          <div
-            ref={scrollerRef}
-            onScroll={handleScroll}
-            className="relative min-h-0 flex-1 overflow-y-auto rounded-md border bg-secondary/50 p-4 font-mono text-sm"
-          >
-            {log.length === 0 ? (
-              <div className="text-muted-foreground">{t("console.noLogs")}</div>
-            ) : (
-              <TooltipProvider delay={300}>
-                <div
-                  style={{
-                    height: virtualizer.getTotalSize(),
-                    width: "100%",
-                    position: "relative",
-                  }}
-                >
-                  {items.map((virtualRow) => (
-                    <div
-                      key={virtualRow.key}
-                      ref={virtualizer.measureElement}
-                      data-index={virtualRow.index}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        transform: `translateY(${virtualRow.start}px)`,
-                        paddingBottom: 2,
-                      }}
-                    >
-                      <LogRow data={log[virtualRow.index]} />
-                    </div>
-                  ))}
-                </div>
-              </TooltipProvider>
-            )}
-          </div>
-          <ExtensionSlot
-            name="server.console.actions"
-            context={{ serverId: selectedServer.id }}
-          />
-          <CommandInput
-            onInputSubmit={handleCommand}
-            extraSuggestions={playersList}
-            onRequestCompletion={
-              completionAvailable ? requestCompletion : undefined
-            }
-          />
-        </div>
-        <div className="flex w-full shrink-0 flex-col gap-5 md:w-80">
-          <ConsoleInfoCards
-            serverId={selectedServer.id}
-            version={version}
-            playersOnline={playersOnline}
-            playersMax={playersMax}
-            playersList={playersList}
-            serverState={serverState}
-            uptime={uptime}
-            lastUpdate={lastUpdate}
-            logLength={log.length}
-            maxLogLines={MAX_LOG_LINES}
-          />
-          <DiagnosticsPanel hideWhenEmpty />
-        </div>
-      </div>
-    </PageLayout>
-  );
-};
-
-export default Console;
+  // Keyed so a server switch starts with a fresh buffer and scroll position
+  return <ServerConsole key={selectedServer.id} server={selectedServer} />;
+}

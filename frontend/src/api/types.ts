@@ -21,6 +21,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/audit-logs/retention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rotation limits and the size of the log */
+        get: operations["AuditLogController_getRetention"];
+        /** Change rotation limits, applied right away */
+        put: operations["AuditLogController_setRetention"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit-logs/retention/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** How many entries draft limits would remove now */
+        post: operations["AuditLogController_previewRetention"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/permissions": {
         parameters: {
             query?: never;
@@ -28,7 +63,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all grantable permissions (core + extensions) */
+        /** List permissions declared by extensions */
         get: operations["PermissionsController_list"];
         put?: never;
         post?: never;
@@ -138,8 +173,33 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update current user's preferences (2FA primary, notifications) */
+        /** Update current user's preferences (2FA primary, dashboard, avatar) */
         patch: operations["AccountsController_updateMyPreferences"];
+        trace?: never;
+    };
+    "/api/accounts/me/ftp-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reveal the FTP password of the current user
+         * @description Read on demand like other panel secrets, 404 when none is set
+         */
+        get: operations["AccountsController_revealOwnFtpPassword"];
+        put?: never;
+        /**
+         * Issue a new FTP password for the current user
+         * @description An older password stops working right away
+         */
+        post: operations["AccountsController_issueOwnFtpPassword"];
+        /** Remove the FTP password of the current user */
+        delete: operations["AccountsController_removeOwnFtpPassword"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/accounts/{username}": {
@@ -172,6 +232,90 @@ export interface paths {
         put?: never;
         /** Change account password */
         post: operations["AccountsController_changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{username}/ftp-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset the FTP password of an account
+         * @description Issues a new password and returns it once, the old one can't be read
+         */
+        post: operations["AccountsController_resetFtpPassword"];
+        /** Remove the FTP password of an account */
+        delete: operations["AccountsController_removeAccountFtpPassword"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List roles with their member count */
+        get: operations["RolesController_list"];
+        put?: never;
+        /**
+         * Create a role
+         * @description Non-admins can only give levels and keys they have
+         */
+        post: operations["RolesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a role */
+        get: operations["RolesController_get"];
+        /**
+         * Update a role
+         * @description Built-in roles can't be renamed, their levels can change
+         */
+        put: operations["RolesController_update"];
+        post?: never;
+        /**
+         * Delete a role
+         * @description Built-in roles can't be deleted, members lose its access
+         */
+        delete: operations["RolesController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copy a role into a new custom role */
+        post: operations["RolesController_duplicate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -221,6 +365,23 @@ export interface paths {
         };
         /** Get bot information */
         get: operations["TelegramBotController_getBotInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/telegram-bot/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the bot profile photo */
+        get: operations["TelegramBotController_getBotAvatar"];
         put?: never;
         post?: never;
         delete?: never;
@@ -427,6 +588,24 @@ export interface paths {
         };
         /** Export server as zip */
         get: operations["ServersController_exportServer"];
+        put?: never;
+        /** Start a server export task */
+        post: operations["ServersController_startExport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/exports/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a finished server export */
+        get: operations["ServersController_downloadExport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -693,6 +872,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/system-monitoring/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get system information */
+        get: operations["SystemMonitoringController_getSystemInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system-monitoring/disks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get disk usage information */
+        get: operations["SystemMonitoringController_getDiskInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system-monitoring/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current resources usage */
+        get: operations["SystemMonitoringController_getCpuUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system-monitoring/network": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get public and local IP addresses */
+        get: operations["SystemMonitoringController_getNetworkInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system-monitoring/combined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get combined system monitoring data */
+        get: operations["SystemMonitoringController_getCombinedMonitoringData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/2fa/totp/verify": {
         parameters: {
             query?: never;
@@ -898,6 +1162,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kubek/config/secrets/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reveal a secret configuration value */
+        get: operations["KubekController_revealSecret"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/kubek/acceptEULA": {
         parameters: {
             query?: never;
@@ -941,91 +1222,6 @@ export interface paths {
         };
         /** Get task by ID */
         get: operations["TasksController_getOne"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/system-monitoring/info": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get system information */
-        get: operations["SystemMonitoringController_getSystemInfo"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/system-monitoring/disks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get disk usage information */
-        get: operations["SystemMonitoringController_getDiskInfo"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/system-monitoring/resources": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get current resources usage */
-        get: operations["SystemMonitoringController_getCpuUsage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/system-monitoring/network": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get public and local IP addresses */
-        get: operations["SystemMonitoringController_getNetworkInfo"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/system-monitoring/combined": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get combined system monitoring data */
-        get: operations["SystemMonitoringController_getCombinedMonitoringData"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1500,6 +1696,394 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/modpacks/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Fabric modpacks on Modrinth */
+        get: operations["ModpacksController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/modpacks/projects/{projectId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Fabric versions of a modpack */
+        get: operations["ModpacksController_listVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/modpacks/inspect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read an uploaded .mrpack and stage it for install
+         * @description Send the pack as multipart field file
+         */
+        post: operations["ModpacksController_inspect"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/modpacks/inspect/modrinth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Download a Modrinth pack in the background and stage it
+         * @description The task reports download and read stages, its result is the preview
+         */
+        post: operations["ModpacksController_inspectModrinth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/modpacks/staged/{packId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Drop an inspected pack that will not be installed */
+        delete: operations["ModpacksController_discard"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/modpacks/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a Fabric server from an inspected pack */
+        post: operations["ModpacksController_install"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Velocity networks the user can see */
+        get: operations["NetworksController_list"];
+        put?: never;
+        /**
+         * Create a network
+         * @description New servers need servers_create, the result of the task is a NetworkChangeResult
+         */
+        post: operations["NetworksController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Servers and types the wizard can use */
+        get: operations["NetworksController_candidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One network with its members */
+        get: operations["NetworksController_get"];
+        put?: never;
+        post?: never;
+        /** Forget a network, server files stay as they are */
+        delete: operations["NetworksController_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Files the wizard would change, nothing is written */
+        post: operations["NetworksController_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link a server, the result of the task is a NetworkChangeResult */
+        post: operations["NetworksController_addMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks/{id}/members/{serverId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unlink a server from the proxy, its own files stay */
+        delete: operations["NetworksController_removeMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks/{id}/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the try order, the first server is the default */
+        put: operations["NetworksController_setOrder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/networks/{id}/secret/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** New forwarding secret for the proxy and every backend */
+        post: operations["NetworksController_rotateSecret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/server-folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List folders */
+        get: operations["ServerFoldersController_list"];
+        put?: never;
+        /** Create folder */
+        post: operations["ServerFoldersController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/server-folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete folder (servers stay, folderId set to null) */
+        delete: operations["ServerFoldersController_remove"];
+        options?: never;
+        head?: never;
+        /** Update folder */
+        patch: operations["ServerFoldersController_update"];
+        trace?: never;
+    };
+    "/api/server-folders/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bulk move servers into a folder (or out of any folder) */
+        post: operations["ServerFoldersController_move"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inbox of the current user, newest first */
+        get: operations["NotificationsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark every notification as read */
+        post: operations["NotificationsController_readAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a notification as read */
+        post: operations["NotificationsController_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a notification */
+        delete: operations["NotificationsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/prefs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Channels the current user gets each category on */
+        get: operations["NotificationsController_getPrefs"];
+        /** Update notification channels per category */
+        put: operations["NotificationsController_setPrefs"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/backups": {
         parameters: {
             query?: never;
@@ -1507,11 +2091,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all backups */
-        get: operations["BackupsController_getAllBackups"];
+        /** Backups of every server the user can access */
+        get: operations["BackupsController_list"];
         put?: never;
-        /** Create a new backup */
-        post: operations["BackupsController_createBackup"];
+        /** Create a backup */
+        post: operations["BackupsController_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1525,8 +2109,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get backups for a server */
-        get: operations["BackupsController_getServerBackups"];
+        /** Backups of a server */
+        get: operations["BackupsController_listForServer"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1542,12 +2126,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get backup by ID */
-        get: operations["BackupsController_getBackup"];
+        /** Get a backup */
+        get: operations["BackupsController_get"];
         put?: never;
         post?: never;
-        /** Delete a backup */
-        delete: operations["BackupsController_deleteBackup"];
+        /** Delete a backup with all its copies */
+        delete: operations["BackupsController_remove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1562,12 +2146,46 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Restore a backup */
-        post: operations["BackupsController_restoreBackup"];
+        /** Restore a backup, the server must be stopped */
+        post: operations["BackupsController_restore"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/backups/{id}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload the local archive to a remote storage */
+        post: operations["BackupsController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backups/{id}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Pin or unpin a backup */
+        patch: operations["BackupsController_pin"];
         trace?: never;
     };
     "/api/backups/{id}/download": {
@@ -1577,10 +2195,202 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Download backup file */
-        get: operations["BackupsController_downloadBackup"];
+        /** Download the local archive */
+        get: operations["BackupsController_download"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backups/{id}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Direct link to an archive kept only in a remote storage */
+        get: operations["BackupsController_downloadUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backups/policy/defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Policy applied to servers without their own */
+        get: operations["BackupPoliciesController_getDefaults"];
+        /** Change the panel wide backup policy */
+        put: operations["BackupPoliciesController_setDefaults"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backups/server/{serverId}/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retention and upload policy of a server */
+        get: operations["BackupPoliciesController_getForServer"];
+        /** Set the server policy, null goes back to the defaults */
+        put: operations["BackupPoliciesController_setForServer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backups/server/{serverId}/policy/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** How many copies a draft policy would delete now */
+        post: operations["BackupPoliciesController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backups/server/{serverId}/journal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backup operations of a server, newest first */
+        get: operations["BackupPoliciesController_journalOf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backup-storages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Configured remote storages, secrets masked */
+        get: operations["BackupStoragesController_list"];
+        put?: never;
+        /** Add a remote storage */
+        post: operations["BackupStoragesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backup-storages/local/orphans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Archives on the panel disk without a backup */
+        get: operations["BackupStoragesController_listOrphans"];
+        put?: never;
+        post?: never;
+        /** Delete the given archives if they are still orphans */
+        delete: operations["BackupStoragesController_removeOrphans"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backup-storages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a storage, a blank secret keeps the stored one */
+        put: operations["BackupStoragesController_update"];
+        post?: never;
+        /** Remove a storage that holds no copies */
+        delete: operations["BackupStoragesController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backup-storages/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Try a draft config by writing and removing a probe object */
+        post: operations["BackupStoragesController_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backup-storages/{id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Try a config, the saved secret fills a blank one */
+        post: operations["BackupStoragesController_testSaved"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats/client": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report interface language and theme */
+        post: operations["StatsController_reportClient"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1744,59 +2554,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/server-folders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List folders */
-        get: operations["ServerFoldersController_list"];
-        put?: never;
-        /** Create folder */
-        post: operations["ServerFoldersController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/server-folders/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete folder (servers stay, folderId set to null) */
-        delete: operations["ServerFoldersController_remove"];
-        options?: never;
-        head?: never;
-        /** Update folder */
-        patch: operations["ServerFoldersController_update"];
-        trace?: never;
-    };
-    "/api/server-folders/move": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Bulk move servers into a folder (or out of any folder) */
-        post: operations["ServerFoldersController_move"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/metrics-history": {
         parameters: {
             query?: never;
@@ -1806,6 +2563,23 @@ export interface paths {
         };
         /** Get metric history for given scope and window */
         get: operations["MetricsHistoryController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/server-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live CPU and memory of running servers */
+        get: operations["ServerStatsController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1985,6 +2759,417 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/heads/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a Minecraft player head as an 8x8 PNG */
+        get: operations["HeadsController_getHead"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Panel and database health */
+        get: operations["HealthController_check"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whitelist, operators, bans and their toggles */
+        get: operations["PlayersController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check a name and get the UUID the server uses */
+        get: operations["PlayersController_resolve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Toggle white-list and enforce-whitelist */
+        put: operations["PlayersController_updateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/whitelist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a player to the whitelist */
+        post: operations["PlayersController_addToWhitelist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/whitelist/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a player from the whitelist */
+        delete: operations["PlayersController_removeFromWhitelist"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/ops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make a player an operator */
+        post: operations["PlayersController_addOp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/ops/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Take operator rights away */
+        delete: operations["PlayersController_removeOp"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/bans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ban a player */
+        post: operations["PlayersController_addBan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/bans/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Lift a player ban */
+        delete: operations["PlayersController_removeBan"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/ip-bans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ban an IP address */
+        post: operations["PlayersController_addIpBan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/ip-bans/{ip}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Lift an IP ban */
+        delete: operations["PlayersController_removeIpBan"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/kick": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kick an online player */
+        post: operations["PlayersController_kick"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the assistant is set up */
+        get: operations["AssistantSettingsController_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Provider settings and presets, the key is masked */
+        get: operations["AssistantSettingsController_getSettings"];
+        /** Update provider settings */
+        put: operations["AssistantSettingsController_updateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/settings/api-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reveal the stored provider key */
+        get: operations["AssistantSettingsController_revealKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/settings/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List models the provider serves */
+        post: operations["AssistantSettingsController_models"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/settings/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a test prompt to the provider */
+        post: operations["AssistantSettingsController_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversations of the current user, newest first */
+        get: operations["AssistantController_list"];
+        put?: never;
+        /** Start a conversation, the answer streams over WS */
+        post: operations["AssistantController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/conversations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Messages and tool calls of a conversation */
+        get: operations["AssistantController_detail"];
+        put?: never;
+        post?: never;
+        /** Delete a conversation */
+        delete: operations["AssistantController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/conversations/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a message, the answer streams over WS */
+        post: operations["AssistantController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/conversations/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run or decline a call that waits for the user */
+        post: operations["AssistantController_confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/conversations/{id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop the running answer */
+        post: operations["AssistantController_stop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2012,7 +3197,7 @@ export interface components {
              * @example BAD_REQUEST
              * @enum {string}
              */
-            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID";
+            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION";
             /**
              * @description Human-readable error message
              * @example Validation failed
@@ -2025,6 +3210,11 @@ export interface components {
              * @example 2
              */
             attemptsLeft?: number;
+            /**
+             * @description Seconds until the next attempt is allowed (rate limits)
+             * @example 60
+             */
+            retryAfter?: number;
             /**
              * @description ISO timestamp of the error
              * @example 2026-06-04T12:00:00.000Z
@@ -2041,6 +3231,25 @@ export interface components {
              */
             path: string;
         };
+        AuditChangeDto: {
+            /**
+             * @description Dotted path of the field
+             * @example ftpd.port
+             */
+            field: string;
+            /** @description Value before the change */
+            from?: (string | number | boolean | unknown[] | {
+                [key: string]: unknown;
+            }) | null;
+            /** @description Value after the change */
+            to?: (string | number | boolean | unknown[] | {
+                [key: string]: unknown;
+            }) | null;
+            /** @description A secret changed, its values are never logged */
+            secret?: boolean;
+            /** @description Display name of the field */
+            label?: string;
+        };
         AuditLogEntryDto: {
             /** @description Entry id */
             id: string;
@@ -2048,6 +3257,8 @@ export interface components {
             userId: string | null;
             /** @description Actor username snapshot */
             username: string;
+            /** @description Actor's current avatar nickname, null when unset or deleted */
+            skinName?: string | null;
             /**
              * @description Action identifier
              * @example server.start
@@ -2057,13 +3268,19 @@ export interface components {
              * @description Action category
              * @enum {string}
              */
-            category: "server" | "account" | "auth" | "settings";
+            category: "server" | "account" | "auth" | "settings" | "telegram" | "roles";
             /** @description Affected resource type */
             resourceType?: string | null;
             /** @description Affected resource id */
             resourceId?: string | null;
             /** @description Affected resource name */
             resourceName?: string | null;
+            /** @description Server the action touched */
+            serverId?: string | null;
+            /** @description Server name when the action happened */
+            serverName?: string | null;
+            /** @description Fields changed by the action */
+            changes?: components["schemas"]["AuditChangeDto"][] | null;
             /** @description Extra structured details */
             details?: {
                 [key: string]: unknown;
@@ -2083,7 +3300,7 @@ export interface components {
              * @description Source of the action
              * @enum {string}
              */
-            source: "panel" | "telegram" | "system";
+            source: "panel" | "telegram" | "system" | "assistant";
             /** @description Creation timestamp (ms epoch) */
             createdAt: number;
         };
@@ -2103,6 +3320,23 @@ export interface components {
              */
             offset: number;
         };
+        AuditRetentionDto: {
+            /** @description Days an entry is kept, null for no limit */
+            keepDays: number | null;
+            /** @description Newest entries kept, null for no limit */
+            maxEntries: number | null;
+        };
+        AuditRetentionStateDto: {
+            retention: components["schemas"]["AuditRetentionDto"];
+            /** @description Entries in the log right now */
+            total: number;
+            /** @description Creation time of the oldest entry (ms epoch) */
+            oldestAt: number | null;
+        };
+        AuditRetentionPreviewDto: {
+            /** @description Entries the draft would remove now */
+            removed: number;
+        };
         PermissionDescriptorDto: {
             /**
              * @description Permission key
@@ -2120,8 +3354,8 @@ export interface components {
              */
             group?: string;
             /**
-             * @description "core" for built-in permissions, otherwise the declaring extension id
-             * @example core
+             * @description Id of the extension that declares it
+             * @example com.author.name
              */
             source: string;
         };
@@ -2136,6 +3370,108 @@ export interface components {
              * @example Kubek2026
              */
             password: string;
+        };
+        AccessMapDto: {
+            /**
+             * @description Level in console
+             * @enum {string}
+             */
+            console?: "read" | "write";
+            /**
+             * @description Level in power
+             * @enum {string}
+             */
+            power?: "read" | "write" | "manage";
+            /**
+             * @description Level in settings
+             * @enum {string}
+             */
+            settings?: "read" | "write" | "manage";
+            /**
+             * @description Level in files
+             * @enum {string}
+             */
+            files?: "read" | "write" | "manage";
+            /**
+             * @description Level in content
+             * @enum {string}
+             */
+            content?: "read" | "write" | "manage";
+            /**
+             * @description Level in players
+             * @enum {string}
+             */
+            players?: "read" | "write" | "manage";
+            /**
+             * @description Level in backups
+             * @enum {string}
+             */
+            backups?: "read" | "write" | "manage";
+            /**
+             * @description Level in scheduler
+             * @enum {string}
+             */
+            scheduler?: "read" | "write" | "manage";
+            /**
+             * @description Level in servers
+             * @enum {string}
+             */
+            servers?: "write" | "manage";
+            /**
+             * @description Level in networks
+             * @enum {string}
+             */
+            networks?: "read" | "write" | "manage";
+            /**
+             * @description Level in accounts
+             * @enum {string}
+             */
+            accounts?: "read" | "write" | "manage";
+            /**
+             * @description Level in audit
+             * @enum {string}
+             */
+            audit?: "read" | "manage";
+            /**
+             * @description Level in monitoring
+             * @enum {string}
+             */
+            monitoring?: "read";
+            /**
+             * @description Level in java
+             * @enum {string}
+             */
+            java?: "read" | "write" | "manage";
+            /**
+             * @description Level in storages
+             * @enum {string}
+             */
+            storages?: "read" | "manage";
+            /**
+             * @description Level in integrations
+             * @enum {string}
+             */
+            integrations?: "manage";
+            /**
+             * @description Level in assistant
+             * @enum {string}
+             */
+            assistant?: "read" | "manage";
+            /**
+             * @description Level in panel
+             * @enum {string}
+             */
+            panel?: "manage";
+        };
+        UserAccessDto: {
+            levels: components["schemas"]["AccessMapDto"];
+            /**
+             * @description Extension permission keys
+             * @example [
+             *       "ext.worldedit"
+             *     ]
+             */
+            ext: string[];
         };
         UserServersRestrictDto: {
             /**
@@ -2160,19 +3496,43 @@ export interface components {
              * @example admin
              */
             username: string;
-            /** @description Granted permissions */
-            permissions: ("accounts_mgr" | "file_manager" | "servers_view" | "servers_control" | "servers_configure" | "servers_create" | "java_mgr" | "plugins_mgr" | "kubek_settings" | "backups" | "system_monitoring" | "scheduler_mgr" | "audit_log")[];
+            /**
+             * @description Assigned role ids
+             * @example [
+             *       "builtin:viewer"
+             *     ]
+             */
+            roles: string[];
+            /** @description Personal levels on top of the roles */
+            grants: components["schemas"]["AccessMapDto"];
+            /**
+             * @description Personal extension permission keys
+             * @example []
+             */
+            extPermissions: string[];
+            /** @description Effective access from roles and personal grants */
+            access: components["schemas"]["UserAccessDto"];
             serversRestrict: components["schemas"]["UserServersRestrictDto"];
             /**
              * @description Whether the user is an administrator
              * @example true
              */
-            isAdmin?: boolean;
+            isAdmin: boolean;
             /**
              * @description Whether the user finished onboarding
              * @example true
              */
             oobeCompleted: boolean;
+            /**
+             * @description Minecraft nickname used for the avatar, null to use the username
+             * @example Notch
+             */
+            skinName: string | null;
+            /**
+             * @description When the account FTP password was set (ms), null without one
+             * @example 1735689600000
+             */
+            ftpPasswordSetAt: number | null;
         };
         LoginResponseDto: {
             /** @description User profile (only when not 2FA gated) */
@@ -2201,11 +3561,6 @@ export interface components {
              */
             twofaPrimary?: "totp" | "telegram" | null;
             /**
-             * @description Whether the user receives task-result notifications
-             * @example true
-             */
-            notifyTaskResults: boolean;
-            /**
              * @description Whether TOTP 2FA is enabled
              * @example false
              */
@@ -2215,13 +3570,18 @@ export interface components {
              * @example false
              */
             telegram2faEnabled?: boolean;
-            /** @description Persisted dashboard layout (opaque structure), or null */
-            dashboardLayout?: Record<string, never> | null;
+            /** @description Persisted dashboard layout as serialized JSON, or null */
+            dashboardLayout?: string | null;
             /**
              * @description Panel version for which the what's-new modal was last seen
              * @example 4.0.0
              */
             lastSeenWhatsNewVersion?: string | null;
+            /**
+             * @description Minecraft nickname used for the avatar, null to use the username
+             * @example Notch
+             */
+            skinName: string | null;
             /**
              * @description Current running panel version
              * @example 4.0.0
@@ -2231,11 +3591,27 @@ export interface components {
         UpdatePreferencesDto: {
             /** @enum {string|null} */
             twofaPrimary?: "totp" | "telegram" | null;
-            notifyTaskResults?: boolean;
             /** @description Serialized dashboard layout (JSON) */
             dashboardLayout?: string | null;
             /** @description Panel version for which the what's-new modal was last seen */
             lastSeenWhatsNewVersion?: string | null;
+            /**
+             * @description Minecraft nickname for the avatar, null or empty to use the username
+             * @example Notch
+             */
+            skinName?: string | null;
+        };
+        FtpPasswordResponseDto: {
+            /**
+             * @description FTP password
+             * @example q3Xv0tH4c5yWkP9aZ1mN7bLe
+             */
+            password: string;
+            /**
+             * @description When the password was set (ms)
+             * @example 1735689600000
+             */
+            setAt: number;
         };
         CreateAccountDto: {
             /**
@@ -2257,13 +3633,19 @@ export interface components {
              */
             servers?: string[];
             /**
-             * @description User permissions
+             * @description Assigned role ids
              * @example [
-             *       "servers_view",
-             *       "file_manager"
+             *       "builtin:viewer"
              *     ]
              */
-            permissions: string[];
+            roles?: string[];
+            /** @description Personal levels on top of the roles */
+            grants?: components["schemas"]["AccessMapDto"];
+            /**
+             * @description Personal extension permission keys
+             * @example []
+             */
+            extPermissions?: string[];
         };
         ServersRestrictDto: {
             /** @description Whether server access is restricted */
@@ -2276,8 +3658,20 @@ export interface components {
             username?: string;
             /** @description New password */
             password?: string;
-            /** @description User permissions */
-            permissions?: string[];
+            /**
+             * @description Assigned role ids
+             * @example [
+             *       "builtin:viewer"
+             *     ]
+             */
+            roles?: string[];
+            /** @description Personal levels on top of the roles */
+            grants?: components["schemas"]["AccessMapDto"];
+            /**
+             * @description Personal extension permission keys
+             * @example []
+             */
+            extPermissions?: string[];
             /** @description Server access restrictions */
             serversRestrict?: components["schemas"]["ServersRestrictDto"];
             /** @description Admin flag (only honored for admin callers) */
@@ -2294,6 +3688,57 @@ export interface components {
              * @example newSecurePassword123
              */
             new: string;
+        };
+        RoleResponseDto: {
+            /** @example builtin:viewer */
+            id: string;
+            /** @example Viewer */
+            name: string;
+            /** @example null */
+            description: string | null;
+            /**
+             * @description Shipped with the panel, can't be renamed or deleted
+             * @example true
+             */
+            builtin: boolean;
+            /** @example viewer */
+            builtinKey: string | null;
+            grants: components["schemas"]["AccessMapDto"];
+            /**
+             * @description Extension permission keys
+             * @example []
+             */
+            ext: string[];
+            /**
+             * @description Accounts holding the role
+             * @example 2
+             */
+            members: number;
+            /** @example 1735689600000 */
+            createdAt: number;
+            /** @example 1735689600000 */
+            updatedAt: number;
+        };
+        CreateRoleDto: {
+            /** @example Builders */
+            name: string;
+            description?: string | null;
+            grants?: components["schemas"]["AccessMapDto"];
+            /** @description Extension permission keys */
+            ext?: string[];
+        };
+        UpdateRoleDto: {
+            /** @description Built-in roles keep their name */
+            name?: string;
+            description?: string | null;
+            /** @description Replaces all levels of the role */
+            grants?: components["schemas"]["AccessMapDto"];
+            /** @description Replaces the extension permission keys */
+            ext?: string[];
+        };
+        DuplicateRoleDto: {
+            /** @description Name of the copy, "<name> (copy)" when left out */
+            name?: string;
         };
         GenerateOtpResponseDto: {
             /**
@@ -2322,6 +3767,13 @@ export interface components {
             error?: string;
         };
         BotInfoResponseDto: {
+            /**
+             * @description Telegram id of the bot
+             * @example 7012345678
+             */
+            id?: number;
+            /** @description Whether the bot has a profile photo, served by GET /api/telegram-bot/avatar */
+            hasAvatar?: boolean;
             /**
              * @description Bot display name (empty when unavailable)
              * @example Kubek Bot
@@ -2367,6 +3819,11 @@ export interface components {
              * @example admin
              */
             accountName: string;
+            /**
+             * @description Account's avatar nickname, null to use the account name
+             * @example Notch
+             */
+            accountSkinName: string | null;
         };
         ServerRestartPropsDto: {
             /** @example true */
@@ -2389,7 +3846,7 @@ export interface components {
              * @example stopped
              * @enum {string}
              */
-            status: "stopped" | "running" | "starting" | "stopping";
+            status: "stopped" | "running" | "starting" | "stopping" | "crashed";
             restartOnError: components["schemas"]["ServerRestartPropsDto"];
             /** @description Containing folder id */
             folderId?: string | null;
@@ -2415,6 +3872,8 @@ export interface components {
              * @enum {string}
              */
             runtimeKind?: "native" | "docker";
+            /** @description Id of the account that created the server */
+            createdBy?: string | null;
         };
         CreateServerDto: {
             /** @example My Server */
@@ -2497,6 +3956,13 @@ export interface components {
         DuplicateServerDto: {
             /** @description Name of the new (duplicated) server */
             name: string;
+        };
+        TaskRefResponseDto: {
+            /**
+             * @description ID of the started background task
+             * @example a1b2c3d4
+             */
+            taskId: string;
         };
         ServerPropertiesDto: {
             /**
@@ -2604,13 +4070,6 @@ export interface components {
             /** @description Failure reason */
             error?: string;
         };
-        TaskRefResponseDto: {
-            /**
-             * @description ID of the started background task
-             * @example a1b2c3d4
-             */
-            taskId: string;
-        };
         ServerTypeDto: {
             /**
              * @description Blueprint id
@@ -2660,6 +4119,11 @@ export interface components {
             /** @description Optional blueprint features */
             features: string[];
             /**
+             * @description Status query protocol
+             * @example minecraft-java
+             */
+            queryProtocol?: string;
+            /**
              * @description Where the blueprint was loaded from
              * @example bundled
              */
@@ -2681,273 +4145,6 @@ export interface components {
              * @example true
              */
             valid: boolean;
-        };
-        VerifyTotpDto: {
-            /** @description Challenge id received from /auth/login */
-            challengeId: string;
-            /** @description 6-digit TOTP code */
-            code: string;
-        };
-        VerifyTotpResponseDto: {
-            /**
-             * @description Session token
-             * @example a1b2c3...
-             */
-            token: string;
-            user: components["schemas"]["PublicUserDto"];
-        };
-        SwitchChallengeDto: {
-            /** @description Challenge id received from /auth/login */
-            challengeId: string;
-            /** @enum {string} */
-            method: "totp" | "telegram";
-        };
-        SwitchChallengeResponseDto: {
-            /**
-             * @description New challenge ID
-             * @example chal_123
-             */
-            challengeId: string;
-            /**
-             * @description Active method for the new challenge
-             * @example telegram
-             * @enum {string}
-             */
-            method: "totp" | "telegram";
-            /**
-             * @description Challenge expiry as epoch milliseconds
-             * @example 1735689600000
-             */
-            expiresAt: number;
-        };
-        PollChallengeResponseDto: {
-            /**
-             * @description Current challenge status
-             * @example pending
-             * @enum {string}
-             */
-            status: "pending" | "approved" | "denied" | "expired";
-            /**
-             * @description Session token, present only when status is 'approved'
-             * @example a1b2c3...
-             */
-            token?: string;
-            /** @description User profile, present only when status is 'approved' */
-            user?: components["schemas"]["PublicUserDto"];
-        };
-        TwofaStatusResponseDto: {
-            /**
-             * @description Whether TOTP 2FA is enabled
-             * @example false
-             */
-            totpEnabled: boolean;
-            /**
-             * @description Whether Telegram 2FA is enabled
-             * @example false
-             */
-            telegramEnabled: boolean;
-            /**
-             * @description Primary 2FA method, or null when none is set
-             * @example totp
-             * @enum {string|null}
-             */
-            primary: "totp" | "telegram" | null;
-            /**
-             * @description Enabled 2FA methods
-             * @example [
-             *       "totp"
-             *     ]
-             */
-            methods: ("totp" | "telegram")[];
-        };
-        BeginTotpResponseDto: {
-            /**
-             * @description Base32 TOTP secret
-             * @example JBSWY3DPEHPK3PXP
-             */
-            secret: string;
-            /**
-             * @description otpauth:// provisioning URI
-             * @example otpauth://totp/Kubek:admin?secret=...
-             */
-            otpauthUrl: string;
-            /**
-             * @description QR code as a data URL
-             * @example data:image/png;base64,...
-             */
-            qrDataUrl: string;
-            /**
-             * @description Signed token binding this setup attempt
-             * @example eyJ...base64url.sig
-             */
-            setupToken: string;
-        };
-        ConfirmTotpDto: {
-            /** @description Setup token issued by /totp/setup */
-            setupToken: string;
-            /** @description 6-digit TOTP code */
-            code: string;
-        };
-        DisableTotpDto: {
-            /** @description Current account password */
-            password: string;
-        };
-        UpdateCheckResultDto: {
-            /**
-             * @description Whether a newer version is available on GitHub
-             * @example false
-             */
-            updateAvailable: boolean;
-            /**
-             * @description Latest version published on GitHub (without the 'v' prefix)
-             * @example 1.2.0
-             */
-            latestVersion: string;
-            /** @description Release notes (markdown) for the latest version */
-            releaseNotes?: string;
-        };
-        FtpServiceDto: {
-            /**
-             * @description Whether the FTP service is enabled
-             * @example false
-             */
-            enabled: boolean;
-            /** @description FTP username */
-            username?: string;
-            /** @description FTP password */
-            password?: string;
-            /**
-             * @description FTP port
-             * @example 21
-             */
-            port?: number;
-        };
-        SubnetsAccessDto: {
-            /**
-             * @description Whether subnet restriction is enabled
-             * @example false
-             */
-            enabled: boolean;
-            /** @description Allowed subnets in CIDR notation */
-            subnets?: string[];
-        };
-        TelegramBotDto: {
-            /**
-             * @description Whether the Telegram bot is enabled
-             * @example false
-             */
-            enabled: boolean;
-            /** @description Telegram bot token */
-            token?: string;
-            /** @description Chat IDs that receive notifications */
-            chatIds?: string[];
-        };
-        TelemetrySettingsDto: {
-            /**
-             * @description Whether telemetry is enabled
-             * @example true
-             */
-            enabled: boolean;
-        };
-        ConfigurationDto: {
-            /**
-             * @description Whether the Minecraft EULA has been accepted
-             * @example true
-             */
-            eulaAccepted: boolean;
-            /** @description FTP service configuration */
-            ftpd: components["schemas"]["FtpServiceDto"];
-            /**
-             * @description Whether authorization is enabled
-             * @example true
-             */
-            authorization: boolean;
-            /** @description Subnet access restriction configuration */
-            subnetsAccessRestriction: components["schemas"]["SubnetsAccessDto"];
-            /** @description Telegram bot configuration */
-            telegramBot: components["schemas"]["TelegramBotDto"];
-            /** @description Telemetry configuration */
-            telemetry?: components["schemas"]["TelemetrySettingsDto"];
-            /**
-             * @description HTTP port the panel listens on
-             * @example 3000
-             */
-            port: number;
-            /**
-             * @description Configuration schema version
-             * @example 1
-             */
-            configVersion: number;
-            /**
-             * @description Runtime new servers use, auto prefers docker when available
-             * @example auto
-             * @enum {string}
-             */
-            serverRuntime?: "auto" | "native" | "docker";
-        };
-        TaskEntity: {
-            /**
-             * @description Unique task ID
-             * @example a1b2c3d4
-             */
-            id: string;
-            /**
-             * @description Type of task
-             * @enum {string}
-             */
-            type: "server.create" | "server.changeCore" | "server.duplicate" | "server.import" | "server.start" | "server.stop" | "server.restart" | "plugin.install" | "plugin.update" | "plugin.remove" | "mod.install" | "mod.update" | "mod.remove" | "backup.create" | "backup.restore" | "backup.delete" | "java.install" | "files.delete" | "files.archive" | "files.extract";
-            /**
-             * @description Current status of task
-             * @enum {string}
-             */
-            status: "pending" | "running" | "success" | "failed" | "cancelled";
-            /**
-             * @description Progress percentage (0–100)
-             * @example 45
-             */
-            progress: number;
-            /**
-             * @description Optional current step name
-             * @example download_core
-             */
-            step?: string;
-            /**
-             * @description User-friendly message
-             * @example Downloading core...
-             */
-            message?: string;
-            /**
-             * @description Arbitrary metadata object
-             * @example {
-             *       "serverId": "srv_001"
-             *     }
-             */
-            meta?: Record<string, never>;
-            /** @description Task result if available */
-            result?: Record<string, never>;
-            /**
-             * @description Error details if task failed
-             * @example {
-             *       "code": "TASK_ERROR",
-             *       "message": "Download failed"
-             *     }
-             */
-            error?: Record<string, never>;
-            /**
-             * @description Timestamp of creation (ms)
-             * @example 1730143271101
-             */
-            createdAt: number;
-            /**
-             * @description Timestamp of last update (ms)
-             * @example 1730143275123
-             */
-            updatedAt: number;
-            /**
-             * @description Owner user ID
-             * @example user_456
-             */
-            ownerId?: string;
         };
         SystemInfoDto: {
             /**
@@ -3088,6 +4285,320 @@ export interface components {
              * @example 2023-01-01T00:00:00.000Z
              */
             timestamp: string;
+        };
+        VerifyTotpDto: {
+            /** @description Challenge id received from /auth/login */
+            challengeId: string;
+            /** @description 6-digit TOTP code */
+            code: string;
+        };
+        VerifyTotpResponseDto: {
+            /**
+             * @description Session token
+             * @example a1b2c3...
+             */
+            token: string;
+            user: components["schemas"]["PublicUserDto"];
+        };
+        SwitchChallengeDto: {
+            /** @description Challenge id received from /auth/login */
+            challengeId: string;
+            /** @enum {string} */
+            method: "totp" | "telegram";
+        };
+        SwitchChallengeResponseDto: {
+            /**
+             * @description New challenge ID
+             * @example chal_123
+             */
+            challengeId: string;
+            /**
+             * @description Active method for the new challenge
+             * @example telegram
+             * @enum {string}
+             */
+            method: "totp" | "telegram";
+            /**
+             * @description Challenge expiry as epoch milliseconds
+             * @example 1735689600000
+             */
+            expiresAt: number;
+        };
+        PollChallengeResponseDto: {
+            /**
+             * @description Current challenge status
+             * @example pending
+             * @enum {string}
+             */
+            status: "pending" | "approved" | "denied" | "expired";
+            /**
+             * @description Session token, present only when status is 'approved'
+             * @example a1b2c3...
+             */
+            token?: string;
+            /** @description User profile, present only when status is 'approved' */
+            user?: components["schemas"]["PublicUserDto"];
+        };
+        TwofaStatusResponseDto: {
+            /**
+             * @description Whether TOTP 2FA is enabled
+             * @example false
+             */
+            totpEnabled: boolean;
+            /**
+             * @description Whether Telegram 2FA is enabled
+             * @example false
+             */
+            telegramEnabled: boolean;
+            /**
+             * @description Primary 2FA method, or null when none is set
+             * @example totp
+             * @enum {string|null}
+             */
+            primary: "totp" | "telegram" | null;
+            /**
+             * @description Enabled 2FA methods
+             * @example [
+             *       "totp"
+             *     ]
+             */
+            methods: ("totp" | "telegram")[];
+        };
+        BeginTotpResponseDto: {
+            /**
+             * @description Base32 TOTP secret
+             * @example JBSWY3DPEHPK3PXP
+             */
+            secret: string;
+            /**
+             * @description otpauth:// provisioning URI
+             * @example otpauth://totp/Kubek:admin?secret=...
+             */
+            otpauthUrl: string;
+            /**
+             * @description QR code as a data URL
+             * @example data:image/png;base64,...
+             */
+            qrDataUrl: string;
+            /**
+             * @description Signed token binding this setup attempt
+             * @example eyJ...base64url.sig
+             */
+            setupToken: string;
+        };
+        ConfirmTotpDto: {
+            /** @description Setup token issued by /totp/setup */
+            setupToken: string;
+            /** @description 6-digit TOTP code */
+            code: string;
+        };
+        DisableTotpDto: {
+            /** @description Current account password */
+            password: string;
+        };
+        UpdateCheckResultDto: {
+            /**
+             * @description Whether a newer version is available on GitHub
+             * @example false
+             */
+            updateAvailable: boolean;
+            /**
+             * @description Latest version published on GitHub (without the 'v' prefix)
+             * @example 1.2.0
+             */
+            latestVersion: string;
+            /** @description Release notes (markdown) for the latest version */
+            releaseNotes?: string;
+        };
+        FtpServiceDto: {
+            /**
+             * @description Whether the FTP service is enabled
+             * @example false
+             */
+            enabled: boolean;
+            /**
+             * @description FTP port
+             * @example 21
+             */
+            port?: number;
+        };
+        SubnetsAccessDto: {
+            /**
+             * @description Whether subnet restriction is enabled
+             * @example false
+             */
+            enabled: boolean;
+            /** @description Allowed subnets in CIDR notation */
+            subnets?: string[];
+        };
+        TelegramBotDto: {
+            /**
+             * @description Whether the Telegram bot is enabled
+             * @example false
+             */
+            enabled: boolean;
+            /** @description Telegram bot token, blank on read, blank on write keeps it */
+            token?: string;
+            /** @description Chat IDs that receive notifications */
+            chatIds?: string[];
+        };
+        TelemetrySettingsDto: {
+            /**
+             * @description Whether telemetry is enabled
+             * @example true
+             */
+            enabled: boolean;
+        };
+        ServerStatsSettingsDto: {
+            /**
+             * @description Whether server CPU and memory are sampled
+             * @example true
+             */
+            enabled: boolean;
+        };
+        SecretHintDto: {
+            /**
+             * @description Whether a value is stored
+             * @example true
+             */
+            set: boolean;
+            /**
+             * @description Last characters of the value, null for short secrets
+             * @example x9Qa
+             */
+            hint: string | null;
+        };
+        ConfigSecretsDto: {
+            "telegramBot.token": components["schemas"]["SecretHintDto"];
+        };
+        ConfigurationDto: {
+            /**
+             * @description Whether the Minecraft EULA has been accepted
+             * @example true
+             */
+            eulaAccepted: boolean;
+            /** @description FTP service configuration */
+            ftpd: components["schemas"]["FtpServiceDto"];
+            /**
+             * @description Whether authorization is enabled
+             * @example true
+             */
+            authorization: boolean;
+            /** @description Subnet access restriction configuration */
+            subnetsAccessRestriction: components["schemas"]["SubnetsAccessDto"];
+            /** @description Telegram bot configuration */
+            telegramBot: components["schemas"]["TelegramBotDto"];
+            /** @description Telemetry configuration */
+            telemetry?: components["schemas"]["TelemetrySettingsDto"];
+            /** @description Server process sampling configuration */
+            serverStats?: components["schemas"]["ServerStatsSettingsDto"];
+            /**
+             * @description HTTP port the panel listens on
+             * @example 3000
+             */
+            port: number;
+            /**
+             * @description Configuration schema version
+             * @example 1
+             */
+            configVersion: number;
+            /**
+             * @description Runtime new servers use, auto prefers docker when available
+             * @example auto
+             * @enum {string}
+             */
+            serverRuntime?: "auto" | "native" | "docker";
+            /** @description State of secret fields, which come back blank */
+            secrets?: components["schemas"]["ConfigSecretsDto"];
+        };
+        RevealedSecretDto: {
+            /** @description Stored value */
+            value: string | null;
+        };
+        TaskStageBytesDto: {
+            done: number;
+            total: number;
+        };
+        TaskStageDto: {
+            key: string;
+            /**
+             * @description What the stage does
+             * @example server
+             */
+            kind: string;
+            name?: string;
+            /** @enum {string} */
+            status: "pending" | "running" | "done" | "failed";
+            progress?: number;
+            /** @enum {string} */
+            step?: "searchingCore" | "checkingJava" | "downloadingJava" | "unpackingJava" | "downloadingCore" | "pullingImage" | "creatingBat" | "downloadingMods" | "applyingOverrides" | "registeringContent" | "completion" | "completed" | "failed";
+            bytes?: components["schemas"]["TaskStageBytesDto"];
+        };
+        TaskEntity: {
+            /**
+             * @description Unique task ID
+             * @example a1b2c3d4
+             */
+            id: string;
+            /**
+             * @description Type of task
+             * @enum {string}
+             */
+            type: "server.create" | "server.changeCore" | "server.duplicate" | "server.import" | "server.export" | "server.create_modpack" | "server.start" | "server.stop" | "server.restart" | "plugin.install" | "plugin.update" | "plugin.remove" | "mod.install" | "mod.update" | "mod.remove" | "backup.create" | "backup.restore" | "backup.delete" | "backup.upload" | "java.install" | "files.delete" | "files.archive" | "files.extract" | "network.create" | "network.update" | "modpack.inspect";
+            /**
+             * @description Current status of task
+             * @enum {string}
+             */
+            status: "pending" | "running" | "success" | "failed" | "cancelled";
+            /**
+             * @description Progress percentage (0-100)
+             * @example 45
+             */
+            progress: number;
+            /**
+             * @description Optional current step name
+             * @example download_core
+             */
+            step?: string;
+            /**
+             * @description User-friendly message
+             * @example Downloading core...
+             */
+            message?: string;
+            /**
+             * @description Arbitrary metadata object
+             * @example {
+             *       "serverId": "srv_001"
+             *     }
+             */
+            meta?: Record<string, never>;
+            /** @description Task result if available */
+            result?: Record<string, never>;
+            /** @description Named parts of a long task with their own progress */
+            stages?: components["schemas"]["TaskStageDto"][];
+            /**
+             * @description Error details if task failed
+             * @example {
+             *       "code": "TASK_ERROR",
+             *       "message": "Download failed"
+             *     }
+             */
+            error?: Record<string, never>;
+            /**
+             * @description Timestamp of creation (ms)
+             * @example 1730143271101
+             */
+            createdAt: number;
+            /**
+             * @description Timestamp of last update (ms)
+             * @example 1730143275123
+             */
+            updatedAt: number;
+            /**
+             * @description Owner user ID
+             * @example user_456
+             */
+            ownerId?: string;
         };
         FileEntity: {
             /**
@@ -3374,24 +4885,22 @@ export interface components {
                 [key: string]: string;
             };
             /** @description File type */
-            fileType?: string;
-            /** @description Alternative file type field */
-            file_type?: string;
+            file_type?: string | null;
             /** @description File size in bytes */
             size?: number;
         };
         ModrinthVersionDependencyDto: {
             /** @description Dependency project id */
-            project_id?: string;
+            project_id?: string | null;
             /** @description Dependency version id */
-            version_id?: string;
+            version_id?: string | null;
             /**
              * @description Dependency relation
              * @enum {string}
              */
-            dependencyType: "required" | "optional" | "incompatible" | "embedded";
+            dependency_type: "required" | "optional" | "incompatible" | "embedded";
             /** @description Bundled file name */
-            fileName?: string;
+            file_name?: string | null;
         };
         ModrinthVersionDto: {
             /** @description Version id */
@@ -3591,6 +5100,336 @@ export interface components {
              */
             removeDependants: boolean;
         };
+        ModpackWarningDto: {
+            /** @enum {string} */
+            code: "optional_server_files" | "unknown_env_files" | "client_overrides_ignored";
+            /** @description Files the warning is about */
+            count?: number;
+        };
+        ModpackPreviewDto: {
+            /** @description Staged pack handle for install */
+            packId: string;
+            /** @enum {string} */
+            source: "file" | "modrinth";
+            projectId?: string;
+            versionId?: string;
+            iconUrl?: string;
+            /** @example Fabric Boosted */
+            name: string;
+            /** @example 2.1.0 */
+            version: string;
+            summary?: string;
+            /** @example 1.21.1 */
+            minecraftVersion: string;
+            /** @enum {string} */
+            loader: "fabric";
+            /** @example 0.16.5 */
+            loaderVersion: string;
+            /** @description Files downloaded for the server */
+            fileCount: number;
+            /** @description Jars among them */
+            modCount: number;
+            /** @description Declared download size in bytes */
+            downloadSize: number;
+            /** @description Client-only files that are skipped */
+            skippedClientOnly: number;
+            warnings: components["schemas"]["ModpackWarningDto"][];
+        };
+        InspectModrinthDto: {
+            /** @description Modrinth project id or slug */
+            projectId: string;
+            /** @description Modrinth version id */
+            versionId: string;
+        };
+        InstallModpackDto: {
+            /** @description packId from the inspect response */
+            packId: string;
+            /** @example All the Fabric */
+            name: string;
+            /** @example 25565 */
+            port?: number;
+            /**
+             * @description Max heap in MB
+             * @example 4096
+             */
+            memory?: number;
+            /**
+             * @description Managed Java major
+             * @example 21
+             */
+            javaVersion?: number;
+            /** @description Custom Java path override */
+            javaPath?: string;
+        };
+        NetworkServerRefDto: {
+            serverId: string;
+            name: string;
+            /** @example com.kubek.paper */
+            blueprintId: string;
+            /** @enum {string} */
+            status: "stopped" | "running" | "starting" | "stopping" | "crashed";
+        };
+        NetworkMemberDto: {
+            serverId: string;
+            name: string;
+            /** @example com.kubek.paper */
+            blueprintId: string;
+            /** @enum {string} */
+            status: "stopped" | "running" | "starting" | "stopping" | "crashed";
+            /** @example lobby */
+            alias: string;
+            tryOrder: number | null;
+            /** @example 127.0.0.1:25566 */
+            address: string;
+        };
+        NetworkDto: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            forwardingMode: "modern" | "legacy";
+            /** @description ms epoch */
+            createdAt: number;
+            proxy: components["schemas"]["NetworkServerRefDto"];
+            members: components["schemas"]["NetworkMemberDto"][];
+            secret: components["schemas"]["SecretHintDto"];
+        };
+        VelocitySettingsValuesDto: {
+            motd: string;
+            showMaxPlayers: number;
+            onlineMode: boolean;
+            forceKeyAuthentication: boolean;
+            preventClientProxyConnections: boolean;
+            kickExistingPlayers: boolean;
+            announceForge: boolean;
+            compressionThreshold: number;
+            loginRatelimit: number;
+            connectionTimeout: number;
+            readTimeout: number;
+            haproxyProtocol: boolean;
+            failoverOnUnexpectedServerDisconnect: boolean;
+            logPlayerConnections: boolean;
+            acceptsTransfers: boolean;
+            queryEnabled: boolean;
+        };
+        ProxyCandidateDto: {
+            serverId: string;
+            name: string;
+            /** @example com.kubek.paper */
+            blueprintId: string;
+            /** @enum {string} */
+            status: "stopped" | "running" | "starting" | "stopping" | "crashed";
+            settings: components["schemas"]["VelocitySettingsValuesDto"];
+        };
+        BackendCandidateDto: {
+            serverId: string;
+            name: string;
+            /** @example com.kubek.paper */
+            blueprintId: string;
+            /** @enum {string} */
+            status: "stopped" | "running" | "starting" | "stopping" | "crashed";
+            /** @enum {string} */
+            kind: "paper" | "fabric" | "spigot";
+            modes: ("modern" | "legacy")[];
+        };
+        CreatableBackendDto: {
+            blueprintId: string;
+            /** @enum {string} */
+            kind: "paper" | "fabric" | "spigot";
+        };
+        NetworkCandidatesDto: {
+            proxies: components["schemas"]["ProxyCandidateDto"][];
+            backends: components["schemas"]["BackendCandidateDto"][];
+            creatable: components["schemas"]["CreatableBackendDto"][];
+            velocityDefaults: components["schemas"]["VelocitySettingsValuesDto"];
+        };
+        NewProxyDto: {
+            /** @example Proxy */
+            name: string;
+            /** @example 3.4.0 */
+            version: string;
+            /** @description Picked by the panel when omitted */
+            port?: number;
+            /**
+             * @description Max heap in MB
+             * @example 512
+             */
+            memory?: number;
+            /** @enum {string} */
+            runtime?: "native" | "docker";
+            /** @description Extra JVM arguments */
+            jvmArgs?: string;
+        };
+        NewBackendDto: {
+            /** @example Proxy */
+            name: string;
+            /** @example 3.4.0 */
+            version: string;
+            /** @description Picked by the panel when omitted */
+            port?: number;
+            /**
+             * @description Max heap in MB
+             * @example 512
+             */
+            memory?: number;
+            /** @enum {string} */
+            runtime?: "native" | "docker";
+            /** @description Extra JVM arguments */
+            jvmArgs?: string;
+            /** @example com.kubek.paper */
+            blueprintId: string;
+        };
+        VelocitySettingsDto: {
+            motd?: string;
+            showMaxPlayers?: number;
+            onlineMode?: boolean;
+            forceKeyAuthentication?: boolean;
+            preventClientProxyConnections?: boolean;
+            kickExistingPlayers?: boolean;
+            announceForge?: boolean;
+            /** @description -1 turns compression off */
+            compressionThreshold?: number;
+            /** @description Milliseconds, 0 turns it off */
+            loginRatelimit?: number;
+            /** @description Milliseconds */
+            connectionTimeout?: number;
+            /** @description Milliseconds */
+            readTimeout?: number;
+            haproxyProtocol?: boolean;
+            failoverOnUnexpectedServerDisconnect?: boolean;
+            logPlayerConnections?: boolean;
+            acceptsTransfers?: boolean;
+            queryEnabled?: boolean;
+        };
+        NetworkWizardDto: {
+            /** @example Survival network */
+            name: string;
+            /** @description Existing Velocity server */
+            proxyServerId?: string;
+            newProxy?: components["schemas"]["NewProxyDto"];
+            /** @description Existing servers to link */
+            backendIds: string[];
+            newBackends?: components["schemas"]["NewBackendDto"][];
+            /**
+             * @description Detected when omitted
+             * @enum {string}
+             */
+            forwardingMode?: "modern" | "legacy";
+            /** @description Server ids or "new:<index>", the first is the default */
+            tryOrder: string[];
+            proxySettings?: components["schemas"]["VelocitySettingsDto"];
+        };
+        NetworkFileChangeDto: {
+            serverId: string | null;
+            serverName: string;
+            /** @example velocity.toml */
+            path: string;
+            /** @enum {string} */
+            kind: "create" | "update";
+            /** @description same, add and del lines, skip folds unchanged runs */
+            diff: Record<string, never>[];
+        };
+        NetworkPlanDto: {
+            /** @enum {string} */
+            forwardingMode: "modern" | "legacy";
+            changes: components["schemas"]["NetworkFileChangeDto"][];
+            notes: Record<string, never>[];
+            restart: string[];
+        };
+        AddNetworkMemberDto: {
+            serverId: string;
+        };
+        NetworkChangeResultDto: {
+            networkId: string;
+            /** @description Running servers to restart */
+            restart: string[];
+        };
+        NetworkOrderDto: {
+            /** @description Member ids, the first is the default */
+            order: string[];
+        };
+        ServerFolderEntity: {
+            /**
+             * @description Folder ID
+             * @example f1a2b3c4
+             */
+            id: string;
+            /**
+             * @description Folder name
+             * @example Production
+             */
+            name: string;
+            /**
+             * @description Display color
+             * @example #ff8800
+             */
+            color?: string | null;
+            /**
+             * @description Sort order
+             * @example 0
+             */
+            sortOrder: number;
+            /**
+             * @description Creation timestamp (epoch ms)
+             * @example 1717500000000
+             */
+            createdAt: number;
+        };
+        CreateFolderDto: {
+            /** @example Production */
+            name: string;
+            /** @example #22c55e */
+            color?: string;
+            /** @default 0 */
+            sortOrder: number;
+        };
+        UpdateFolderDto: {
+            name?: string;
+            color?: string | null;
+            sortOrder?: number;
+        };
+        MoveServersDto: {
+            serverIds: string[];
+            /** @description Target folder id, null to clear folder */
+            folderId?: string | null;
+        };
+        FolderMoveResponseDto: {
+            /**
+             * @description Number of servers moved
+             * @example 3
+             */
+            moved: number;
+        };
+        NotificationDto: {
+            id: string;
+            userId: string;
+            /** @example task.failed */
+            kind: string;
+            /** @enum {string} */
+            category: "tasks" | "servers" | "backups" | "security" | "system";
+            /** @enum {string} */
+            severity: "info" | "success" | "warning" | "error";
+            /** @description Kind specific params */
+            params: Record<string, never>;
+            readAt: number | null;
+            createdAt: number;
+        };
+        NotificationsPageDto: {
+            items: components["schemas"]["NotificationDto"][];
+            nextCursor: string | null;
+            unreadCount: number;
+        };
+        NotificationPrefsDto: {
+            /**
+             * @description Category to channel switches, categories: tasks, servers, backups, security, system; channels: inbox, telegram
+             * @example {
+             *       "tasks": {
+             *         "inbox": true,
+             *         "telegram": false
+             *       }
+             *     }
+             */
+            prefs: Record<string, never>;
+        };
         BackupFileDto: {
             /**
              * @description File name (no path separators)
@@ -3604,6 +5443,19 @@ export interface components {
             path: string;
             /** @description Whether the file is selected */
             selected?: boolean;
+        };
+        BackupCopyDto: {
+            id: string;
+            backupId: string;
+            /** @description Remote storage id, null for the panel disk */
+            storageId: string | null;
+            /** @description Archive size in bytes */
+            size: number;
+            /** @enum {string} */
+            status: "uploading" | "ready" | "failed";
+            error: string | null;
+            createdAt: number;
+            updatedAt: number;
         };
         BackupEntity: {
             /**
@@ -3627,12 +5479,7 @@ export interface components {
              * @description Backup status
              * @enum {string}
              */
-            status: "creating" | "completed" | "failed" | "paused";
-            /**
-             * @description Progress percentage (0–100)
-             * @example 100
-             */
-            progress: number;
+            status: "creating" | "completed" | "failed";
             /**
              * @description Creation timestamp (ms)
              * @example 1730143271101
@@ -3660,20 +5507,18 @@ export interface components {
              * @example srv_001
              */
             serverId: string;
-            /** @description Path to the backup file/directory */
-            path?: string;
             /** @description Owner user ID */
             ownerId?: string;
             /**
-             * @description Compression ratio
-             * @example 0.62
+             * @description Compression level 1-9
+             * @example 6
              */
             compressionRatio?: number;
             /**
              * @description Backup archive format
              * @enum {string}
              */
-            format?: "zip" | "tar.gz";
+            format: "zip" | "tar.gz";
             /**
              * @description File selection mode
              * @enum {string}
@@ -3681,6 +5526,12 @@ export interface components {
             selectionMode?: "all" | "custom";
             /** @description Glob patterns excluded from the backup */
             globExceptions?: string[];
+            /** @description Pinned backups are kept by retention */
+            pinned: boolean;
+            /** @description sha256 of the archive */
+            checksum?: string;
+            /** @description Stored archives */
+            copies: components["schemas"]["BackupCopyDto"][];
         };
         CreateBackupDto: {
             /**
@@ -3703,7 +5554,7 @@ export interface components {
              */
             serverId: string;
             /**
-             * @description Compression ratio (1–9)
+             * @description Compression ratio (1-9)
              * @example 6
              */
             compressionRatio?: number;
@@ -3717,7 +5568,7 @@ export interface components {
              * @enum {string}
              */
             selectionMode?: "all" | "custom";
-            /** @description Glob exception patterns (no path separators) */
+            /** @description Glob patterns to leave out, relative to the server folder (e.g. *.log, cache/**) */
             globExceptions?: string[];
         };
         BackupOperationResponseDto: {
@@ -3728,6 +5579,155 @@ export interface components {
              * @example a1b2c3d4
              */
             taskId: string;
+        };
+        UploadBackupDto: {
+            /** @description Storage to upload the archive to */
+            storageId: string;
+        };
+        PinBackupDto: {
+            /** @description Pinned backups are never removed by retention */
+            pinned: boolean;
+        };
+        DownloadUrlDto: {
+            /** @description Short lived link to the archive in the storage */
+            url: string;
+        };
+        RetentionLimitsDto: {
+            /** @description Copies to keep, null for no limit */
+            keepCount: number | null;
+            /** @description Days to keep, null for no limit */
+            keepDays: number | null;
+        };
+        RemotePolicyDto: {
+            /** @description Copies to keep, null for no limit */
+            keepCount: number | null;
+            /** @description Days to keep, null for no limit */
+            keepDays: number | null;
+            /** @description Storage for uploads, null for none */
+            storageId: string | null;
+            /** @enum {string} */
+            uploadMode: "auto" | "manual";
+            /** @description Remove the local archive after a successful upload */
+            deleteLocalAfterUpload: boolean;
+        };
+        BackupPolicyDto: {
+            local: components["schemas"]["RetentionLimitsDto"];
+            remote: components["schemas"]["RemotePolicyDto"];
+        };
+        ServerBackupPolicyDto: {
+            local: components["schemas"]["RetentionLimitsDto"];
+            remote: components["schemas"]["RemotePolicyDto"];
+            serverId: string;
+            /** @description False while the panel defaults apply */
+            custom: boolean;
+        };
+        UpdateServerPolicyDto: {
+            /** @description null resets to the panel defaults */
+            policy: components["schemas"]["BackupPolicyDto"] | null;
+        };
+        RetentionPreviewDto: {
+            /** @description Local copies that would be deleted */
+            local: number;
+            /** @description Remote copies that would be deleted */
+            remote: number;
+        };
+        BackupJournalEntryDto: {
+            id: string;
+            serverId: string;
+            backupId: string | null;
+            backupName: string | null;
+            storageId: string | null;
+            /** @enum {string} */
+            op: "create" | "upload" | "download" | "restore" | "delete" | "prune" | "recover";
+            /** @enum {string} */
+            status: "success" | "failed";
+            message: string | null;
+            bytes: number | null;
+            durationMs: number | null;
+            /** @enum {string} */
+            trigger: "user" | "scheduler" | "system";
+            /** @description Who started it */
+            userId: string | null;
+            username: string | null;
+            createdAt: number;
+        };
+        S3ConfigViewDto: {
+            endpoint: string;
+            region: string;
+            bucket: string;
+            prefix: string;
+            accessKeyId: string;
+            secretAccessKey: components["schemas"]["SecretHintDto"];
+            virtualHostedStyle: boolean;
+        };
+        BackupStorageDto: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            driver: "s3";
+            config: components["schemas"]["S3ConfigViewDto"];
+            createdAt: number;
+            updatedAt: number;
+        };
+        OrphanArchiveDto: {
+            /** @description Path relative to the backups folder */
+            key: string;
+            size: number;
+            modifiedAt: number;
+        };
+        DeleteOrphansDto: {
+            keys: string[];
+        };
+        DeleteOrphansResultDto: {
+            removed: number;
+        };
+        S3ConfigInputDto: {
+            /**
+             * @description S3 endpoint, empty for AWS
+             * @example https://s3.eu-central-003.backblazeb2.com
+             */
+            endpoint: string;
+            /**
+             * @description Region, empty when the provider does not need it
+             * @example auto
+             */
+            region: string;
+            /** @example kubek-backups */
+            bucket: string;
+            /**
+             * @description Folder inside the bucket
+             * @example panel-1
+             */
+            prefix: string;
+            accessKeyId: string;
+            /** @description Blank keeps the stored key */
+            secretAccessKey?: string;
+            /** @description Bucket in the host name instead of the path */
+            virtualHostedStyle: boolean;
+        };
+        BackupStorageInputDto: {
+            /** @example Backblaze */
+            name: string;
+            config: components["schemas"]["S3ConfigInputDto"];
+        };
+        StorageTestResultDto: Record<string, never>;
+        ClientPrefsDto: {
+            /**
+             * @description Interface language code
+             * @example ru
+             */
+            language: string;
+            /**
+             * @description Light or dark mode
+             * @example system
+             * @enum {string}
+             */
+            theme: "light" | "dark" | "system";
+            /**
+             * @description Accent color theme
+             * @example default
+             */
+            colorTheme: string;
         };
         SessionPublicViewDto: {
             /**
@@ -4033,58 +6033,6 @@ export interface components {
             /** @description Next run timestamps (ms epoch) */
             nextRuns: number[];
         };
-        ServerFolderEntity: {
-            /**
-             * @description Folder ID
-             * @example f1a2b3c4
-             */
-            id: string;
-            /**
-             * @description Folder name
-             * @example Production
-             */
-            name: string;
-            /**
-             * @description Display color
-             * @example #ff8800
-             */
-            color?: string | null;
-            /**
-             * @description Sort order
-             * @example 0
-             */
-            sortOrder: number;
-            /**
-             * @description Creation timestamp (epoch ms)
-             * @example 1717500000000
-             */
-            createdAt: number;
-        };
-        CreateFolderDto: {
-            /** @example Production */
-            name: string;
-            /** @example #22c55e */
-            color?: string;
-            /** @default 0 */
-            sortOrder: number;
-        };
-        UpdateFolderDto: {
-            name?: string;
-            color?: string | null;
-            sortOrder?: number;
-        };
-        MoveServersDto: {
-            serverIds: string[];
-            /** @description Target folder id, null to clear folder */
-            folderId?: string | null;
-        };
-        FolderMoveResponseDto: {
-            /**
-             * @description Number of servers moved
-             * @example 3
-             */
-            moved: number;
-        };
         MetricPointResponseDto: {
             /**
              * @description Timestamp (epoch ms)
@@ -4106,6 +6054,31 @@ export interface components {
              * @example 4096
              */
             ramTotal: number;
+        };
+        ServerProcessStatsDto: {
+            /** @description Server ID */
+            serverId: string;
+            /**
+             * @description Host pid of the server process, null for containers
+             * @example 4570
+             */
+            pid: number | null;
+            /**
+             * @description CPU share of the whole host 0..100, null until a second sample
+             * @example 38.5
+             */
+            cpu: number | null;
+            /** @description Resident memory in bytes */
+            memoryBytes: number;
+            /** @description Heap limit the server was launched with, in bytes */
+            memoryLimitBytes: number | null;
+            /** @description Start time (ISO) */
+            startedAt: string | null;
+        };
+        ServerStatsResponseDto: {
+            /** @description False when sampling is off in settings or by KUBEK_SERVER_STATS=off */
+            enabled: boolean;
+            servers: components["schemas"]["ServerProcessStatsDto"][];
         };
         LogFileResponseDto: {
             /**
@@ -4192,6 +6165,242 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        HealthDto: {
+            /**
+             * @description Overall state, error when a dependency is down
+             * @example ok
+             * @enum {string}
+             */
+            status: "ok" | "error";
+            /**
+             * @description Database reachability
+             * @example ok
+             * @enum {string}
+             */
+            db: "ok" | "error";
+            /**
+             * @description Process uptime in seconds
+             * @example 3600
+             */
+            uptime: number;
+        };
+        PlayerEntryDto: {
+            /** @example 8667ba71-b85a-4004-af54-457a9734eed7 */
+            uuid: string;
+            /** @example Steve */
+            name: string;
+        };
+        OpEntryDto: {
+            /** @example 8667ba71-b85a-4004-af54-457a9734eed7 */
+            uuid: string;
+            /** @example Steve */
+            name: string;
+            level: number;
+            bypassesPlayerLimit: boolean;
+        };
+        BanEntryDto: {
+            /** @example 8667ba71-b85a-4004-af54-457a9734eed7 */
+            uuid: string;
+            /** @example Steve */
+            name: string;
+            reason: string;
+            source: string;
+            /** @description ms epoch */
+            createdAt: number | null;
+            /** @description ms epoch, null for a permanent ban */
+            expiresAt: number | null;
+        };
+        IpBanEntryDto: {
+            /** @example 203.0.113.7 */
+            ip: string;
+            reason: string;
+            source: string;
+            createdAt: number | null;
+            expiresAt: number | null;
+        };
+        PlayersSettingsDto: {
+            whitelist: boolean;
+            enforceWhitelist: boolean;
+            onlineMode: boolean;
+            opPermissionLevel: number;
+        };
+        PlayersOverviewDto: {
+            whitelist: components["schemas"]["PlayerEntryDto"][];
+            ops: components["schemas"]["OpEntryDto"][];
+            bans: components["schemas"]["BanEntryDto"][];
+            ipBans: components["schemas"]["IpBanEntryDto"][];
+            settings: components["schemas"]["PlayersSettingsDto"];
+            /** @description Changes go through the console of a running server */
+            live: boolean;
+        };
+        ResolvedPlayerDto: {
+            /** @example 8667ba71-b85a-4004-af54-457a9734eed7 */
+            uuid: string;
+            /** @example Steve */
+            name: string;
+            /** @enum {string} */
+            source: "mojang" | "offline";
+        };
+        UpdatePlayersSettingsDto: {
+            /** @description white-list in server.properties */
+            whitelist?: boolean;
+            /** @description enforce-whitelist in server.properties */
+            enforceWhitelist?: boolean;
+        };
+        PlayerNameDto: {
+            /**
+             * @description Player name
+             * @example Steve
+             */
+            name: string;
+        };
+        AddOpDto: {
+            /**
+             * @description Player name
+             * @example Steve
+             */
+            name: string;
+            /** @description Permission level, only on a stopped server */
+            level?: number;
+            /** @description Join a full server, only on a stopped server */
+            bypassesPlayerLimit?: boolean;
+        };
+        AddBanDto: {
+            /** @description Ban reason */
+            reason?: string;
+            /** @description Expiry as ms epoch, only on a stopped server */
+            expiresAt?: number;
+            /**
+             * @description Player name
+             * @example Steve
+             */
+            name: string;
+        };
+        AddIpBanDto: {
+            /** @description Ban reason */
+            reason?: string;
+            /** @description Expiry as ms epoch, only on a stopped server */
+            expiresAt?: number;
+            /**
+             * @description IP address
+             * @example 203.0.113.7
+             */
+            ip: string;
+        };
+        KickPlayerDto: {
+            /**
+             * @description Player name
+             * @example Steve
+             */
+            name: string;
+            /** @description Kick message */
+            reason?: string;
+        };
+        AssistantStatusDto: {
+            enabled: boolean;
+            configured: boolean;
+            model: string | null;
+            provider: string | null;
+        };
+        AssistantSettingsViewDto: {
+            enabled: boolean;
+            /** @enum {string} */
+            preset: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "openai" | "custom";
+            baseUrl: string;
+            model: string;
+            temperature: number;
+            maxSteps: number;
+            apiKey: components["schemas"]["SecretHintDto"];
+        };
+        AssistantPresetDto: {
+            /** @enum {string} */
+            id: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "openai" | "custom";
+            label: string;
+            baseUrl: string;
+            requiresKey: boolean;
+            modelHint: string;
+            local: boolean;
+        };
+        AssistantSettingsResponseDto: {
+            settings: components["schemas"]["AssistantSettingsViewDto"];
+            presets: components["schemas"]["AssistantPresetDto"][];
+        };
+        UpdateAssistantSettingsDto: {
+            enabled?: boolean;
+            /** @enum {string} */
+            preset?: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "openai" | "custom";
+            baseUrl?: string;
+            /** @description Blank or missing keeps the stored key, null clears it */
+            apiKey?: string | null;
+            model?: string;
+            temperature?: number;
+            maxSteps?: number;
+        };
+        AssistantConnectionDraftDto: {
+            /** @example http://localhost:11434/v1 */
+            baseUrl: string;
+            /** @description Blank keeps the stored key */
+            apiKey?: string;
+            model?: string;
+        };
+        AssistantModelsDto: {
+            models: string[];
+        };
+        AssistantTestResultDto: {
+            ok: boolean;
+            latencyMs: number;
+            error: string | null;
+        };
+        ConversationDto: {
+            id: string;
+            title: string;
+            serverId: string | null;
+            createdAt: number;
+            updatedAt: number;
+        };
+        SendMessageDto: {
+            content: string;
+            /** @description Server the user is looking at */
+            serverId?: string;
+        };
+        ToolCallDto: {
+            id: string;
+            name: string;
+            args: Record<string, never>;
+            /** @enum {string} */
+            kind: "read" | "write";
+            /** @enum {string} */
+            status: "pending" | "running" | "done" | "error" | "rejected";
+            serverId: string | null;
+            result: string | null;
+            /** @description diff, command, properties or summary preview */
+            preview: Record<string, never> | null;
+        };
+        MessageDto: {
+            id: string;
+            conversationId: string;
+            /** @enum {string} */
+            role: "user" | "assistant";
+            content: string;
+            /** @enum {string} */
+            status: "done" | "error";
+            error: string | null;
+            toolCalls: components["schemas"]["ToolCallDto"][];
+            createdAt: number;
+        };
+        SendResultDto: {
+            conversation: components["schemas"]["ConversationDto"];
+            message: components["schemas"]["MessageDto"];
+        };
+        ConversationDetailDto: {
+            conversation: components["schemas"]["ConversationDto"];
+            messages: components["schemas"]["MessageDto"][];
+            running: boolean;
+        };
+        ConfirmToolCallDto: {
+            callId: string;
+            approve: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -4204,9 +6413,11 @@ export interface operations {
     AuditLogController_query: {
         parameters: {
             query?: {
-                category?: "server" | "account" | "auth" | "settings";
+                category?: "server" | "account" | "auth" | "settings" | "telegram" | "roles";
                 action?: string;
                 userId?: string;
+                /** @description Entries about one server */
+                serverId?: string;
                 result?: "success" | "failed";
                 /** @description Matches username, resource name or action */
                 search?: string;
@@ -4230,6 +6441,191 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditLogPageDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AuditLogController_getRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditRetentionStateDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AuditLogController_setRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuditRetentionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditRetentionDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AuditLogController_previewRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuditRetentionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditRetentionPreviewDto"];
                 };
             };
             400: {
@@ -4569,6 +6965,110 @@ export interface operations {
             };
         };
     };
+    AccountsController_revealOwnFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FtpPasswordResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_issueOwnFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FtpPasswordResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_removeOwnFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FTP access disabled for the user */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     AccountsController_getAccount: {
         parameters: {
             query?: never;
@@ -4767,6 +7267,418 @@ export interface operations {
             };
         };
     };
+    AccountsController_resetFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Username */
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FtpPasswordResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_removeAccountFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Username */
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FTP access disabled for the account */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    RolesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleResponseDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    RolesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRoleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    RolesController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Role id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    RolesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Role id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    RolesController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Role id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Role deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    RolesController_duplicate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Role id to copy */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateRoleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     TelegramBotController_generateOtp: {
         parameters: {
             query?: never;
@@ -4947,6 +7859,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    TelegramBotController_getBotAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bot avatar image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
         };
@@ -5647,6 +8593,97 @@ export interface operations {
             };
         };
     };
+    ServersController_startExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRefResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServersController_downloadExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Export task ID */
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Zip archive stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     ServersController_importServer: {
         parameters: {
             query?: never;
@@ -6073,7 +9110,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires MANAGE_JAVA permission */
+            /** @description Requires java access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6137,7 +9174,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires MANAGE_JAVA permission */
+            /** @description Requires java access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6201,7 +9238,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires MANAGE_JAVA permission */
+            /** @description Requires java access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6263,7 +9300,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires MANAGE_JAVA permission */
+            /** @description Requires java access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6327,7 +9364,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires MANAGE_JAVA permission */
+            /** @description Requires java access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6390,7 +9427,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires MANAGE_JAVA permission */
+            /** @description Requires java access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6452,7 +9489,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires MANAGE_JAVA permission */
+            /** @description Requires java access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6603,6 +9640,14 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
         };
     };
     ServerTypesController_remove: {
@@ -6657,6 +9702,301 @@ export interface operations {
             };
         };
     };
+    SystemMonitoringController_getSystemInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemInfoDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    SystemMonitoringController_getDiskInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiskInfoDto"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    SystemMonitoringController_getCpuUsage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CpuUsageDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    SystemMonitoringController_getNetworkInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkInfoDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    SystemMonitoringController_getCombinedMonitoringData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CombinedMonitoringDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     TwofaController_verifyTotp: {
         parameters: {
             query?: never;
@@ -6702,6 +10042,14 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
         };
     };
     TwofaController_switchChallenge: {
@@ -6734,6 +10082,14 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6846,6 +10202,14 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6884,7 +10248,23 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7194,6 +10574,68 @@ export interface operations {
             };
         };
     };
+    KubekController_revealSecret: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Secret value */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevealedSecretDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     KubekController_acceptEULA: {
         parameters: {
             query?: never;
@@ -7285,7 +10727,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires SERVERS_VIEW permission */
+            /** @description Requires read access to servers */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7348,7 +10790,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires SERVERS_VIEW permission */
+            /** @description Requires read access to servers */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7358,301 +10800,6 @@ export interface operations {
                 };
             };
             /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    SystemMonitoringController_getSystemInfo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemInfoDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    SystemMonitoringController_getDiskInfo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DiskInfoDto"][];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    SystemMonitoringController_getCpuUsage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CpuUsageDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    SystemMonitoringController_getNetworkInfo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NetworkInfoDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    SystemMonitoringController_getCombinedMonitoringData: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CombinedMonitoringDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -7709,7 +10856,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files read access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7776,7 +10923,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files read access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7841,7 +10988,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files read access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7907,7 +11054,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files write access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7971,7 +11118,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files read access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -8037,7 +11184,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files write access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -8104,7 +11251,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files manage access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -8170,7 +11317,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files write access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -8237,7 +11384,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files manage access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -8301,7 +11448,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires FILE_MANAGER permission and access to serverId */
+            /** @description Requires files write access and access to serverId */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9428,7 +12575,1223 @@ export interface operations {
             };
         };
     };
-    BackupsController_getAllBackups: {
+    ModpacksController_search: {
+        parameters: {
+            query?: {
+                /** @description Free text query */
+                query?: string;
+                offset?: number;
+                limit?: number;
+                /** @description Only packs for this Minecraft version */
+                gameVersion?: string;
+                index?: "relevance" | "downloads" | "follows" | "newest" | "updated";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModrinthSearchResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ModpacksController_listVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project ID or slug */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModrinthVersionDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ModpacksController_inspect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModpackPreviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ModpacksController_inspectModrinth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InspectModrinthDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRefResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ModpacksController_discard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                packId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ModpacksController_install: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstallModpackDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerCreatedResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkWizardDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRefResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_candidates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkCandidatesDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkWizardDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkPlanDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_addMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddNetworkMemberDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRefResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_removeMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkChangeResultDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_setOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkOrderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkChangeResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NetworksController_rotateSecret: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkChangeResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerFoldersController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of folders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerFolderEntity"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerFoldersController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFolderDto"];
+            };
+        };
+        responses: {
+            /** @description Created folder */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerFolderEntity"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerFoldersController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Folder deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerFoldersController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFolderDto"];
+            };
+        };
+        responses: {
+            /** @description Updated folder */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerFolderEntity"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerFoldersController_move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveServersDto"];
+            };
+        };
+        responses: {
+            /** @description Move summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderMoveResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                unread?: boolean;
+                /** @description nextCursor of the previous page */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsPageDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_readAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_getPrefs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPrefsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_setPrefs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPrefsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPrefsDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupsController_list: {
         parameters: {
             query?: never;
             header?: never;
@@ -9445,14 +13808,6 @@ export interface operations {
                     "application/json": components["schemas"]["BackupEntity"][];
                 };
             };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -9461,24 +13816,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires BACKUPS permission */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9488,7 +13826,7 @@ export interface operations {
             };
         };
     };
-    BackupsController_createBackup: {
+    BackupsController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -9501,7 +13839,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Backup creation started */
             202: {
                 headers: {
                     [name: string]: unknown;
@@ -9510,7 +13847,6 @@ export interface operations {
                     "application/json": components["schemas"]["BackupOperationResponseDto"];
                 };
             };
-            /** @description Invalid backup data */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9527,7 +13863,6 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires BACKUPS permission and server access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9544,22 +13879,13 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
         };
     };
-    BackupsController_getServerBackups: {
+    BackupsController_listForServer: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description Server ID */
                 serverId: string;
             };
             cookie?: never;
@@ -9574,12 +13900,41 @@ export interface operations {
                     "application/json": components["schemas"]["BackupEntity"][];
                 };
             };
-            400: {
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupEntity"];
                 };
             };
             401: {
@@ -9590,7 +13945,6 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires BACKUPS permission and server access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9607,7 +13961,52 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            500: {
+        };
+    };
+    BackupsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRefResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9617,17 +14016,138 @@ export interface operations {
             };
         };
     };
-    BackupsController_getBackup: {
+    BackupsController_restore: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description Backup ID */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRefResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupsController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadBackupDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRefResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupsController_pin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinBackupDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -9653,7 +14173,6 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires BACKUPS permission */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9662,16 +14181,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Backup not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9681,149 +14191,18 @@ export interface operations {
             };
         };
     };
-    BackupsController_deleteBackup: {
+    BackupsController_download: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description Backup ID */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Backup deletion started */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskRefResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            /** @description Requires BACKUPS permission and server access */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            /** @description Backup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    BackupsController_restoreBackup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Backup ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Backup restoration started */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskRefResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            /** @description Requires BACKUPS permission and server access */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            /** @description Backup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    BackupsController_downloadBackup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Backup ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Backup file download (binary archive stream) */
+            /** @description Archive stream */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9846,7 +14225,6 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Requires BACKUPS permission and server access */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9855,7 +14233,6 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            /** @description Backup not found or not available */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -9864,7 +14241,733 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            500: {
+        };
+    };
+    BackupsController_downloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupPoliciesController_getDefaults: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupPolicyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupPoliciesController_setDefaults: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupPolicyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupPolicyDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupPoliciesController_getForServer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerBackupPolicyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupPoliciesController_setForServer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateServerPolicyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerBackupPolicyDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupPoliciesController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupPolicyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetentionPreviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupPoliciesController_journalOf: {
+        parameters: {
+            query?: {
+                limit?: number;
+                /** @description createdAt of the last entry of the previous page */
+                before?: number;
+                /** @description id of the last entry of the previous page */
+                beforeId?: string;
+            };
+            header?: never;
+            path: {
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupJournalEntryDto"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupStorageDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupStorageInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupStorageDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_listOrphans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrphanArchiveDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_removeOrphans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteOrphansDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteOrphansResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupStorageInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupStorageDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_test: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupStorageInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageTestResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    BackupStoragesController_testSaved: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupStorageInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageTestResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    StatsController_reportClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientPrefsDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10600,248 +15703,6 @@ export interface operations {
             };
         };
     };
-    ServerFoldersController_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of folders */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerFolderEntity"][];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    ServerFoldersController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateFolderDto"];
-            };
-        };
-        responses: {
-            /** @description Created folder */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerFolderEntity"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    ServerFoldersController_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Folder deleted */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    ServerFoldersController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateFolderDto"];
-            };
-        };
-        responses: {
-            /** @description Updated folder */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerFolderEntity"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    ServerFoldersController_move: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MoveServersDto"];
-            };
-        };
-        responses: {
-            /** @description Move summary */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderMoveResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
     MetricsHistoryController_get: {
         parameters: {
             query: {
@@ -10870,6 +15731,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerStatsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerStatsResponseDto"];
                 };
             };
             401: {
@@ -11221,6 +16117,8 @@ export interface operations {
             header?: never;
             path: {
                 id: string;
+                /** @description Asset path inside the extension, may contain slashes */
+                path: string;
             };
             cookie?: never;
         };
@@ -11510,6 +16408,1547 @@ export interface operations {
                 };
             };
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    HeadsController_getHead: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ETag from a previous response */
+                "if-none-match"?: string;
+            };
+            path: {
+                /** @description Minecraft player name */
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Head image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No skin for this name */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    HealthController_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Healthy */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthDto"];
+                };
+            };
+            /** @description Unhealthy */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthDto"];
+                };
+            };
+        };
+    };
+    PlayersController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_resolve: {
+        parameters: {
+            query: {
+                /** @description Player name */
+                name: string;
+            };
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolvedPlayerDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePlayersSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_addToWhitelist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayerNameDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_removeFromWhitelist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_addOp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddOpDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_removeOp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_addBan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddBanDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_removeBan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_addIpBan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddIpBanDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_removeIpBan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+                ip: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayersOverviewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_kick: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KickPlayerDto"];
+            };
+        };
+        responses: {
+            /** @description Kick command sent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantSettingsController_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantStatusDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantSettingsController_getSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantSettingsResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantSettingsController_updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAssistantSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantSettingsViewDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantSettingsController_revealKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevealedSecretDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantSettingsController_models: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantConnectionDraftDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantModelsDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantSettingsController_test: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantConnectionDraftDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantTestResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDetailDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_confirm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmToolCallDto"];
+            };
+        };
+        responses: {
+            /** @description Decision accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_stop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -9,32 +9,25 @@ import {
   IsString,
   Matches,
   Max,
+  MaxLength,
   Min,
   ValidateNested,
 } from "class-validator";
+import {
+  BackupFormat,
+  BackupType,
+  SelectionMode,
+  type BackupFile,
+  type CreateBackupRequest,
+} from "@shared/types/backup.types";
 
-export enum BackupType {
-  FULL = "full",
-  PARTIAL = "partial",
-}
-
-export enum BackupFormat {
-  ZIP = "zip",
-  TAR_GZ = "tar.gz",
-}
-
-export enum SelectionMode {
-  ALL = "all",
-  CUSTOM = "custom",
-}
-
-export class BackupFileDto {
+export class BackupFileDto implements BackupFile {
   @ApiProperty({
     description: "File name (no path separators)",
     example: "server.properties",
   })
   @IsString()
-  @Matches(/^[^\/\\]*$/, {
+  @Matches(/^[^/\\]*$/, {
     message: "File name cannot contain path separators",
   })
   name: string;
@@ -44,7 +37,7 @@ export class BackupFileDto {
     example: "config/server.properties",
   })
   @IsString()
-  @Matches(/^[a-zA-Z0-9._\-\s\/\\]+$/, {
+  @Matches(/^[a-zA-Z0-9._\-\s/\\]+$/, {
     message: "Path contains invalid characters",
   })
   path: string;
@@ -54,7 +47,7 @@ export class BackupFileDto {
   selected?: boolean;
 }
 
-export class CreateBackupDto {
+export class CreateBackupDto implements CreateBackupRequest {
   @ApiProperty({ description: "Backup name", example: "daily-2026-06-04" })
   @IsString()
   @Matches(/^[a-zA-Z0-9._\-\s]+$/, {
@@ -92,7 +85,7 @@ export class CreateBackupDto {
   serverId: string;
 
   @ApiPropertyOptional({
-    description: "Compression ratio (1–9)",
+    description: "Compression ratio (1-9)",
     minimum: 1,
     maximum: 9,
     example: 6,
@@ -118,15 +111,17 @@ export class CreateBackupDto {
 
   @ApiPropertyOptional({
     type: [String],
-    description: "Glob exception patterns (no path separators)",
+    description:
+      "Glob patterns to leave out, relative to the server folder (e.g. *.log, cache/**)",
   })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @Matches(/^[^\/\\]*$/, {
+  @MaxLength(200, { each: true })
+  // Patterns are only matched against paths, still no escaping the server folder
+  @Matches(/^(?!\/)(?!.*\.\.)[^\\<>|]+$/, {
     each: true,
-    message:
-      "Glob patterns cannot contain path separators for security reasons",
+    message: "Exclusion patterns must be relative and cannot contain ..",
   })
   @ArrayMaxSize(50, { message: "Maximum 50 glob exception patterns allowed" })
   globExceptions?: string[];

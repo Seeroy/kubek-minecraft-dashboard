@@ -25,6 +25,9 @@ export class Startup {
     latestVersion: string;
     releaseNotes?: string;
   } | null = null;
+  // Printed after Nest logs so it doesn't get lost among them
+  private static defaultAdminPassword: string | null = null;
+
   /**
    * Show welcome message (banner only)
    */
@@ -52,12 +55,28 @@ export class Startup {
 
   // Web-server is listening - print the final ready line
   static async serverStarted(port: number) {
+    console.log(" ");
+    if (this.defaultAdminPassword) {
+      console.log("    😎 Default admin user created:");
+      console.log("       Username: kubek");
+      console.log("       Password: " + this.defaultAdminPassword);
+      console.warn(
+        "      ",
+        chalk.black.bgYellowBright("WARN! Save password!"),
+      );
+      console.log(" ");
+      this.defaultAdminPassword = null;
+    }
     this.createSpinner("webServer", " Starting web-server", "white");
     await this.updateSpinnerWithDelay(
       "webServer",
       "success",
       `Started at ${chalk.cyan(`http://localhost:${port}`)}`,
     );
+  }
+
+  static setDefaultAdmin(password: string) {
+    this.defaultAdminPassword = password;
   }
 
   /**
@@ -86,6 +105,7 @@ export class Startup {
    * Check for updates in the background so boot never waits on the network
    */
   static async checkForUpdates() {
+    console.log(" ");
     this.createSpinner("updates", " Checking for updates", "yellow");
 
     const updatePromise = checkForUpdates();
@@ -143,7 +163,12 @@ export class Startup {
     this.createSpinner("publicIP", " Getting Public IP", "cyan");
 
     // Fetch public IP, lib timeouts are unreliable on Bun so race it
-    const request = publicIpv4({ timeout: 3000, onlyHttps: true });
+    const abort = new AbortController();
+    const request = publicIpv4({
+      timeout: 3000,
+      onlyHttps: true,
+      signal: abort.signal,
+    });
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(
@@ -157,7 +182,7 @@ export class Startup {
       await this.setPublicIP(chalk.cyan(ipv4));
       return true;
     } catch (error: unknown) {
-      request.cancel();
+      abort.abort();
       // Writing to stdout here would break the spinner, show failure only
       await this.updateSpinnerWithDelay(
         "publicIP",

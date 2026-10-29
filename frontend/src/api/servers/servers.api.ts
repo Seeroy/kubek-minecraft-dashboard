@@ -46,18 +46,25 @@ export class ServersApi {
       json: { name },
     });
 
-  exportArchive = async (
-    id: string
+  startExport = (id: string): Promise<{ taskId: string }> =>
+    this.authHttp.post<{ taskId: string }>(`servers/${id}/export`);
+
+  // Archive built by an export task, percent is 0..100
+  downloadExport = async (
+    taskId: string,
+    onProgress?: (percent: number) => void
   ): Promise<{ blob: Blob; filename: string }> => {
-    const response = await this.authHttp.raw.get(`servers/${id}/export`, {
+    const response = await this.authHttp.raw.get(`servers/exports/${taskId}`, {
       timeout: false,
+      onDownloadProgress: (progress) =>
+        onProgress?.(Math.round(progress.percent * 100)),
     });
     if (!response.ok) {
       throw new Error(`Export failed: ${response.status}`);
     }
     const disposition = response.headers.get("content-disposition") || "";
     const match = disposition.match(/filename="?([^";]+)"?/i);
-    const filename = match?.[1] || `server-${id}.zip`;
+    const filename = match?.[1] || `server-export.zip`;
     const blob = await response.blob();
     return { blob, filename };
   };

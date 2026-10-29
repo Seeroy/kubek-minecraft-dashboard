@@ -1,19 +1,25 @@
 "use client";
 import { useNotifications } from "@/modules/notifications";
 import { CREATE_SERVER_MODAL_ID, useServerStore } from "@/modules/server";
-import { BULK_DELETE_SERVERS_MODAL_ID } from "@/modules/sidebar/dialogs/BulkDeleteServersDialog";
-import { DELETE_SERVER_MODAL_ID } from "@/modules/sidebar/dialogs/DeleteServerDialog";
-import { DUPLICATE_SERVER_MODAL_ID } from "@/modules/sidebar/dialogs/DuplicateServerDialog";
-import { IMPORT_SERVER_MODAL_ID } from "@/modules/sidebar/dialogs/ImportServerDialog";
-import { RENAME_SERVER_MODAL_ID } from "@/modules/sidebar/dialogs/RenameServerDialog";
+import {
+  BULK_DELETE_SERVERS_MODAL_ID,
+  DELETE_SERVER_MODAL_ID,
+  DUPLICATE_SERVER_MODAL_ID,
+  FOLDER_FORM_MODAL_ID,
+  IMPORT_SERVER_MODAL_ID,
+  MOVE_TO_FOLDER_MODAL_ID,
+  RENAME_SERVER_MODAL_ID,
+} from "@/modules/sidebar/modals";
+import { NETWORK_WIZARD_MODAL_ID } from "@/modules/networks/modal-ids";
 import { triggerServerExport } from "@/modules/sidebar/lib/triggerServerExport";
 import { useServerSelectionStore } from "@/modules/sidebar/store/selection.store";
 import type { BulkAction } from "@/modules/sidebar/ui/BulkActionBar";
-import { FOLDER_FORM_MODAL_ID } from "@/modules/sidebar/ui/FolderFormDialog";
-import { MOVE_TO_FOLDER_MODAL_ID } from "@/modules/sidebar/ui/MoveToFolderDialog";
 import { useModal } from "@/shared/hooks/useModalsManager";
+import { useTaskWaiter } from "@/shared/hooks/useWatchedTask";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { useAuthStore } from "@/shared/stores/auth-store";
 import { useSidebarStore } from "@/shared/stores/sidebar-store";
+import { AccessArea } from "@shared/access/areas";
 import type { IServerFolder } from "@shared/types/server/folder.types";
 import { FolderInput, Trash2 } from "lucide-react";
 import { useMemo } from "react";
@@ -23,9 +29,12 @@ export function useServersListActions(setOpen: (open: boolean) => void) {
   const { servers, selectedServer, selectServer } = useServerStore();
   const { close } = useSidebarStore();
   const notifier = useNotifications();
+  const waitForTask = useTaskWaiter();
   const { open: openModal } = useModal();
   const { t } = useTranslation("modules.sidebar.serversList");
   const selection = useServerSelectionStore();
+  const canMove = useAuthStore((s) => s.can(AccessArea.SERVERS, "manage"));
+  const canDelete = useAuthStore((s) => s.can(AccessArea.SETTINGS, "manage"));
 
   const selectedServerEntities = useMemo(
     () => servers.filter((s) => selection.selectedIds.includes(s.id)),
@@ -92,33 +101,39 @@ export function useServersListActions(setOpen: (open: boolean) => void) {
     void openModal(IMPORT_SERVER_MODAL_ID, {});
   };
 
+  const handleCreateNetwork = () => {
+    setOpen(false);
+    void openModal(NETWORK_WIZARD_MODAL_ID, {});
+  };
+
   const handleExportServer = (id: string) => {
     const target = servers.find((s) => s.id === id);
     if (!target) return;
-    void triggerServerExport(target.id, target.name, notifier, {
-      triggerTitle: t("dialogs.export.triggerTitle"),
-      triggerMessage: t("dialogs.export.triggerMessage", target.name),
+    void triggerServerExport(target.id, notifier, waitForTask, {
+      triggerTitle: t("dialogs.export.triggerTitle", target.name),
+      packingMessage: t("dialogs.export.packingMessage"),
+      downloadingMessage: t("dialogs.export.downloadingMessage"),
       readyTitle: t("dialogs.export.readyTitle"),
       readyMessage: t("dialogs.export.readyMessage", target.name),
       errorTitle: t("dialogs.export.errorTitle"),
     });
   };
 
-  const bulkActions: BulkAction[] = [
-    {
+  const bulkActions = ([
+    canMove && {
       id: "move",
       label: t("folders.moveToFolder"),
       icon: FolderInput,
       run: handleMoveToFolder,
     },
-    {
+    canDelete && {
       id: "delete",
       label: t("bulk.delete"),
       icon: Trash2,
       variant: "destructive",
       run: handleBulkDelete,
     },
-  ];
+  ] satisfies (BulkAction | false)[]).filter((action) => action !== false);
 
   return {
     handleServerSelect,
@@ -129,6 +144,7 @@ export function useServersListActions(setOpen: (open: boolean) => void) {
     handleRenameServer,
     handleDeleteServer,
     handleImportServer,
+    handleCreateNetwork,
     handleExportServer,
     bulkActions,
   };

@@ -62,7 +62,7 @@ export default function ServerStatusNotifier() {
 
       const serverName = serverNames[serverId] ?? "Server";
       const baseNotification = {
-        duration: 8000,
+        duration: 3000,
         icon: undefined,
       } as const;
 

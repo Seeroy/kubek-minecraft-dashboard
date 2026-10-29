@@ -1,15 +1,19 @@
+import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
+import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
+import { getErrorMessage } from "@/core/utils/error";
 import { Audit } from "@/modules/audit-log/audit.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
 import { AdminGuard } from "@/modules/auth/guards/admin.guard";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import {
+  BadGatewayException,
   BadRequestException,
   Controller,
   Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   NotFoundException,
   Param,
@@ -29,7 +33,6 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
-import { UserPermissions } from "@shared/types/user.types";
 import {
   ServerTypeDto,
   ServerTypeInstallResponseDto,
@@ -42,7 +45,7 @@ import { VersionResolverService } from "./versions/version-resolver.service";
 @ApiTags("Server Types")
 @ApiBearerAuth()
 @Controller("api/server-types")
-@UseGuards(BearerAuthGuard, PermissionsGuard)
+@UseGuards(BearerAuthGuard, AccessGuard)
 export class ServerTypesController {
   constructor(
     private readonly registry: ServerTypesRegistry,
@@ -58,43 +61,50 @@ export class ServerTypesController {
     description: "Installable blueprints",
   })
   @ApiErrorResponses([401, 403])
-  @RequirePermissions(UserPermissions.CREATE_SERVERS)
+  @RequireAccess(AccessArea.SERVERS, "write")
   list(): ServerTypeDto[] {
     // Hide docker-only blueprints when the daemon is down, dual-capable ones still run native
     const dockerAvailable = this.docker.available();
     return this.registry
       .listValid()
-      .filter(
-        (b) => dockerAvailable || b.manifest.runtime.kind !== "docker",
-      )
+      .filter((b) => dockerAvailable || b.manifest.runtime.kind !== "docker")
       .map((b) => ({
-      id: b.manifest.id,
-      name: b.manifest.name,
-      shortName: b.manifest.shortName,
-      description: b.manifest.description,
-      game: b.manifest.game,
-      icon: this.registry.iconDataUri(b),
-      version: b.manifest.version,
-      platforms: b.manifest.platforms,
-      runtimeKind: b.manifest.runtime.kind,
-      dockerCapable: !!b.manifest.dockerProfile,
-      variables: b.manifest.variables,
-      ports: b.manifest.ports,
-      configFiles: b.manifest.configFiles ?? [],
-      features: b.manifest.features ?? [],
-      source: b.source,
-    }));
+        id: b.manifest.id,
+        name: b.manifest.name,
+        shortName: b.manifest.shortName,
+        description: b.manifest.description,
+        game: b.manifest.game,
+        icon: this.registry.iconDataUri(b),
+        version: b.manifest.version,
+        platforms: b.manifest.platforms,
+        runtimeKind: b.manifest.runtime.kind,
+        dockerCapable: !!b.manifest.dockerProfile,
+        variables: b.manifest.variables,
+        ports: b.manifest.ports,
+        configFiles: b.manifest.configFiles ?? [],
+        features: b.manifest.features ?? [],
+        queryProtocol: b.manifest.query?.protocol,
+        source: b.source,
+      }));
   }
 
   @Get(":id/versions")
   @ApiOperation({ summary: "List versions offered by a blueprint" })
   @ApiOkResponse({ type: [String], description: "Available versions" })
-  @ApiErrorResponses([401, 403, 404])
-  @RequirePermissions(UserPermissions.CREATE_SERVERS)
+  @ApiErrorResponses([401, 403, 404, 502])
+  @RequireAccess(AccessArea.SERVERS, "write")
   async versionsFor(@Param("id") id: string): Promise<string[]> {
     const blueprint = this.registry.get(id);
     if (!blueprint) throw new NotFoundException(`Unknown blueprint: ${id}`);
-    return this.versions.listVersions(blueprint);
+    try {
+      return await this.versions.listVersions(blueprint);
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      // Versions come from upstream APIs, if they fail it's not on us
+      throw new BadGatewayException(
+        `Failed to list versions: ${getErrorMessage(error)}`,
+      );
+    }
   }
 
   @Post()
@@ -107,7 +117,7 @@ export class ServerTypesController {
   @ApiErrorResponses([400, 401, 403])
   @ApiConsumes("multipart/form-data")
   // Installing executes the blueprint resolver code in-process  restrict to admins
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @UseGuards(AdminGuard)
   @UseInterceptors(
     FileInterceptor("file", { limits: { fileSize: 25 * 1024 * 1024 } }),
@@ -134,7 +144,7 @@ export class ServerTypesController {
   @ApiOperation({ summary: "Remove an installed blueprint" })
   @ApiNoContentResponse({ description: "Removed blueprint" })
   @ApiErrorResponses([400, 401, 403, 404])
-  @RequirePermissions(UserPermissions.KUBEK_SETTINGS)
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
   @Audit({
     action: AuditAction.SERVER_TYPE_DELETE,
     category: AuditCategory.SETTINGS,

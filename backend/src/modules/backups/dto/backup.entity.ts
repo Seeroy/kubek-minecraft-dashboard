@@ -1,19 +1,33 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
-  BackupFileDto,
+  type Backup,
+  type BackupCopy,
+  BackupCopyStatus,
   BackupFormat,
+  BackupStatus,
   BackupType,
   SelectionMode,
-} from "./create-backup.dto";
+} from "@shared/types/backup.types";
+import { BackupFileDto } from "./create-backup.dto";
 
-export enum BackupStatus {
-  CREATING = "creating",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  PAUSED = "paused",
+/** One stored archive of a backup */
+export class BackupCopyDto implements BackupCopy {
+  @ApiProperty() id: string;
+  @ApiProperty() backupId: string;
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: "Remote storage id, null for the panel disk",
+  })
+  storageId: string | null;
+  @ApiProperty({ description: "Archive size in bytes" }) size: number;
+  @ApiProperty({ enum: BackupCopyStatus }) status: BackupCopyStatus;
+  @ApiProperty({ type: String, nullable: true }) error: string | null;
+  @ApiProperty() createdAt: number;
+  @ApiProperty() updatedAt: number;
 }
 
-export class BackupEntity {
+export class BackupEntity implements Backup {
   @ApiProperty({ description: "Backup ID", example: "bkp_001" })
   id: string;
 
@@ -29,8 +43,6 @@ export class BackupEntity {
   @ApiProperty({ description: "Backup status", enum: BackupStatus })
   status: BackupStatus;
 
-  @ApiProperty({ description: "Progress percentage (0–100)", example: 100 })
-  progress: number;
 
   @ApiProperty({
     description: "Creation timestamp (ms)",
@@ -60,28 +72,18 @@ export class BackupEntity {
   @ApiProperty({ description: "Owner server ID", example: "srv_001" })
   serverId: string;
 
-  @ApiProperty({
-    description: "Path to the backup file/directory",
-    required: false,
-  })
-  path?: string;
-
   @ApiProperty({ description: "Owner user ID", required: false })
   ownerId?: string;
 
   @ApiProperty({
-    description: "Compression ratio",
+    description: "Compression level 1-9",
     required: false,
-    example: 0.62,
+    example: 6,
   })
   compressionRatio?: number;
 
-  @ApiProperty({
-    description: "Backup archive format",
-    enum: BackupFormat,
-    required: false,
-  })
-  format?: BackupFormat;
+  @ApiProperty({ description: "Backup archive format", enum: BackupFormat })
+  format: BackupFormat;
 
   @ApiProperty({
     description: "File selection mode",
@@ -96,4 +98,13 @@ export class BackupEntity {
     required: false,
   })
   globExceptions?: string[];
+
+  @ApiProperty({ description: "Pinned backups are kept by retention" })
+  pinned: boolean;
+
+  @ApiProperty({ description: "sha256 of the archive", required: false })
+  checksum?: string;
+
+  @ApiProperty({ type: [BackupCopyDto], description: "Stored archives" })
+  copies: BackupCopyDto[];
 }

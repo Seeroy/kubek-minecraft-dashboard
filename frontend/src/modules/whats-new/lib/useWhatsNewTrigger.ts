@@ -1,8 +1,10 @@
 "use client";
-import { api } from "@/api";
+import {
+  usePreferencesQuery,
+  useUpdatePreferencesMutation,
+} from "@/shared/queries/preferences.queries";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { useModalStore } from "@/shared/stores/modal-store";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { findRelease } from "../data/releases";
 import { WHATS_NEW_MODAL_ID } from "../ui/WhatsNewModal";
@@ -10,13 +12,8 @@ import { compareVersions } from "./version";
 
 // Reads per-user preferences and opens the what's-new modal once after an update
 export function useWhatsNewTrigger() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const { data } = useQuery({
-    queryKey: ["preferences", "whats-new"],
-    queryFn: () => api.twofa.getPreferences(),
-    staleTime: Infinity,
-    enabled: isAuthenticated,
-  });
+  const { data } = usePreferencesQuery({ staleTime: Infinity });
+  const { mutate: updatePreferences } = useUpdatePreferencesMutation({ silent: true });
   const openModal = useModalStore((s) => s.openModal);
   // Distinguishes a returning user from a fresh install when no version is recorded
   const oobeCompleted = useAuthStore((s) => s.user?.oobeCompleted ?? false);
@@ -32,9 +29,7 @@ export function useWhatsNewTrigger() {
 
     const release = findRelease(panelVersion);
     const markSeen = () => {
-      void api.twofa.updatePreferences({
-        lastSeenWhatsNewVersion: panelVersion,
-      });
+      updatePreferences({ lastSeenWhatsNewVersion: panelVersion });
     };
     const showThenMark = () => {
       void openModal(WHATS_NEW_MODAL_ID, { version: panelVersion }).then(
@@ -58,5 +53,5 @@ export function useWhatsNewTrigger() {
       // Updated to a version without curated notes, or moved sideways
       markSeen();
     }
-  }, [data, openModal, oobeCompleted]);
+  }, [data, openModal, oobeCompleted, updatePreferences]);
 }

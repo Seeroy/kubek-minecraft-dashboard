@@ -49,6 +49,13 @@ export class ApiErrorBodyDto {
   attemptsLeft?: number;
 
   @ApiProperty({
+    description: "Seconds until the next attempt is allowed (rate limits)",
+    required: false,
+    example: 60,
+  })
+  retryAfter?: number;
+
+  @ApiProperty({
     description: "ISO timestamp of the error",
     example: "2026-06-04T12:00:00.000Z",
   })

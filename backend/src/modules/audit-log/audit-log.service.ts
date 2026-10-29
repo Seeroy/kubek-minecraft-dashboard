@@ -1,4 +1,5 @@
 import { AuditLogsRepository } from "@/modules/database/repositories/audit-logs.repository";
+import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { Injectable } from "@nestjs/common";
 import {
   type AuditLogQuery,
@@ -9,9 +10,21 @@ import { randomUUID } from "crypto";
 
 @Injectable()
 export class AuditLogService {
-  constructor(private readonly repo: AuditLogsRepository) {}
+  constructor(
+    private readonly repo: AuditLogsRepository,
+    private readonly servers: ServersRepository,
+  ) {}
 
-  record(input: AuditRecordInput): void {
+  record(entry: AuditRecordInput): void {
+    // A server resource is its own server, callers need not repeat it
+    const input =
+      entry.serverId || entry.resourceType !== "server"
+        ? entry
+        : {
+            ...entry,
+            serverId: entry.resourceId,
+            serverName: entry.serverName ?? entry.resourceName,
+          };
     try {
       this.repo.create({
         id: randomUUID(),
@@ -23,6 +36,9 @@ export class AuditLogService {
         resourceType: input.resourceType ?? null,
         resourceId: input.resourceId ?? null,
         resourceName: input.resourceName ?? null,
+        serverId: input.serverId ?? null,
+        serverName: input.serverId ? this.serverName(input) : null,
+        changes: input.changes?.length ? input.changes : null,
         details: input.details ?? null,
         result: input.result ?? AuditResult.SUCCESS,
         error: input.error ?? null,
@@ -33,6 +49,12 @@ export class AuditLogService {
     } catch (e) {
       console.error("[AuditLog] Failed to record entry:", e);
     }
+  }
+
+  // The name is kept with the entry so it outlives a rename or deletion
+  private serverName(input: AuditRecordInput): string | null {
+    if (input.serverName) return input.serverName;
+    return this.servers.findById(input.serverId!)?.name ?? null;
   }
 
   query(q: AuditLogQuery) {

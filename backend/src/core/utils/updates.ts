@@ -2,6 +2,7 @@ import { Logger } from "@nestjs/common";
 import { readFileSync } from "fs";
 import ky, { HTTPError } from "ky";
 import { join } from "path";
+import semver from "semver";
 
 const logger = new Logger("UpdateCheck");
 
@@ -26,6 +27,15 @@ export function getVersion(): string {
   } catch {
     return "0.0.0";
   }
+}
+
+/**
+ * Checks engines.kubek from a manifest against our version.
+ * If the version is unknown we let everything through
+ */
+export function satisfiesKubekVersion(range: string): boolean {
+  const version = getVersion();
+  return version === "0.0.0" || semver.satisfies(version, range);
 }
 
 /**

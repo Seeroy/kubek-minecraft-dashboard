@@ -1,55 +1,38 @@
 import { api } from "@/api";
 import { useNotifications } from "@/modules/notifications";
-import { useRef, useState } from "react";
+import { useTranslation } from "@/shared/hooks/useTranslation";
+import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
+import { qk } from "@/shared/queries/query-keys";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef, type ChangeEvent } from "react";
 
-interface UseServerIconUploadArgs {
-  serverId: string | undefined;
-}
-
-export const useServerIconUpload = ({ serverId }: UseServerIconUploadArgs) => {
+/** Hidden file input wiring for the server icon, the shared avatar cache shows the result */
+export function useServerIconUpload(serverId: string) {
+  const { t } = useTranslation("modules.serverSettings.notifications");
   const { notify } = useNotifications();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
-  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const iconUrl = serverId ? `servers/${serverId}/icon` : null;
+  const upload = useMutation({
+    mutationFn: (file: File) => api.servers.uploadIcon(serverId, file),
+    onSuccess: () => {
+      notify({ title: t("serverIconUploaded"), type: "success" });
+      void queryClient.invalidateQueries({ queryKey: qk.servers.icon(serverId) });
+    },
+    onError: (error) => notify({ title: getApiErrorMessage(error), type: "error" }),
+    meta: { silent: true },
+  });
 
-  const handleIconUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !serverId) return;
-
+    event.target.value = "";
+    if (!file) return;
     if (!file.type.startsWith("image/")) {
-      notify({ title: "Please select an image file", type: "error" });
+      notify({ title: t("selectImageFile"), type: "error" });
       return;
     }
-
-    setIsUploadingIcon(true);
-    try {
-      await api.servers.uploadIcon(serverId, file);
-      notify({ title: "Server icon uploaded successfully", type: "success" });
-      // Force reload by updating timestamp
-      setIconPreview(`${iconUrl}&t=${Date.now()}`);
-    } catch (error: any) {
-      notify({
-        title: error?.message || "Failed to upload icon",
-        type: "error",
-      });
-      setIconPreview(null);
-    } finally {
-      setIsUploadingIcon(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
+    upload.mutate(file);
   };
 
-  return {
-    fileInputRef,
-    isUploadingIcon,
-    iconPreview,
-    iconUrl,
-    handleIconUpload,
-  };
-};
+  return { inputRef, onChange, pick: () => inputRef.current?.click(), uploading: upload.isPending };
+}

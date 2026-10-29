@@ -1,89 +1,44 @@
 "use client";
+import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
-import type { LucideIcon } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { Panel, PanelActions, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
 import { EyeOff, GripVertical } from "lucide-react";
-import React from "react";
+import { useState, type ReactNode } from "react";
+import { WidgetActionsSlot, WidgetMetaSlot } from "./WidgetActions";
 
 interface DashboardWidgetProps {
   title: string;
-  icon: LucideIcon;
   editMode: boolean;
   onHide?: () => void;
-  /** Override the inner content padding (default: p-3). Ignored in bare mode */
   contentClassName?: string;
-  /** Render only the children + floating edit controls (no header/border) */
-  bare?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-export default function DashboardWidget({
-  title,
-  icon: Icon,
-  editMode,
-  onHide,
-  contentClassName,
-  bare,
-  children,
-}: DashboardWidgetProps) {
-  if (bare) {
-    return (
-      // Children own the card chrome; we layer drag/hide affordances over them
-      <div className="relative h-full">
-        {children}
-        {editMode && (
-          <>
-            <div
-              aria-label={title}
-              className="dashboard-drag-handle absolute top-2 left-2 z-30 flex h-7 w-7 cursor-move items-center justify-center rounded-md bg-background/70 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:text-foreground"
-            >
-              <GripVertical className="h-4 w-4" />
-            </div>
-            {onHide && (
-              <button
-                type="button"
-                onClick={onHide}
-                className="absolute top-2 right-2 z-30 flex h-7 w-7 items-center justify-center rounded-md bg-background/70 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:text-foreground"
-                aria-label="Hide widget"
-              >
-                <EyeOff className="h-4 w-4" />
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    );
-  }
+export default function DashboardWidget({ title, editMode, onHide, contentClassName, children }: DashboardWidgetProps) {
+  const { t } = useTranslation("modules.dashboard.toolbar");
+  const [actionsNode, setActionsNode] = useState<HTMLDivElement | null>(null);
+  const [metaNode, setMetaNode] = useState<HTMLSpanElement | null>(null);
 
   return (
-    // Surface matches the shared Card (rounded-2xl, gradient, soft shadow) so
-    // widgets read as part of the same design language as the rest of the app
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-card to-card/95 shadow-sm">
-      <div
-        className={cn(
-          "flex items-center gap-2 border-b border-border/60 px-4 py-2.5",
-          // .dashboard-drag-handle is the drag target configured on the grid
-          editMode && "dashboard-drag-handle cursor-move select-none"
-        )}
-      >
-        {editMode && (
-          <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
-        )}
-        <Icon className="h-4 w-4 shrink-0 text-primary" />
-        <span className="flex-1 truncate text-sm font-medium">{title}</span>
+    <Panel className="h-full overflow-hidden">
+      {/* The grid finds its drag target by this class name */}
+      <PanelHead className={cn(editMode && "dashboard-drag-handle cursor-move select-none")}>
+        {editMode && <GripVertical className="size-3.5 shrink-0 text-muted-foreground" />}
+        <PanelTitle className="truncate">{title}</PanelTitle>
+        <PanelMeta ref={setMetaNode} />
+        <PanelActions ref={setActionsNode} hidden={editMode} />
         {editMode && onHide && (
-          <button
-            type="button"
-            onClick={onHide}
-            className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Hide widget"
-          >
-            <EyeOff className="h-4 w-4" />
-          </button>
+          <Button variant="ghost" size="icon-sm" className="ml-auto" onClick={onHide} aria-label={t("hide")} title={t("hide")}>
+            <EyeOff />
+          </Button>
         )}
-      </div>
-      <div className={cn("min-h-0 flex-1 overflow-auto p-5", contentClassName)}>
-        {children}
-      </div>
-    </div>
+      </PanelHead>
+      <WidgetMetaSlot value={metaNode}>
+        <WidgetActionsSlot value={actionsNode}>
+          <div className={cn("min-h-0 flex-1 scrollbar-thin overflow-auto p-4", contentClassName)}>{children}</div>
+        </WidgetActionsSlot>
+      </WidgetMetaSlot>
+    </Panel>
   );
 }

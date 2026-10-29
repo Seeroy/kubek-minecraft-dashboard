@@ -21,7 +21,6 @@ export interface IOtpCode {
   id: string;
   userId: string;
   codeHash: string;
-  telegramId?: number;
   createdAt: number;
   expiresAt: number;
   used: boolean;

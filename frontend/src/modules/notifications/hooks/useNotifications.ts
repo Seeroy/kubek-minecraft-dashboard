@@ -1,25 +1,11 @@
-import { useCallback } from "react";
-import { useNotificationsContext } from "../contexts/NotificationProvider";
-import { Notification } from "../types";
+import { useNotificationStore, type NotificationInput } from "../store/notifications.store";
+import type { Notification } from "../types";
 
-export const useNotifications = () => {
-  const { addNotification, removeNotification, updateNotification } =
-    useNotificationsContext();
-
-  const notify = useCallback(
-    (n: Omit<Notification, "id" | "createdAt">) => addNotification(n),
-    [addNotification]
-  );
-
-  const close = useCallback(
-    (id: string) => removeNotification(id),
-    [removeNotification]
-  );
-
-  const update = useCallback(
-    (id: string, data: Partial<Notification>) => updateNotification(id, data),
-    [updateNotification]
-  );
-
-  return { notify, close, update };
+// Plain functions over the store, so callers never re-render on new toasts
+const actions = {
+  notify: (input: NotificationInput) => useNotificationStore.getState().add(input),
+  close: (id: string) => useNotificationStore.getState().remove(id),
+  update: (id: string, data: Partial<Notification>) => useNotificationStore.getState().update(id, data),
 };
+
+export const useNotifications = () => actions;

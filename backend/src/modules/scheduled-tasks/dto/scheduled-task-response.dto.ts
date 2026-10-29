@@ -6,10 +6,12 @@ import {
   SchedulerActionType,
   type SchedulePayload,
   type SchedulerActionPayload,
+  type IScheduledTask,
+  type IScheduledTaskRun,
 } from "@shared/types/scheduler.types";
 
 /** A scheduled task as returned to the panel (with computed nextRunAt) */
-export class ScheduledTaskEntity {
+export class ScheduledTaskEntity implements IScheduledTask {
   @ApiProperty({ description: "Task id" })
   id: string;
 
@@ -91,7 +93,7 @@ export class ScheduledTaskEntity {
 }
 
 /** A historical run of a scheduled task */
-export class ScheduledTaskRunEntity {
+export class ScheduledTaskRunEntity implements IScheduledTaskRun {
   @ApiProperty({ description: "Run id" })
   id: string;
 

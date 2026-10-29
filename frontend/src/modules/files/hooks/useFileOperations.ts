@@ -1,16 +1,23 @@
 "use client";
-import { api } from "@/api";
 import type { FilesTaskRunner } from "@/modules/files/hooks/useFilesTaskRunner";
-import { FILE_EDITOR_MODAL_ID } from "@/modules/files/modals/EditorModal";
+import { FILE_EDITOR_MODAL_ID } from "@/modules/files/modals";
 import { useNotifications } from "@/modules/notifications";
 import type { Server } from "@/modules/server";
 import { useModal } from "@/shared/hooks/useModalsManager";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { canEditFile } from "@/shared/lib/fileTypes";
 import { confirmDialog } from "@/shared/modals";
-import { useExtractFilesArchiveMutation } from "@/modules/files/api/files.queries";
+import { Trash2 } from "lucide-react";
+import {
+  useDeleteEntryMutation,
+  useDownloadFileMutation,
+  useExtractFilesArchiveMutation,
+  useReadFileMutation,
+  useUploadFileMutation,
+  useWriteFileMutation,
+} from "@/modules/files/api/files.queries";
 import { FileType, IFile } from "@shared/types/file.types";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 interface FileOperationsOptions {
   selectedServer: Server | null;
@@ -41,7 +48,13 @@ export function useFileOperations({
   const { t } = useTranslation("modules.files");
   const { notify } = useNotifications();
   const { open: openModal } = useModal();
-  const [isMutating, setIsMutating] = useState(false);
+  const serverId = selectedServer?.id;
+  const { mutateAsync: readFile, isPending: reading } = useReadFileMutation(serverId);
+  const { mutateAsync: writeFile, isPending: writing } = useWriteFileMutation(serverId);
+  const { mutateAsync: uploadFile, isPending: uploading } = useUploadFileMutation(serverId);
+  const { mutateAsync: deleteEntry, isPending: deleting } = useDeleteEntryMutation(serverId);
+  const { mutateAsync: downloadFile, isPending: downloading } = useDownloadFileMutation(serverId);
+  const isMutating = reading || writing || uploading || deleting || downloading;
 
   // Opens the editor with the file's current content, then writes back on resolve
   const handleEditFile = useCallback(
@@ -61,18 +74,15 @@ export function useFileOperations({
         return;
       }
 
-      setIsMutating(true);
       let initialContent: string | null = null;
       try {
-        initialContent = await api.files.readFile(selectedServer.id, file.path);
-      } catch (error: any) {
+        initialContent = await readFile(file.path);
+      } catch (error: unknown) {
         notify({
-          title: error.message || t("notifications.error.readFile"),
+          title: (error instanceof Error && error.message) || t("notifications.error.readFile"),
           type: "error",
         });
         return;
-      } finally {
-        setIsMutating(false);
       }
 
       const filename = file.path.split(/[\/\\]/).pop();
@@ -83,27 +93,21 @@ export function useFileOperations({
 
       if (newValue == null) return; // cancelled
 
-      setIsMutating(true);
       try {
-        await api.files.writeFile(selectedServer.id, {
-          path: file.path,
-          data: newValue,
-        });
+        await writeFile({ path: file.path, data: newValue });
         notify({
           title: t("notifications.success.fileSaved"),
           type: "success",
         });
         loadFiles();
-      } catch (error: any) {
+      } catch (error: unknown) {
         notify({
-          title: error.message || t("notifications.error.saveFile"),
+          title: (error instanceof Error && error.message) || t("notifications.error.saveFile"),
           type: "error",
         });
-      } finally {
-        setIsMutating(false);
       }
     },
-    [selectedServer, navigateToPath, notify, t, openModal, loadFiles]
+    [selectedServer, navigateToPath, notify, t, openModal, loadFiles, readFile, writeFile]
   );
 
   const handleFileUpload = useCallback(() => {
@@ -117,72 +121,60 @@ export function useFileOperations({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      setIsMutating(true);
       try {
-        await api.files.uploadFile(selectedServer.id, currentPath, file);
+        await uploadFile({ path: currentPath, file });
         notify({
           title: t("notifications.success.fileUploaded"),
           type: "success",
         });
         loadFiles();
-      } catch (error: any) {
+      } catch (error: unknown) {
         notify({
-          title: error.message || t("notifications.error.uploadFile"),
+          title: (error instanceof Error && error.message) || t("notifications.error.uploadFile"),
           type: "error",
         });
-      } finally {
-        setIsMutating(false);
       }
     };
 
     input.click();
-  }, [selectedServer, currentPath, loadFiles, notify, t]);
+  }, [selectedServer, currentPath, loadFiles, notify, t, uploadFile]);
 
   const handleDeleteFile = useCallback(
     async (file: IFile) => {
       if (!selectedServer) return;
 
       const ok = await confirmDialog({
-        title: `Delete ${file.type === FileType.DIRECTORY ? "Directory" : "File"}?`,
-        description: `Are you sure you want to delete "${file.name}"? This action cannot be undone.`,
+        title: t(file.type === FileType.DIRECTORY ? "ui.files.delete.directoryTitle" : "ui.files.delete.fileTitle"),
+        description: t("ui.files.delete.confirmDesc", file.name),
         confirmText: t("ui.files.delete.confirmText"),
         cancelText: t("ui.files.delete.cancelText"),
         variant: "destructive",
+        icon: Trash2,
       });
       if (!ok) return;
 
-      setIsMutating(true);
       try {
-        if (file.type === FileType.DIRECTORY) {
-          await api.files.deleteDirectory(selectedServer.id, {
-            path: file.path,
-          });
-        } else {
-          await api.files.deleteFile(selectedServer.id, { path: file.path });
-        }
+        await deleteEntry(file);
         notify({ title: t("notifications.success.deleted"), type: "success" });
         loadFiles();
-      } catch (error: any) {
+      } catch (error: unknown) {
         notify({
-          title: error.message || t("notifications.error.delete"),
+          title: (error instanceof Error && error.message) || t("notifications.error.delete"),
           type: "error",
         });
-      } finally {
-        setIsMutating(false);
       }
     },
-    [selectedServer, loadFiles, notify, t]
+    [selectedServer, loadFiles, notify, t, deleteEntry]
   );
 
   const handleDownloadFile = useCallback(
     async (file: IFile) => {
       if (!selectedServer || file.type !== FileType.FILE) return;
 
-      setIsMutating(true);
       let url: string | undefined;
       let anchor: HTMLAnchorElement | undefined;
       try {
-        const blob = await api.files.downloadFile(selectedServer.id, file.path);
+        const blob = await downloadFile(file.path);
         url = window.URL.createObjectURL(blob);
         anchor = document.createElement("a");
         anchor.href = url;
@@ -193,19 +185,18 @@ export function useFileOperations({
           title: t("notifications.success.fileDownloaded"),
           type: "success",
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         notify({
-          title: error.message || t("notifications.error.downloadFile"),
+          title: (error instanceof Error && error.message) || t("notifications.error.downloadFile"),
           type: "error",
         });
       } finally {
         // Always release the blob URL and DOM node, even if click/append threw
         if (anchor?.parentNode) document.body.removeChild(anchor);
         if (url) window.URL.revokeObjectURL(url);
-        setIsMutating(false);
       }
     },
-    [selectedServer, notify, t]
+    [selectedServer, notify, t, downloadFile]
   );
 
   const handleExtractFile = useCallback(
@@ -216,9 +207,9 @@ export function useFileOperations({
           path: file.path,
         });
         extractRunner.start(taskId);
-      } catch (error: any) {
+      } catch (error: unknown) {
         notify({
-          title: error.message || t("notifications.error.archiveExtract"),
+          title: (error instanceof Error && error.message) || t("notifications.error.archiveExtract"),
           type: "error",
         });
       }

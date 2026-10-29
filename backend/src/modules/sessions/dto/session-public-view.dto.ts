@@ -1,7 +1,8 @@
+import type { SessionPublicView } from "@shared/types/session.types";
 import { ApiProperty } from "@nestjs/swagger";
 
 /** Public projection of an active user session */
-export class SessionPublicViewDto {
+export class SessionPublicViewDto implements SessionPublicView {
   @ApiProperty({ description: "Session ID", example: "sess_123" })
   id: string;
 

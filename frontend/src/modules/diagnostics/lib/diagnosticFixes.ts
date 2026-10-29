@@ -10,21 +10,28 @@ const FIXES: Record<string, DiagnosticFix[]> = {
     {
       type: "navigate",
       labelKey: "fixes.openServerSettings",
-      href: "/server-settings",
+      href: "/server-settings/java",
     },
   ],
   port_bind_failed: [
     {
       type: "navigate",
       labelKey: "fixes.openServerSettings",
-      href: "/server-settings",
+      href: "/server-settings/network",
+    },
+  ],
+  port_invalid: [
+    {
+      type: "navigate",
+      labelKey: "fixes.openServerSettings",
+      href: "/server-settings/network",
     },
   ],
   java_version_incompatible: [
     {
       type: "navigate",
       labelKey: "fixes.openServerSettings",
-      href: "/server-settings",
+      href: "/server-settings/java",
     },
     { type: "navigate", labelKey: "fixes.openJava", href: "/java" },
   ],

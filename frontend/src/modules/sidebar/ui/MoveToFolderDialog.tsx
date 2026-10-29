@@ -3,9 +3,7 @@ import { useNotifications } from "@/modules/notifications";
 import {
   useMoveServersMutation,
   useServerFoldersQuery,
-  useServerStore,
 } from "@/modules/server";
-import { useThisModal } from "@/shared/hooks/useThisModal";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import type { ModalProps } from "@/shared/types/modal.types";
@@ -18,13 +16,11 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Folder, FolderMinus } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export interface MoveToFolderProps {
   serverIds: string[];
 }
-
-export const MOVE_TO_FOLDER_MODAL_ID = "sidebar/move-to-folder";
 
 declare module "@/shared/types/modal-registry" {
   interface ModalRegistry {
@@ -41,18 +37,11 @@ const MoveToFolderDialog: React.FC<ModalProps<boolean> & MoveToFolderProps> = ({
   const { notify } = useNotifications();
   const { data: folders } = useServerFoldersQuery();
   const move = useMoveServersMutation();
-  const { updateServer } = useServerStore();
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen) setSelectedFolderId(null);
-  }, [isOpen]);
 
   const handleConfirm = async () => {
     try {
       await move.mutateAsync({ serverIds, folderId: selectedFolderId });
-      for (const id of serverIds)
-        updateServer(id, { folderId: selectedFolderId });
       onClose(true);
     } catch (error) {
       notify({
@@ -120,14 +109,5 @@ const MoveToFolderDialog: React.FC<ModalProps<boolean> & MoveToFolderProps> = ({
     </Dialog>
   );
 };
-
-export function MoveToFolderDialogRegistration() {
-  useThisModal({
-    id: MOVE_TO_FOLDER_MODAL_ID,
-    component: MoveToFolderDialog,
-    module: "sidebar",
-  });
-  return null;
-}
 
 export default MoveToFolderDialog;

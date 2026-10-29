@@ -1,31 +1,34 @@
 import { useAuthStore } from "@/shared/stores/auth-store";
 import ky from "ky";
+import { API_URL } from "./api-url";
 import { AuthHttpClient } from "./auth-http-client";
 import { BaseHttpClient } from "./base-http-client";
-
-const API_URL_OVERRIDE = process.env.NEXT_PUBLIC_API_URL?.trim();
-const PREFIX_URL =
-  API_URL_OVERRIDE && API_URL_OVERRIDE.length > 0
-    ? API_URL_OVERRIDE
-    : typeof window !== "undefined"
-      ? `${window.location.origin}/api`
-      : "http://localhost:8000/api";
 
 function getAuthToken(): string | null {
   return useAuthStore.getState().getToken();
 }
 
+// only the guard's 401 means the session is gone, other 401s carry their own code
+async function isSessionGone(response: Response): Promise<boolean> {
+  try {
+    const body = (await response.clone().json()) as { code?: unknown };
+    return !body.code || body.code === "UNAUTHORIZED";
+  } catch {
+    return true;
+  }
+}
+
 // Public endpoints (login): no token attached
 const baseKy = ky.create({
-  prefixUrl: PREFIX_URL,
+  prefix: API_URL,
 });
 
-// Authenticated endpoints: attach Bearer token, clear auth on 401
+// Authenticated endpoints: attach Bearer token, clear auth when the session is rejected
 const authKy = ky.create({
-  prefixUrl: PREFIX_URL,
+  prefix: API_URL,
   hooks: {
     beforeRequest: [
-      (request) => {
+      ({ request }) => {
         const token = getAuthToken();
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);
@@ -33,11 +36,9 @@ const authKy = ky.create({
       },
     ],
     afterResponse: [
-      async (_request, _options, response) => {
-        if (response.status === 401 && getAuthToken()) {
-          useAuthStore.getState().clearAuth();
-        }
-        return response;
+      async ({ response }) => {
+        if (response.status !== 401 || !getAuthToken()) return;
+        if (await isSessionGone(response)) useAuthStore.getState().clearAuth();
       },
     ],
   },
@@ -46,6 +47,7 @@ const authKy = ky.create({
 export const baseHttp = new BaseHttpClient(baseKy);
 export const authHttp = new AuthHttpClient(authKy);
 
+export { API_URL } from "./api-url";
 export * from "./query-params";
 export * from "./types";
 export { AuthHttpClient, BaseHttpClient };

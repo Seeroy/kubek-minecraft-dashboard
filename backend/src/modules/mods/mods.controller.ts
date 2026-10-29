@@ -1,10 +1,13 @@
+import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
+import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { TaskRefResponseDto } from "@/core/dto/task-ref-response.dto";
+import { Audit } from "@/modules/audit-log/audit.decorator";
+import { contentAudit } from "@/modules/plugins/content.audit";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
 import { InstallPluginDto } from "@/modules/plugins/dto/install-plugin.dto";
 import { InstalledContentDto } from "@/modules/plugins/dto/installed-content.dto";
@@ -36,27 +39,25 @@ import {
   ApiAcceptedResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiExtension,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from "@nestjs/swagger";
+import { AuditAction } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
-import { UserPermissions } from "@shared/types/user.types";
 import { ModsService } from "./mods.service";
 
 @ApiTags("Mods")
 @ApiBearerAuth()
 @Controller("api/mods")
-@UseGuards(BearerAuthGuard, PermissionsGuard, ServerAccessGuard)
+@UseGuards(BearerAuthGuard, AccessGuard, ServerAccessGuard)
 export class ModsController {
   constructor(private readonly modsService: ModsService) {}
 
   @Get("search")
   @ApiOperation({ summary: "Search mods on Modrinth" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @ApiOkResponse({
     type: ModrinthSearchResponseDto,
     description: "Search result",
@@ -68,8 +69,7 @@ export class ModsController {
 
   @Get("projects/:projectId")
   @ApiOperation({ summary: "Get mod project details" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @ApiOkResponse({ type: ModrinthProjectDto, description: "Project details" })
   @ApiErrorResponses()
   @ApiParam({ name: "projectId", description: "Project ID or slug" })
@@ -81,8 +81,7 @@ export class ModsController {
 
   @Get("projects/:projectId/versions")
   @ApiOperation({ summary: "List versions of mod project" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @ApiOkResponse({
     type: [ModrinthVersionDto],
     description: "Project versions",
@@ -98,8 +97,7 @@ export class ModsController {
 
   @Get("installed/:serverId")
   @ApiOperation({ summary: "List installed mods for server" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "read")
   @CheckServerAccess("serverId")
   @ApiParam({ name: "serverId", description: "Server ID" })
   @ApiOkResponse({ type: [InstalledContentDto], description: "Installed mods" })
@@ -113,8 +111,7 @@ export class ModsController {
   @Post("install")
   @HttpCode(202)
   @ApiOperation({ summary: "Install mod from Modrinth" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "write")
   @CheckServerAccess("serverId")
   @ApiBody({ type: InstallPluginDto })
   @ApiAcceptedResponse({
@@ -122,6 +119,7 @@ export class ModsController {
     description: "Background install task started",
   })
   @ApiErrorResponses()
+  @Audit(contentAudit(AuditAction.CONTENT_INSTALL, "mod"))
   install(
     @Body() dto: InstallPluginDto,
     @CurrentUser() user: IUser,
@@ -132,8 +130,7 @@ export class ModsController {
   @Post("servers/:serverId/mods/:modId/update")
   @HttpCode(202)
   @ApiOperation({ summary: "Update installed mod to another version" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "write")
   @CheckServerAccess("serverId")
   @ApiParam({ name: "serverId", description: "Server ID" })
   @ApiParam({ name: "modId", description: "Installed mod record ID" })
@@ -142,6 +139,7 @@ export class ModsController {
     description: "Background update task started",
   })
   @ApiErrorResponses()
+  @Audit(contentAudit(AuditAction.CONTENT_UPDATE, "mod"))
   update(
     @Param("serverId") serverId: string,
     @Param("modId") modId: string,
@@ -154,8 +152,7 @@ export class ModsController {
   @Delete("servers/:serverId/mods/:modId")
   @HttpCode(202)
   @ApiOperation({ summary: "Remove installed mod" })
-  @RequirePermissions(UserPermissions.MANAGE_PLUGINS)
-  @ApiExtension("x-permissions", [UserPermissions.MANAGE_PLUGINS])
+  @RequireAccess(AccessArea.CONTENT, "manage")
   @CheckServerAccess("serverId")
   @ApiParam({ name: "serverId", description: "Server ID" })
   @ApiParam({ name: "modId", description: "Installed mod record ID" })
@@ -164,6 +161,7 @@ export class ModsController {
     description: "Background remove task started",
   })
   @ApiErrorResponses()
+  @Audit(contentAudit(AuditAction.CONTENT_REMOVE, "mod"))
   remove(
     @Param("serverId") serverId: string,
     @Param("modId") modId: string,

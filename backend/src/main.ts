@@ -29,6 +29,9 @@ async function bootstrap() {
     logger: new LoggerAddon(),
   });
 
+  // SIGTERM and SIGINT stop running servers before exit
+  app.enableShutdownHooks();
+
   app.useGlobalFilters(new BadResponseFilter());
   app.useGlobalPipes(validationPipe);
 

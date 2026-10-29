@@ -1,24 +1,28 @@
+import {
+  RequireAccess,
+  RequireServerView,
+} from "@/modules/auth/decorators/require-access.decorator";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
+import { AccessArea } from "@shared/access/areas";
+import { visibleServers } from "@/core/utils/serverAccess";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
-import { Audit } from "@/modules/audit-log/audit.decorator";
+import { MultipartPayload } from "@/core/middlewares/json-payload.pipe";
+import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
 import { BulkDeleteResultDto } from "@/modules/servers/dto/bulk-delete-result.dto";
 import { BulkDeleteServersDto } from "@/modules/servers/dto/bulk-delete-servers.dto";
-import { ChangeServerCoreDto } from "@/modules/servers/dto/change-server-core.dto";
 import { CreateServerDto } from "@/modules/servers/dto/create-server.dto";
 import { DeleteServerDto } from "@/modules/servers/dto/delete-server.dto";
-import { DuplicateServerDto } from "@/modules/servers/dto/duplicate-server.dto";
-import { ServerCreatedResponseDto } from "@/modules/servers/dto/server-created-response.dto";
 import { ServerDiagnosticDto } from "@/modules/servers/dto/server-diagnostic.dto";
-import { ServerPropertiesDto } from "@/modules/servers/dto/server-properties.dto";
+import { ServerCreatedResponseDto } from "@/modules/servers/dto/server-created-response.dto";
 import { ServerEntity } from "@/modules/servers/dto/server.entity";
-import { UpdateServerSettingsDto } from "@/modules/servers/dto/update-server-settings.dto";
 import { JavaService } from "@/modules/java/java.service";
+import { ServerDeletionService } from "@/modules/servers/server-deletion.service";
 import { ServersService } from "@/modules/servers/servers.service";
+import { payloadOf, serverAudit } from "@/modules/servers/servers.audit";
 import {
   BadRequestException,
   Body,
@@ -29,10 +33,8 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
-  Patch,
   Post,
-  Put,
-  Res,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -43,31 +45,26 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
-  ApiExtension,
   ApiExtraModels,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { AuditAction, AuditCategory } from "@shared/types/audit.types";
+import { AuditAction } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
-import { UserPermissions } from "@shared/types/user.types";
-import { plainToInstance } from "class-transformer";
-import { validateSync } from "class-validator";
-import { existsSync } from "fs";
+import type { Request } from "express";
 import { memoryStorage } from "multer";
-import { join } from "path";
 
 @ApiTags("Servers")
 @ApiBearerAuth()
 @Controller("api/servers")
-@UseGuards(BearerAuthGuard, PermissionsGuard, ServerAccessGuard)
+@UseGuards(BearerAuthGuard, AccessGuard, ServerAccessGuard)
 export class ServersController {
   constructor(
     private readonly servers: ServersService,
+    private readonly deletion: ServerDeletionService,
     private readonly javaService: JavaService,
   ) {}
 
@@ -76,10 +73,9 @@ export class ServersController {
   @ApiOperation({ summary: "List servers" })
   @ApiOkResponse({ type: [ServerEntity], description: "List of servers" })
   @ApiErrorResponses([401, 403])
-  @RequirePermissions(UserPermissions.SERVERS_VIEW)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_VIEW])
-  getAll(): ServerEntity[] {
-    return this.servers.findAll();
+  @RequireServerView()
+  getAll(@CurrentUser() user: IUser): ServerEntity[] {
+    return visibleServers(user, this.servers.findAll());
   }
 
   /** Get server by ID */
@@ -89,8 +85,7 @@ export class ServersController {
   @ApiOkResponse({ type: ServerEntity, description: "Server entity" })
   @ApiErrorResponses([401, 403, 404])
   @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_VIEW)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_VIEW])
+  @RequireServerView()
   getById(@Param("id") id: string): ServerEntity {
     const server = this.servers.findById(id);
     if (!server) throw new NotFoundException("Server not found");
@@ -106,17 +101,22 @@ export class ServersController {
     description: "Server creation started",
   })
   @ApiErrorResponses([400, 401, 403])
-  @RequirePermissions(UserPermissions.CREATE_SERVERS)
-  @ApiExtension("x-permissions", [UserPermissions.CREATE_SERVERS])
-  @Audit({
-    action: AuditAction.SERVER_CREATE,
-    category: AuditCategory.SERVER,
-    resourceType: "server",
-    resolve: ({ result }) => ({
-      resourceId: result?.server?.id,
-      resourceName: result?.server?.name,
+  @RequireAccess(AccessArea.SERVERS, "write")
+  @Audit(
+    serverAudit(AuditAction.SERVER_CREATE, {
+      resolve: ({ req, result }) => ({
+        resourceId: result?.server?.id,
+        resourceName: result?.server?.name,
+        serverId: result?.server?.id,
+        serverName: result?.server?.name,
+        details: {
+          blueprintId: payloadOf(req).blueprintId,
+          version: payloadOf(req).variables?.GAME_VERSION,
+        },
+      }),
+      resolveError: ({ req }) => ({ resourceName: payloadOf(req).name }),
     }),
-  })
+  )
   @UseInterceptors(
     FileInterceptor("coreFile", {
       storage: memoryStorage(),
@@ -155,35 +155,18 @@ export class ServersController {
     },
   })
   async create(
-    @Body("payload") payload: string,
+    @MultipartPayload(CreateServerDto) dto: CreateServerDto,
     @UploadedFile() coreFile: Express.Multer.File,
     @CurrentUser() user: IUser,
   ): Promise<ServerCreatedResponseDto> {
-    if (!payload) {
-      throw new BadRequestException("payload field is required");
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(payload);
-    } catch (error) {
-      throw new BadRequestException("payload must be valid JSON");
-    }
-
-    const dto = plainToInstance(CreateServerDto, parsed);
-    const errors = validateSync(dto, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    });
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-
     if (dto.blueprintId === "com.kubek.custom" && !coreFile) {
       throw new BadRequestException("coreFile is required for custom servers");
     }
 
-    await this.javaService.assertJavaPathAllowed(dto.variables?.JAVA_PATH, user);
+    await this.javaService.assertJavaPathAllowed(
+      dto.variables?.JAVA_PATH,
+      user,
+    );
 
     return this.servers.create(dto, user.id, coreFile);
   }
@@ -193,13 +176,8 @@ export class ServersController {
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: "Start server" })
   @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONTROL)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONTROL])
-  @Audit({
-    action: AuditAction.SERVER_START,
-    category: AuditCategory.SERVER,
-    resourceType: "server",
-  })
+  @RequireAccess(AccessArea.POWER, "write")
+  @Audit(serverAudit(AuditAction.SERVER_START))
   @ApiParam({ name: "id", description: "Server ID" })
   @ApiAcceptedResponse({ description: "Start initiated" })
   @ApiErrorResponses([401, 403, 404])
@@ -215,13 +193,8 @@ export class ServersController {
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: "Stop server" })
   @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONTROL)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONTROL])
-  @Audit({
-    action: AuditAction.SERVER_STOP,
-    category: AuditCategory.SERVER,
-    resourceType: "server",
-  })
+  @RequireAccess(AccessArea.POWER, "write")
+  @Audit(serverAudit(AuditAction.SERVER_STOP))
   @ApiParam({ name: "id", description: "Server ID" })
   @ApiAcceptedResponse({ description: "Stop initiated" })
   @ApiErrorResponses([401, 403, 404])
@@ -237,13 +210,8 @@ export class ServersController {
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: "Restart server" })
   @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONTROL)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONTROL])
-  @Audit({
-    action: AuditAction.SERVER_RESTART,
-    category: AuditCategory.SERVER,
-    resourceType: "server",
-  })
+  @RequireAccess(AccessArea.POWER, "write")
+  @Audit(serverAudit(AuditAction.SERVER_RESTART))
   @ApiParam({ name: "id", description: "Server ID" })
   @ApiAcceptedResponse({ description: "Restart initiated" })
   @ApiErrorResponses([401, 403, 404])
@@ -259,9 +227,9 @@ export class ServersController {
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: "Force kill server" })
   @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONTROL)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONTROL])
+  @RequireAccess(AccessArea.POWER, "manage")
   @ApiParam({ name: "id", description: "Server ID" })
+  @Audit(serverAudit(AuditAction.SERVER_KILL))
   @ApiAcceptedResponse({ description: "Process end initiated" })
   @ApiErrorResponses([401, 403, 404])
   async kill(@Param("id") id: string): Promise<void> {
@@ -272,8 +240,7 @@ export class ServersController {
   @Get(":id/diagnostics")
   @ApiOperation({ summary: "Get server diagnostics" })
   @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_VIEW)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_VIEW])
+  @RequireServerView()
   @ApiParam({ name: "id", description: "Server ID" })
   @ApiOkResponse({
     type: [ServerDiagnosticDto],
@@ -293,15 +260,8 @@ export class ServersController {
     summary: "Delete server (requires password + name confirmation)",
   })
   @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
-  @Audit({
-    action: AuditAction.SERVER_DELETE,
-    category: AuditCategory.SERVER,
-    resourceType: "server",
-    resolve: ({ req }) => ({ resourceName: req.body?.confirmName }),
-    resolveError: ({ req }) => ({ resourceName: req.body?.confirmName }),
-  })
+  @RequireAccess(AccessArea.SETTINGS, "manage")
+  @Audit(serverAudit(AuditAction.SERVER_DELETE))
   @ApiParam({ name: "id", description: "Server ID" })
   @ApiNoContentResponse({ description: "Server deleted" })
   @ApiErrorResponses([400, 401, 403, 404])
@@ -310,316 +270,44 @@ export class ServersController {
     @Body() body: DeleteServerDto,
     @CurrentUser() user: IUser,
   ): Promise<void> {
-    await this.servers.delete(id, user, body.password, body.confirmName);
+    await this.deletion.delete(id, user, body.password, body.confirmName);
   }
 
   /** Delete multiple servers with a single password confirmation */
   @Post("bulk-delete")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Bulk delete servers (requires password)" })
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
+  @RequireAccess(AccessArea.SETTINGS, "manage")
   @ApiOkResponse({
     type: BulkDeleteResultDto,
     description: "Bulk delete summary",
   })
   @ApiErrorResponses([400, 401, 403])
+  @Audit(serverAudit(AuditAction.SERVER_BULK_DELETE))
   async bulkDelete(
     @Body() body: BulkDeleteServersDto,
     @CurrentUser() user: IUser,
+    @Req() req: Request,
   ): Promise<BulkDeleteResultDto> {
-    return this.servers.bulkDelete(body.ids, user, body.password);
-  }
-
-  /** Duplicate a server (DB row + files) under a new name */
-  @Post(":id/duplicate")
-  @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: "Duplicate server" })
-  @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.CREATE_SERVERS)
-  @ApiExtension("x-permissions", [UserPermissions.CREATE_SERVERS])
-  @ApiParam({ name: "id", description: "Source server ID" })
-  @ApiAcceptedResponse({
-    type: ServerCreatedResponseDto,
-    description: "Duplication started",
-  })
-  @ApiErrorResponses([400, 401, 403, 404])
-  duplicate(
-    @Param("id") id: string,
-    @Body() body: DuplicateServerDto,
-    @CurrentUser() user: IUser,
-  ): ServerCreatedResponseDto {
-    return this.servers.duplicate(id, body.name, user.id);
-  }
-
-  /** Export server as a zip archive (manifest + files) */
-  @Get(":id/export")
-  @ApiOperation({ summary: "Export server as zip" })
-  @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
-  @ApiParam({ name: "id", description: "Server ID" })
-  @ApiResponse({ status: 200, description: "Zip archive stream" })
-  @ApiErrorResponses([401, 403, 404])
-  async exportServer(@Param("id") id: string, @Res() res): Promise<void> {
-    const { archivePath, suggestedName, cleanup } =
-      await this.servers.exportServer(id);
-
-    res.setHeader("Content-Type", "application/zip");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${suggestedName}"`,
+    // Names are read first, deleted servers are gone afterwards
+    const names = new Map(
+      body.ids.map((id) => [id, this.servers.findById(id)?.name ?? id]),
     );
-
-    res.sendFile(archivePath, (err: any) => {
-      cleanup();
-      if (err && !res.headersSent) {
-        res.status(500).end();
-      }
-    });
-  }
-
-  /** Import a kubek-export zip archive as a new server */
-  @Post("import")
-  @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: "Import server from zip" })
-  @RequirePermissions(UserPermissions.CREATE_SERVERS)
-  @ApiExtension("x-permissions", [UserPermissions.CREATE_SERVERS])
-  @UseInterceptors(
-    FileInterceptor("archive", {
-      storage: memoryStorage(),
-      limits: { fileSize: 1024 * 1024 * 1024 * 2 },
-    }),
-  )
-  @ApiConsumes("multipart/form-data")
-  @ApiBody({
-    schema: {
-      type: "object",
-      properties: {
-        archive: { type: "string", format: "binary" },
-        name: { type: "string", description: "Optional override name" },
-      },
-      required: ["archive"],
-    },
-  })
-  @ApiAcceptedResponse({
-    type: ServerCreatedResponseDto,
-    description: "Import started",
-  })
-  @ApiErrorResponses([400, 401, 403])
-  async importServer(
-    @UploadedFile() archive: Express.Multer.File,
-    @Body("name") overrideName: string | undefined,
-    @CurrentUser() user: IUser,
-  ): Promise<ServerCreatedResponseDto> {
-    return this.servers.importServer(archive, overrideName, user.id);
-  }
-
-  /** Get server.properties file */
-  @Get(":id/properties")
-  @ApiOperation({ summary: "Get server.properties" })
-  @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
-  @ApiParam({ name: "id", description: "Server ID" })
-  @ApiOkResponse({
-    description: "Server properties (free-form key/value map)",
-    schema: {
-      type: "object",
-      additionalProperties: { type: "string" },
-      example: { "max-players": "20", motd: "A Minecraft Server" },
-    },
-  })
-  @ApiErrorResponses([401, 403, 404])
-  async getProperties(@Param("id") id: string): Promise<Record<string, any>> {
-    return this.servers.getServerProperties(id);
-  }
-
-  /** Save server.properties file */
-  @Put(":id/properties")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Save server.properties" })
-  @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
-  @ApiParam({ name: "id", description: "Server ID" })
-  @ApiNoContentResponse({ description: "Properties saved successfully" })
-  @ApiErrorResponses([400, 401, 403, 404])
-  async saveProperties(
-    @Param("id") id: string,
-    @Body() body: ServerPropertiesDto,
-  ): Promise<void> {
-    return this.servers.saveServerProperties(id, body.properties);
-  }
-
-  /** Upload server icon */
-  @Post(":id/icon")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseInterceptors(FileInterceptor("icon"))
-  @ApiOperation({ summary: "Upload server icon" })
-  @ApiConsumes("multipart/form-data")
-  @ApiBody({
-    schema: {
-      type: "object",
-      properties: {
-        icon: {
-          type: "string",
-          format: "binary",
-        },
-      },
-    },
-  })
-  @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
-  @ApiParam({ name: "id", description: "Server ID" })
-  @ApiNoContentResponse({ description: "Icon uploaded successfully" })
-  @ApiErrorResponses([400, 401, 403, 404])
-  async uploadIcon(
-    @Param("id") id: string,
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<void> {
-    return this.servers.uploadServerIcon(id, file);
-  }
-
-  /** Update server settings (name, java, startup args, restart settings, stop command) */
-  @Patch(":id/settings")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update server settings" })
-  @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
-  @ApiParam({ name: "id", description: "Server ID" })
-  @ApiOkResponse({
-    type: ServerEntity,
-    description: "Settings updated successfully",
-  })
-  @ApiErrorResponses([400, 401, 403, 404])
-  async updateSettings(
-    @Param("id") id: string,
-    @Body() body: UpdateServerSettingsDto,
-    @CurrentUser() user: IUser,
-  ): Promise<ServerEntity> {
-    await this.javaService.assertJavaPathAllowed(
-      body.variables?.JAVA_PATH,
+    auditNote(req, { details: { servers: [...names.values()] } });
+    const result = await this.deletion.bulkDelete(
+      body.ids,
       user,
-      this.servers.findById(id)?.variables?.JAVA_PATH,
+      body.password,
     );
-    return this.servers.updateServerSettings(id, body);
-  }
-
-  /** Change a server's core (blueprint) and version */
-  @Post(":id/core")
-  @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: "Change server core/version" })
-  @CheckServerAccess("id")
-  @RequirePermissions(UserPermissions.SERVERS_CONFIGURE)
-  @ApiExtension("x-permissions", [UserPermissions.SERVERS_CONFIGURE])
-  @Audit({
-    action: AuditAction.SERVER_CHANGE_CORE,
-    category: AuditCategory.SERVER,
-    resourceType: "server",
-    resolve: ({ req, result }) => {
-      let payload: { blueprintId?: string; version?: string } = {};
-      try {
-        payload = JSON.parse(req.body?.payload ?? "{}");
-      } catch {
-        // ignore: audit details stay empty for a malformed payload
-      }
-      return {
-        resourceId: result?.server?.id,
-        resourceName: result?.server?.name,
-        details: {
-          blueprintId: payload.blueprintId,
-          version: payload.version,
-        },
-      };
-    },
-  })
-  @UseInterceptors(
-    FileInterceptor("coreFile", {
-      storage: memoryStorage(),
-      limits: { fileSize: 1024 * 1024 * 512 },
-    }),
-  )
-  @ApiConsumes("multipart/form-data")
-  // The payload field is a JSON-stringified ChangeServerCoreDto
-  @ApiExtraModels(ChangeServerCoreDto)
-  @ApiBody({
-    schema: {
-      type: "object",
-      properties: {
-        payload: {
-          type: "string",
-          description: "JSON string containing ChangeServerCoreDto payload",
-          example: JSON.stringify({
-            blueprintId: "com.kubek.purpur",
-            version: "1.21.4",
-          }),
-        },
-        coreFile: {
-          type: "string",
-          format: "binary",
-          description:
-            "Custom core JAR file (required for the com.kubek.custom blueprint)",
-        },
+    auditNote(req, {
+      details: {
+        servers: undefined,
+        deleted: result.deleted.map((id) => names.get(id) ?? id),
+        failed: result.failed.map(
+          (f) => `${names.get(f.id) ?? f.id}: ${f.reason}`,
+        ),
       },
-      required: ["payload"],
-    },
-  })
-  @ApiParam({ name: "id", description: "Server ID" })
-  @ApiAcceptedResponse({
-    type: ServerCreatedResponseDto,
-    description: "Core change started",
-  })
-  @ApiErrorResponses([400, 401, 403, 404])
-  changeCore(
-    @Param("id") id: string,
-    @Body("payload") payload: string,
-    @UploadedFile() coreFile: Express.Multer.File,
-    @CurrentUser() user: IUser,
-  ): ServerCreatedResponseDto {
-    if (!payload) {
-      throw new BadRequestException("payload field is required");
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(payload);
-    } catch (error) {
-      throw new BadRequestException("payload must be valid JSON");
-    }
-
-    const dto = plainToInstance(ChangeServerCoreDto, parsed);
-    const errors = validateSync(dto, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
     });
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-
-    if (dto.blueprintId === "com.kubek.custom" && !coreFile) {
-      throw new BadRequestException("coreFile is required for custom cores");
-    }
-
-    return this.servers.changeCore(id, dto, user.id, coreFile);
-  }
-
-  /** Get server icon */
-  @Get(":id/icon")
-  @ApiOperation({ summary: "Get server icon" })
-  @CheckServerAccess("id")
-  @ApiParam({ name: "id", description: "Server ID" })
-  @ApiResponse({ status: 200, description: "Server icon" })
-  @ApiErrorResponses([401, 403, 404])
-  async getIcon(@Param("id") id: string, @Res() res): Promise<void> {
-    const iconPath = join(process.cwd(), "servers", id, "server-icon.png");
-
-    if (!existsSync(iconPath)) {
-      throw new NotFoundException("Server icon not found");
-    }
-
-    res.sendFile(iconPath);
+    return result;
   }
 }

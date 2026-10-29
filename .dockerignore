@@ -1,37 +1,61 @@
-# VCS / IDE
+# Patterns without **/ only match at the context root, nested folders need **/
+# Runtime folders are anchored on purpose: src/modules/servers and
+# src/modules/backups are source code with the same names
+
+# VCS / IDE / tooling
 .git
 .gitignore
 .github
 .vscode
 .idea
+.claude
+**/.codegraph
+**/.DS_Store
 
 # Dependencies (reinstalled inside the image from lockfiles)
-node_modules
 **/node_modules
+**/package-lock.json
 
 # Build artifacts (binaries are compiled inside the image)
-dist
 **/dist
-frontend/.next
+**/.next
 frontend/out
 frontend/bundle
 shared/vfs.js
+**/*.tsbuildinfo
+**/.cache
+**/coverage
 
-# Runtime data — must never leak into the build context
+# Runtime data, must never leak into the build context
 data
 servers
 backups
 binaries
+blueprints
+extensions
+backend/servers
+backend/backups
+backend/binaries
+backend/blueprints
+backend/extensions
+backend/logs
+**/db.sql*
+
+# Secrets
+**/.env
+**/.env.*
+!frontend/.env.example
 
 # Docs / meta (not needed at build time)
+docs
 *.md
 LICENSE
+header.png
+openapi.json
+install.sh
 docker-compose.yml
 .dockerignore
 Dockerfile
 
 # Misc
-*.log
-.DS_Store
-.env
-.env.*
+**/*.log

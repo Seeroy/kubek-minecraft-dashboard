@@ -1,22 +1,22 @@
 import { generateRandomString } from "@/core/utils/randomString";
 import { hashPassword } from "@/core/utils/security";
-import { Injectable, OnModuleInit } from "@nestjs/common";
-import { UserPermissions } from "@shared/types/user.types";
-import chalk from "chalk";
+import { Startup } from "@/core/utils/startup";
+import { Injectable } from "@nestjs/common";
+import type { IUser } from "@shared/types/user.types";
 import { randomUUID } from "crypto";
 import process from "node:process";
 import { UsersRepository } from "./repositories/users.repository";
 
 /**
  * Database seeder to create default data on first run.
- * Creates a default admin user if no users exist
+ * Creates a default admin user if no users exist.
+ * Called from the legacy migration after the 3.x import
  */
 @Injectable()
-export class DatabaseSeeder implements OnModuleInit {
+export class DatabaseSeeder {
   constructor(private readonly users: UsersRepository) {}
 
-  async onModuleInit() {
-    // Seed synchronously during init so the first request can't race
+  async seed() {
     await this.seedDefaultUser();
   }
 
@@ -36,12 +36,14 @@ export class DatabaseSeeder implements OnModuleInit {
         : generateRandomString(16);
     const hashedPassword = await hashPassword(defaultPassword);
 
-    const defaultUser = {
+    const defaultUser: IUser = {
       id: randomUUID(),
       username: "kubek",
       password: hashedPassword,
-      secret: "",
-      permissions: Object.values(UserPermissions) as UserPermissions[],
+      roles: [],
+      grants: {},
+      extPermissions: [],
+      access: { levels: {}, ext: [] },
       serversRestrict: {
         enabled: false,
         allowed: [],
@@ -50,9 +52,6 @@ export class DatabaseSeeder implements OnModuleInit {
     };
 
     this.users.create(defaultUser);
-    console.log("    😎 Default admin user created:");
-    console.log("       Username: kubek");
-    console.log("       Password: " + defaultPassword);
-    console.warn("      ", chalk.black.bgYellowBright("WARN! Save password!"));
+    Startup.setDefaultAdmin(defaultPassword);
   }
 }

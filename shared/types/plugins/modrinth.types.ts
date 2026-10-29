@@ -1,8 +1,3 @@
-import {
-  ModrinthDependency,
-  ModrinthFileArtifact,
-} from "./server-plugin.types";
-
 export interface ModrinthSearchResponse {
   hits: ModrinthSearchHit[];
   offset: number;
@@ -78,11 +73,35 @@ export interface ModrinthVersion {
   date_published: string;
   downloads: number;
   version_type: "release" | "beta" | "alpha";
-  files: (ModrinthFileArtifact & { url: string })[];
-  dependencies: (ModrinthDependency & {
-    project_id?: string;
-    version_id?: string;
-  })[];
+  files: ModrinthApiFile[];
+  dependencies: ModrinthApiDependency[];
   game_versions: string[];
   loaders: string[];
 }
+
+export type ModrinthDependencyType =
+  "required" | "optional" | "incompatible" | "embedded";
+
+// Raw API shapes are snake_case, the summaries below are camelCase
+export interface ModrinthApiDependency {
+  project_id?: string | null;
+  version_id?: string | null;
+  file_name?: string | null;
+  dependency_type: ModrinthDependencyType;
+}
+
+export interface ModrinthApiFile {
+  filename: string;
+  primary: boolean;
+  url: string;
+  hashes: {
+    sha1?: string;
+    sha512?: string;
+    [key: string]: string | undefined;
+  };
+  file_type?: string | null;
+  size?: number;
+}
+
+/** Response of POST /version_files, keyed by the requested hash */
+export type ModrinthVersionFilesResponse = Record<string, ModrinthVersion>;

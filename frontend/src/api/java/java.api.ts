@@ -7,8 +7,9 @@ export class JavaApi {
   getAllJavaVersions = (): Promise<JavaVersion[]> =>
     this.authHttp.get<JavaVersion[]>("java");
 
+  // A bare number comes back as text/html, so it is parsed here
   getJavaVersionForGame = (gameVersion: string): Promise<number | null> =>
-    this.authHttp.get<number | null>(`java/${gameVersion}`);
+    this.authHttp.get<number | string | null>(`java/${gameVersion}`).then((major) => (major == null || major === "" ? null : Number(major)));
 
   installJavaVersion = (version: string): Promise<{ taskId: string }> =>
     this.authHttp.post<{ taskId: string }>(`java/install/${version}`);

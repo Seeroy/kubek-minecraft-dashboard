@@ -7,9 +7,8 @@ import { AppModule } from "../src/app.module";
 /**
  * Emit the OpenAPI document to a static file without booting the server
  *
- * Run: `npm run openapi:json` → writes backend/openapi.json
- * Then regenerate the frontend types:
- *   npx openapi-typescript backend/openapi.json -o frontend/src/api/types.ts
+ * Run: `bun run openapi:json` → writes openapi.json at the repo root
+ * Then regenerate the frontend types: `cd frontend && bun run gen:api`
  */
 async function main() {
   const app = await NestFactory.create(AppModule, {
@@ -35,7 +34,7 @@ async function main() {
     ignoreGlobalPrefix: true,
   });
 
-  const out = resolve(__dirname, "../openapi.json");
+  const out = resolve(__dirname, "../../openapi.json");
   writeFileSync(out, JSON.stringify(document, null, 2));
   await app.close();
 

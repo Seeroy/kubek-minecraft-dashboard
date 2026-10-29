@@ -49,18 +49,16 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
     <button
       type="button"
       title={ title }
+      aria-label={ title }
       onClick={ handleClick }
       className={ cn(
-        "inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
+        "inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-hover hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary/70",
         className,
       ) }
     >
       <Icon
-        className={ cn(
-          "h-3.5 w-3.5 transition-transform",
-          copied && "text-emerald-400 scale-110",
-          iconClassName,
-        ) }
+        data-copied={ copied || undefined }
+        className={ cn("size-3.5 transition-transform data-copied:scale-110 data-copied:text-success", iconClassName) }
       />
     </button>
   );

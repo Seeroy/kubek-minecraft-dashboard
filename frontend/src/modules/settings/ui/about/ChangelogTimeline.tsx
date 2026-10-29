@@ -4,9 +4,8 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import { useGithubReleasesQuery, type GithubRelease } from "@/modules/settings/api/about.queries";
 import { Badge } from "@/shared/ui/badge";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
 import { Button } from "@/shared/ui/button";
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
+import { SettingsGroup } from "@/shared/ui/settings";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { AlertCircle, ExternalLink, History, RotateCw } from "lucide-react";
 import { MarkdownLite } from "./MarkdownLite";
@@ -26,7 +25,7 @@ function formatDate(iso: string | null): string {
 }
 
 export function ChangelogTimeline() {
-  const { t } = useTranslation("modules.settings");
+  const { t } = useTranslation("modules.settings.about.changelog");
   const releasesQuery = useGithubReleasesQuery();
 
   const releases = releasesQuery.data ?? [];
@@ -34,24 +33,15 @@ export function ChangelogTimeline() {
   const latestStableId = releases.find((r) => !r.prerelease)?.id;
 
   return (
-    <Card>
-      <CardHeader>
-        <BlockHeader
-          kicker={t("about.changelog.header.kicker")}
-          title={t("about.changelog.header.title")}
-          description={t("about.changelog.header.description")}
-          icon={History}
-          color="purple"
-        />
-      </CardHeader>
-      <CardContent>
+    <SettingsGroup tone="blue" icon={History} title={t("title")} description={t("description")} flush>
+      <div className="p-5">
         {releasesQuery.isLoading ? (
           <ChangelogSkeleton />
         ) : releasesQuery.isError ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
             <AlertCircle className="size-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              {t("about.changelog.error")}
+              {t("error")}
             </p>
             <Button
               variant="outline"
@@ -59,12 +49,12 @@ export function ChangelogTimeline() {
               onClick={() => releasesQuery.refetch()}
             >
               <RotateCw />
-              {t("about.changelog.retry")}
+              {t("retry")}
             </Button>
           </div>
         ) : releases.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
-            {t("about.changelog.empty")}
+            {t("empty")}
           </p>
         ) : (
           <ol className="relative">
@@ -78,8 +68,8 @@ export function ChangelogTimeline() {
             ))}
           </ol>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </SettingsGroup>
   );
 }
 
@@ -90,7 +80,7 @@ interface ReleaseEntryProps {
 }
 
 function ReleaseEntry({ release, isLatest, isLast }: ReleaseEntryProps) {
-  const { t } = useTranslation("modules.settings");
+  const { t } = useTranslation("modules.settings.about.changelog");
   const date = formatDate(release.publishedAt);
 
   return (
@@ -119,10 +109,10 @@ function ReleaseEntry({ release, isLatest, isLast }: ReleaseEntryProps) {
             {formatVersion(release.tagName)}
           </span>
           {isLatest && (
-            <Badge variant="success">{t("about.changelog.latest")}</Badge>
+            <Badge variant="success">{t("latest")}</Badge>
           )}
           {release.prerelease && (
-            <Badge variant="warning">{t("about.changelog.prerelease")}</Badge>
+            <Badge variant="warning">{t("prerelease")}</Badge>
           )}
           {date && (
             <span className="text-xs text-muted-foreground">{date}</span>
@@ -152,7 +142,7 @@ function ReleaseEntry({ release, isLatest, isLast }: ReleaseEntryProps) {
             />
           }
         >
-          {t("about.changelog.viewOnGithub")}
+          {t("viewOnGithub")}
           <ExternalLink />
         </Button>
       </div>

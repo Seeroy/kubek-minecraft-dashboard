@@ -1,15 +1,14 @@
 import type { components } from "../types";
 
-export type ModrinthSearchResponse =
-  components["schemas"]["ModrinthSearchResponseDto"];
+export type ModrinthSearchResponse = components["schemas"]["ModrinthSearchResponseDto"];
 export type ModrinthSearchHit = components["schemas"]["ModrinthSearchHitDto"];
 export type ModrinthProject = components["schemas"]["ModrinthProjectDto"];
-export type ModrinthVersion = components["schemas"]["ModrinthVersionDto"];
+// Shared type follows the raw snake_case API shape
+export type { ModrinthVersion } from "@shared/types/plugins";
 export type InstalledPluginView = components["schemas"]["InstalledContentDto"];
 export type ContentTaskRef = components["schemas"]["TaskRefResponseDto"];
 
-export type PluginInstallDependencyInput =
-  components["schemas"]["InstallPluginDependencyDto"];
+export type PluginInstallDependencyInput = components["schemas"]["InstallPluginDependencyDto"];
 
 /** Whether managing - server plugins or mods */
 export type ContentKind = "plugin" | "mod";
@@ -28,4 +27,7 @@ export type ContentSearchParams = {
   gameVersion?: string;
   loader?: string;
   categories?: string[];
+  index?: ContentSortIndex;
 };
+
+export type ContentSortIndex = "relevance" | "downloads" | "follows" | "newest" | "updated";

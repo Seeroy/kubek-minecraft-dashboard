@@ -18,7 +18,7 @@ interface ContentUploadOptions {
   serverId: string | undefined;
   // Server sub-directory to drop the jars into
   folder: "plugins" | "mods";
-  // Dashboard translator (notifications.* keys)
+  // Content kind translator (upload.* keys)
   t: Translator;
   onComplete?: () => void;
 }
@@ -44,7 +44,7 @@ export function useContentUpload({
       );
       if (jars.length === 0) {
         if (incoming.length > 0) {
-          notify({ type: "error", title: t("notifications.uploadNoJar") });
+          notify({ type: "error", title: t("upload.noJar") });
         }
         return;
       }
@@ -52,7 +52,7 @@ export function useContentUpload({
       setIsUploading(true);
       const toastId = notify({
         type: "progress",
-        title: t("notifications.uploading"),
+        title: t("upload.progress"),
         progress: 0,
         duration: 0,
         message: `0 / ${jars.length}`,
@@ -80,15 +80,12 @@ export function useContentUpload({
       if (failures.length === 0) {
         notify({
           type: "success",
-          title: t("notifications.uploadedMany", { count: success }),
+          title: t("upload.done", success),
         });
       } else {
         notify({
           type: "error",
-          title: t("notifications.uploadSome", {
-            ok: success,
-            fail: failures.length,
-          }),
+          title: t("upload.partial", success, failures.length),
           message:
             failures.slice(0, 3).join(", ") + (failures.length > 3 ? "…" : ""),
         });

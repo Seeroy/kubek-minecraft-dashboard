@@ -1,0 +1,142 @@
+import type { TranslationDictionary } from "../../../locales/types";
+
+const plural = (n: number, one: string, few: string, many: string) => {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+};
+
+export const playersTranslations: TranslationDictionary = {
+  title: "Игроки",
+  description: "Кто онлайн, кому можно заходить и кто забанен",
+  noServer: {
+    title: "Сервер не выбран",
+    description: "Выберите сервер в боковой панели",
+  },
+  unsupported: {
+    title: "Здесь нет списков игроков",
+    description: "Прокси и Bedrock-серверы хранят игроков по-своему",
+  },
+  loadFailed: "Не удалось прочитать списки игроков",
+  retry: "Повторить",
+  stats: {
+    online: "Онлайн",
+    whitelist: "Белый список",
+    whitelistOff: " · выключен",
+    ops: "Операторы",
+    bans: "Баны",
+    ipBans: (n: number) => ` · ${n} IP`,
+  },
+  tabs: {
+    online: "Онлайн",
+    whitelist: "Белый список",
+    ops: "Операторы",
+    bans: "Баны",
+  },
+  search: "Поиск по нику или UUID…",
+  count: (n: number) => `${n} ${plural(n, "игрок", "игрока", "игроков")}`,
+  noMatches: "Никто не подходит под поиск",
+  uuid: {
+    copy: "Скопировать UUID",
+    none: "Нет UUID",
+  },
+  add: {
+    placeholder: "Ник игрока",
+    check: "Проверить",
+    checking: "Проверяем…",
+    invalid: "От 1 до 16 латинских букв, цифр или _",
+    mojang: "Аккаунт Mojang",
+    offline: "Офлайн UUID",
+    offlineHint: "Сервер в офлайн-режиме, UUID считается из ника",
+  },
+  online: {
+    title: "Сейчас онлайн",
+    stopped: "Сервер не запущен",
+    stoppedHint: "Запустите его, чтобы увидеть игроков",
+    empty: "Сейчас никто не играет",
+    whitelisted: "В белом списке",
+    op: (level: number) => `Оп ${level}`,
+  },
+  whitelist: {
+    group: "Кто может зайти",
+    groupHint: "white-list и enforce-whitelist в server.properties",
+    toggle: "Белый список",
+    toggleHint: "Заходить могут только игроки из списка",
+    enforce: "Кикать игроков не из списка",
+    enforceHint: "Срабатывает при включении или перезагрузке списка",
+    enforceRestart: "Применится после перезапуска",
+    add: "Добавить",
+    empty: "Белый список пуст",
+    emptyHint: "Добавьте игрока по нику",
+  },
+  ops: {
+    add: "Сделать оператором",
+    levels: {
+      1: "1 · Обход защиты спавна",
+      2: "2 · Читерские команды",
+      3: "3 · Кик и бан",
+      4: "4 · Всё",
+    },
+    empty: "Операторов нет",
+    emptyHint: "Операторы могут выполнять команды в игре",
+    bypassBadge: "Без лимита",
+  },
+  bans: {
+    players: "Игроки",
+    ips: "IP-адреса",
+    add: "Забанить",
+    ipPlaceholder: "IP-адрес",
+    ipInvalid: "Введите IPv4 или IPv6 адрес",
+    reason: "Причина",
+    reasonPlaceholder: "Причина, необязательно",
+    permanent: "Навсегда",
+    until: (date: string) => `До ${date}`,
+    expired: "Истёк",
+    by: (source: string, date: string) => `${source}, ${date}`,
+    empty: "Никто не забанен",
+    emptyHint: "Забаненные игроки не могут зайти на сервер",
+    ipEmpty: "Забаненных адресов нет",
+  },
+  actions: {
+    menu: (name: string) => `Действия с ${name}`,
+    kick: "Кикнуть",
+    op: "Сделать оператором",
+    deop: "Снять оператора",
+    ban: "Забанить",
+    remove: "Убрать",
+    pardon: "Разбанить",
+    cancel: "Отмена",
+  },
+  confirm: {
+    removeWhitelist: (name: string) => `Убрать ${name} из белого списка?`,
+    deop: (name: string) => `Снять с ${name} права оператора?`,
+    pardon: (name: string) => `Разбанить ${name}?`,
+    pardonText: "Игрок сразу сможет зайти снова",
+    removeText: "Вернуть можно в любой момент",
+    kick: (name: string) => `Кикнуть ${name}?`,
+    kickText: "Игрок отключится, но сможет зайти снова",
+    ban: (name: string) => `Забанить ${name}?`,
+    banText: "Игрока кикнет, и он не сможет зайти до разбана",
+  },
+  toasts: {
+    whitelistAdd: (name: string) => `${name} добавлен в белый список`,
+    whitelistRemove: (name: string) => `${name} убран из белого списка`,
+    opAdd: (name: string) => `${name} теперь оператор`,
+    opRemove: (name: string) => `${name} больше не оператор`,
+    banAdd: (name: string) => `${name} забанен`,
+    banRemove: (name: string) => `${name} разбанен`,
+    settings: "Настройки белого списка сохранены",
+    kicked: (name: string) => `${name} кикнут`,
+  },
+  errors: {
+    PLAYER_NOT_FOUND: "Аккаунта Minecraft с таким ником нет",
+    MOJANG_UNAVAILABLE: "Mojang недоступен, попробуйте позже",
+    SERVER_NOT_RUNNING: "Сервер не запущен",
+    SERVER_BUSY: "Дождитесь, пока сервер запустится или остановится",
+    PLAYERS_NEEDS_STOPPED_SERVER: "Чтобы задать это, остановите сервер",
+    PLAYERS_APPLY_TIMEOUT: "Сервер не подтвердил изменение, проверьте консоль",
+    PLAYERS_UNSUPPORTED: "У этого типа сервера нет списков игроков",
+  },
+};

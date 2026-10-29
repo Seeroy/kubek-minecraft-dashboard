@@ -1,13 +1,32 @@
+import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { Injectable } from "@nestjs/common";
+import { AuditAction, AuditCategory } from "@shared/types/audit.types";
 import type { IInstanceLog } from "@shared/types/server/instance.types";
-import { IUser, UserPermissions } from "@shared/types/user.types";
+import { AccessArea } from "@shared/access/areas";
+import { canOnServer } from "@shared/access/can";
+import type { IUser } from "@shared/types/user.types";
+
+export interface CommandOrigin {
+  ip: string | null;
+  userAgent: string | null;
+}
 
 @Injectable()
 export class CommandHandlerService {
-  constructor(private readonly instancesRegistry: InstancesRegistry) {}
+  constructor(
+    private readonly instancesRegistry: InstancesRegistry,
+    private readonly audit: AuditLogService,
+    private readonly servers: ServersRepository,
+  ) {}
 
-  submit(user: IUser | undefined, serverId: string, command: string): void {
+  submit(
+    user: IUser | undefined,
+    serverId: string,
+    command: string,
+    origin: CommandOrigin,
+  ): void {
     if (!user) return;
     if (!this.canManageServer(user, serverId)) return;
 
@@ -16,6 +35,17 @@ export class CommandHandlerService {
     if (!instance || !instance.isRunning()) return;
 
     instance.input(command, user);
+    this.audit.record({
+      action: AuditAction.SERVER_COMMAND,
+      category: AuditCategory.SERVER,
+      resourceType: "server",
+      resourceId: serverId,
+      resourceName: this.servers.findById(serverId)?.name,
+      userId: user.id,
+      username: user.username,
+      details: { command },
+      ...origin,
+    });
   }
 
   fetchFullLog(user: IUser | undefined, serverId: string): IInstanceLog[] {
@@ -26,21 +56,11 @@ export class CommandHandlerService {
     return instance ? instance.getLog() : [];
   }
 
-  private hasServerAccess(user: IUser, serverId: string): boolean {
-    if (!user.serversRestrict?.enabled) return true;
-    return (user.serversRestrict.allowed ?? []).includes(serverId);
-  }
-
   private canManageServer(user: IUser, serverId: string): boolean {
-    const allowed =
-      user.isAdmin ||
-      user.permissions?.includes(UserPermissions.SERVERS_CONTROL);
-    return Boolean(allowed) && this.hasServerAccess(user, serverId);
+    return canOnServer(user, AccessArea.CONSOLE, "write", serverId);
   }
 
   private canMonitorServer(user: IUser, serverId: string): boolean {
-    const allowed =
-      user.isAdmin || user.permissions?.includes(UserPermissions.SERVERS_VIEW);
-    return Boolean(allowed) && this.hasServerAccess(user, serverId);
+    return canOnServer(user, AccessArea.CONSOLE, "read", serverId);
   }
 }

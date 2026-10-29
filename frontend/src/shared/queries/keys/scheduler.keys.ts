@@ -10,4 +10,5 @@ export const schedulerKeys = {
       taskId ?? "all",
       status ?? "all",
     ] as const,
+  cronPreview: (expression: string, timezone: string) => [...schedulerKeys.all, "preview", expression, timezone] as const,
 } as const;

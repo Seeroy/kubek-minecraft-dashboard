@@ -1,4 +1,4 @@
-import type { Notification } from "@/shared/types/notification.types";
+import type { Notification } from "@/shared/types/toast.types";
 
 type Notify = (n: Omit<Notification, "id" | "createdAt">) => string;
 

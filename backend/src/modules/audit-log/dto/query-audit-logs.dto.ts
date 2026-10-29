@@ -19,6 +19,11 @@ export class QueryAuditLogsDto {
   @IsString()
   userId?: string;
 
+  @ApiProperty({ required: false, description: "Entries about one server" })
+  @IsOptional()
+  @IsString()
+  serverId?: string;
+
   @ApiProperty({ required: false, enum: AuditResult })
   @IsOptional()
   @IsEnum(AuditResult)

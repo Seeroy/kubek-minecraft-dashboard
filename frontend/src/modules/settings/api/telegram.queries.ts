@@ -11,6 +11,17 @@ export function useBotInfoQuery(enabled: boolean) {
   });
 }
 
+// Keyed by bot id, a new token with another bot fetches its own photo
+export function useBotAvatarQuery(botId: number | undefined, hasAvatar: boolean) {
+  return useQuery({
+    queryKey: qk.telegram.botAvatar(botId ?? 0),
+    queryFn: () => api.telegramBot.getBotAvatar(),
+    enabled: !!botId && hasAvatar,
+    staleTime: Infinity,
+    retry: false,
+  });
+}
+
 export function useLinkedUsersQuery(enabled: boolean) {
   return useQuery({
     queryKey: qk.telegram.linkedUsers(),

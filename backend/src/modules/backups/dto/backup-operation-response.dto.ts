@@ -1,8 +1,9 @@
+import type { BackupOperationResponse } from "@shared/types/backup.types";
 import { ApiProperty } from "@nestjs/swagger";
 import { BackupEntity } from "./backup.entity";
 
 /** Result of a backup create operation: the (optional) backup record plus the task started */
-export class BackupOperationResponseDto {
+export class BackupOperationResponseDto implements BackupOperationResponse {
   @ApiProperty({
     type: BackupEntity,
     required: false,

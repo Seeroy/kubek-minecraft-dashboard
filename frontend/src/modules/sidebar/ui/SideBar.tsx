@@ -1,81 +1,81 @@
-import { CommandPaletteTrigger } from "@/modules/command-palette";
-import Profile from "@/modules/sidebar/ui/Profile";
-import ResourcesUsage from "@/modules/sidebar/ui/ResourcesUsage";
+"use client";
+import { useCommandPalette } from "@/modules/command-palette/hooks/useCommandPalette";
+import HostMetrics from "@/modules/sidebar/ui/HostMetrics";
 import ServerAddressRow from "@/modules/sidebar/ui/ServerAddressRow";
-import { cn } from "@/shared/lib/cn";
+import { usePlatformModifier } from "@/shared/hooks/usePlatformModifier";
+import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useSidebarStore } from "@/shared/stores/sidebar-store";
 import { Button } from "@/shared/ui/button";
+import { Kbd } from "@/shared/ui/kbd";
 import LogoV2 from "@/shared/ui/logo-v2";
-import { ThemeSwitch } from "@/shared/ui/ThemeSwitcher/theme-switcher";
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
+import Link from "next/link";
+import { Suspense } from "react";
 import Navigation from "./Navigation";
 import ServerControls from "./ServerControls";
 import ServersList from "./ServersList";
+import { ServerSwitcher } from "./ServerSwitcher";
+import { SidebarResizer } from "./SidebarResizer";
+import SidebarUser from "./SidebarUser";
 
-const SideBar = () => {
-  const { isOpen, close } = useSidebarStore();
+export default function SideBar() {
+  const { t } = useTranslation("modules.sidebar.layout");
+  const isOpen = useSidebarStore((s) => s.isOpen);
+  const close = useSidebarStore((s) => s.close);
+  const openPalette = useCommandPalette((s) => s.setOpen);
+  const { mod } = usePlatformModifier();
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40 animate-in bg-background/60 backdrop-blur-sm fade-in md:hidden"
-          onClick={close}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-40 animate-in bg-overlay fade-in md:hidden" onClick={close} aria-hidden="true" />
       )}
 
       <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 h-screen w-full border-r border-sidebar-border/60 bg-sidebar transition-transform duration-300 will-change-transform md:static md:w-auto",
-          "transform md:transform-none",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        )}
+        data-open={isOpen || undefined}
+        className="fixed inset-y-0 left-0 z-45 flex w-[min(300px,86vw)] min-w-0 -translate-x-full flex-col border-r border-sidebar-border bg-sidebar shadow-pop transition-transform duration-300 ease-smooth data-open:translate-x-0 md:relative md:z-10 md:h-full md:min-h-0 md:w-auto md:translate-x-0 md:shadow-none md:transition-none"
       >
-        <div className="flex h-full w-full flex-col pt-3 md:w-full">
-          {/* Logo + command palette launcher */}
-          <div className="flex h-16 w-full shrink-0 items-center justify-between px-5">
-            <LogoV2 size={"lg"} />
-            <div className="flex items-center gap-2">
-              <CommandPaletteTrigger variant="icon" />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 md:hidden"
-                onClick={close}
-                aria-label="Close sidebar"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
+        <div className="flex h-14 shrink-0 items-center justify-between pr-3 pl-4 sidebar-mini:justify-center sidebar-mini:p-0">
+          <Link href="/" aria-label="Kubek" onClick={close} className="rounded-md outline-none focus-visible:outline-2 focus-visible:outline-primary/70">
+            <LogoV2 size="lg" className="sidebar-mini:[&>span]:hidden" />
+          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openPalette(true)}
+            aria-label={t("search")}
+            title={t("search")}
+            className="ml-auto max-md:mr-1 sidebar-mini:hidden"
+          >
+            <Search />
+            <Kbd className="max-md:hidden">{mod === "⌘" ? "⌘K" : `${mod} K`}</Kbd>
+          </Button>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={close} aria-label={t("closeMenu")}>
+            <X />
+          </Button>
+        </div>
 
-          {/* Unified server card: selector → address → status & controls */}
-          <div className="shrink-0 animate-in border-b border-sidebar-border/60 px-3 pt-1 pb-3 fade-in slide-in-from-top-2">
-            <div className="divide-y divide-border/40 overflow-hidden rounded-xl border border-border/40 bg-card/50">
-              <ServersList />
-              <ServerAddressRow />
-              <ServerControls />
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <Navigation />
-
-          {/* Resource Usage */}
-          <div className="shrink-0 animate-in space-y-2.5 border-t border-sidebar-border/60 p-3 fade-in slide-in-from-bottom-2">
-            <ResourcesUsage />
-
-            <div className="flex items-center justify-between gap-2">
-              <Profile />
-              <ThemeSwitch />
-            </div>
+        <div className="shrink-0 border-b border-sidebar-border px-3 pb-3 sidebar-mini:px-2 sidebar-mini:pb-2">
+          <div className="rounded-lg border border-sidebar-border bg-sidebar-card sidebar-mini:border-0 sidebar-mini:bg-transparent">
+            <ServerSwitcher />
+            <ServerAddressRow />
+            <ServerControls />
           </div>
         </div>
+
+        <Suspense>
+          <Navigation />
+        </Suspense>
+
+        <div className="grid shrink-0 gap-3 border-t border-sidebar-border p-3 sidebar-mini:p-2">
+          <HostMetrics />
+          <SidebarUser />
+        </div>
+
+        <SidebarResizer />
       </aside>
+
+      <ServersList />
     </>
   );
-};
-
-export default SideBar;
+}

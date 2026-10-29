@@ -1,88 +1,50 @@
-import { UserPermissions } from "@shared/types/user.types";
-import {
-  Activity,
-  Cpu,
-  LayoutGrid,
-  MemoryStick,
-  ServerCog,
-  ShieldAlert,
-} from "lucide-react";
+import { AccessArea } from "@shared/access/areas";
+import { CalendarClock, ChartArea, LayoutGrid } from "lucide-react";
 import type { Layout } from "react-grid-layout";
-import type {
-  DashboardLayoutState,
-  WidgetDefinition,
-  WidgetId,
-} from "../types/widget.types";
-import AllServersWidget from "../ui/widgets/AllServersWidget";
-import CpuChartWidget from "../ui/widgets/CpuChartWidget";
-import DiagnosticsBackupsWidget from "../ui/widgets/DiagnosticsBackupsWidget";
-import HostResourcesWidget from "../ui/widgets/HostResourcesWidget";
-import RamChartWidget from "../ui/widgets/RamChartWidget";
-import SelectedServerStatsWidget from "../ui/widgets/SelectedServerStatsWidget";
+import type { DashboardLayoutState, WidgetDefinition, WidgetId } from "../types/widget.types";
+import EventsWidget from "../ui/widgets/EventsWidget";
+import HostLoadWidget from "../ui/widgets/HostLoadWidget";
+import ServersWidget from "../ui/widgets/ServersWidget";
 
 export const WIDGETS: WidgetDefinition[] = [
   {
-    id: "allServers",
-    titleKey: "widgets.allServers",
+    id: "servers",
+    titleKey: "widgets.servers",
     icon: LayoutGrid,
-    component: AllServersWidget,
-    defaultLayout: { w: 2, h: 2, minW: 1, minH: 2 },
+    component: ServersWidget,
+    access: "serverView",
+    contentClassName: "p-0",
+    defaultLayout: { w: 4, h: 2, minW: 2, minH: 2 },
   },
   {
-    id: "selectedServer",
-    titleKey: "widgets.selectedServer",
-    icon: ServerCog,
-    component: SelectedServerStatsWidget,
-    requiredPermission: UserPermissions.SERVERS_VIEW,
-    defaultLayout: { w: 2, h: 2, minW: 1, minH: 2 },
+    id: "hostLoad",
+    titleKey: "widgets.hostLoad",
+    icon: ChartArea,
+    component: HostLoadWidget,
+    access: [AccessArea.MONITORING, "read"],
+    defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
   },
   {
-    id: "hostResources",
-    titleKey: "widgets.hostResources",
-    icon: Activity,
-    component: HostResourcesWidget,
-    requiredPermission: UserPermissions.SYSTEM_MONITORING,
-    defaultLayout: { w: 2, h: 2, minW: 1, minH: 1 },
-  },
-  {
-    id: "diagnostics",
-    titleKey: "widgets.diagnostics",
-    icon: ShieldAlert,
-    component: DiagnosticsBackupsWidget,
-    requiredPermission: UserPermissions.SERVERS_VIEW,
-    defaultLayout: { w: 2, h: 2, minW: 1, minH: 2 },
-  },
-  {
-    id: "cpuChart",
-    titleKey: "widgets.cpuChart",
-    icon: Cpu,
-    component: CpuChartWidget,
-    requiredPermission: UserPermissions.SYSTEM_MONITORING,
-    defaultLayout: { w: 2, h: 2, minW: 1, minH: 2 },
-    bare: true,
-  },
-  {
-    id: "ramChart",
-    titleKey: "widgets.ramChart",
-    icon: MemoryStick,
-    component: RamChartWidget,
-    requiredPermission: UserPermissions.SYSTEM_MONITORING,
-    defaultLayout: { w: 2, h: 2, minW: 1, minH: 2 },
-    bare: true,
+    id: "events",
+    titleKey: "widgets.events",
+    icon: CalendarClock,
+    component: EventsWidget,
+    contentClassName: "p-0",
+    defaultLayout: { w: 1, h: 3, minW: 1, minH: 2 },
   },
 ];
 
-/** Default bento arrangement on the largest breakpoint; others are auto-generated */
+/** Default arrangement on the largest breakpoint, the others are generated */
 function defaultLgLayout(): Layout {
   return [
-    { i: "allServers", x: 0, y: 0, w: 2, h: 2, minW: 1, minH: 2 },
-    { i: "selectedServer", x: 2, y: 0, w: 2, h: 2, minW: 1, minH: 2 },
-    { i: "cpuChart", x: 0, y: 2, w: 2, h: 2, minW: 1, minH: 2 },
-    { i: "ramChart", x: 2, y: 2, w: 2, h: 2, minW: 1, minH: 2 },
-    { i: "hostResources", x: 0, y: 4, w: 2, h: 2, minW: 1, minH: 1 },
-    { i: "diagnostics", x: 2, y: 4, w: 2, h: 2, minW: 1, minH: 2 },
+    { i: "servers", x: 0, y: 0, w: 4, h: 2, minW: 2, minH: 2 },
+    { i: "hostLoad", x: 0, y: 2, w: 3, h: 3, minW: 2, minH: 2 },
+    { i: "events", x: 3, y: 2, w: 1, h: 3, minW: 1, minH: 2 },
   ];
 }
+
+// Bumped when the widget set changes so saved layouts from older versions are dropped
+export const LAYOUT_VERSION = 2;
 
 export function defaultLayoutState(
   widgets: WidgetDefinition[] = WIDGETS
@@ -95,7 +57,7 @@ export function defaultLayoutState(
     if (!lg.some((item) => item.i === widget.id))
       lg.push(defaultItemLayout(widget.id, widgets));
   }
-  return { visible, layouts: { lg } };
+  return { version: LAYOUT_VERSION, visible, layouts: { lg } };
 }
 
 export const DASHBOARD_BREAKPOINTS = { lg: 1024, md: 768, sm: 480, xs: 0 };

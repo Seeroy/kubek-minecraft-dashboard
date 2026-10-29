@@ -1,11 +1,16 @@
 import { api } from "@/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/shared/queries/query-keys";
+import { useAuthStore } from "@/shared/stores/auth-store";
+import { AccessArea } from "@shared/access/areas";
 
 export function useJavaVersions() {
+  // Java pickers in server forms read it too
+  const canRead = useAuthStore((s) => s.can(AccessArea.JAVA, "read"));
   return useQuery({
     queryKey: qk.java.list(),
     queryFn: () => api.java.getAllJavaVersions(),
+    enabled: canRead,
   });
 }
 
@@ -13,10 +18,11 @@ export function useJavaVersions() {
  * Recommended major Java version for a Minecraft version (from Mojang manifest)
  */
 export function useJavaVersionForGame(gameVersion?: string) {
+  const canRead = useAuthStore((s) => s.can(AccessArea.JAVA, "read"));
   return useQuery({
     queryKey: qk.java.forGame(gameVersion ?? ""),
     queryFn: () => api.java.getJavaVersionForGame(gameVersion!),
-    enabled: !!gameVersion,
+    enabled: !!gameVersion && canRead,
     staleTime: Infinity,
     retry: false,
   });

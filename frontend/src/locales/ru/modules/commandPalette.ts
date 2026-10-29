@@ -1,10 +1,14 @@
 export const commandPaletteTranslations = {
   title: "Командная палитра",
-  trigger: "Команды и поиск",
   placeholder: "Поиск разделов, серверов и действий...",
   empty: "Ничего не найдено",
   hints: {
     current: "Текущий",
+  },
+  footer: {
+    navigate: "выбрать",
+    open: "открыть",
+    close: "закрыть",
   },
   groups: {
     navigation: "Навигация",

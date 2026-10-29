@@ -1,113 +1,70 @@
 "use client";
-import { useServerStore } from "@/modules/server";
-import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
+import { useServerStore, type Server } from "@/modules/server";
+import { TopbarActions } from "@/modules/topbar";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { BlockHeader } from "@/shared/ui/BlockHeader";
-import { PageLayout } from "@/shared/ui/PageLayout";
 import { Button } from "@/shared/ui/button";
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
-import { FileText, RefreshCw } from "lucide-react";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { PageHeader } from "@/shared/ui/page-header";
+import { RotateCw, ServerOff } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import {
-  useLogContentQuery,
-  useLogFilesQuery,
-  useLogSearchQuery,
-} from "../api/server-logs.queries";
-import LogContentViewer from "./LogContentViewer";
-import LogFileList from "./LogFileList";
-import LogSearchBar from "./LogSearchBar";
+import { useState } from "react";
+import { useLogContentQuery, useLogFilesQuery } from "../api/server-logs.queries";
+import { LogFiles } from "./LogFiles";
+import { LogView } from "./LogView";
 
-const LogViewer = () => {
+const DEFAULT_FILE = "latest.log";
+
+function ServerLogs({ server }: { server: Server }) {
   const { t } = useTranslation("modules.logViewer");
-  const { selectedServer } = useServerStore();
-  const initialFile = useSearchParams().get("file") ?? undefined;
-  const [selectedFile, setSelectedFile] = useState<string | undefined>(
-    initialFile
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(searchQuery.trim(), 250);
+  // Other screens deep link a file, e.g. a gzipped log from the file manager
+  const linked = useSearchParams().get("file") ?? undefined;
+  const [picked, setPicked] = useState<string | undefined>(linked);
+  const files = useLogFilesQuery(server.id);
+  const name = picked ?? files.data?.find((file) => file.name === DEFAULT_FILE)?.name ?? files.data?.[0]?.name;
+  const content = useLogContentQuery(server.id, name);
+  const file = files.data?.find((item) => item.name === name);
+  const refreshing = files.isFetching || content.isFetching;
 
-  const filesQuery = useLogFilesQuery(selectedServer?.id);
-  const contentQuery = useLogContentQuery(selectedServer?.id, selectedFile);
-  const searchQ = useLogSearchQuery(
-    selectedServer?.id,
-    selectedFile,
-    debouncedQuery
-  );
-
-  const visibleContent = useMemo(() => {
-    return contentQuery.data ?? "";
-  }, [contentQuery.data]);
+  const refresh = () => {
+    void files.refetch();
+    if (name) void content.refetch();
+  };
 
   return (
-    <PageLayout className="h-full overflow-hidden">
-      <BlockHeader
-        kicker={t("header.title")}
-        title={t("header.title")}
-        description={t("header.description")}
-        icon={FileText}
-        color="primary"
-      />
-
-      {!selectedServer ? (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            {t("noServer")}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
-          {/* Left column: file list */}
-          <Card className="flex min-h-0 flex-col">
-            <CardHeader className="flex shrink-0 flex-row items-center justify-between">
-              <span className="text-sm font-medium">{t("list.title")}</span>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => filesQuery.refetch()}
-                aria-label={t("list.refresh")}
-              >
-                <RefreshCw />
-              </Button>
-            </CardHeader>
-            <CardContent className="min-h-0 flex-1 overflow-auto">
-              <LogFileList
-                files={filesQuery.data ?? []}
-                selected={selectedFile}
-                onSelect={setSelectedFile}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Right column: log viewer */}
-          <Card className="flex min-h-0 flex-col">
-            <CardHeader className="shrink-0">
-              <LogSearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                matchesCount={
-                  debouncedQuery ? (searchQ.data?.length ?? 0) : undefined
-                }
-              />
-            </CardHeader>
-            <CardContent className="min-h-0 flex-1">
-              {contentQuery.isFetching && !visibleContent ? (
-                <div className="text-sm text-muted-foreground">
-                  {t("content.loading")}
-                </div>
-              ) : (
-                <LogContentViewer
-                  content={visibleContent}
-                  searchQuery={debouncedQuery}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </PageLayout>
+    <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <TopbarActions>
+        <Button variant="ghost" size="sm" disabled={refreshing} onClick={refresh}>
+          <RotateCw className={refreshing ? "animate-spin" : undefined} />
+          {t("refresh")}
+        </Button>
+      </TopbarActions>
+      <LogFiles files={files.data} selected={name} onSelect={setPicked} />
+      {/* Keyed so search and scroll start over for every file */}
+      <LogView key={name ?? "none"} file={file} content={content.data} loading={content.isLoading} />
+    </div>
   );
-};
+}
 
-export default LogViewer;
+export default function LogViewer() {
+  const { t } = useTranslation("modules.logViewer");
+  const { selectedServer } = useServerStore();
+
+  return (
+    <div className="stagger-enter flex flex-col lg:h-full lg:min-h-[560px]">
+      <PageHeader title={t("title")} description={t("description")} className="mb-4" />
+      {selectedServer ? (
+        <ServerLogs key={selectedServer.id} server={selectedServer} />
+      ) : (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ServerOff />
+            </EmptyMedia>
+            <EmptyTitle>{t("noServer.title")}</EmptyTitle>
+            <EmptyDescription>{t("noServer.description")}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
+    </div>
+  );
+}

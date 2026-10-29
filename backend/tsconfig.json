@@ -30,10 +30,8 @@
     "node_modules",
     "dist",
     "servers",
-    "servers_old",
     "backups",
-    "binaries",
-    "binaries_old"
+    "binaries"
   ],
   "watchOptions": {
     "watchFile": "useFsEvents",
@@ -44,10 +42,8 @@
       "**/node_modules",
       "**/dist",
       "servers",
-      "servers_old",
       "backups",
-      "binaries",
-      "binaries_old"
+      "binaries"
     ]
   },
   "include": ["src"]

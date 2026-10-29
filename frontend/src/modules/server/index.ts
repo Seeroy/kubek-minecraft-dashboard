@@ -2,9 +2,10 @@ export { ServerProvider, useServerStore } from "./contexts/server-context";
 export type { Server, ServerStatusData } from "./types";
 
 export {
+  resolveServerStatus,
   useAllServerStatuses,
-  useServerStatus,
-  useServerStatusesStore
+  useServerLive,
+  useServerStatus
 } from "./store/server-statuses.store";
 
 export {
@@ -19,21 +20,16 @@ export {
   useDeleteServerMutation,
   useDuplicateServerMutation,
   useImportServerMutation,
-  useRenameServerMutation
+  useRenameServerMutation,
+  useServersListQuery
 } from "./api/servers.queries";
 
 export { serverNameSchema } from "./validations/server-name";
 
-export { ServerStatusIndicator } from "./ui/ServerStatusIndicator";
-export type { ServerStatusProps } from "./ui/ServerStatusIndicator";
 
 export { ServerCreationBridge } from "./ui/ServerCreationBridge";
 
-export {
-  CREATE_SERVER_MODAL_ID,
-  CreateServerModal,
-  NewServerModalRegistration,
-} from "./modals/CreateServerModal";
+export { CREATE_SERVER_MODAL_ID } from "./modals/CreateServerModal";
 
 export { useJavaVersionOptions } from "./hooks";
 

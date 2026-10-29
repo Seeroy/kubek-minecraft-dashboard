@@ -1,40 +1,48 @@
 import type { TranslationDictionary } from "../../../locales/types";
+import { plural } from "../plural";
 
 export const javaManagerTranslations: TranslationDictionary = {
-  header: {
-    kicker: "Рантайм",
-    title: "Менеджер Java",
-    description: "Управление установленными версиями Java и их использованием на серверах",
-  },
-  available: {
-    title: "Доступные версии Java",
-    description: "Установить дополнительные версии Java из Adoptium",
-    versionLabel: (version: string) => `Версия ${ version }`,
-    installed: "Установлено",
+  title: "Менеджер Java",
+  description: "Управление установленными версиями Java и их использованием на серверах",
+  refresh: "Обновить",
+  tabs: {
+    installed: "Установленные",
+    available: "Доступные",
+    custom: "Кастомные",
+    usage: "Использование серверами",
   },
   installed: {
     title: "Установленные версии Java",
     description: "Версии Java доступны для использования вашими серверами",
+    badge: "Установлено",
+    vendor: (vendor: string) => `Поставщик: ${vendor}`,
+    usedBy: (n: number) => `Используется ${n} ${plural(n, ["сервером", "серверами", "серверами"])}`,
+    unused: "Не используется",
+    remove: "Удалить",
+    inUse: "Нельзя удалить: версия используется серверами",
     empty: {
       title: "Версии Java не установлены",
       description: "Перейдите на вкладку \"Доступные\" для установки версий Java",
     },
-    badge: "Установлено",
-    vendor: (vendor: string) => `Поставщик: ${ vendor }`,
-    runtime: (runtime: string) => `Среда выполнения: ${ runtime }`,
-    usage: (count: number) => `Используется ${ count } сервер${ count === 1 ? "ом" : "ами" }`,
   },
-  serverUsage: {
-    title: "Использование Java серверами",
-    description: "Версии Java, используемые вашими серверами",
-    empty: {
-      title: "Серверы не настроены",
-      description: "Создайте серверы, чтобы увидеть использование версий Java",
+  available: {
+    title: "Доступные версии Java",
+    description: "Установить дополнительные версии Java из Adoptium (Eclipse Temurin)",
+    headers: {
+      version: "Версия",
+      support: "Поддержка",
+      purpose: "Назначение",
     },
-    versionLabel: (version: string, isManaged: boolean) => `Java ${ version } ${ isManaged ? "(Управляемая)" : "(Системная)" }`,
-    managed: "Управляемая",
-    system: "Системная",
-    custom: "Кастомная",
+    lts: "LTS",
+    sts: "STS",
+    ltsHint: "Долгосрочная поддержка: обновления безопасности выходят несколько лет, лучший выбор для сервера",
+    stsHint: "Краткосрочная поддержка: обновления прекращаются через полгода, с выходом следующей версии",
+    range: (from: string, to: string) => `Для ${from}-${to}`,
+    newer: (from: string) => `Для ${from} и новее`,
+    install: "Установить",
+    installing: (percent: number) => `Загрузка… ${percent}%`,
+    installed: "Установлено",
+    empty: "Доступных для установки версий нет",
   },
   custom: {
     add: {
@@ -46,8 +54,8 @@ export const javaManagerTranslations: TranslationDictionary = {
       namePlaceholder: "Например, GraalVM 21",
       validate: "Проверить",
       submit: "Добавить",
-      validOk: (version: string, vendor: string) => `Найдена Java ${ version }${ vendor ? ` (${ vendor })` : "" }`,
-      validFail: "По этому пути не найдена рабочая Java",
+      found: (version: string, vendor: string) => `Найдена Java ${version}${vendor ? ` (${vendor})` : ""}`,
+      notFound: "По этому пути не найдена рабочая Java",
     },
     list: {
       title: "Зарегистрированные кастомные Java",
@@ -58,35 +66,42 @@ export const javaManagerTranslations: TranslationDictionary = {
         description: "Добавьте локальную установку Java через форму выше",
       },
     },
-    notifications: {
-      added: "Кастомная Java добавлена",
-      removed: "Кастомная Java удалена",
+  },
+  usage: {
+    title: "Использование Java серверами",
+    description: "Версии Java, используемые вашими серверами",
+    attention: (n: number) => `${n} ${plural(n, ["требует", "требуют", "требуют"])} внимания`,
+    headers: {
+      server: "Сервер",
+      java: "Java",
+      kind: "Тип",
+      compatibility: "Совместимость",
     },
-    errors: {
-      addFailed: "Не удалось добавить кастомную Java",
-      removeFailed: "Не удалось удалить кастомную Java",
+    kinds: {
+      managed: "Управляемая",
+      system: "Системная",
+      custom: "Кастомная",
+    },
+    systemJava: "Системная Java",
+    ok: "Подходит",
+    needs: (version: number) => `Нужна Java ${version}`,
+    unknown: "Неизвестно",
+    change: "Сменить",
+    empty: {
+      title: "Серверы не настроены",
+      description: "Создайте серверы, чтобы увидеть использование версий Java",
     },
   },
-  tabs: {
-    installed: (count: number) => `Установленные (${ count })`,
-    available: (count: number) => `Доступные (${ count })`,
-    custom: (count: number) => `Кастомные (${ count })`,
-    serverUsage: (count: number) => `Использование серверами (${ count })`,
+  confirmRemove: {
+    title: (name: string) => `Удалить ${name}?`,
+    description: "Файлы этой Java будут удалены с диска панели",
+    customDescription: "Java останется на диске, панель просто забудет этот путь",
+    confirm: "Удалить",
+    cancel: "Отмена",
   },
-  buttons: {
-    refreshing: "Обновление",
-    refresh: "Обновить",
-  },
-  notifications: {
-    installStarted: (version: string) => `Установка Java ${ version } начата`,
-    installMessage: "Вы можете отслеживать прогресс в панели задач",
-    deleteSuccess: (version: string) => `Java ${ version } успешно удалена`,
-  },
-  errors: {
-    loadFailed: "Не удалось загрузить версии Java",
-    installFailed: "Не удалось начать установку Java",
-    deleteFailed: "Не удалось удалить версию Java",
-    deleteInUseTitle: "Невозможно удалить версию Java",
-    deleteInUseMessage: "Эта версия в настоящее время используется одним или несколькими серверами",
+  toasts: {
+    installStarted: (version: string) => `Установка Java ${version} начата`,
+    removed: (name: string) => `${name} удалена`,
+    customAdded: "Кастомная Java добавлена",
   },
 };

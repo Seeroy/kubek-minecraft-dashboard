@@ -1,8 +1,8 @@
 "use client";
 
 import { DynamicExtensionComponent } from "@/modules/extensions";
-import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useExtensionRegistry } from "@/modules/extensions/api/extensions.queries";
+import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Blocks } from "lucide-react";
 import type { ComponentType } from "react";
 import { createElement, useMemo } from "react";

@@ -1,6 +1,8 @@
 import { Branding } from "@/core/constants/branding";
-import { unpackArchive } from "@/core/utils/archives";
-import { downloadWithProgress } from "@/core/utils/downloadWithProgress";
+import { unpack } from "@/core/utils/archives";
+import { download, progressThrottle } from "@/core/utils/download";
+import { getErrorMessage } from "@/core/utils/error";
+import { isRealInside } from "@/core/utils/paths";
 import { getServerPath } from "@/core/utils/serverPath";
 import { JavaService } from "@/modules/java/java.service";
 import { TasksService } from "@/modules/tasks/tasks.service";
@@ -154,7 +156,7 @@ export class InstallPipeline {
       case "download":
         return this.runDownload(step, dir, scope, taskId);
       case "writeFile": {
-        const target = path.join(
+        const target = await this.within(
           dir,
           this.resolver.substitute(step.path, scope),
         );
@@ -164,7 +166,7 @@ export class InstallPipeline {
         return;
       }
       case "chmod": {
-        const target = path.join(
+        const target = await this.within(
           dir,
           this.resolver.substitute(step.path, scope),
         );
@@ -172,12 +174,12 @@ export class InstallPipeline {
         return;
       }
       case "template": {
-        const target = path.join(
+        const target = await this.within(
           dir,
           this.resolver.substitute(step.dest, scope),
         );
         if (opts.skipExistingFiles && fs.existsSync(target)) return;
-        const src = path.join(
+        const src = await this.within(
           blueprint.dir,
           this.resolver.substitute(step.src, scope),
         );
@@ -194,6 +196,15 @@ export class InstallPipeline {
     }
   }
 
+  // Blueprint paths and variable values can carry ../ or lead through a symlink
+  private async within(base: string, relPath: string): Promise<string> {
+    const target = path.join(base, relPath);
+    if (!(await isRealInside(base, target, true))) {
+      throw new Error(`Install step path leaves its folder: ${relPath}`);
+    }
+    return target;
+  }
+
   private async runDownload(
     step: Extract<InstallStep, { type: "download" }>,
     dir: string,
@@ -203,7 +214,10 @@ export class InstallPipeline {
     const url = this.resolver.substitute(step.url, scope);
     if (!url) throw new Error("Download step has no resolved URL");
 
-    const dest = path.join(dir, this.resolver.substitute(step.dest, scope));
+    const dest = await this.within(
+      dir,
+      this.resolver.substitute(step.dest, scope),
+    );
     if (taskId) {
       this.tasks.updateTask(taskId, {
         step: TaskSteps.DOWNLOADING_CORE,
@@ -211,17 +225,25 @@ export class InstallPipeline {
       });
     }
 
-    let lastUpdate = 0;
-    await downloadWithProgress(url, dest, (progress) => {
-      const now = Date.now();
-      if (taskId && now - lastUpdate >= InstallPipeline.PROGRESS_INTERVAL) {
-        this.tasks.updateTask(taskId, { progress });
-        lastUpdate = now;
-      }
+    const ready = progressThrottle(InstallPipeline.PROGRESS_INTERVAL);
+    await download({
+      url,
+      dest,
+      onProgress: (progress) => {
+        if (taskId && ready()) this.tasks.updateTask(taskId, { progress });
+      },
     });
 
     if (step.unpack || scope.__downloadUnpack) {
-      await unpackArchive(dest, dir, true);
+      // Broken download fails the install instead of an empty server
+      try {
+        await unpack(dest, dir, { deleteAfter: true });
+      } catch (e: unknown) {
+        throw new Error(
+          `Failed to unpack ${path.basename(dest)}: ${getErrorMessage(e)}`,
+          { cause: e },
+        );
+      }
     }
   }
 
@@ -252,7 +274,7 @@ export class InstallPipeline {
       "Already exists",
       "Download complete",
     ]);
-    let lastUpdate = 0;
+    const ready = progressThrottle(InstallPipeline.PROGRESS_INTERVAL);
     let lastProgress = 0;
     let lastLine = "";
 
@@ -277,9 +299,7 @@ export class InstallPipeline {
           const raw = total ? Math.round((completed / total) * 95) : 0;
           lastProgress = Math.max(lastProgress, raw);
 
-          const now = Date.now();
-          if (now - lastUpdate < InstallPipeline.PROGRESS_INTERVAL) return;
-          lastUpdate = now;
+          if (!ready()) return;
           this.tasks.updateTask(taskId, {
             progress: lastProgress,
             message: lastLine,

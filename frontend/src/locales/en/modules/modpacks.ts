@@ -1,0 +1,81 @@
+import type { TranslationDictionary } from "../../../locales/types";
+
+const files = (n: number) => `${n} file${n === 1 ? "" : "s"}`;
+
+export const modpacksTranslations: TranslationDictionary = {
+  sources: {
+    label: "Import source",
+    archive: "Kubek archive",
+    mrpack: ".mrpack file",
+    modrinth: "Modrinth",
+  },
+  hints: {
+    archive: "A zip archive exported from Kubek",
+    mrpack: "A Modrinth modpack on the Fabric loader",
+    modrinth: "Find a Fabric modpack and pick its version",
+    preview: "Check what the pack installs and set up the server",
+    progress: "The server is being built from the pack",
+  },
+  mrpack: {
+    title: "Modpack file",
+    hint: "Drop a .mrpack here or choose it, Fabric packs only",
+    button: "Choose file",
+    busy: "Reading pack",
+    invalid: "Choose a file with the .mrpack extension",
+  },
+  modrinth: {
+    searchPlaceholder: "Search Fabric modpacks",
+    searchLabel: "Search modpacks",
+    empty: "No server-ready Fabric packs match this search",
+    error: "Modrinth did not respond, try again in a moment",
+    downloads: (n: string) => `${n} downloads`,
+    version: "Version",
+    loadingVersions: "Loading versions",
+    noVersions: "This pack has no Fabric versions",
+    read: "Continue",
+    types: { beta: "beta", alpha: "alpha" },
+    back: "Back to results",
+  },
+  preview: {
+    minecraft: "Minecraft",
+    loader: "Fabric loader",
+    mods: "Mods",
+    files,
+    download: "Download size",
+    clientOnly: (n: number) => `${files(n)} for the client only, skipped`,
+    warnings: {
+      optional_server_files: (n: number) => `${files(n)} marked optional for servers, installed anyway`,
+      unknown_env_files: (n: number) => `${files(n)} without a declared side, installed anyway`,
+      client_overrides_ignored: "Client-only settings from the pack are not copied to the server",
+    },
+  },
+  form: {
+    title: "Server settings",
+    name: "Server name",
+    port: "Port",
+    portTaken: (name: string) => `Already used by "${name}"`,
+    memory: "Memory",
+    memoryUnit: "MB",
+    java: "Java",
+    nameRequired: "Enter a server name",
+    portInvalid: "Port must be between 1 and 65535",
+    memoryInvalid: "At least 512 MB",
+  },
+  actions: {
+    back: "Back",
+    create: "Create server",
+    creating: "Creating",
+    close: "Close",
+    done: "Done",
+    openConsole: "Open console",
+  },
+  errors: {
+    MODPACK_LOADER_UNSUPPORTED: "Only Fabric modpacks can be installed, Quilt, Forge and NeoForge packs are not supported yet",
+    MODPACK_INVALID: "This file is not a valid Modrinth modpack",
+    MODPACK_UNSAFE_PATH: "The pack tries to write files outside the server folder",
+    MODPACK_DOWNLOAD_NOT_ALLOWED: "The pack downloads files from hosts that are not allowed",
+    MODPACK_NOT_FOUND: "The preview expired, read the pack again",
+    nameTaken: "A server with this name already exists",
+    generic: "Could not read the modpack",
+  },
+};

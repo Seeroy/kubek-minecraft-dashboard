@@ -26,6 +26,12 @@ export class ErrorRecognizerService {
       ],
     },
     {
+      // e.g. server-port=255682 in server.properties
+      type: "port_invalid",
+      severity: "high" as const,
+      patterns: [/port out of range/i],
+    },
+    {
       type: "world_corruption",
       severity: "high" as const,
       patterns: [
@@ -133,16 +139,5 @@ export class ErrorRecognizerService {
     }
 
     return null;
-  }
-
-  /**
-   * Get all predefined error definitions
-   * @returns Array of error definitions
-   */
-  getErrorDefinitions() {
-    return this.errorDefinitions.map((def) => ({
-      type: def.type,
-      severity: def.severity,
-    }));
   }
 }

@@ -2,12 +2,14 @@ import type { TranslationDictionary } from "../../../locales/types";
 
 export const sidebarTranslations: TranslationDictionary = {
   navigation: {
+    server: "Server",
     dashboard: "Dashboard",
     console: "Console",
     files: "Files",
     logViewer: "Logs",
     serverSettings: "Server Settings",
     panelSettings: "Panel Settings",
+    players: "Players",
     plugins: "Plugins",
     mods: "Mods",
     backups: "Backups",
@@ -21,17 +23,30 @@ export const sidebarTranslations: TranslationDictionary = {
     locked: "No access",
     updateAvailable: "Panel update available",
   },
-  queryGrid: {
-    players: "Players",
-    playersOnline: "Players Online",
-    serverEmpty: "Server is empty",
-    uptime: "Uptime",
+  layout: {
+    mainNav: "Main navigation",
+    resize: "Resize sidebar",
+    resizeHint: "Drag to resize. Double click or ⌘B to collapse",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    breadcrumb: "Breadcrumb",
+    search: "Search and commands",
   },
+  profile: {
+    roles: {
+      admin: "Administrator",
+      user: "User",
+    },
+    logout: "Log out",
+    toggleTheme: "Toggle theme",
+  },
+  hostMetrics: "Host resources",
   resources: {
     cpu: "CPU",
     ram: "RAM",
   },
   serverControls: {
+    stopping: "Stopping…",
     noServerSelected: "No server selected",
     start: "Start",
     stop: "Stop",
@@ -55,7 +70,9 @@ export const sidebarTranslations: TranslationDictionary = {
     },
   },
   serversList: {
-    kicker: "Servers",
+    allServers: "All servers",
+    createServer: "Create server",
+    findServer: "Find server",
     title: "Select server",
     description: "Choose a server to manage and view its console",
     searchServers: "Search servers...",
@@ -64,6 +81,7 @@ export const sidebarTranslations: TranslationDictionary = {
     notFound: "No servers found",
     selectServer: "Select server",
     view: {
+      label: "View",
       cards: "Cards",
       table: "Table",
     },
@@ -73,6 +91,11 @@ export const sidebarTranslations: TranslationDictionary = {
       type: "Type",
       version: "Version",
       players: "Players",
+      cpu: "CPU",
+      ram: "RAM",
+      uptime: "Uptime",
+      memory: (used: string, limit: string) => `${used} / ${limit} GB`,
+      memoryUsed: (used: string) => `${used} GB`,
     },
     creation: {
       title: (count: number) =>
@@ -114,7 +137,9 @@ export const sidebarTranslations: TranslationDictionary = {
       rename: "Rename",
       export: "Export",
       delete: "Delete",
-      import: "Import server",
+      import: "Import server or modpack",
+      createNetwork: "Create Velocity network",
+      beta: "Beta",
       more: "More",
     },
     dialogs: {
@@ -170,8 +195,9 @@ export const sidebarTranslations: TranslationDictionary = {
           `Deleted: ${ok}, failed: ${fail}`,
       },
       export: {
-        triggerTitle: "Preparing export",
-        triggerMessage: (name: string) => `Building archive for "${name}"...`,
+        triggerTitle: (name: string) => `Exporting "${name}"`,
+        packingMessage: "Packing files...",
+        downloadingMessage: "Downloading archive...",
         readyTitle: "Archive ready",
         readyMessage: (name: string) => `Server "${name}" is being downloaded.`,
         errorTitle: "Failed to export server",
@@ -207,7 +233,7 @@ export const sidebarTranslations: TranslationDictionary = {
       delete: "Delete",
       deleteConfirmTitle: "Delete folder?",
       deleteConfirmDescription:
-        "Servers from this folder will be moved into «No folder»",
+        "Servers from this folder will be moved into \"No folder\"",
       moveToFolder: "Move to folder",
       moveTitle: "Choose a folder",
       moveConfirm: "Move",

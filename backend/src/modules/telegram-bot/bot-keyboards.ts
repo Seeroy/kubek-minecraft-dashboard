@@ -22,8 +22,13 @@ export function serversNavKeyboard(
   lang: TelegramLang,
   page: number,
   totalPages: number,
+  servers: Array<{ id: string; name: string }> = [],
 ): InlineKeyboard {
   const kb = new InlineKeyboard();
+  // Only for the HTML list, the rich one has buttons inside the table
+  servers.forEach((server) =>
+    kb.text(server.name, `srv:status:${server.id}`).row(),
+  );
   const nav: Array<[string, string]> = [];
   if (page > 0) nav.push([t(lang, "buttons.prev"), `srv:page:${page - 1}`]);
   if (page < totalPages - 1)
@@ -39,14 +44,20 @@ export function statusKeyboard(
   lang: TelegramLang,
   serverId: string,
   canControl: boolean,
+  address?: string | null,
 ): InlineKeyboard {
   const kb = new InlineKeyboard();
   if (canControl) {
     kb.text(t(lang, "buttons.start"), `srv:start:${serverId}`)
+      .success()
       .text(t(lang, "buttons.stop"), `srv:stop:${serverId}`)
+      .danger()
       .text(t(lang, "buttons.restart"), `srv:restart:${serverId}`)
+      .primary()
       .row();
   }
+  if (address) kb.copyText(t(lang, "buttons.copyAddress"), address);
+  kb.copyText(t(lang, "buttons.copyId"), serverId).row();
   kb.text(t(lang, "buttons.serverList"), "srv:page:0");
   kb.text(t(lang, "buttons.mainMenu"), "menu");
   return kb;
@@ -87,5 +98,17 @@ export function wizardVersionKeyboard(
 export function wizardConfirmKeyboard(lang: TelegramLang): InlineKeyboard {
   return new InlineKeyboard()
     .text(t(lang, "buttons.confirm"), "wiz:confirm")
+    .success()
     .text(t(lang, "buttons.cancel"), "wiz:cancel");
+}
+
+export function twofaKeyboard(
+  lang: TelegramLang,
+  challengeId: string,
+): InlineKeyboard {
+  return new InlineKeyboard()
+    .text(t(lang, "twofa.approve"), `2fa:approve:${challengeId}`)
+    .success()
+    .text(t(lang, "twofa.deny"), `2fa:deny:${challengeId}`)
+    .danger();
 }

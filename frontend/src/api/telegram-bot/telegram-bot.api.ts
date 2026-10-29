@@ -20,6 +20,16 @@ export class TelegramBotApi {
   getBotInfo = (): Promise<BotInfoResponse> =>
     this.authHttp.get<BotInfoResponse>("telegram-bot/info");
 
+  // Blob URL of the bot photo, null when the bot has none
+  getBotAvatar = async (): Promise<string | null> => {
+    try {
+      const blob = await this.authHttp.raw.get("telegram-bot/avatar").blob();
+      return URL.createObjectURL(blob);
+    } catch {
+      return null;
+    }
+  };
+
   getLinkedUsers = (): Promise<LinkedUserResponse[]> =>
     this.authHttp.get<LinkedUserResponse[]>("telegram-bot/linked-users");
 

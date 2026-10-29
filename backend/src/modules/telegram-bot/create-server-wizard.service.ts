@@ -16,13 +16,15 @@ import type { IServer } from "@shared/types/server/server.types";
 import { TaskStatus } from "@shared/types/task.types";
 import { InlineKeyboard } from "grammy";
 import { BotAccessService } from "./bot-access.service";
-import { renderServerStatus } from "./bot-format";
+import { BotAddressService } from "./bot-address.service";
+import { escapeHtml, renderServerStatus } from "./bot-format";
 import {
   statusKeyboard,
   wizardBlueprintKeyboard,
   wizardConfirmKeyboard,
   wizardVersionKeyboard,
 } from "./bot-keyboards";
+import { isNotModified } from "./bot-reply";
 import type { MyContext } from "./bot-types";
 import { t, type TelegramLang } from "./i18n";
 
@@ -42,6 +44,7 @@ export class CreateServerWizard {
     private readonly tasks: TasksService,
     private readonly access: BotAccessService,
     private readonly audit: AuditLogService,
+    private readonly address: BotAddressService,
   ) {}
 
   isActive(ctx: MyContext): boolean {
@@ -150,9 +153,9 @@ export class CreateServerWizard {
       await this.edit(
         ctx,
         t(lang, "wizard.confirm", {
-          name: wizard.name,
-          blueprint: wizard.blueprintName,
-          version,
+          name: escapeHtml(wizard.name ?? ""),
+          blueprint: escapeHtml(wizard.blueprintName ?? ""),
+          version: escapeHtml(version),
         }),
         wizardConfirmKeyboard(lang),
       );
@@ -220,7 +223,7 @@ export class CreateServerWizard {
       ctx.session.wizard = undefined;
       await this.edit(
         ctx,
-        t(lang, "wizard.failed", { error: getErrorMessage(e) }),
+        t(lang, "wizard.failed", { error: escapeHtml(getErrorMessage(e)) }),
       );
     }
   }
@@ -242,7 +245,7 @@ export class CreateServerWizard {
     taskId: string,
     userId: string,
   ): Promise<void> {
-    const name = server.name;
+    const name = escapeHtml(server.name);
     const sent = await ctx.reply(
       t(lang, "wizard.progress", {
         name,
@@ -280,6 +283,7 @@ export class CreateServerWizard {
             lang,
             fresh.id,
             this.access.canControl(userId, fresh.id),
+            await this.address.resolve(fresh),
           ),
         );
         return;
@@ -289,7 +293,9 @@ export class CreateServerWizard {
         task.status === TaskStatus.CANCELLED
       ) {
         await editTo(
-          t(lang, "wizard.failed", { error: task.error?.message ?? "error" }),
+          t(lang, "wizard.failed", {
+            error: escapeHtml(task.error?.message ?? "error"),
+          }),
         );
         return;
       }
@@ -343,7 +349,8 @@ export class CreateServerWizard {
         parse_mode: "HTML",
         reply_markup: keyboard,
       });
-    } catch {
+    } catch (error) {
+      if (isNotModified(error)) return;
       await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
     }
   }

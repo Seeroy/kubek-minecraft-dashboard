@@ -12,31 +12,48 @@ services:
     # image: seeroy/kubek-minecraft-dashboard:latest
     container_name: kubek
     restart: unless-stopped
+    # The image runs tini as PID 1 already, so no `init: true` here.
+    # On stop the panel saves and stops native servers (60 s each by default,
+    # KUBEK_STOP_TIMEOUT), the grace period must cover that
+    stop_grace_period: 90s
 
     environment:
       - PORT=8000
       - TZ=UTC
+      # - KUBEK_STOP_TIMEOUT=60  # seconds a server gets to stop before it is killed
       # - FTP_PORT=21        # built-in FTP server (off unless you enable it in the UI)
+      # - FTP_PASV_START=50000   # FTP passive range, publish the same range below
+      # - FTP_PASV_END=50100
       # - DOCKER_HOST=unix:///var/run/docker.sock  # override the docker socket location
+      # - KUBEK_HOST_DATA_DIR=/opt/kubek/data  # host folder behind /data, see volumes
 
     ports:
       - "8000:8000"          # Web panel (HTTP + WebSocket)
       # - "21:21"            # FTP control port (optional)
-      # - "1024-1048:1024-1048"  # FTP passive range — narrow it in the FTP settings first
-      # - "25565:25565"      # one Minecraft server — add a line per server you create
+      # - "50000-50100:50000-50100"  # FTP passive range, same as FTP_PASV_START/END
+      # - "25565:25565"      # one Minecraft server, add a line per server you create
+      # - "25565-25600:25565-25600"  # or a whole range for native servers
 
     volumes:
       - kubek-data:/data
       # Or bind-mount to keep files on the host:
       # - ./data:/data
       # Run Minecraft servers in Docker (serverRuntime auto/docker): mount the host docker socket.
-      # The daemon is the host's, so server bind-mounts use host paths. Use a bind mount for /data
-      # whose host path matches the container path (e.g. /opt/kubek/data:/opt/kubek/data) so the
-      # spawned server containers can mount ./servers/<id> from the same path the panel sees
+      # Access to the socket equals root on the host.
+      # The daemon is the host's, so server bind-mounts need host paths. The panel finds them
+      # by inspecting its own container (works for the named volume and bind mounts above),
+      # set KUBEK_HOST_DATA_DIR if that fails, e.g. with a socket proxy or a remote daemon.
+      # Server containers publish their ports on the host themselves, no `ports` lines needed
       # - /var/run/docker.sock:/var/run/docker.sock
 
     # Linux: expose all panel + server ports automatically (remove `ports` above if used)
     # network_mode: host
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
 
 volumes:
   kubek-data:

@@ -10,7 +10,7 @@
  *   cd backend
  *   rm -f db.sql                      # fresh DB, admin kubek / Kubek2026 re-seeded
  *   NODE_ENV=development bun run start:dev
- *   BASE_URL=http://localhost:8000 npm run test:e2e
+ *   BASE_URL=http://localhost:8000 bun run test:e2e
  */
 
 export const BASE = (process.env.BASE_URL ?? "http://localhost:8000").replace(

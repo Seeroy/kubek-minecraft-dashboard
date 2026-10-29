@@ -1,7 +1,10 @@
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
+import {
+  RequireAccess,
+  RequireServerView,
+} from "@/modules/auth/decorators/require-access.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import {
   ApiBearerAuth,
@@ -9,7 +12,7 @@ import {
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
-import { UserPermissions } from "@shared/types/user.types";
+import { AccessArea } from "@shared/access/areas";
 import { CombinedMonitoringDto } from "./dto/combined-monitoring.dto";
 import { CpuUsageDto } from "./dto/cpu-usage.dto";
 import { DiskInfoDto } from "./dto/disk-info.dto";
@@ -20,7 +23,7 @@ import { SystemMonitoringService } from "./system-monitoring.service";
 @ApiTags("System Monitoring")
 @ApiBearerAuth()
 @Controller("api/system-monitoring")
-@UseGuards(BearerAuthGuard, PermissionsGuard)
+@UseGuards(BearerAuthGuard, AccessGuard)
 export class SystemMonitoringController {
   constructor(
     private readonly systemMonitoringService: SystemMonitoringService,
@@ -30,7 +33,7 @@ export class SystemMonitoringController {
   @ApiOperation({ summary: "Get system information" })
   @ApiOkResponse({ type: SystemInfoDto })
   @ApiErrorResponses()
-  @RequirePermissions(UserPermissions.SYSTEM_MONITORING)
+  @RequireAccess(AccessArea.MONITORING, "read")
   getSystemInfo(): SystemInfoDto {
     return this.systemMonitoringService.getHardwareInfo();
   }
@@ -39,7 +42,7 @@ export class SystemMonitoringController {
   @ApiOperation({ summary: "Get disk usage information" })
   @ApiOkResponse({ type: [DiskInfoDto] })
   @ApiErrorResponses()
-  @RequirePermissions(UserPermissions.SYSTEM_MONITORING)
+  @RequireAccess(AccessArea.MONITORING, "read")
   async getDiskInfo(): Promise<DiskInfoDto[]> {
     return this.systemMonitoringService.getDiskInfo();
   }
@@ -48,7 +51,7 @@ export class SystemMonitoringController {
   @ApiOperation({ summary: "Get current resources usage" })
   @ApiOkResponse({ type: CpuUsageDto })
   @ApiErrorResponses()
-  @RequirePermissions(UserPermissions.SYSTEM_MONITORING)
+  @RequireAccess(AccessArea.MONITORING, "read")
   async getCpuUsage(): Promise<CpuUsageDto> {
     return this.systemMonitoringService.getResourcesUsage();
   }
@@ -57,6 +60,8 @@ export class SystemMonitoringController {
   @ApiOperation({ summary: "Get public and local IP addresses" })
   @ApiOkResponse({ type: NetworkInfoDto })
   @ApiErrorResponses()
+  // Server addresses are built from it, so anyone who sees servers needs it
+  @RequireServerView()
   async getNetworkInfo(): Promise<NetworkInfoDto> {
     return this.systemMonitoringService.getNetworkInfo();
   }
@@ -65,7 +70,7 @@ export class SystemMonitoringController {
   @ApiOperation({ summary: "Get combined system monitoring data" })
   @ApiOkResponse({ type: CombinedMonitoringDto })
   @ApiErrorResponses()
-  @RequirePermissions(UserPermissions.SYSTEM_MONITORING)
+  @RequireAccess(AccessArea.MONITORING, "read")
   async getCombinedMonitoringData(): Promise<CombinedMonitoringDto> {
     const systemInfo = this.systemMonitoringService.getHardwareInfo();
     const [diskInfo, resourcesUsage] = await Promise.all([

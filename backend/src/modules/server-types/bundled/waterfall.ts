@@ -33,8 +33,8 @@ export const waterfall = {
       JVM_OPTS: "{{JVM_ARGS}}",
       SERVER_PORT: "{{SERVER_PORT}}",
       OVERRIDE_SERVER_PROPERTIES: "false",
-      PUID: "{{HOST_UID}}",
-      PGID: "{{HOST_GID}}",
+      UID: "{{HOST_UID}}",
+      GID: "{{HOST_GID}}",
     },
   },
   variables: [

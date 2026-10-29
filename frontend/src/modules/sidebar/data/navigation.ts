@@ -1,4 +1,5 @@
-import { UserPermissions } from "@shared/types/user.types";
+import type { AccessRequirement } from "@/shared/lib/access";
+import { AccessArea } from "@shared/access/areas";
 import {
   Activity,
   Blocks,
@@ -15,103 +16,125 @@ import {
   Settings,
   Sliders,
   Terminal,
+  UsersRound,
+  type LucideIcon,
 } from "lucide-react";
 
+export interface NavItem {
+  nameKey: string;
+  href: string;
+  icon: LucideIcon;
+  access?: AccessRequirement;
+}
+
 // Primary navigation shown in the main list
-export const navigation = [
+export const navigation: NavItem[] = [
   {
     nameKey: "navigation.dashboard",
     href: "/",
     icon: LayoutDashboard,
-    permission: null,
   },
   {
     nameKey: "navigation.console",
     href: "/console",
     icon: Terminal,
-    permission: null,
+    access: [AccessArea.CONSOLE, "read"],
   },
   {
     nameKey: "navigation.files",
     href: "/files",
     icon: FolderOpen,
-    permission: UserPermissions.FILE_MANAGER,
+    access: [AccessArea.FILES, "read"],
+  },
+  {
+    nameKey: "navigation.players",
+    href: "/players",
+    icon: UsersRound,
+    access: [AccessArea.PLAYERS, "read"],
   },
   {
     nameKey: "navigation.serverSettings",
     href: "/server-settings",
     icon: Settings,
-    permission: UserPermissions.SERVERS_CONFIGURE,
+    access: [AccessArea.SETTINGS, "read"],
   },
   {
     nameKey: "navigation.plugins",
     href: "/plugins",
     icon: Puzzle,
-    permission: UserPermissions.MANAGE_PLUGINS,
+    access: [AccessArea.CONTENT, "read"],
   },
   {
     nameKey: "navigation.mods",
     href: "/mods",
     icon: Boxes,
-    permission: UserPermissions.MANAGE_PLUGINS,
+    access: [AccessArea.CONTENT, "read"],
   },
   {
     nameKey: "navigation.backups",
     href: "/backups",
     icon: Database,
-    permission: UserPermissions.BACKUPS,
+    access: [AccessArea.BACKUPS, "read"],
   },
   {
     nameKey: "navigation.scheduler",
     href: "/scheduler",
     icon: CalendarClock,
-    permission: UserPermissions.SCHEDULER_MANAGEMENT,
+    access: [AccessArea.SCHEDULER, "read"],
   },
 ];
 
 // Secondary items grouped under a collapsible "Administration" section
-export const adminNavigation = [
+export const adminNavigation: NavItem[] = [
   {
     nameKey: "navigation.panelSettings",
     href: "/panel-settings",
     icon: Sliders,
-    permission: UserPermissions.KUBEK_SETTINGS,
+    // Opens when any of its tabs is open to the account
+    access: {
+      anyOf: [
+        [AccessArea.PANEL, "manage"],
+        [AccessArea.STORAGES, "read"],
+        [AccessArea.ASSISTANT, "manage"],
+        [AccessArea.ACCOUNTS, "read"],
+      ],
+    },
   },
   {
     nameKey: "navigation.auditLog",
     href: "/audit-log",
     icon: ScrollText,
-    permission: UserPermissions.AUDIT_LOG,
+    access: [AccessArea.AUDIT, "read"],
   },
   {
     nameKey: "navigation.systemMonitoring",
     href: "/system-monitoring",
     icon: Activity,
-    permission: UserPermissions.SYSTEM_MONITORING,
+    access: [AccessArea.MONITORING, "read"],
   },
   {
     nameKey: "navigation.logViewer",
     href: "/logs",
     icon: FileText,
-    permission: UserPermissions.FILE_MANAGER,
+    access: [AccessArea.FILES, "read"],
   },
   {
     nameKey: "navigation.serverTypes",
     href: "/server-types",
     icon: Package,
-    permission: UserPermissions.KUBEK_SETTINGS,
+    access: [AccessArea.INTEGRATIONS, "manage"],
   },
   {
     nameKey: "navigation.extensions",
     href: "/extensions",
     icon: Blocks,
-    permission: UserPermissions.KUBEK_SETTINGS,
+    access: [AccessArea.INTEGRATIONS, "manage"],
   },
   {
     nameKey: "navigation.javaManager",
     href: "/java",
     icon: Cpu,
-    permission: UserPermissions.MANAGE_JAVA,
+    access: [AccessArea.JAVA, "read"],
   },
 ];
 
@@ -119,6 +142,7 @@ export const adminNavigation = [
 export const serverScopedRoutes = new Set([
   "/console",
   "/files",
+  "/players",
   "/server-settings",
   "/plugins",
   "/mods",
@@ -128,5 +152,3 @@ export const serverScopedRoutes = new Set([
 
 // Combined list for lookups (current-page resolution, loading skeleton)
 export const allNavigation = [...navigation, ...adminNavigation];
-
-export type NavItem = (typeof allNavigation)[number];

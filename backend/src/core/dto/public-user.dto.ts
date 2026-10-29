@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { UserPermissions } from "@shared/types/user.types";
+import { AccessMapDto, UserAccessDto } from "./access.dto";
 
 /** Restriction of a non-admin user to a subset of servers */
 export class UserServersRestrictDto {
@@ -26,25 +26,60 @@ export class PublicUserDto {
   username: string;
 
   @ApiProperty({
-    description: "Granted permissions",
-    enum: UserPermissions,
-    isArray: true,
+    description: "Assigned role ids",
+    type: [String],
+    example: ["builtin:viewer"],
   })
-  permissions: UserPermissions[];
+  roles: string[];
+
+  @ApiProperty({
+    type: AccessMapDto,
+    description: "Personal levels on top of the roles",
+  })
+  grants: AccessMapDto;
+
+  @ApiProperty({
+    description: "Personal extension permission keys",
+    type: [String],
+    example: [],
+  })
+  extPermissions: string[];
+
+  @ApiProperty({
+    type: UserAccessDto,
+    description: "Effective access from roles and personal grants",
+  })
+  access: UserAccessDto;
 
   @ApiProperty({ type: UserServersRestrictDto })
   serversRestrict: UserServersRestrictDto;
 
   @ApiProperty({
     description: "Whether the user is an administrator",
-    required: false,
     example: true,
   })
-  isAdmin?: boolean;
+  isAdmin: boolean;
 
   @ApiProperty({
     description: "Whether the user finished onboarding",
     example: true,
   })
   oobeCompleted: boolean;
+
+  @ApiProperty({
+    description:
+      "Minecraft nickname used for the avatar, null to use the username",
+    nullable: true,
+    type: String,
+    example: "Notch",
+  })
+  skinName: string | null;
+
+  @ApiProperty({
+    description: "When the account FTP password was set (ms), null without one",
+    nullable: true,
+    type: Number,
+    example: 1735689600000,
+  })
+  ftpPasswordSetAt: number | null;
 }

@@ -1,29 +1,33 @@
 import type { TranslationDictionary } from "../../../locales/types";
 
 export const logViewerTranslations: TranslationDictionary = {
-  header: {
-    title: "Log viewer",
-    description: "Server logs, including archived .log.gz files",
+  title: "Log viewer",
+  description: "Server logs, archived .log.gz included",
+  refresh: "Refresh",
+  noServer: {
+    title: "No server selected",
+    description: "Pick a server in the sidebar",
   },
-  list: {
+  files: {
     title: "Files",
-    empty: "No log files found",
-    gz: "GZ",
-    sizeBytes: (size: number) => `${ size } B`,
-    refresh: "Refresh",
+    search: "Find a file",
+    current: "Current",
+    archive: "Archive",
+    empty: "No logs found",
+    noMatches: (query: string) => `No files with "${query}"`,
+    total: (size: string) => `${size} in total · logs/ folder`,
   },
-  content: {
-    title: "Content",
-    noSelection: "Select a file on the left to view",
-    loading: "Loading...",
-    tailHint: (n: number) => `Showing last ${ n } line(s)`,
-    fullFile: "Full file",
-    tail: (n: number) => `Tail: ${ n }`,
+  viewer: {
+    pick: "Pick a file on the left to view it",
+    loading: "Loading…",
+    empty: "The file is empty",
+    search: "Search lines…",
+    nothingFound: "Nothing found",
+    position: (current: number, total: number) => `${current} / ${total}`,
+    prev: "Previous (Shift+Enter)",
+    next: "Next (Enter)",
+    wrap: "Wrap long lines",
+    download: "Download file",
+    lines: (n: number) => `${n.toLocaleString()} line${n === 1 ? "" : "s"}`,
   },
-  search: {
-    placeholder: "Search inside file...",
-    matches: (count: number) => `${ count } matches`,
-    nothingFound: "No matches",
-  },
-  noServer: "Select a server first",
 };

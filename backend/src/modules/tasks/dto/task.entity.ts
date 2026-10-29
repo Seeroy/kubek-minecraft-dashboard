@@ -1,6 +1,30 @@
 import { TaskErrorCode } from "@/core/errors/error-codes";
 import { ApiProperty } from "@nestjs/swagger";
-import { TaskStatus, TaskType } from "@shared/types/task.types";
+import {
+  type TaskStage,
+  type TaskStageStatus,
+  TaskStatus,
+  TaskSteps,
+  TaskType,
+} from "@shared/types/task.types";
+
+class TaskStageBytesDto {
+  @ApiProperty() done: number;
+  @ApiProperty() total: number;
+}
+
+export class TaskStageDto implements TaskStage {
+  @ApiProperty() key: string;
+  @ApiProperty({ description: "What the stage does", example: "server" })
+  kind: string;
+  @ApiProperty({ required: false }) name?: string;
+  @ApiProperty({ enum: ["pending", "running", "done", "failed"] })
+  status: TaskStageStatus;
+  @ApiProperty({ required: false }) progress?: number;
+  @ApiProperty({ enum: TaskSteps, required: false }) step?: TaskSteps;
+  @ApiProperty({ type: TaskStageBytesDto, required: false })
+  bytes?: TaskStageBytesDto;
+}
 
 export class TaskEntity {
   @ApiProperty({ description: "Unique task ID", example: "a1b2c3d4" })
@@ -12,7 +36,7 @@ export class TaskEntity {
   @ApiProperty({ description: "Current status of task", enum: TaskStatus })
   status: TaskStatus;
 
-  @ApiProperty({ description: "Progress percentage (0–100)", example: 45 })
+  @ApiProperty({ description: "Progress percentage (0-100)", example: 45 })
   progress: number;
 
   @ApiProperty({
@@ -38,6 +62,13 @@ export class TaskEntity {
 
   @ApiProperty({ description: "Task result if available", required: false })
   result?: Record<string, unknown>;
+
+  @ApiProperty({
+    type: [TaskStageDto],
+    required: false,
+    description: "Named parts of a long task with their own progress",
+  })
+  stages?: TaskStageDto[];
 
   @ApiProperty({
     description: "Error details if task failed",

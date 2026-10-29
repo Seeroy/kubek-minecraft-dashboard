@@ -1,9 +1,10 @@
+"use client";
+
 import type { NavItem } from "@/modules/sidebar/data/navigation";
-import { cn } from "@/shared/lib/cn";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { sectionPath } from "@/shared/lib/routeTabs";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 interface AdminNavigationSectionProps {
   items: NavItem[];
@@ -11,61 +12,34 @@ interface AdminNavigationSectionProps {
   renderItem: (item: NavItem) => ReactNode;
 }
 
-/** Collapsible "Administration" group */
-export const AdminNavigationSection = ({
-  items,
-  title,
-  renderItem,
-}: AdminNavigationSectionProps) => {
+/** Collapsible "Administration" group, always expanded in the collapsed sidebar */
+export function AdminNavigationSection({ items, title, renderItem }: AdminNavigationSectionProps) {
   const pathname = usePathname();
-  const isActive = items.some((item) => item.href === pathname);
-  const [open, setOpen] = useState(isActive);
-
-  useEffect(() => {
-    if (isActive) setOpen(true);
-  }, [isActive]);
+  const hasActive = items.some((item) => item.href === sectionPath(pathname));
+  const [userOpen, setUserOpen] = useState<boolean | null>(null);
+  // Follow the route until the user toggles the group themselves
+  const open = userOpen ?? hasActive;
 
   if (items.length === 0) return null;
 
   return (
-    <div className="col-span-3 md:contents">
+    <div>
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => setUserOpen(!open)}
         aria-expanded={open}
-        className={cn(
-          "group flex w-full items-center gap-2 rounded-lg px-3 text-muted-foreground transition-colors duration-200 hover:text-foreground",
-          "mt-2 h-9 shrink-0 md:mt-3"
-        )}
+        className="group/admin flex w-full cursor-pointer items-center justify-between px-2 pt-3 pb-1 outline-none sidebar-mini:pointer-events-none sidebar-mini:py-2"
       >
-        <span className="flex-1 text-left text-[11px] font-semibold tracking-wide uppercase">
-          {title}
-        </span>
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 shrink-0 transition-transform duration-200",
-            open ? "rotate-180" : "rotate-0"
-          )}
-        />
+        <span className="label-caps group-hover/admin:text-foreground sidebar-mini:hidden">{title}</span>
+        <ChevronDown className="size-3.5 text-muted-foreground transition-transform duration-200 ease-smooth group-aria-[expanded=false]/admin:-rotate-90 sidebar-mini:hidden" />
+        <span className="hidden h-px w-full bg-sidebar-border sidebar-mini:block" />
       </button>
-
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="admin-items"
-            // shrink-0: under md:contents this is a direct flex child of the nav and must overflow it, not squash
-            className="shrink-0 overflow-hidden"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="grid grid-cols-3 gap-2 pt-2 md:flex md:flex-col md:gap-0 md:space-y-1 md:pt-1">
-              {items.map(renderItem)}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        data-open={open || undefined}
+        className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-250 ease-smooth data-open:grid-rows-[1fr] sidebar-mini:grid-rows-[1fr]"
+      >
+        <div className="-ml-3 min-h-0 overflow-hidden pl-3">{items.map(renderItem)}</div>
+      </div>
     </div>
   );
-};
+}

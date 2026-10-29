@@ -19,6 +19,8 @@ export class InstancesRegistry {
   }
 
   delete(serverId: string): boolean {
+    // Removed instance shouldn't restart after a crash
+    this.instances.get(serverId)?.dispose();
     return this.instances.delete(serverId);
   }
 }

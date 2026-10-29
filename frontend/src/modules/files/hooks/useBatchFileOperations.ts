@@ -4,12 +4,13 @@ import {
   useFilesTaskRunner,
   type FilesTaskRunner,
 } from "@/modules/files/hooks/useFilesTaskRunner";
-import { CREATE_ARCHIVE_MODAL_ID } from "@/modules/files/modals/CreateArchiveModal";
+import { CREATE_ARCHIVE_MODAL_ID } from "@/modules/files/modals";
 import { useNotifications } from "@/modules/notifications";
 import type { Server } from "@/modules/server";
 import { useModal } from "@/shared/hooks/useModalsManager";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { confirmDialog } from "@/shared/modals";
+import { Trash2 } from "lucide-react";
 import {
   useBatchDeleteFilesMutation,
   useCreateFilesArchiveMutation,
@@ -96,6 +97,7 @@ export function useBatchFileOperations({
       confirmText: t("ui.files.delete.confirmText"),
       cancelText: t("ui.files.delete.cancelText"),
       variant: "destructive",
+      icon: Trash2,
     });
     if (!ok) return;
     try {
@@ -103,9 +105,9 @@ export function useBatchFileOperations({
         paths: selection.selectedPaths,
       });
       deleteRunner.start(taskId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify({
-        title: error.message || t("notifications.error.batchDelete"),
+        title: (error instanceof Error && error.message) || t("notifications.error.batchDelete"),
         type: "error",
       });
     }
@@ -124,9 +126,9 @@ export function useBatchFileOperations({
             destPath: currentPath,
           });
           archiveRunner.start(taskId);
-        } catch (error: any) {
+        } catch (error: unknown) {
           notify({
-            title: error.message || t("notifications.error.archiveCreate"),
+            title: (error instanceof Error && error.message) || t("notifications.error.archiveCreate"),
             type: "error",
           });
         }

@@ -1,29 +1,34 @@
 import type { TranslationDictionary } from "../../../locales/types";
+import { plural } from "../plural";
 
 export const logViewerTranslations: TranslationDictionary = {
-  header: {
-    title: "Просмотр логов",
-    description: "Логи сервера, включая архивные .log.gz",
+  title: "Просмотр логов",
+  description: "Логи сервера, включая архивные .log.gz",
+  refresh: "Обновить",
+  noServer: {
+    title: "Сервер не выбран",
+    description: "Выберите сервер в сайдбаре",
   },
-  list: {
+  files: {
     title: "Файлы",
+    search: "Найти файл",
+    current: "Текущие",
+    archive: "Архив",
     empty: "Логи не найдены",
-    gz: "GZ",
-    sizeBytes: (size: number) => `${ size } Б`,
-    refresh: "Обновить",
+    noMatches: (query: string) => `Нет файлов с "${query}"`,
+    total: (size: string) => `Всего ${size} · папка logs/`,
   },
-  content: {
-    title: "Содержимое",
-    noSelection: "Выберите файл слева, чтобы просмотреть",
-    loading: "Загружается...",
-    tailHint: (n: number) => `Показаны последние ${ n } строк(и)`,
-    fullFile: "Весь файл",
-    tail: (n: number) => `Хвост: ${ n }`,
-  },
-  search: {
-    placeholder: "Поиск по строке...",
-    matches: (count: number) => `${ count } совпадений`,
+  viewer: {
+    pick: "Выберите файл слева, чтобы просмотреть",
+    loading: "Загружается…",
+    empty: "Файл пуст",
+    search: "Поиск по строке…",
     nothingFound: "Ничего не найдено",
+    position: (current: number, total: number) => `${current} / ${total}`,
+    prev: "Предыдущее (Shift+Enter)",
+    next: "Следующее (Enter)",
+    wrap: "Перенос длинных строк",
+    download: "Скачать файл",
+    lines: (n: number) => `${n.toLocaleString()} ${plural(n, ["строка", "строки", "строк"])}`,
   },
-  noServer: "Сначала выберите сервер",
 };

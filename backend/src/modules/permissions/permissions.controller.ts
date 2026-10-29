@@ -19,7 +19,7 @@ export class PermissionsController {
 
   @Get()
   @ApiOperation({
-    summary: "List all grantable permissions (core + extensions)",
+    summary: "List permissions declared by extensions",
   })
   @ApiOkResponse({ type: [PermissionDescriptorDto] })
   @ApiErrorResponses([401])

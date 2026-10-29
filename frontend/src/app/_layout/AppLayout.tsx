@@ -1,11 +1,13 @@
 "use client";
 import OOBE from "@/modules/oobe";
 import { Sidebar } from "@/modules/sidebar";
+import { RouteAccessGate } from "@/modules/sidebar/ui/RouteAccessGate";
 import { SocketStatusBar } from "@/modules/sockets";
+import { Topbar } from "@/modules/topbar";
 import { useOOBE } from "@/shared/hooks/useOOBE";
 import ContentView from "@/shared/ui/ContentView";
-import MobileHeader from "@/shared/ui/MobileHeader";
 import PagePreloader from "@/shared/ui/PagePreloader";
+import { PageWidthToggle } from "@/shared/ui/PageWidthToggle";
 import React, { ViewTransition } from "react";
 
 const AppLayout = ({
@@ -13,7 +15,7 @@ const AppLayout = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  const { needsOOBE, isLoading } = useOOBE();
+  const { needsOOBE } = useOOBE();
 
   return (
     <ViewTransition enter="app-enter" default="none">
@@ -22,16 +24,20 @@ const AppLayout = ({
       {needsOOBE ? (
         <OOBE />
       ) : (
-        <div className="flex h-screen min-h-0 md:grid md:grid-cols-[330px_1fr]">
+        <div className="grid h-dvh min-h-0 grid-cols-1 grid-rows-[minmax(0,1fr)] md:grid-cols-[var(--sbw)_minmax(0,1fr)] md:transition-[grid-template-columns] md:duration-250 md:ease-smooth in-[.sb-dragging]:transition-none">
           <PagePreloader />
-
           <Sidebar />
-
-          <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
-            <MobileHeader />
-            <main className="min-h-0 flex-1 overflow-auto p-4 md:p-6">
-              <ContentView>{children}</ContentView>
+          <div className="@container/content relative flex min-h-0 min-w-0 flex-col">
+            <Topbar />
+            <main className="min-h-0 flex-1 scrollbar-thin overflow-auto px-4 pt-4 md:px-6 md:pt-5">
+              {/* bottom gap lives on the page root, main's padding is lost once content overflows this h-full box */}
+              <div className="mx-auto h-full *:pb-8 page-contained:max-w-[1248px]">
+                <ContentView>
+                  <RouteAccessGate>{children}</RouteAccessGate>
+                </ContentView>
+              </div>
             </main>
+            <PageWidthToggle />
           </div>
         </div>
       )}

@@ -2,8 +2,11 @@
 
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
+import { PlayerHead } from "@/shared/ui/player-head";
 import { Input } from "@/shared/ui/input";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Button } from "@/shared/ui/button";
+import { menuItem, popupSurface } from "@/shared/ui/styles";
+import { SendHorizontal } from "lucide-react";
 import React, {
   ChangeEvent,
   KeyboardEvent,
@@ -22,6 +25,8 @@ interface InputWithHistoryProps {
   disabled?: boolean;
   placeholder?: string;
   extraSuggestions?: string[];
+  /** Renders a submit button after the input with this accessible label */
+  submitLabel?: string;
   /** TAB asks the server's own line editor to complete the line, undefined disables it */
   onRequestCompletion?: (
     line: string
@@ -38,6 +43,7 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
   disabled = false,
   placeholder,
   extraSuggestions = [],
+  submitLabel,
   onRequestCompletion,
 }) => {
   const { t } = useTranslation("modules.components");
@@ -157,6 +163,13 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
     setIsSuggestionsOpen(false);
   };
 
+  // Moving through suggestions previews the highlighted one in the input
+  const selectSuggestion = (index: number) => {
+    setSelectedSuggestionIndex(index);
+    const suggestion = suggestions[index];
+    if (suggestion !== undefined) setValue(applySuggestion(suggestion));
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     onInputKeydown(e);
 
@@ -185,14 +198,18 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setIsSuggestionsOpen(true);
-      setSelectedSuggestionIndex((prevIndex) =>
-        prevIndex > 0 ? prevIndex - 1 : suggestions.length - 1
+      selectSuggestion(
+        selectedSuggestionIndex > 0
+          ? selectedSuggestionIndex - 1
+          : suggestions.length - 1
       );
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       setIsSuggestionsOpen(true);
-      setSelectedSuggestionIndex((prevIndex) =>
-        prevIndex < suggestions.length - 1 ? prevIndex + 1 : 0
+      selectSuggestion(
+        selectedSuggestionIndex < suggestions.length - 1
+          ? selectedSuggestionIndex + 1
+          : 0
       );
     } else if (e.key === "Backspace" && value === "") {
       setIsSuggestionsOpen(false);
@@ -210,19 +227,9 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
     inputRef.current?.focus();
   };
 
-  // Sync the input text when the selected suggestion changes
-  useEffect(() => {
-    if (
-      selectedSuggestionIndex >= 0 &&
-      selectedSuggestionIndex < suggestions.length
-    ) {
-      setValue(applySuggestion(suggestions[selectedSuggestionIndex]));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSuggestionIndex, suggestions, extraSuggestions]);
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative flex w-full items-center gap-2">
       <Input
         ref={inputRef}
         type="text"
@@ -238,6 +245,11 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
         }}
         className={cn("w-full transition-colors", inputClassName)}
       />
+      {submitLabel && (
+        <Button size="icon-sm" onClick={handleInputSubmit} disabled={disabled || !value.trim()} aria-label={submitLabel} title={submitLabel}>
+          <SendHorizontal />
+        </Button>
+      )}
 
       {isSuggestionsOpen && suggestions.length > 0 && (
         <div
@@ -246,37 +258,21 @@ const InputWithHistory: React.FC<InputWithHistoryProps> = ({
             suggestionsClassName
           )}
         >
-          <ScrollArea className="h-auto max-h-32 rounded-md border bg-popover shadow-md">
-            <div className="p-1">
-              {suggestions.map((suggestion, index) => {
-                const isPlayerSuggestion =
-                  extraSuggestions.includes(suggestion);
-                return (
-                  <div
-                    key={`${suggestion}-${index}`}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className={cn(
-                      "flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors outline-none select-none",
-                      "hover:bg-accent hover:text-accent-foreground",
-                      "focus:bg-accent focus:text-accent-foreground",
-                      index === selectedSuggestionIndex &&
-                        "bg-accent text-accent-foreground"
-                    )}
-                    onMouseDown={(e) => e.preventDefault()}
-                  >
-                    {isPlayerSuggestion && (
-                      <img
-                        src={`https://minotar.net/avatar/${suggestion}/20`}
-                        alt={suggestion}
-                        className="h-5 w-5 flex-shrink-0 rounded-full"
-                      />
-                    )}
-                    {suggestion}
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
+          <div className={cn(popupSurface, "max-h-64 scrollbar-thin overflow-y-auto")}>
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={`${suggestion}-${index}`}
+                role="option"
+                aria-selected={index === selectedSuggestionIndex}
+                onClick={() => handleSuggestionClick(suggestion)}
+                onMouseDown={(e) => e.preventDefault()}
+                className={cn(menuItem, "cursor-pointer font-mono text-xs aria-selected:bg-hover")}
+              >
+                {extraSuggestions.includes(suggestion) && <PlayerHead name={suggestion} size={18} />}
+                {suggestion}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/shared/lib/cn";
+import { Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 
 interface BlueprintIconProps {
@@ -34,6 +35,22 @@ export function BlueprintIcon({
 
   const emoji = isImageSrc(icon) || !icon ? "📦" : icon;
   const [index, setIndex] = useState(0);
+
+  // Custom jar has no logo, an upload tile reads better than a placeholder
+  if (coreType === "custom" && !isImageSrc(icon)) {
+    return (
+      <span
+        role="img"
+        aria-label={label}
+        className={cn(
+          "inline-flex shrink-0 items-center justify-center bg-secondary text-muted-foreground",
+          className,
+        )}
+      >
+        <Upload className="size-[45%]" />
+      </span>
+    );
+  }
 
   if (index >= sources.length) {
     return (

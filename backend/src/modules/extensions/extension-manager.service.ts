@@ -1,5 +1,6 @@
 import { unpackArchive } from "@/core/utils/archives";
 import { getErrorMessage } from "@/core/utils/error";
+import { isInside } from "@/core/utils/paths";
 import { safeId } from "@/core/utils/safeId";
 import { ExtensionKvRepository } from "@/modules/database/repositories/extension-kv.repository";
 import { ExtensionsRepository } from "@/modules/database/repositories/extensions.repository";
@@ -17,7 +18,7 @@ import {
 } from "@nestjs/common";
 import fs from "node:fs";
 import os from "node:os";
-import { join, resolve, sep } from "node:path";
+import { join, resolve } from "node:path";
 import { ContextFactory, ContextSinks } from "./context/context.factory";
 import { ExtensionLoader } from "./extension-loader.service";
 import { ExtensionRegistry } from "./extension-registry.service";
@@ -135,7 +136,7 @@ export class ExtensionManager implements OnModuleInit {
   resolveAsset(id: string, rel: string): string | null {
     const base = this.loader.dir(id);
     const target = resolve(base, rel);
-    if (target !== base && !target.startsWith(base + sep)) return null;
+    if (!isInside(base, target)) return null;
     return fs.existsSync(target) ? target : null;
   }
 
@@ -177,7 +178,6 @@ export class ExtensionManager implements OnModuleInit {
 
       return this.repo.upsert({
         id: staged.manifest.id,
-        version: staged.manifest.version,
         enabled: false,
         manifest: staged.manifest,
         grantedCapabilities: [],

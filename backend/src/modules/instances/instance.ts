@@ -1,32 +1,24 @@
+import { ApiErrorCode } from "@/core/errors/error-codes";
+import type { ServerLocksService } from "@/core/locks/server-locks.service";
+import { ConflictException } from "@nestjs/common";
 import { asyncTimeout } from "@/core/utils/asyncTimeout";
+import { getErrorMessage } from "@/core/utils/error";
 import { generateRandomString } from "@/core/utils/randomString";
+import { propertyPort } from "@/core/properties/properties-values";
 import { getServerPath } from "@/core/utils/serverPath";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { ErrorRecognizerService } from "@/modules/error-recognition/error-recognizer.service";
-import { JavaService } from "@/modules/java/java.service";
 import { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
 import { QueryRegistry } from "@/modules/server-types/query-protocols/query-registry.service";
-import {
-  containerNameFor,
-  DockerRuntime,
-} from "@/modules/server-types/runtime/docker.runtime";
-import { DockerService } from "@/modules/server-types/runtime/docker.service";
-import {
-  ProcessRuntime,
-  PTY_COLS,
-  PTY_ROWS,
-} from "@/modules/server-types/runtime/process.runtime";
+import { DockerRuntime } from "@/modules/server-types/runtime/docker.runtime";
+import { ProcessRuntime } from "@/modules/server-types/runtime/process.runtime";
 import type {
   IServerRuntime,
-  StopMethod,
+  RuntimeStats,
 } from "@/modules/server-types/runtime/runtime.interface";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
-import type { ResolveScope } from "@/modules/server-types/server-types.types";
 import { ServerEventsService } from "@/ws/services/server-events.service";
-import type {
-  KubekBlueprintManifest,
-  KubekPlatform,
-} from "@kubekpanel/blueprint-sdk";
+import type { KubekBlueprintManifest } from "@kubekpanel/blueprint-sdk";
 import {
   IInstance,
   type IInstanceLog,
@@ -34,59 +26,41 @@ import {
 } from "@shared/types/server/instance.types";
 import { IServer, ServerStatus } from "@shared/types/server/server.types";
 import { IUser } from "@shared/types/user.types";
-import fs from "fs/promises";
-import mcPropsParser from "minecraft-server-properties";
-import path from "path";
-import { TerminalCompleter } from "./terminal-completer";
-
-interface CompiledDetection {
-  starting: RegExp[];
-  running: RegExp[];
-  stopping: RegExp[];
-}
+import { CrashRestartPolicy } from "./crash-restart";
+import { InstanceConsole } from "./instance-console";
+import { InstanceDiagnostics } from "./instance-diagnostics";
+import {
+  LaunchCommandBuilder,
+  type LaunchTarget,
+} from "./launch-command-builder";
+import { ServerPropertiesFile } from "./server-properties-file";
+import { PendingStop } from "./pending-stop";
+import { StatusDetector } from "./status-detector";
 
 /** Services a ServerInstance needs */
 export interface ServerInstanceDeps {
-  javaService: JavaService;
   serverEventsService: ServerEventsService;
   errorRecognizerService: ErrorRecognizerService;
   serversRepo: ServersRepository;
   blueprintRegistry: ServerTypesRegistry;
   queryRegistry: QueryRegistry;
   blueprintResolver: BlueprintResolver;
-  dockerService: DockerService;
-}
-
-// Fallback patterns for legacy servers
-const LEGACY_DETECTION: CompiledDetection = {
-  starting: [
-    /Starting minecraft server/i,
-    /Loading properties/i,
-    /Preparing spawn area/i,
-    /Starting server/i,
-  ],
-  running: [
-    /Done \(.*\)! For help/i,
-    /Server startup complete/i,
-    /ALL SYSTEMS STARTED SUCCESSFULLY/i,
-  ],
-  stopping: [/Stopping (the )?server/i, /Saving worlds/i, /Saving players/i],
-};
-
-// Strip ANSI/VT control sequences before feeding the structured (line-based) log
-const ANSI_RE =
-  /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g;
-function stripAnsi(input: string): string {
-  return input.replace(ANSI_RE, "");
+  locks: ServerLocksService;
+  launcher: LaunchCommandBuilder;
 }
 
 export class ServerInstance implements IInstance {
+  /** Pause before a crashed server starts again */
+  static crashRestartDelayMs = 1000;
+
   serverId: string;
   port?: number;
   queryPort?: number;
   pid?: number;
   startedAt?: string;
   stoppedAt?: string;
+  /** Heap limit the server was launched with */
+  memoryLimitMb?: number;
   runtime?: {
     memoryUsedMb?: number;
     maxMemoryMb?: number;
@@ -99,96 +73,75 @@ export class ServerInstance implements IInstance {
 
   // Internal metadata
   private serverRuntime?: IServerRuntime | null;
-  private log: IInstanceLog[] = [];
-  private diagnostics: IServerDiagnostic[] = [];
-
-  // In-flight partial line held back from the structured log until its newline arrives
-  private termLineBuf: string = "";
-
-  // Headless emulator that drives JLine for server-side completion, native only
-  private completer?: TerminalCompleter;
-
-  private restartAttempts: number = 0;
+  private readonly console: InstanceConsole;
+  private readonly diagnostics: InstanceDiagnostics;
+  private readonly crashRestarts = new CrashRestartPolicy();
   private config: IServer;
   private readonly blueprint?: KubekBlueprintManifest;
-  private readonly detection: CompiledDetection;
+  private readonly status: StatusDetector;
+  private readonly properties: ServerPropertiesFile;
 
-  // Resolver of an in-flight stop(), settled by onClose when the process exits
-  private pendingStop?: (ok: boolean) => void;
-  private stopTimer?: ReturnType<typeof setTimeout>;
+  private readonly pendingStop = new PendingStop();
+  // Panel is shutting down, don't restartOnError
+  private shuttingDown = false;
+  // Stopped or killed on purpose, not a crash
+  private exitRequested = false;
+  // Removed from the registry, don't restart it
+  private disposed = false;
 
-  private readonly javaService: JavaService;
   private readonly serverEventsService: ServerEventsService;
-  private readonly errorRecognizerService: ErrorRecognizerService;
   private readonly serversRepo: ServersRepository;
-  private readonly blueprintRegistry: ServerTypesRegistry;
   private readonly queryRegistry: QueryRegistry;
   private readonly blueprintResolver: BlueprintResolver;
-  private readonly dockerService: DockerService;
+  private readonly locks: ServerLocksService;
+  private readonly launcher: LaunchCommandBuilder;
 
   constructor(deps: ServerInstanceDeps, config: IServer, serverId?: string) {
-    this.javaService = deps.javaService;
     this.serverEventsService = deps.serverEventsService;
-    this.errorRecognizerService = deps.errorRecognizerService;
     this.serversRepo = deps.serversRepo;
-    this.blueprintRegistry = deps.blueprintRegistry;
     this.queryRegistry = deps.queryRegistry;
     this.blueprintResolver = deps.blueprintResolver;
-    this.dockerService = deps.dockerService;
+    this.locks = deps.locks;
+    this.launcher = deps.launcher;
 
     this.config = config;
     this.serverId = serverId || generateRandomString(16);
-    this.log = [];
-    this.restartAttempts = 0;
+    this.console = new InstanceConsole(
+      (entry) => this.serverEventsService.emitServerLog(this.serverId, entry),
+      (line) => this.onLine(line),
+    );
+    this.diagnostics = new InstanceDiagnostics(
+      this.serverId,
+      deps.errorRecognizerService,
+      deps.serverEventsService,
+    );
     this.blueprint = config.blueprintId
-      ? this.blueprintRegistry.get(config.blueprintId)?.manifest
+      ? deps.blueprintRegistry.get(config.blueprintId)?.manifest
       : undefined;
-    this.detection = this.compileDetection();
-  }
-
-  /** Build status patterns from the blueprint, falling back to legacy mc patterns */
-  private compileDetection(): CompiledDetection {
-    const d = this.blueprint?.detection;
-    if (!d) return LEGACY_DETECTION;
-    const compile = (patterns?: string[]) =>
-      (patterns ?? []).map((p) => new RegExp(p, "i"));
-    return {
-      starting: compile(d.starting),
-      running: compile(d.running),
-      stopping: compile(d.stopping),
-    };
+    this.status = new StatusDetector(this.blueprint);
+    this.properties = new ServerPropertiesFile(config.id);
   }
 
   getLog(): IInstanceLog[] {
-    return this.log;
+    return this.console.entries();
   }
 
   writeLog(line: string | Omit<IInstanceLog, "timestamp">): void {
-    let stampedLine: IInstanceLog;
-    if (typeof line === "string") {
-      stampedLine = {
-        type: "stdout",
-        timestamp: new Date().toISOString(),
-        line,
-      };
-    } else {
-      stampedLine = { ...line, timestamp: new Date().toISOString() };
-    }
-
-    if (!stampedLine) return;
-
-    this.log.push(stampedLine);
-    this.serverEventsService.emitServerLog(this.serverId, stampedLine);
-
-    this.rotateLog();
+    this.console.write(line);
   }
 
   cleanupLog(): void {
-    this.log = [];
+    this.console.clear();
   }
 
-  private rotateLog(linesOffset: number = 100): void {
-    this.log = this.log.slice(linesOffset * -1);
+  /** True when the runtime measures itself instead of being sampled by pid */
+  hasRuntimeStats(): boolean {
+    return !!this.serverRuntime?.stats;
+  }
+
+  /** Self-reported resource usage, null for runtimes sampled by pid */
+  async runtimeStats(): Promise<RuntimeStats | null> {
+    return (await this.serverRuntime?.stats?.()) ?? null;
   }
 
   /** isRunning for native and docker */
@@ -198,12 +151,7 @@ export class ServerInstance implements IInstance {
 
   input(cmd: string, byUser?: IUser): boolean {
     if (this.serverRuntime && this.isRunning()) {
-      // Route through the completer when present
-      if (this.completer) {
-        void this.completer.submitLine(cmd);
-      } else {
-        this.serverRuntime.writeStdin(cmd);
-      }
+      this.console.send(this.serverRuntime, cmd);
       if (byUser) {
         this.writeLog({
           type: "kubek",
@@ -224,22 +172,19 @@ export class ServerInstance implements IInstance {
     this.stoppedAt = new Date().toISOString();
     this.pid = undefined;
 
-    // Flush any half-line still held back so the last log line is not dropped
-    if (this.termLineBuf) {
-      this.emitStructuredLine(this.termLineBuf);
-      this.termLineBuf = "";
-    }
-    this.completer = undefined;
+    this.console.close();
 
-    this.updateStatus(ServerStatus.STOPPED);
+    const crashed = exitCode != null && exitCode > 1 && exitCode !== 127;
+    this.updateStatus(crashed ? ServerStatus.CRASHED : ServerStatus.STOPPED);
 
     this.serverEventsService.emitServerStopped(this.serverId, {
       pid: this.pid,
       stoppedAt: this.stoppedAt,
       exitCode,
+      crashed,
     });
 
-    if (exitCode != null && exitCode > 1 && exitCode !== 127) {
+    if (crashed) {
       this.writeLog({
         type: "kubek",
         data: { type: "stop", exitCode, causedBy: "crashed" },
@@ -247,21 +192,20 @@ export class ServerInstance implements IInstance {
 
       this.serverEventsService.emitServerCrashed(this.serverId, {
         exitCode,
-        restartAttempts: this.restartAttempts,
+        restartAttempts: this.crashRestarts.count,
       });
 
-      if (this.config.restartOnError?.enabled) {
-        if (
-          this.restartAttempts >= (this.config.restartOnError.attempts || 3)
-        ) {
-          this.writeLog({
-            type: "kubek",
-            data: { type: "restart_failed", attempts: this.restartAttempts },
-          });
-        } else {
-          this.restartAttempts++;
-          this.restart();
-        }
+      const verdict = this.crashRestarts.onCrash(
+        this.config.restartOnError,
+        this.shuttingDown || this.exitRequested,
+      );
+      if (verdict === "exhausted") {
+        this.writeLog({
+          type: "kubek",
+          data: { type: "restart_failed", attempts: this.crashRestarts.count },
+        });
+      } else if (verdict === "restart") {
+        void this.restartAfterCrash();
       }
     } else if (exitCode === 1 || exitCode === 127) {
       this.writeLog({
@@ -270,12 +214,39 @@ export class ServerInstance implements IInstance {
       });
     }
 
-    if (this.pendingStop) {
-      const settle = this.pendingStop;
-      this.pendingStop = undefined;
-      if (this.stopTimer) clearTimeout(this.stopTimer);
-      settle(true);
+    this.pendingStop.exited();
+  }
+
+  /**
+   * Start a crashed server again. restart() needs a running server,
+   * so launch directly if nobody touched it meanwhile
+   */
+  private async restartAfterCrash(): Promise<void> {
+    await asyncTimeout(ServerInstance.crashRestartDelayMs);
+    if (this.disposed || this.shuttingDown || this.isRunning()) return;
+    if (
+      this.serversRepo.findById(this.serverId)?.status !== ServerStatus.CRASHED
+    )
+      return;
+    try {
+      await this.launch();
+    } catch (e: unknown) {
+      // launch() already said STARTING, but it's still down
+      if (!this.isRunning()) this.updateStatus(ServerStatus.CRASHED);
+      this.writeLog({
+        type: "kubek",
+        data: { type: "restart_failed", attempts: this.crashRestarts.count },
+      });
+      this.writeLog({
+        type: "stderr",
+        line: `Restart failed: ${getErrorMessage(e)}`,
+      });
     }
+  }
+
+  /** Removed from the registry, cancel pending stuff */
+  dispose(): void {
+    this.disposed = true;
   }
 
   /** True when the underlying runtime drives a PTY, so server-side completion is possible */
@@ -289,102 +260,37 @@ export class ServerInstance implements IInstance {
   async complete(
     line: string,
   ): Promise<{ completion: string; candidates: string[] }> {
-    if (this.completer && this.isRunning()) {
-      return this.completer.complete(line);
-    }
-    return { completion: line, candidates: [] };
+    if (!this.isRunning()) return { completion: line, candidates: [] };
+    return this.console.complete(line);
   }
 
-  /**
-   * Runtime output sink. The raw stream is teed to the headless completer emulator
-   */
   private onData(data: string): void {
-    this.completer?.feed(data);
-    if (this.completer?.isBusy()) return;
-    this.feedStructured(data);
+    this.console.feed(data);
   }
 
-  /** Buffer until a newline, then emit each complete line into the structured log */
-  private feedStructured(chunk: string): void {
-    this.termLineBuf += chunk;
-    const parts = this.termLineBuf.split("\n");
-    this.termLineBuf = parts.pop() ?? "";
-    for (const part of parts) this.emitStructuredLine(part);
+  // Finished output line, already in the log
+  private onLine(line: string): void {
+    const status = this.status.detect(line);
+    if (status) this.updateStatus(status);
+    this.diagnostics.check(line);
   }
 
-  /**
-   * Normalize one raw line and record it
-   */
-  private emitStructuredLine(rawLine: string): void {
-    // Drop the trailing CR of a CRLF ending first, so the overwrite-collapse below does
-    // not mistake it for a JLine prompt repaint and wipe the whole line
-    let display = rawLine.replace(/[\r\s]+$/, "");
-    // A remaining CR is a real in-line repaint, keep only the final paint
-    const cr = display.lastIndexOf("\r");
-    if (cr >= 0) display = display.slice(cr + 1);
-
-    const clean = stripAnsi(display).replace(/\s+$/, "");
-    if (!clean.trim()) return;
-
-    // Drop JLine's prompt echo of a submitted command, no duplication
-    if (/^>(\s|$)/.test(clean)) return;
-
-    this.writeLog(display);
-    this.checkStatusFromLog(clean);
-    this.checkForErrors(clean);
-  }
-
-  /** Match a log line against the compiled status patterns and update status */
-  private checkStatusFromLog(line: string): void {
-    const trimmedLine = line.trim();
-    if (!trimmedLine) return;
-
-    for (const pattern of this.detection.starting) {
-      if (pattern.test(trimmedLine))
-        return this.updateStatus(ServerStatus.STARTING);
-    }
-    for (const pattern of this.detection.running) {
-      if (pattern.test(trimmedLine))
-        return this.updateStatus(ServerStatus.RUNNING);
-    }
-    for (const pattern of this.detection.stopping) {
-      if (pattern.test(trimmedLine))
-        return this.updateStatus(ServerStatus.STOPPING);
-    }
-  }
-
-  private checkForErrors(line: string): void {
-    const error = this.errorRecognizerService.recognizeError(line);
-    if (error) {
-      this.recordDiagnostic({
-        errorType: error.errorType,
-        severity: error.severity,
-        timestamp: new Date().toISOString(),
-      });
-      this.serverEventsService.emitServerError(this.serverId, error);
-    }
-  }
-
-  /** Append a diagnostic to in-memory buffer */
   recordDiagnostic(diagnostic: IServerDiagnostic): void {
-    this.diagnostics.push(diagnostic);
-    if (this.diagnostics.length > 20) {
-      this.diagnostics = this.diagnostics.slice(-20);
-    }
+    this.diagnostics.record(diagnostic);
   }
 
-  /** Drop diagnostics of a given type */
   clearDiagnostic(errorType: string): void {
-    this.diagnostics = this.diagnostics.filter(
-      (d) => d.errorType !== errorType,
-    );
+    this.diagnostics.clear(errorType);
   }
 
   getDiagnostics(): IServerDiagnostic[] {
-    return this.diagnostics;
+    return this.diagnostics.get();
   }
 
   private updateStatus(newStatus: ServerStatus): void {
+    // Up again, reset restart attempts
+    if (newStatus === ServerStatus.RUNNING) this.crashRestarts.reset();
+
     const currentServer = this.serversRepo.findById(this.serverId);
     if (!currentServer || currentServer.status === newStatus) return;
 
@@ -403,6 +309,7 @@ export class ServerInstance implements IInstance {
 
   async kill(): Promise<boolean> {
     if (this.serverRuntime && this.isRunning()) {
+      this.exitRequested = true;
       await this.serverRuntime.kill();
       return true;
     }
@@ -418,23 +325,44 @@ export class ServerInstance implements IInstance {
     return false;
   }
 
+  /** Manual start, also resets restart attempts */
   async start(): Promise<boolean> {
     if (this.isRunning()) return false;
+    this.crashRestarts.reset();
+    return this.launch();
+  }
 
-    this.cleanupLog();
-    this.termLineBuf = "";
-    this.completer = undefined;
+  private async launch(): Promise<boolean> {
+    if (this.isRunning()) return false;
+    // Starting on a folder that is being replaced would mix two states
+    if (this.locks.holder(this.serverId) === "restore") {
+      throw new ConflictException({
+        code: ApiErrorCode.SERVER_BUSY,
+        message: "A backup is being restored, start the server when it is done",
+      });
+    }
+
+    this.console.reset();
+    this.exitRequested = false;
     this.updateStatus(ServerStatus.STARTING);
 
     const kind = this.config.runtimeKind ?? "native";
-    const scope = this.buildLaunchScope();
+    const target = this.launchTarget();
+    const scope = this.launcher.scope(target);
+    const xmx = Number(scope.XMX);
+    this.memoryLimitMb = xmx > 0 ? xmx : undefined;
 
     let command: string;
     if (kind === "docker") {
-      command = this.resolveDockerCommand(scope);
-      this.serverRuntime = await this.createDockerRuntime(scope, command);
+      command = this.launcher.dockerCommand();
+      this.serverRuntime = await this.launcher.dockerRuntime(
+        target,
+        scope,
+        command,
+        this.memoryLimitMb,
+      );
     } else {
-      command = await this.resolveNativeCommand(scope);
+      command = await this.launcher.nativeCommand(target, scope);
       this.serverRuntime = new ProcessRuntime();
     }
 
@@ -446,11 +374,7 @@ export class ServerInstance implements IInstance {
       env: {},
     });
 
-    // A PTY only attaches during start(), so wire the completer once it is up
-    if (this.serverRuntime.interactive && this.serverRuntime.writeTerminal) {
-      const write = this.serverRuntime.writeTerminal.bind(this.serverRuntime);
-      this.completer = new TerminalCompleter(write, PTY_COLS, PTY_ROWS);
-    }
+    this.console.attach(this.serverRuntime);
 
     this.pid = this.serverRuntime.pid;
     this.startedAt = new Date().toISOString();
@@ -458,124 +382,61 @@ export class ServerInstance implements IInstance {
     return true;
   }
 
-  /** Common substitution scope, shared by native and docker, no JAVA_BIN */
-  private buildLaunchScope(): ResolveScope {
-    const blueprint = this.blueprint;
-    if (!blueprint) {
-      throw new Error(`Server ${this.serverId} has no blueprint`);
-    }
-    return this.blueprintResolver.buildScope(blueprint, {
+  private launchTarget(): LaunchTarget {
+    return {
       serverId: this.serverId,
-      serverName: this.config.name,
-      variables: this.config.variables,
-    });
-  }
-
-  /** Resolve the native launch command, provisioning managed Java on the way */
-  private async resolveNativeCommand(scope: ResolveScope): Promise<string> {
-    const blueprint = this.blueprint;
-    const startup = blueprint?.startup;
-    // Prefer a per-OS command when the blueprint ships one
-    const command =
-      startup?.commandByPlatform?.[process.platform as KubekPlatform] ??
-      startup?.command;
-    if (!blueprint || !command) {
-      throw new Error(
-        `Server ${this.serverId} has no blueprint launch command`,
-      );
-    }
-
-    // A per-server JAVA_PATH override wins over the managed runtime
-    const customJava = this.config.variables?.JAVA_PATH;
-    if (typeof customJava === "string" && customJava.trim()) {
-      const javaPath = await this.javaService.resolveJavaBinary(
-        customJava.trim(),
-      );
-      if (!javaPath)
-        throw new Error(`No java binary found at ${customJava.trim()}`);
-      scope.JAVA_BIN = path.resolve(javaPath);
-    } else {
-      const version = this.blueprintResolver.javaVersion(blueprint, scope);
-      if (version) {
-        const javaPath = await this.javaService.getManagedJavaPath(version);
-        if (!javaPath)
-          throw new Error(`Managed Java ${version} is not installed`);
-        scope.JAVA_BIN = path.resolve(javaPath);
-      }
-    }
-
-    return this.blueprintResolver.substitute(command, scope);
+      config: this.config,
+      blueprint: this.blueprint,
+    };
   }
 
   /**
-   * In-container command, for now left empty
+   * Reattach to a container that kept running while the panel was down
+   * Console, stdin and stats work like after a normal start
    */
-  private resolveDockerCommand(_scope: ResolveScope): string {
-    return "";
-  }
+  async adopt(containerId: string): Promise<boolean> {
+    if (this.isRunning()) return false;
+    const scope = this.launcher.scope(this.launchTarget());
+    const xmx = Number(scope.XMX);
+    this.memoryLimitMb = xmx > 0 ? xmx : undefined;
 
-  /** Build a DockerRuntime from the blueprint docker profile */
-  private async createDockerRuntime(
-    scope: ResolveScope,
-    command: string,
-  ): Promise<DockerRuntime> {
-    const blueprint = this.blueprint;
-    const profile = blueprint?.dockerProfile;
-    if (!blueprint || !profile) {
-      throw new Error(`Server ${this.serverId} has no docker profile`);
+    this.console.reset();
+    this.exitRequested = false;
+
+    const runtime = this.launcher.adoptRuntime(this.serverId);
+    runtime.onStdout((chunk) => this.onData(chunk));
+    runtime.onExit((code) => this.onClose(code));
+    this.serverRuntime = runtime;
+
+    let adopted: Awaited<ReturnType<DockerRuntime["adopt"]>>;
+    try {
+      adopted = await runtime.adopt(containerId);
+    } catch (e) {
+      this.serverRuntime = undefined;
+      throw e;
     }
-    await this.dockerService.assertAvailable();
 
-    const image = this.blueprintResolver.substitute(profile.image, scope);
-    const env = Object.entries(profile.env).map(
-      ([k, v]) => `${k}=${this.blueprintResolver.substitute(v, scope)}`,
-    );
+    // Old lines only go to the console, no alerts for old errors
+    const lines = this.console.replay(adopted.history);
 
-    const mounts = profile.mounts?.length
-      ? profile.mounts
-      : [{ host: "{{SERVER_DIR}}", container: "/data" }];
-    const binds = mounts.map(
-      (m) =>
-        `${this.blueprintResolver.substitute(m.host, scope)}:${m.container}`,
-    );
-
-    return new DockerRuntime(this.dockerService, {
-      image,
-      containerName: containerNameFor(this.serverId),
-      user: profile.user,
-      binds,
-      workdir: "/data",
-      env,
-      portBindings: this.buildPortBindings(blueprint, scope),
-      stdinOpen: profile.stdinOpen,
-      command,
-    });
-  }
-
-  /** Map blueprint ports to docker host-port bindings, publishing host:container 1:1 */
-  private buildPortBindings(
-    blueprint: KubekBlueprintManifest,
-    scope: ResolveScope,
-  ): Record<string, { HostPort: string }[]> {
-    const out: Record<string, { HostPort: string }[]> = {};
-    for (const port of blueprint.ports) {
-      const value = scope[port.key] ?? port.default;
-      const hostPort = String(value);
-      const protocols =
-        port.protocol === "tcp+udp" ? ["tcp", "udp"] : [port.protocol];
-      for (const proto of protocols) {
-        out[`${value}/${proto}`] = [{ HostPort: hostPort }];
-      }
-    }
-    return out;
+    this.pid = undefined;
+    this.startedAt = adopted.startedAt ?? new Date().toISOString();
+    this.stoppedAt = undefined;
+    // No status line in the tail means it's been up for a while
+    const status = this.status.last(lines) ?? ServerStatus.RUNNING;
+    this.updateStatus(status);
+    return true;
   }
 
   async stop(byUser?: IUser): Promise<boolean> {
     if (!this.serverRuntime || !this.isRunning()) return false;
+    // Second stop waits for the first one
+    if (this.pendingStop.current) return this.pendingStop.current;
 
+    this.exitRequested = true;
     this.updateStatus(ServerStatus.STOPPING);
 
-    const method = this.resolveStopMethod();
+    const method = this.launcher.stopMethod(this.launchTarget());
     if (method.type === "command") {
       this.input(method.value, byUser);
     } else {
@@ -584,36 +445,18 @@ export class ServerInstance implements IInstance {
     }
 
     // The start-time onExit handler drives onClose, which settles this promise
-    return new Promise<boolean>((resolve) => {
-      this.pendingStop = resolve;
-      // If a graceful stop hangs, escalate to SIGKILL so the server can't stick in STOPPING
-      this.stopTimer = setTimeout(() => {
-        if (!this.pendingStop) return;
-        void this.serverRuntime?.kill();
-        this.stopTimer = setTimeout(() => {
-          if (!this.pendingStop) return;
-          const settle = this.pendingStop;
-          this.pendingStop = undefined;
-          settle(false);
-        }, 3000);
-      }, 10000);
-    });
+    return this.pendingStop.begin(() => void this.serverRuntime?.kill());
   }
 
-  /** Stop method from the blueprint stop spec, docker prefers its own profile stop */
-  private resolveStopMethod(): StopMethod {
-    const stop =
-      (this.config.runtimeKind === "docker"
-        ? this.blueprint?.dockerProfile?.stop
-        : undefined) ?? this.blueprint?.startup?.stop;
-    if (stop?.type === "command") return { type: "command", value: stop.value };
-    if (stop?.type.startsWith("signal:")) {
-      return {
-        type: "signal",
-        signal: stop.type.split(":")[1] as NodeJS.Signals,
-      };
-    }
-    return { type: "signal", signal: "SIGKILL" };
+  /** Runs in a container, survives a panel restart */
+  isDocker(): boolean {
+    return this.serverRuntime instanceof DockerRuntime;
+  }
+
+  /** Stop on panel shutdown, without restartOnError */
+  async stopForShutdown(): Promise<boolean> {
+    this.shuttingDown = true;
+    return this.stop();
   }
 
   async queryServer(): Promise<unknown> {
@@ -658,10 +501,8 @@ export class ServerInstance implements IInstance {
   /** Resolve the query port: server.properties for minecraft, else the blueprint port */
   private async resolveQueryPort(): Promise<number | undefined> {
     const spData = await this.readServerProperties();
-    if (spData && spData["server-port"] !== undefined) {
-      const port = parseInt(String(spData["server-port"]), 10);
-      if (Number.isFinite(port) && port > 0) return port;
-    }
+    const port = propertyPort(spData?.["server-port"]);
+    if (port) return port;
     if (this.blueprint) {
       const scope = this.blueprintResolver.buildScope(this.blueprint, {
         serverId: this.serverId,
@@ -675,47 +516,16 @@ export class ServerInstance implements IInstance {
     return this.port;
   }
 
-  async readServerProperties(): Promise<any> {
-    const spFilePath = `./servers/${this.config.id}/server.properties`;
-    try {
-      await fs.access(spFilePath);
-      const spFileData = await fs.readFile(spFilePath);
-      const parsed = mcPropsParser.parse(spFileData.toString());
-
-      if (parsed["generator-settings"]) {
-        parsed["generator-settings"] = JSON.stringify(
-          parsed["generator-settings"],
-        );
-      }
-
-      this.port = parsed["server-port"]
-        ? parseInt(parsed["server-port"])
-        : undefined;
-      this.queryPort = parsed["query.port"]
-        ? parseInt(parsed["query.port"])
-        : undefined;
-
-      return parsed;
-    } catch {
-      return false;
-    }
+  async readServerProperties(): Promise<Record<string, string> | null> {
+    const snapshot = await this.properties.read();
+    if (!snapshot) return null;
+    this.port = snapshot.port;
+    this.queryPort = snapshot.queryPort;
+    return snapshot.values;
   }
 
-  async writeServerProperties(data: object): Promise<boolean> {
-    try {
-      let result = "";
-      for (const [key, value] of Object.entries(data)) {
-        if (key && value !== undefined && value !== null) {
-          result += key.toString() + "=" + value.toString() + "\n";
-        }
-      }
-      await fs.writeFile(
-        `./servers/${this.config.id}/server.properties`,
-        result.trim(),
-      );
-      return true;
-    } catch {
-      return false;
-    }
+  /** Replace the key set, comments and untouched lines stay as they were */
+  async writeServerProperties(data: Record<string, unknown>): Promise<boolean> {
+    return this.properties.write(data);
   }
 }

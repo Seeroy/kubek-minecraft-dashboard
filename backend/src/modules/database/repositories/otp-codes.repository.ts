@@ -55,13 +55,12 @@ export class OtpCodesRepository implements IOtpCodesRepository {
 
   create(otpCode: IOtpCode): void {
     const stmt = this.sqlite.connection.prepare(`INSERT INTO otp_codes
-      (id, userId, codeHash, telegramId, createdAt, expiresAt, used)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`);
+      (id, userId, codeHash, createdAt, expiresAt, used)
+      VALUES (?, ?, ?, ?, ?, ?)`);
     stmt.run(
       otpCode.id,
       otpCode.userId,
       otpCode.codeHash,
-      otpCode.telegramId || null,
       otpCode.createdAt,
       otpCode.expiresAt,
       otpCode.used ? 1 : 0,
@@ -92,7 +91,6 @@ export class OtpCodesRepository implements IOtpCodesRepository {
       id: String(row.id),
       userId: String(row.userId),
       codeHash: String(row.codeHash),
-      telegramId: row.telegramId ? Number(row.telegramId) : undefined,
       createdAt: Number(row.createdAt),
       expiresAt: Number(row.expiresAt),
       used: !!row.used,

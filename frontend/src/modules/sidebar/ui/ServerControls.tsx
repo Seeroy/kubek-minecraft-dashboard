@@ -1,162 +1,150 @@
 "use client";
-import { api } from "@/api";
+
 import { useServerStatus, useServerStore } from "@/modules/server";
-import QueryGrid from "@/modules/sidebar/ui/QueryGrid";
+import { useServerActions } from "@/modules/server/hooks/useServerActions";
+import { useServerItemAccess } from "@/modules/sidebar/hooks/useServerItemAccess";
+import { useServersModal } from "@/modules/sidebar/store/servers-modal.store";
+import { useServersListActions } from "@/modules/sidebar/ui/serversList/useServersListActions";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { Button } from "@/shared/ui/button";
+import { cn } from "@/shared/lib/cn";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { TooltipButton } from "@/shared/ui/TooltipButton";
-import { AnimatePresence, motion } from "framer-motion";
-import { MoreVertical, OctagonX, Play, RotateCw, Square } from "lucide-react";
-import { useState } from "react";
+import { toneClass } from "@/shared/ui/tone";
+import { isOffline } from "@/modules/server/hooks/useServerMeta";
+import { ServerStatus } from "@shared/types/server/server.types";
+import {
+  Copy,
+  Download,
+  Ellipsis,
+  OctagonX,
+  Pencil,
+  Play,
+  RotateCw,
+  Square,
+  Trash2,
+} from "lucide-react";
 
-// Shared easing for crossfades + height settling
-const EASE = [0.22, 1, 0.36, 1] as const;
-const swapVariants = {
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -6 },
-};
-const swapTransition = { duration: 0.22, ease: EASE };
+const actionButton =
+  "inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-tone/14 text-[13px] font-medium text-tone transition-[background-color,translate] duration-150 outline-none hover:bg-tone/22 focus-visible:outline-2 focus-visible:outline-primary/70 active:translate-y-px disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-3.5";
 
-const ServerControls = () => {
-  const { selectedServer } = useServerStore();
-  const serverStatus = useServerStatus(selectedServer?.id)?.status;
-  const [isLoading, setIsLoading] = useState(false);
+export default function ServerControls() {
   const { t } = useTranslation("modules.sidebar.serverControls");
+  const { t: tActions } = useTranslation("modules.sidebar.serversList.actions");
+  const { selectedServer } = useServerStore();
+  const status =
+    useServerStatus(selectedServer?.id, selectedServer?.status) ??
+    ServerStatus.STOPPED;
+  const { perform, pending } = useServerActions(selectedServer?.id);
+  const setServersModalOpen = useServersModal((s) => s.setOpen);
+  const listActions = useServersListActions(setServersModalOpen);
+  const access = useServerItemAccess(selectedServer?.id);
 
-  const isLive = serverStatus === "running" || serverStatus === "starting";
-  const isStopped = serverStatus === "stopped" || !serverStatus;
+  if (!selectedServer) return null;
 
-  const run = async (action: () => Promise<unknown>, label: string) => {
-    if (!selectedServer || isLoading) return;
-    setIsLoading(true);
-    try {
-      await action();
-    } catch (error) {
-      console.error(`Failed to ${label} server:`, error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleStart = () =>
-    run(() => api.servers.start(selectedServer!.id), "start");
-  const handleStop = () =>
-    run(() => api.servers.stop(selectedServer!.id), "stop");
-  const handleRestart = () =>
-    run(() => api.servers.restart(selectedServer!.id), "restart");
-  const handleKill = () =>
-    run(() => api.servers.kill(selectedServer!.id), "kill");
+  const stopping = status === ServerStatus.STOPPING;
+  // A hung start has to stay stoppable
+  const live = status === ServerStatus.RUNNING || status === ServerStatus.STARTING;
+  const running = status === ServerStatus.RUNNING;
+  const id = selectedServer.id;
+  const hasMenu = access.duplicate || access.rename || access.exportServer || access.kill || access.remove;
+  if (!access.power && !hasMenu) return null;
 
   return (
-    <motion.div layout transition={{ layout: { duration: 0.3, ease: EASE } }}>
-      <AnimatePresence mode="wait" initial={false}>
-        {!selectedServer ? (
-          <motion.div
-            key="empty"
-            variants={swapVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={swapTransition}
-            className="px-3 py-3 text-center text-xs text-muted-foreground"
-          >
-            {t("noServerSelected")}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="controls"
-            variants={swapVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={swapTransition}
-            className="space-y-2.5 p-3"
-          >
-            {/* Live status strip (status dot, players, uptime) */}
-            <QueryGrid />
+    <div className="flex items-center gap-1 border-t border-sidebar-border/60 p-1.5 sidebar-mini:border-0 sidebar-mini:px-0 sidebar-mini:pb-0">
+      {!access.power ? null : stopping ? (
+        <button type="button" disabled className={cn(actionButton, toneClass.amber, "min-w-0 flex-1 sidebar-mini:gap-0")}>
+          <RotateCw className="animate-spin" />
+          <span className="truncate sidebar-mini:hidden">{t("stopping")}</span>
+        </button>
+      ) : live ? (
+        <button
+          type="button"
+          disabled={pending !== null}
+          onClick={() => perform("stop")}
+          title={t("stopServer")}
+          className={cn(actionButton, toneClass.red, "min-w-0 flex-1")}
+        >
+          <Square />
+          <span className="truncate sidebar-mini:hidden">{t("stop")}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={pending !== null}
+          onClick={() => perform("start")}
+          title={t("startServer")}
+          className={cn(actionButton, toneClass.green, "min-w-0 flex-1")}
+        >
+          <Play />
+          <span className="truncate sidebar-mini:hidden">{t("start")}</span>
+        </button>
+      )}
 
-            <div className="flex items-center gap-1.5">
-              {/* Primary action toggles with run state */}
-              {isLive ? (
-                <Button
-                  variant="ghost"
-                  onClick={handleStop}
-                  disabled={isLoading}
-                  className="flex-1 gap-1.5 bg-[oklch(0.77_0.15_70/0.12)] text-[oklch(0.55_0.13_70)] hover:bg-[oklch(0.77_0.15_70/0.20)] dark:text-[oklch(0.82_0.16_70)]"
-                >
-                  <Square className="h-4 w-4" />
-                  {t("stop")}
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  onClick={handleStart}
-                  disabled={isLoading || serverStatus === "stopping"}
-                  className="flex-1 gap-1.5 bg-[oklch(0.77_0.17_140/0.12)] text-[oklch(0.55_0.17_140)] hover:bg-[oklch(0.77_0.17_140/0.20)] dark:text-[oklch(0.80_0.18_140)]"
-                >
-                  <Play className="h-4 w-4" />
-                  {t("start")}
-                </Button>
-              )}
+      {access.power && (
+        <button
+          type="button"
+          disabled={!running || pending !== null}
+          onClick={() => perform("restart")}
+          title={t("restartServer")}
+          aria-label={t("restartServer")}
+          className={cn(actionButton, toneClass.cyan, "w-8 shrink-0 sidebar-mini:hidden")}
+        >
+          <RotateCw />
+        </button>
+      )}
 
-              <TooltipButton
-                size="icon"
-                variant="ghost"
-                className="bg-[oklch(0.70_0.15_220/0.12)] text-[oklch(0.50_0.13_220)] hover:bg-[oklch(0.70_0.15_220/0.20)] dark:text-[oklch(0.80_0.15_220)]"
-                tooltipContent={t("restartServer")}
-                onClick={handleRestart}
-                disabled={
-                  isLoading ||
-                  serverStatus === "stopped" ||
-                  serverStatus === "stopping"
-                }
+      {hasMenu && (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={t("moreActions")}
+            className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-hover hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary/70 data-popup-open:bg-hover sidebar-mini:hidden [&_svg]:size-3.5"
+          >
+            <Ellipsis />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            {access.duplicate && (
+              <DropdownMenuItem onClick={() => listActions.handleDuplicateServer(id)}>
+                <Copy />
+                {tActions("duplicate")}
+              </DropdownMenuItem>
+            )}
+            {access.rename && (
+              <DropdownMenuItem onClick={() => listActions.handleRenameServer(id)}>
+                <Pencil />
+                {tActions("rename")}
+              </DropdownMenuItem>
+            )}
+            {access.exportServer && (
+              <DropdownMenuItem onClick={() => listActions.handleExportServer(id)}>
+                <Download />
+                {tActions("export")}
+              </DropdownMenuItem>
+            )}
+            {(access.duplicate || access.rename || access.exportServer) && (access.kill || access.remove) && <DropdownMenuSeparator />}
+            {access.kill && (
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={isOffline(status) || pending !== null}
+                onClick={() => perform("kill")}
               >
-                <RotateCw className="h-4 w-4" />
-              </TooltipButton>
-
-              {/* Destructive / rarely-used action tucked behind an overflow menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label={t("moreActions")}
-                      className="text-muted-foreground"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end" side="top" className="w-60">
-                  <DropdownMenuItem
-                    variant="destructive"
-                    disabled={isLoading || isStopped}
-                    onClick={handleKill}
-                  >
-                    <OctagonX />
-                    <div className="flex flex-col">
-                      <span>{t("forceStop")}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {t("immediateShutdown")}
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+                <OctagonX />
+                {t("forceStop")}
+              </DropdownMenuItem>
+            )}
+            {access.remove && (
+              <DropdownMenuItem variant="destructive" onClick={() => listActions.handleDeleteServer(id)}>
+                <Trash2 />
+                {tActions("delete")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
   );
-};
-
-export default ServerControls;
+}

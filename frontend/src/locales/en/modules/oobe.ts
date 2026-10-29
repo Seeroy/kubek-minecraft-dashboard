@@ -3,30 +3,46 @@ import type { TranslationDictionary } from "../../../locales/types";
 export const oobeTranslations: TranslationDictionary = {
   steps: {
     eula: {
-      title: "End User License Agreement",
+      rail: "License agreement",
+      title: "End user license agreement",
       description: "Review and accept the EULA",
     },
     preferences: {
+      rail: "Preferences",
       title: "Preferences",
-      description: "Customize your experience",
+      description: "Make it yours",
     },
-    "server-creation": {
-      title: "Create Your First Server",
+    serverCreation: {
+      rail: "First server",
+      title: "Create your first server",
       description: "Set up your Minecraft server",
     },
     completion: {
+      rail: "Done",
       title: "Welcome to Kubek!",
-      description: "You're all set up",
+      description: "You are all set",
     },
+  },
+  rail: {
+    done: "Done",
+    current: "Now",
+    upcoming: "Next",
+    optional: "Optional",
+    version: (version: string) => `Kubek ${version} · first run`,
+    hint: "Everything can be changed later in Panel settings.",
   },
   navigation: {
     back: "Back",
     next: "Next",
     skip: "Skip",
-    stepOf: (current: number, total: number) => `Step ${ current } of ${ total }`,
+    finish: "Finish",
+    stepOf: (current: number, total: number) => `Step ${current} of ${total}`,
+    enterHint: "to continue",
+    toggleTheme: "Toggle theme",
+    acceptHint: "Accept the agreement to continue",
   },
-  eulaStep: {
-    title: "Kubek End User License Agreement",
+  eula: {
+    title: "Kubek end user license agreement",
     content: `<p>This End User License Agreement ("Agreement") is a legal agreement between you and the Kubek development team for the use of Kubek software ("Software").</p>
 
 <h4>1. License Grant</h4>
@@ -48,7 +64,7 @@ export const oobeTranslations: TranslationDictionary = {
 <p>You are solely responsible for the safety of your servers, files, and confidential data, as well as for all actions performed using the Software.</p>
 
 <h4>7. Data Collection</h4>
-<p>On startup and periodically thereafter, the Software automatically sends anonymized technical data to the rights holder's server: a device identifier, CPU details (model, speed, core count), amount of RAM, operating system (name, version, build, architecture), paths to installed Java versions, the Kubek version, the number of servers and added users, the status of integrations (Telegram bot, FTP server), and uptime. This data is used solely to improve and optimize the Software. Telemetry can be disabled in the application settings or via the KUBEK_TELEMETRY=off environment variable.</p>
+<p>On startup and every 30 minutes thereafter, the Software automatically sends anonymized technical data to the rights holder's server: a device identifier, CPU details (model, speed, core count), amount of RAM, operating system (name, kernel release, OS version and build, architecture), version numbers of installed Java runtimes, the Kubek version, whether it runs inside a Docker container, the Bun and Node.js versions, the number of servers, added users and roles, the status of integrations (Telegram bot, FTP server), which features are in use (the name of the selected AI provider without its key or address, the number of scheduler tasks per action type including webhooks, the number of backup policies and the types of remote storages, the number of enabled extensions and networks), the number of users per interface language and theme, and uptime. The device identifier is a hash of the machine ID and contains no user name or IP address. Server names, player names, logins, passwords, tokens and file contents are never sent. The IP address the request comes from is visible to the rights holder's server at the network level. This data is used solely to improve and optimize the Software. Telemetry can be disabled in the application settings or via the KUBEK_TELEMETRY=off environment variable.</p>
 
 <h4>8. Changes to the Agreement</h4>
 <p>The Kubek team may change the terms of this Agreement at any time. Continued use of the Software after changes take effect constitutes acceptance of those changes.</p>
@@ -57,41 +73,60 @@ export const oobeTranslations: TranslationDictionary = {
 <p>This Agreement is effective until terminated. You may terminate it at any time by destroying all copies of the Software. The Kubek team may terminate this Agreement if you fail to comply with its terms.</p>
 
 <p>By checking the box below, you acknowledge that you have read, understood, and agree to be bound by the terms of this Agreement.</p>`,
-    acceptLabel: "I have read and agree to the End User License Agreement",
+    read: (percent: number) => `${percent}% read`,
+    readFull: "Read to the end",
+    accept: "I have read and agree to the End User License Agreement",
+    scrollHint: "Scroll the text to the end to accept",
   },
-  preferencesStep: {
-    colorTheme: {
-      title: "Color Theme",
-      description: "Choose a color scheme for the application",
+  preferences: {
+    theme: {
+      title: "Color theme",
+      description: "Pick a color scheme for the app",
     },
     language: {
       title: "Language",
-      description: "Select your preferred language",
-      placeholder: "Choose language",
+      description: "Pick your preferred language",
     },
     appearance: {
       title: "Appearance",
-      description: "Choose your preferred theme mode",
+      description: "Pick your preferred theme mode",
+    },
+    skin: {
+      title: "Minecraft nickname",
+      description: "This player's head becomes your avatar, optional",
     },
   },
-  serverCreationStep: {
-    title: "Create Your First Server",
-    description: "Let's set up your first Minecraft server. Click the button below to open the server creation wizard",
-    button: "I want to create one now",
+  server: {
     optional: {
       title: "This step is optional",
-      description: "You can skip it and create a server later at any time — the wizard will guide you through all the options you need.",
+      description: "You can skip it and create a server at any time later, the wizard walks you through every setting.",
     },
+    intro: {
+      title: "Create your first server",
+      description: "Let's set up your first Minecraft server. Press the button below to open the server wizard",
+      button: "Create one now",
+    },
+    creating: (name: string) => `Creating "${name}"…`,
+    created: "Created",
+    createdHint: "The server shows up in the list once you enter the panel. Start it with the Start button in the sidebar.",
+    failed: "Could not create the server",
+    retry: "Try again",
+    open: "Show progress",
   },
-  completionStep: {
-    title: "You're all set!",
-    subtitle: "Setup is complete. Welcome to Kubek — enjoy!",
-    cta: "Go to dashboard",
-    features: {
-      licenseAccepted: "License Accepted",
-      themeConfigured: "Theme Configured",
-      serverCreated: "Server Created",
-      readyToManage: "Ready to Manage",
+  completion: {
+    title: "All set!",
+    subtitle: "Setup is complete. Welcome to Kubek, enjoy!",
+    cta: "Open the panel",
+    opening: "Opening the panel…",
+    items: {
+      license: "License accepted",
+      theme: "Theme configured",
+      server: "Server created",
+      ready: "Ready to manage",
+    },
+    meta: {
+      license: "Kubek EULA",
+      ready: "Panel configured",
     },
   },
 };

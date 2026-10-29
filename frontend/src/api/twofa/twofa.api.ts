@@ -2,8 +2,6 @@ import { authHttp, type AuthHttpClient } from "@/shared/lib/http";
 import type {
   TotpSetupResponse,
   TwofaStatus,
-  UpdatePreferencesDto,
-  UserPreferences,
 } from "./twofa.model";
 
 export class TwofaApi {
@@ -30,14 +28,6 @@ export class TwofaApi {
 
   disableTelegram = (): Promise<void> =>
     this.authHttp.post<void>("auth/2fa/telegram/disable");
-
-  getPreferences = (): Promise<UserPreferences> =>
-    this.authHttp.get<UserPreferences>("accounts/me/preferences");
-
-  updatePreferences = (data: UpdatePreferencesDto): Promise<UserPreferences> =>
-    this.authHttp.patch<UserPreferences>("accounts/me/preferences", {
-      json: data,
-    });
 }
 
 export const twofaApi = new TwofaApi(authHttp);

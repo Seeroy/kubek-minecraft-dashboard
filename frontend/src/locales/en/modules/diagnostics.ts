@@ -2,6 +2,8 @@ export const diagnosticsTranslations = {
   title: "Diagnostics",
   empty: "No issues detected",
   restartFailed: "Failed to restart server",
+  explainPrompt: (title: string, type: string) =>
+    `The panel detected a problem on this server: "${title}" (${type}). Look at the console and diagnostics, explain the cause and how to fix it.`,
   severity: {
     critical: "Critical",
     high: "High",
@@ -34,6 +36,10 @@ export const diagnosticsTranslations = {
     port_bind_failed: {
       title: "Failed to bind to server port",
       description: "Check if the port is already in use by another application, or change the server port",
+    },
+    port_invalid: {
+      title: "Invalid server port",
+      description: "The port must be between 1 and 65535, fix it in the server settings",
     },
     world_corruption: {
       title: "World corruption detected",

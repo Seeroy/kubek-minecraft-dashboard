@@ -1,15 +1,15 @@
 "use client";
 
 import { api } from "@/api";
-import { useSocketStore } from "@/shared/context/socket-context";
+import { useSocketApi } from "@/shared/context/socket-context";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import type { NotificationAction } from "@/shared/types/notification.types";
+import type { NotificationAction } from "@/shared/types/toast.types";
 import { InstanceLog_Error } from "@shared/types/server/instance.types";
 import { WsServerEventTypes } from "@shared/types/ws/server-events.types";
 import { AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useNotificationsContext } from "../contexts/NotificationProvider";
+import { useNotifications } from "../hooks/useNotifications";
 
 // Per-error suggested navigation; labels and notification text come from i18n
 const ERROR_NAV_ACTIONS: Record<
@@ -18,6 +18,7 @@ const ERROR_NAV_ACTIONS: Record<
 > = {
   out_of_memory: [{ key: "goToServerSettings", href: "/server-settings" }],
   port_bind_failed: [{ key: "goToServerSettings", href: "/server-settings" }],
+  port_invalid: [{ key: "goToServerSettings", href: "/server-settings" }],
   world_corruption: [
     { key: "goToBackups", href: "/backups" },
     { key: "goToFiles", href: "/files" },
@@ -34,6 +35,7 @@ const ERROR_NAV_ACTIONS: Record<
 const KNOWN_ERROR_TYPES = new Set([
   "out_of_memory",
   "port_bind_failed",
+  "port_invalid",
   "world_corruption",
   "plugin_error",
   "disk_space",
@@ -51,13 +53,12 @@ const KNOWN_ERROR_TYPES = new Set([
  */
 export const GlobalErrorNotifier = () => {
   const router = useRouter();
-  const { socket, status, subscribe, unsubscribe } = useSocketStore();
-  const { addNotification } = useNotificationsContext();
+  const { subscribe, unsubscribe } = useSocketApi();
+  const { notify: addNotification } = useNotifications();
   const { t } = useTranslation("modules.notifications.globalErrorNotifier");
   const { t: td } = useTranslation("modules.diagnostics");
 
   useEffect(() => {
-    if (status !== "connected" || !socket) return;
 
     const handleErrorUpdate = (
       data: InstanceLog_Error & { serverId: string; timestamp: string }
@@ -113,7 +114,7 @@ export const GlobalErrorNotifier = () => {
     return () => {
       unsubscribe(WsServerEventTypes.ERROR_UPDATE, handleErrorUpdate);
     };
-  }, [status, socket, subscribe, unsubscribe, addNotification, router]);
+  }, [subscribe, unsubscribe, addNotification, router, t, td]);
 
   return null; // This component doesn't render anything
 };

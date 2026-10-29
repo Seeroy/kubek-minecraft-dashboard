@@ -1,21 +1,27 @@
+import { getErrorMessage } from "@/core/utils/error";
 import { AccountsService } from "@/modules/accounts/accounts.service";
 import { AuditLogService } from "@/modules/audit-log/audit-log.service";
 import { ServersService } from "@/modules/servers/servers.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
+import type { IServer } from "@shared/types/server/server.types";
 import {
   AuditAction,
   AuditCategory,
   AuditResult,
 } from "@shared/types/audit.types";
-import type { ITelegramUser, TelegramLang } from "@/modules/telegram-bot/telegram.types";
+import type {
+  ITelegramUser,
+  TelegramLang,
+} from "@/modules/telegram-bot/telegram.types";
 import { BotAccessService } from "./bot-access.service";
+import { BotAddressService } from "./bot-address.service";
 import { renderServersList, renderServerStatus } from "./bot-format";
 import {
   mainMenuKeyboard,
   serversNavKeyboard,
   statusKeyboard,
 } from "./bot-keyboards";
-import { replyOrEdit } from "./bot-reply";
+import { replyOrEdit, replyOrEditRich } from "./bot-reply";
 import type { MyContext } from "./bot-types";
 import { BotUsersService } from "./bot-users.service";
 import { t } from "./i18n";
@@ -34,6 +40,7 @@ const CONTROL_AUDIT_ACTION: Record<ServerControlAction, string> = {
  */
 @Injectable()
 export class BotViewsService {
+  private readonly logger = new Logger(BotViewsService.name);
   private readonly SERVERS_PER_PAGE = 5;
 
   constructor(
@@ -42,6 +49,7 @@ export class BotViewsService {
     private readonly access: BotAccessService,
     private readonly auditLog: AuditLogService,
     private readonly users: BotUsersService,
+    private readonly address: BotAddressService,
   ) {}
 
   async sendMainMenu(
@@ -66,14 +74,14 @@ export class BotViewsService {
     page: number,
     edit: boolean,
   ): Promise<void> {
-    let servers;
+    let servers: IServer[];
     try {
       servers = this.access.visibleServers(
         userId,
         this.serversService.findAll(),
       );
     } catch (error) {
-      console.error("[TelegramBot] Error fetching servers:", error);
+      this.logger.error(`Error fetching servers: ${getErrorMessage(error)}`);
       return void replyOrEdit(ctx, edit, t(lang, "servers.fetchError"));
     }
 
@@ -85,10 +93,18 @@ export class BotViewsService {
     const start = safePage * this.SERVERS_PER_PAGE;
     const pageServers = servers.slice(start, start + this.SERVERS_PER_PAGE);
 
-    await replyOrEdit(
+    await replyOrEditRich(
       ctx,
       edit,
-      renderServersList(lang, pageServers, safePage, totalPages),
+      {
+        ...renderServersList(lang, pageServers, safePage, totalPages),
+        fallbackKeyboard: serversNavKeyboard(
+          lang,
+          safePage,
+          totalPages,
+          pageServers,
+        ),
+      },
       serversNavKeyboard(lang, safePage, totalPages),
     );
   }
@@ -115,10 +131,11 @@ export class BotViewsService {
           lang,
           serverId,
           this.access.canControl(userId, serverId),
+          await this.address.resolve(server),
         ),
       );
     } catch (error) {
-      console.error("[TelegramBot] Error fetching status:", error);
+      this.logger.error(`Error fetching status: ${getErrorMessage(error)}`);
       await replyOrEdit(ctx, edit, t(lang, "status.fetchError"));
     }
   }
@@ -169,7 +186,7 @@ export class BotViewsService {
       );
       await this.sendServerStatus(ctx, lang, tgUser.userId, serverId, true);
     } catch (error) {
-      console.error(`[TelegramBot] Error on ${action}:`, error);
+      this.logger.error(`Error on ${action}: ${getErrorMessage(error)}`);
       this.auditLog.record({
         action: CONTROL_AUDIT_ACTION[action],
         category: AuditCategory.SERVER,

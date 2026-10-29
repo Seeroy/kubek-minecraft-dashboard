@@ -1,97 +1,51 @@
 "use client";
 
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import {
-  GITHUB_REPO_URL,
-  useKubekVersionQuery,
-  useUpdateCheckQuery,
-} from "@/modules/settings/api/about.queries";
-import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { Card } from "@/shared/ui/card";
 import { GithubMark } from "@/shared/ui/GithubMark";
 import LogoMark from "@/shared/ui/logo-mark";
+import { Panel } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Bug, Tags } from "lucide-react";
+import { GITHUB_REPO_URL, useKubekVersionQuery } from "../../api/about.queries";
 import { UpdateStatus } from "./UpdateStatus";
 import { formatVersion } from "./version";
 
 const EXTERNAL = { target: "_blank", rel: "noreferrer noopener" } as const;
-const RELEASES_URL = `${GITHUB_REPO_URL}/releases`;
 
 export function PanelInfoCard() {
-  const { t } = useTranslation("modules.settings");
-  const versionQuery = useKubekVersionQuery();
-  const updateQuery = useUpdateCheckQuery();
-
-  const current = versionQuery.data;
+  const { t } = useTranslation("modules.settings.about");
+  const version = useKubekVersionQuery();
 
   return (
-    <Card className="relative overflow-hidden">
-      {/* Soft brand glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl"
-      />
-
-      <div className="relative flex flex-col gap-6 px-5 sm:flex-row sm:items-center">
-        <div className="flex size-20 flex-shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-gradient-to-br from-primary/15 to-primary/5 shadow-sm">
-          <LogoMark size={44} />
-        </div>
-
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Kubek</h2>
-            {current ? (
-              <Badge variant="secondary" className="font-mono">
-                {formatVersion(current)}
-              </Badge>
-            ) : (
-              <Skeleton className="h-5 w-16 rounded-full" />
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {t("about.info.tagline")}
-          </p>
-          <UpdateStatus
-            checking={updateQuery.isLoading}
-            failed={updateQuery.isError}
-            updatable={updateQuery.data?.updateAvailable ?? false}
-            latestVersion={updateQuery.data?.latestVersion}
-          />
+    <Panel className="mb-6 flex-row flex-wrap items-center gap-5 p-5">
+      <LogoMark size={64} />
+      <div className="min-w-0 flex-1">
+        <h2 className="flex items-baseline gap-2 text-[22px] font-semibold tracking-[-0.015em]">
+          Kubek
+          {version.data ? (
+            <span className="font-mono text-[15px] font-medium text-muted-foreground">{formatVersion(version.data)}</span>
+          ) : (
+            <Skeleton className="h-4 w-14" />
+          )}
+        </h2>
+        <p className="mt-1 text-[13.5px] text-muted-foreground">{t("tagline")}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <Button variant="outline" size="sm" nativeButton={false} render={<a href={GITHUB_REPO_URL} {...EXTERNAL} />}>
+            <GithubMark className="size-3.5" />
+            {t("links.github")}
+          </Button>
+          <Button variant="outline" size="sm" nativeButton={false} render={<a href={`${GITHUB_REPO_URL}/releases`} {...EXTERNAL} />}>
+            <Tags />
+            {t("links.releases")}
+          </Button>
+          <Button variant="outline" size="sm" nativeButton={false} render={<a href={`${GITHUB_REPO_URL}/issues/new`} {...EXTERNAL} />}>
+            <Bug />
+            {t("links.issues")}
+          </Button>
         </div>
       </div>
-
-      {/* Quick links */}
-      <div className="relative flex flex-wrap gap-2 border-t border-border/60 px-5 pt-5">
-        <Button
-          variant="outline"
-          size="sm"
-          nativeButton={false}
-          render={<a href={GITHUB_REPO_URL} {...EXTERNAL} />}
-        >
-          <GithubMark className="size-4" />
-          {t("about.info.links.github")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          nativeButton={false}
-          render={<a href={RELEASES_URL} {...EXTERNAL} />}
-        >
-          <Tags />
-          {t("about.info.links.releases")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          nativeButton={false}
-          render={<a href={`${GITHUB_REPO_URL}/issues/new`} {...EXTERNAL} />}
-        >
-          <Bug />
-          {t("about.info.links.issues")}
-        </Button>
-      </div>
-    </Card>
+      <UpdateStatus />
+    </Panel>
   );
 }

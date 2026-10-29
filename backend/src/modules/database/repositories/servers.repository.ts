@@ -44,23 +44,34 @@ export class ServersRepository implements IServersRepository {
     return row ? this.deserialize(row) : null;
   }
 
+  // The creator always gets access to the new server, otherwise a user with
+  // a server list would lose it right after creating
   create(server: Omit<IServer, "id">): IServer {
     const id = randomUUID();
-    const stmt = this.sqlite.connection.prepare(`INSERT INTO servers
-                                                 (id, name, status, restartEnabled, restartAttempts, folderId, blueprintId, blueprintVersion, variables, runtimeKind)
-                                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    stmt.run(
-      id,
-      server.name,
-      server.status,
-      server.restartOnError.enabled ? 1 : 0,
-      server.restartOnError.attempts,
-      server.folderId ?? null,
-      server.blueprintId,
-      server.blueprintVersion ?? null,
-      JSON.stringify(server.variables ?? {}),
-      server.runtimeKind ?? null,
-    );
+    const db = this.sqlite.connection;
+    db.transaction(() => {
+      db.prepare(
+        `INSERT INTO servers
+         (id, name, status, restartEnabled, restartAttempts, folderId, blueprintId, blueprintVersion, variables, runtimeKind, createdBy)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT id FROM users WHERE id = ?))`,
+      ).run(
+        id,
+        server.name,
+        server.status,
+        server.restartOnError.enabled ? 1 : 0,
+        server.restartOnError.attempts,
+        server.folderId ?? null,
+        server.blueprintId,
+        server.blueprintVersion ?? null,
+        JSON.stringify(server.variables ?? {}),
+        server.runtimeKind ?? null,
+        server.createdBy ?? null,
+      );
+      db.prepare(
+        `INSERT OR IGNORE INTO user_server_access (userId, serverId)
+         SELECT createdBy, id FROM servers WHERE id = ? AND createdBy IS NOT NULL`,
+      ).run(id);
+    })();
 
     return this.findById(id)!;
   }
@@ -117,6 +128,7 @@ export class ServersRepository implements IServersRepository {
         row.runtimeKind != null
           ? (String(row.runtimeKind) as IServer["runtimeKind"])
           : undefined,
+      createdBy: row.createdBy != null ? String(row.createdBy) : null,
     };
   }
 }

@@ -1,11 +1,8 @@
 "use client";
 
-import PluginsDashboard from "@/modules/plugins/ui/PluginsDashboard";
+import ContentDashboard from "@/modules/plugins/ui/ContentDashboard";
 
-/**
- * Reuses the shared Modrinth content dashboard configured
- * for the mod content kind (mods folder, Fabric loader, mod task types)
- */
-const ModsDashboard = () => <PluginsDashboard kind="mod" />;
+// Same Modrinth manager as plugins, wired to the mods folder and the Fabric loader
+const ModsDashboard = () => <ContentDashboard kind="mod" />;
 
 export default ModsDashboard;

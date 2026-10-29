@@ -13,11 +13,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
     world: "Мир",
     network: "Сеть",
     other: "Другое",
-    reset: "Сброс",
-    saveChanges: "Сохранить изменения",
-    saving: "Сохранение...",
-    saved: "Сохранено!",
-    error: "Ошибка!",
+    velocity: "Сеть Velocity",
   },
   modal: {
     title: "Требуется перезапуск сервера",
@@ -40,13 +36,9 @@ export const serverSettingsTranslations: TranslationDictionary = {
       serverName: "Имя сервера",
       serverNamePlaceholder: "Введите имя сервера",
     },
-    performanceSettings: {
-      title: "Настройки производительности",
-      description: "Распределение памяти и параметры запуска",
-      startupArguments: "Аргументы запуска",
-      startupArgumentsPlaceholder: "-Xmx2G",
-      startupArgumentsHelp:
-        "Добавьте аргументы JVM для распределения памяти и настройки производительности",
+    variables: {
+      title: "Параметры ядра",
+      description: "Настройки, которые даёт тип сервера",
     },
     autoRestartSettings: {
       title: "Настройки авто-перезапуска",
@@ -81,29 +73,24 @@ export const serverSettingsTranslations: TranslationDictionary = {
       customDropzone: "Перетащите файл .jar сюда или выберите его вручную",
       customSelected: ({ name }: { name: string }) => `Выбран файл: ${name}`,
     },
-    stopConfiguration: {
-      title: "Конфигурация остановки",
-      description: "Как правильно остановить сервер",
-      customCommand: "Пользовательская команда",
-      customCommandDescription:
-        "Отправить определенную команду для остановки сервера",
-      ctrlCSignal: "Сигнал Ctrl+C",
-      ctrlCSignalDescription:
-        "Отправить сигнал прерывания (рекомендуется для большинства серверов)",
-      stopCommand: "Команда остановки",
-      stopCommandPlaceholder: "stop",
-      stopCommandHelp: "Команда для отправки при остановке сервера",
-    },
   },
   java: {
     noServerSelected: "Сервер не выбран",
     title: "Конфигурация Java",
     description: "Выберите версию Java или используйте системную Java",
+    memory: "Память (Xmx)",
+    memoryHint: (free: string) => `Максимум кучи JVM. Свободно на хосте: ${free} ГБ`,
+    memoryHintNoHost: "Максимум кучи JVM",
+    initialMemory: "Начальная память (Xms), МБ",
+    initialMemoryHint: "Сколько JVM резервирует при старте",
+    arguments: "Аргументы запуска",
+    argumentsHint: "Дополнительные флаги JVM",
+    presets: {
+      aikar: "Флаги Aikar",
+      minimal: "Минимальные",
+    },
+    requires: (version: string, java: number) => `${version} требует Java ${java}`,
     javaVersion: "Версия Java",
-    javaBinaryPath: "Путь к бинарному файлу Java",
-    javaBinaryPathPlaceholder: "C:/Java/bin/java.exe или /usr/bin/java",
-    javaBinaryPathHelp: "Укажите полный путь к исполняемому файлу Java",
-    save: "Сохранить",
   },
   information: {
     serverInformation: {
@@ -119,6 +106,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       onlineMode: "Онлайн режим",
       onlineModeDescription: "Проверять аутентификацию игроков через Mojang",
       whitelist: "Белый список",
+      onlineModeOffWarning: "Зайти смогут игроки с пиратских клиентов и под любым ником",
       whitelistDescription:
         "Разрешить присоединяться только игрокам из белого списка",
     },
@@ -165,6 +153,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       title: "Генерация мира",
       description: "Настройка создания мира и параметров terrain",
       worldSeed: "Сид мира",
+      randomSeed: "Случайный сид",
       worldSeedPlaceholder: "Оставьте пустым для случайного сида",
       maxWorldSize: "Максимальный размер мира",
       maxWorldSizeHelp: "Максимальный радиус границы мира в блоках",
@@ -182,8 +171,8 @@ export const serverSettingsTranslations: TranslationDictionary = {
     dimensionSettings: {
       title: "Настройки измерений",
       description: "Управление доступными измерениями и функциями",
-      allowNether: "Разрешить Nether",
-      allowNetherDescription: "Включить измерение Nether",
+      allowNether: "Разрешить Ад",
+      allowNetherDescription: "Включить измерение Ада",
     },
     spawnSettings: {
       title: "Настройки спавна",
@@ -191,7 +180,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       spawnAnimals: "Спавнить животных",
       spawnAnimalsDescription: "Коровы, свиньи, курицы и т.д",
       spawnMonsters: "Спавнить монстров",
-      spawnMonstersDescription: "Зомби, скелеты, криперсы и т.д",
+      spawnMonstersDescription: "Зомби, скелеты, криперы и т. д.",
       spawnNpcs: "Спавнить NPC",
       spawnNpcsDescription: "Деревенские жители",
     },
@@ -216,48 +205,29 @@ export const serverSettingsTranslations: TranslationDictionary = {
   other: {
     customProperties: {
       title: "Пользовательские свойства",
-      description:
-        "Дополнительные свойства сервера, не включенные в основные категории",
+      description: "Прямо соответствуют server.properties. Неправильные значения могут помешать запуску",
       propertyNamePlaceholder: "имя-свойства",
       propertyValuePlaceholder: "значение свойства",
+      search: "Найти свойство",
+      restore: "Вернуть",
+      remove: "Удалить",
+      notFound: "Нет такого свойства",
+      notFoundHint: "Добавьте его в первой строке таблицы",
+      cancel: "Отмена",
       addProperty: "Добавить свойство",
     },
-    aboutServerProperties: {
-      title: "О свойствах сервера",
-      description: "Понимание конфигурации пользовательских свойств",
-      advancedConfiguration: "Расширенная конфигурация",
-      advancedConfigurationText:
-        'Эти свойства соответствуют непосредственно файлу server.properties. Изменения, сделанные здесь, будут сохранены в этот файл при нажатии "Сохранить изменения". Модифицируйте эти настройки с осторожностью, поскольку они могут повлиять на стабильность сервера',
-    },
-    advancedSettings: {
-      title: "Расширенные настройки",
-      description: "Продолжайте с осторожностью",
-      warning: "Предупреждение",
-      warningText:
-        "Это расширенные свойства сервера. Неправильные значения могут вызвать отказ сервера в запуске или неожиданное поведение. Модифицируйте свойства только если вы знаете, что они делают",
-    },
+  },
+  state: {
+    loadFailed: "Не удалось загрузить настройки сервера",
+    retry: "Повторить",
   },
   notifications: {
     selectImageFile: "Пожалуйста, выберите файл изображения",
     serverIconUploaded: "Иконка сервера загружена успешно",
-    failedToUploadIcon: "Не удалось загрузить иконку",
     settingUpdated: "Настройка обновлена успешно",
-    failedToUpdateSetting: "Не удалось обновить настройку",
-    failedToLoadProperties: "Не удалось загрузить свойства сервера",
     serverRestartInitiated: "Перезапуск сервера инициирован",
-    failedToRestartServer: "Не удалось перезапустить сервер",
+    nameTaken: "Сервер с таким именем уже существует",
     settingsSaved:
       "Настройки сохранены успешно. Перезапустите сервер позже, чтобы применить все изменения",
-    settingsReset: "Настройки сброшены к сохраненным значениям",
-    failedToResetSettings: "Не удалось сбросить настройки",
-    noServerSelected: "Сервер не выбран",
-    failedToSaveProperties: "Не удалось сохранить свойства сервера",
-    javaSettingsUpdated: "Настройки Java обновлены",
-    failedToUpdateJavaSettings: "Не удалось обновить настройки Java",
-  },
-  status: {
-    saving: "Сохранение...",
-    saved: "Сохранено!",
-    error: "Ошибка",
   },
 };

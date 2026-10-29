@@ -1,20 +1,19 @@
+import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
+import { AccessGuard } from "@/modules/auth/guards/access.guard";
+import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
-import { RequirePermissions } from "@/modules/auth/decorators/require-permissions.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permission.guard";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
 import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
 import {
   ApiBearerAuth,
-  ApiExtension,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
-import { UserPermissions } from "@shared/types/user.types";
 import {
   LogFileResponseDto,
   LogSearchResultResponseDto,
@@ -24,7 +23,7 @@ import { ServerLogsService } from "./server-logs.service";
 @ApiTags("Server logs")
 @ApiBearerAuth()
 @Controller("api/server-logs")
-@UseGuards(BearerAuthGuard, PermissionsGuard, ServerAccessGuard)
+@UseGuards(BearerAuthGuard, AccessGuard, ServerAccessGuard)
 export class ServerLogsController {
   constructor(private readonly service: ServerLogsService) {}
 
@@ -34,8 +33,7 @@ export class ServerLogsController {
   @ApiOkResponse({ type: [LogFileResponseDto], description: "Log files" })
   @ApiErrorResponses([401, 403, 404])
   @CheckServerAccess("serverId")
-  @RequirePermissions(UserPermissions.FILE_MANAGER)
-  @ApiExtension("x-permissions", [UserPermissions.FILE_MANAGER])
+  @RequireAccess(AccessArea.FILES, "read")
   list(@Param("serverId") serverId: string): Promise<LogFileResponseDto[]> {
     return this.service.listFiles(serverId);
   }
@@ -53,8 +51,7 @@ export class ServerLogsController {
   @ApiOkResponse({ type: String, description: "Raw log content" })
   @ApiErrorResponses([401, 403, 404])
   @CheckServerAccess("serverId")
-  @RequirePermissions(UserPermissions.FILE_MANAGER)
-  @ApiExtension("x-permissions", [UserPermissions.FILE_MANAGER])
+  @RequireAccess(AccessArea.FILES, "read")
   content(
     @Param("serverId") serverId: string,
     @Query("file") file: string,
@@ -76,8 +73,7 @@ export class ServerLogsController {
   })
   @ApiErrorResponses([401, 403, 404])
   @CheckServerAccess("serverId")
-  @RequirePermissions(UserPermissions.FILE_MANAGER)
-  @ApiExtension("x-permissions", [UserPermissions.FILE_MANAGER])
+  @RequireAccess(AccessArea.FILES, "read")
   search(
     @Param("serverId") serverId: string,
     @Query("file") file: string,

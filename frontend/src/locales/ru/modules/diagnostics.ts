@@ -2,6 +2,8 @@ export const diagnosticsTranslations = {
   title: "Диагностика",
   empty: "Проблем не обнаружено",
   restartFailed: "Не удалось перезапустить сервер",
+  explainPrompt: (title: string, type: string) =>
+    `Панель нашла проблему на этом сервере: "${title}" (${type}). Посмотри консоль и диагностику, объясни причину и как её исправить.`,
   severity: {
     critical: "Критично",
     high: "Высокая",
@@ -34,6 +36,10 @@ export const diagnosticsTranslations = {
     port_bind_failed: {
       title: "Не удалось занять порт сервера",
       description: "Проверьте, не занят ли порт другим приложением, или измените порт сервера",
+    },
+    port_invalid: {
+      title: "Некорректный порт сервера",
+      description: "Порт должен быть от 1 до 65535, исправьте его в настройках сервера",
     },
     world_corruption: {
       title: "Обнаружено повреждение мира",

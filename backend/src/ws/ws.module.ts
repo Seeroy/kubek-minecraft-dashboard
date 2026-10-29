@@ -1,6 +1,5 @@
 import { DatabaseModule } from "@/modules/database/database.module";
 import { SystemMonitoringModule } from "@/modules/system-monitoring/system-monitoring.module";
-import { TelegramBotModule } from "@/modules/telegram-bot/telegram-bot.module";
 import { ServerGateway } from "@/ws/server.gateway";
 import { AuthService } from "@/ws/services/auth.service";
 import { CommandHandlerService } from "@/ws/services/command-handler.service";
@@ -15,12 +14,7 @@ import { ServerEventsService } from "./services/server-events.service";
 
 @Global()
 @Module({
-  imports: [
-    ScheduleModule.forRoot(),
-    DatabaseModule,
-    TelegramBotModule,
-    SystemMonitoringModule,
-  ],
+  imports: [ScheduleModule.forRoot(), DatabaseModule, SystemMonitoringModule],
   providers: [
     ServerGateway,
     AuthService,

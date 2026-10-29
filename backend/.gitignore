@@ -3,7 +3,7 @@
 /node_modules
 /build
 binaries/*
-db.sql
+db.sql*
 servers/*
 backups/*
 blueprints/*

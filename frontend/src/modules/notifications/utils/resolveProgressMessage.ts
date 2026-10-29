@@ -8,7 +8,7 @@ import { type ITask, TaskSteps } from "@shared/types/task.types";
  */
 export function resolveProgressMessage(
   task: ITask,
-  t: (key: string) => string
+  t: (key: string, ...args: unknown[]) => string
 ): string {
   // The docker pull mirrors its live log into message, prefer it over a static label
   if (task.step === TaskSteps.PULLING_IMAGE) {
@@ -25,6 +25,12 @@ export function resolveProgressMessage(
       return t("modules.notifications.tasks.steps.downloadingJava");
     case TaskSteps.UNPACKING_JAVA:
       return t("modules.notifications.tasks.steps.unpackingJava");
+    case TaskSteps.DOWNLOADING_MODS:
+      return t("modules.notifications.tasks.steps.downloadingMods", task.message ?? "");
+    case TaskSteps.APPLYING_OVERRIDES:
+      return t("modules.notifications.tasks.steps.applyingOverrides");
+    case TaskSteps.REGISTERING_CONTENT:
+      return t("modules.notifications.tasks.steps.registeringContent");
     case TaskSteps.CREATING_BAT:
       return t("modules.notifications.tasks.steps.creatingBat");
     case TaskSteps.COMPLETED:

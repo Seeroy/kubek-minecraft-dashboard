@@ -1,6 +1,9 @@
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { toPublicUser } from "@/core/utils/publicUser";
+import { extractClientIp } from "@/core/utils/request";
 import { Audit } from "@/modules/audit-log/audit.decorator";
+import { ipKey } from "@/modules/rate-limit/ip-key";
+import { RateLimitService } from "@/modules/rate-limit/rate-limit.service";
 import {
   Body,
   Controller,
@@ -9,6 +12,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -20,10 +24,11 @@ import {
 } from "@nestjs/swagger";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
+import type { Request } from "express";
 import { CurrentUser } from "../decorators/current-user.decorator";
 import { Public } from "../decorators/public.decorator";
 import { BearerAuthGuard } from "../guards/bearer.guard";
-import { PermissionsGuard } from "../guards/permission.guard";
+import { AccessGuard } from "../guards/access.guard";
 import { ConfirmTotpDto } from "./dto/confirm-totp.dto";
 import { DisableTotpDto } from "./dto/disable-totp.dto";
 import { SwitchChallengeDto } from "./dto/switch-challenge.dto";
@@ -40,9 +45,12 @@ import { TwofaService } from "./twofa.service";
 @ApiTags("Auth 2FA")
 @ApiBearerAuth()
 @Controller("api/auth/2fa")
-@UseGuards(BearerAuthGuard, PermissionsGuard)
+@UseGuards(BearerAuthGuard, AccessGuard)
 export class TwofaController {
-  constructor(private readonly twofa: TwofaService) {}
+  constructor(
+    private readonly twofa: TwofaService,
+    private readonly rateLimit: RateLimitService,
+  ) {}
 
   ///
   /// Public (challenge-based)
@@ -53,7 +61,7 @@ export class TwofaController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Verify TOTP code for an active challenge" })
   @ApiOkResponse({ type: VerifyTotpResponseDto })
-  @ApiErrorResponses([400, 401, 404])
+  @ApiErrorResponses([400, 401, 404, 429])
   verifyTotp(@Body() dto: VerifyTotpDto): VerifyTotpResponseDto {
     const { token, user } = this.twofa.verifyTotpChallenge(
       dto.challengeId,
@@ -67,10 +75,14 @@ export class TwofaController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Switch active 2FA challenge to another method" })
   @ApiOkResponse({ type: SwitchChallengeResponseDto })
-  @ApiErrorResponses([400, 404])
+  @ApiErrorResponses([400, 404, 429])
   async switchChallenge(
     @Body() dto: SwitchChallengeDto,
+    @Req() req: Request,
   ): Promise<SwitchChallengeResponseDto> {
+    // Every switch to Telegram sends a new prompt to the chat
+    this.rateLimit.hit("challenge.switch.ip", ipKey(extractClientIp(req)));
+    this.rateLimit.hit("challenge.switch", dto.challengeId);
     const challenge = await this.twofa.switchChallenge(
       dto.challengeId,
       dto.method,
@@ -135,7 +147,7 @@ export class TwofaController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Confirm TOTP setup" })
   @ApiNoContentResponse({ description: "TOTP confirmed" })
-  @ApiErrorResponses([401, 403])
+  @ApiErrorResponses([400, 401, 403])
   @Audit({
     action: AuditAction.TWOFA_TOTP_ENABLE,
     category: AuditCategory.AUTH,
@@ -149,7 +161,7 @@ export class TwofaController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Disable TOTP" })
   @ApiNoContentResponse({ description: "TOTP disabled" })
-  @ApiErrorResponses([401])
+  @ApiErrorResponses([400, 401, 429])
   @Audit({
     action: AuditAction.TWOFA_TOTP_DISABLE,
     category: AuditCategory.AUTH,
@@ -158,8 +170,9 @@ export class TwofaController {
   async disableTotp(
     @CurrentUser() user: IUser,
     @Body() dto: DisableTotpDto,
+    @Req() req: Request,
   ): Promise<void> {
-    await this.twofa.disableTotp(user, dto.password);
+    await this.twofa.disableTotp(user, dto.password, extractClientIp(req));
   }
 
   @Post("telegram/enable")

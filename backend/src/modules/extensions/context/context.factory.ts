@@ -13,6 +13,7 @@ import type {
   KubekExtensionContext,
 } from "@kubekpanel/extension-sdk";
 import { Injectable, Logger } from "@nestjs/common";
+import { isLegacyPermission } from "@shared/access/legacy";
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -100,7 +101,8 @@ export class ContextFactory {
       permissions: {
         has: (user: ExtUser, key: string) =>
           Boolean(user.isAdmin) ||
-          (this.permissions.has(key) && user.permissions.includes(key)),
+          ((isLegacyPermission(key) || this.permissions.has(key)) &&
+            user.permissions.includes(key)),
       },
       storage: has("storage")
         ? createStorageApi(extId, this.kv)

@@ -5,37 +5,40 @@ import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
 import { useUpdateCheckQuery } from "@/modules/settings/api/about.queries";
 import {
   adminNavigation,
-  allNavigation,
   navigation,
   serverScopedRoutes,
   type NavItem,
 } from "@/modules/sidebar/data/navigation";
+import { useCurrentSection } from "@/modules/sidebar/hooks/useCurrentSection";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { meetsAccess } from "@/shared/lib/access";
 import { routeAllowedByBlueprint } from "@/shared/lib/serverRestrictions";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { useSidebarStore } from "@/shared/stores/sidebar-store";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { UserPermissions } from "@shared/types/user.types";
-import { motion } from "framer-motion";
-import { type LucideIcon } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { AccessArea } from "@shared/access/areas";
 import { AdminNavigationSection } from "./AdminNavigationSection";
 import { LockedNavItem } from "./LockedNavItem";
-import { NavLink, type NavIcon } from "./NavLink";
+import { NavLink } from "./NavLink";
 import { UpdateIndicator } from "./UpdateIndicator";
-
-// Nav animation params
-const NAV_TRANSITION = { duration: 0.35, ease: [0.22, 1, 0.36, 1] } as const;
 
 // Nav item that surfaces the "update available" indicator
 const PANEL_SETTINGS_HREF = "/panel-settings";
 
-const Navigation = () => {
-  const pathname = usePathname();
-  const { setPage, close } = useSidebarStore();
+function GroupLabel({ children }: { children: string }) {
+  return (
+    <div className="px-2 pt-3 pb-1 sidebar-mini:py-2">
+      <span className="label-caps sidebar-mini:hidden">{children}</span>
+      <span className="hidden h-px bg-sidebar-border sidebar-mini:block" />
+    </div>
+  );
+}
+
+export default function Navigation() {
+  const activeKey = useCurrentSection()?.key;
+  const closeDrawer = useSidebarStore((s) => s.close);
   const { selectedServer } = useServerStore();
-  const hasPermission = useAuthStore((s) => s.hasPermission);
+  const can = useAuthStore((s) => s.can);
   const canAccessItem = useAuthStore((s) => s.canAccessItem);
   const user = useAuthStore((s) => s.user);
   const { t } = useTranslation("modules.sidebar");
@@ -46,69 +49,45 @@ const Navigation = () => {
   const serverBlueprint = useBlueprint(selectedServer?.blueprintId);
   const extensionItems = useExtensionSidebarItems();
 
-  // Only admins can reach the update-check endpoint; gate the query accordingly
-  const canCheckUpdates = hasPermission(UserPermissions.KUBEK_SETTINGS);
+  // The update-check endpoint needs panel manage
   const hasUpdate =
-    useUpdateCheckQuery(canCheckUpdates).data?.updateAvailable ?? false;
+    useUpdateCheckQuery(can(AccessArea.PANEL, "manage")).data?.updateAvailable ?? false;
 
-  useEffect(() => {
-    const found = allNavigation.find((item) => item.href === pathname);
-    if (found) {
-      setPage(t(found.nameKey), found.icon);
-    }
-  }, [pathname, setPage, t]);
-
-  const allowedByBlueprint = useMemo(() => {
-    return (href: string) =>
-      serverBlueprint ? routeAllowedByBlueprint(href, serverBlueprint) : true;
-  }, [serverBlueprint]);
-
-  const filteredNavigation = useMemo(() => {
-    if (!user) return [];
-    return navigation.filter(
-      (item) =>
-        (selectedServer || !serverScopedRoutes.has(item.href)) &&
-        allowedByBlueprint(item.href)
+  if (!user) {
+    return (
+      <nav className="min-h-0 flex-1 space-y-1 overflow-hidden p-3" aria-busy="true">
+        {navigation.map((item) => (
+          <div key={item.href} className="flex h-[38px] items-center gap-3 px-2.5">
+            <Skeleton className="size-[18px] rounded-sm" />
+            <Skeleton className="h-3.5 w-24 sidebar-mini:hidden" />
+          </div>
+        ))}
+      </nav>
     );
-  }, [user, selectedServer, allowedByBlueprint]);
+  }
 
-  const filteredAdminNavigation = useMemo(() => {
-    if (!user) return [];
-    return adminNavigation.filter((item) => allowedByBlueprint(item.href));
-  }, [user, allowedByBlueprint]);
+  const allowed = (item: NavItem) =>
+    !serverBlueprint || routeAllowedByBlueprint(item.href, serverBlueprint);
+  const panelItems = navigation.filter((item) => !serverScopedRoutes.has(item.href) && allowed(item));
+  const serverItems = selectedServer
+    ? navigation.filter((item) => serverScopedRoutes.has(item.href) && allowed(item))
+    : [];
+  const adminItems = adminNavigation.filter(allowed);
+  const visibleExtensions = extensionItems.filter((item) => canAccessItem(item.permission));
 
-  const handleLinkClick = (name: string, icon: NavIcon) => {
-    setPage(name, icon as LucideIcon);
-    if (window.innerWidth < 768) close();
-  };
-
-  // Renders a static navigation entry (locked card or active link)
-  const renderNavItem = (item: NavItem) => {
-    const translatedName = t(item.nameKey);
-    const isLocked =
-      item.permission !== null &&
-      item.permission !== undefined &&
-      !hasPermission(item.permission);
-
-    if (isLocked) {
-      return (
-        <LockedNavItem
-          key={item.href}
-          icon={item.icon}
-          label={translatedName}
-          lockedLabel={t("navigation.locked")}
-        />
-      );
+  const renderItem = (item: NavItem) => {
+    const label = t(item.nameKey);
+    if (!meetsAccess(user, item.access, serverScopedRoutes.has(item.href) ? selectedServer?.id : null)) {
+      return <LockedNavItem key={item.href} icon={item.icon} label={label} lockedLabel={t("navigation.locked")} />;
     }
-
     return (
       <NavLink
         key={item.href}
         href={item.href}
         icon={item.icon}
-        label={translatedName}
-        isActive={pathname === item.href}
-        onClick={() => handleLinkClick(translatedName, item.icon)}
+        label={label}
+        isActive={activeKey === item.href}
+        onClick={closeDrawer}
         badge={
           item.href === PANEL_SETTINGS_HREF && hasUpdate ? (
             <UpdateIndicator label={t("navigation.updateAvailable")} />
@@ -118,56 +97,36 @@ const Navigation = () => {
     );
   };
 
-  if (!user) {
-    return (
-      <nav
-        className="grid min-h-0 flex-1 scrollbar-thin grid-cols-3 content-start gap-2 overflow-y-auto p-3 md:flex md:flex-col md:gap-0 md:space-y-1"
-        aria-busy="true"
-      >
-        {allNavigation.map((item) => (
-          <div
-            key={item.href}
-            className="flex aspect-square shrink-0 flex-col items-center justify-center gap-1.5 rounded-lg p-3 md:aspect-auto md:h-10 md:flex-row md:items-center md:justify-start md:gap-3 md:px-3 md:py-0"
-          >
-            <Skeleton className="h-5 w-5 rounded-md md:h-[18px] md:w-[18px]" />
-            <Skeleton className="h-3 w-12 md:h-3.5 md:w-24" />
-          </div>
-        ))}
-      </nav>
-    );
-  }
-
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={NAV_TRANSITION}
-      className="grid min-h-0 flex-1 scrollbar-thin auto-rows-max grid-cols-3 gap-2 overflow-y-auto p-3 md:flex md:flex-col md:gap-0 md:space-y-1"
+    <nav
+      aria-label={t("layout.mainNav")}
+      className="min-h-0 flex-1 scrollbar-thin overflow-y-auto p-3 sidebar-mini:p-2"
     >
-      {filteredNavigation.map(renderNavItem)}
+      {panelItems.map(renderItem)}
 
-      {/* Sidebar items contributed by active extensions */}
-      {extensionItems
-        .filter((item) => canAccessItem(item.permission))
-        .map((item) => (
+      {serverItems.length > 0 && (
+        <>
+          <GroupLabel>{t("navigation.server")}</GroupLabel>
+          {serverItems.map(renderItem)}
+        </>
+      )}
+
+      {visibleExtensions.length > 0 && (
+        <div className="mt-1">
+        {visibleExtensions.map((item) => (
           <NavLink
             key={item.href}
             href={item.href}
             icon={item.icon}
             label={tGlobal(item.label)}
-            isActive={pathname === item.href}
-            onClick={() => handleLinkClick(tGlobal(item.label), item.icon)}
+            isActive={activeKey === item.href}
+            onClick={closeDrawer}
           />
         ))}
+        </div>
+      )}
 
-      {/* Collapsible Administration group for secondary items */}
-      <AdminNavigationSection
-        items={filteredAdminNavigation}
-        title={t("navigation.administration")}
-        renderItem={renderNavItem}
-      />
-    </motion.nav>
+      <AdminNavigationSection items={adminItems} title={t("navigation.administration")} renderItem={renderItem} />
+    </nav>
   );
-};
-
-export default Navigation;
+}

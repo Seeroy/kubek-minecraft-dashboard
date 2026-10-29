@@ -32,12 +32,14 @@ export const ru: typeof en = {
     servers: "Список серверов",
     language: "Сменить язык",
     unlink: "Отвязать аккаунт",
+    status: "Статус сервера по id",
   },
   servers: {
     none: "📭 У вас нет доступных серверов.",
     title: (p) => `🎮 <b>Серверы</b> · страница ${p.page}/${p.total}`,
     fetchError: "❌ Не удалось получить серверы. Попробуйте позже.",
     invalidPage: "❌ Неверный номер страницы.",
+    columns: { name: "Сервер", status: "Статус", version: "Версия" },
   },
   status: {
     usage: "📝 Использование: /status &lt;id_сервера&gt;",
@@ -48,7 +50,7 @@ export const ru: typeof en = {
   },
   actions: {
     noPermissionManage: "🚫 У вас нет прав на управление этим сервером.",
-    success: (p) => `✅ «${p.name}»: команда ${p.action} отправлена! 🚀`,
+    success: (p) => `✅ "${p.name}": команда ${p.action} отправлена! 🚀`,
     failed: (p) => `❌ Не удалось выполнить ${p.action}. Попробуйте позже.`,
   },
   unlink: {
@@ -57,6 +59,8 @@ export const ru: typeof en = {
   },
   otp: {
     invalid: "❌ Неверный или просроченный OTP-код.",
+    tooMany: (p) =>
+      `⛔ Слишком много неверных кодов. Попробуйте через ${p.minutes} мин.`,
     accountLinkedElsewhere:
       "❌ Этот аккаунт Kubek уже привязан к другому Telegram.",
     telegramLinkedElsewhere:
@@ -81,10 +85,16 @@ export const ru: typeof en = {
     createServer: "➕ Новый сервер",
     cancel: "✖️ Отмена",
     confirm: "✅ Создать",
+    open: "Открыть",
+    copyAddress: "📋 Адрес",
+    copyId: "🆔 ID",
   },
   twofa: {
     request: (p) =>
       `🔐 <b>Запрос на вход</b>\n\n👤 ${p.username}\n🌐 IP: <code>${p.ip}</code>\n🖥️ UA: <code>${p.ua}</code>\n\nПодтвердите или отклоните вход в течение 3 минут.`,
+    title: "🔐 Запрос на вход",
+    hint: "Подтвердите или отклоните вход в течение 3 минут.",
+    labels: { account: "Аккаунт", ip: "IP", browser: "Браузер", time: "Время" },
     approve: "✅ Подтвердить",
     deny: "❌ Отклонить",
     approved: "✅ Вход подтверждён",
@@ -117,16 +127,34 @@ export const ru: typeof en = {
       `🧾 <b>Подтверждение</b>\n\n📛 Имя: <b>${p.name}</b>\n⚙️ Тип: ${p.blueprint}\n🏷️ Версия: ${p.version}`,
     creating: "🚀 Создание запущено!",
     cancelled: "✖️ Создание сервера отменено.",
-    created: (p) => `✅ Сервер «${p.name}» готов! 🎉`,
+    created: (p) => `✅ Сервер "${p.name}" готов! 🎉`,
     failed: (p) => `❌ Не удалось создать: ${p.error}`,
     progress: (p) =>
-      `🚀 Создаётся «${p.name}»…\n<code>${p.bar} ${p.progress}%</code>`,
+      `🚀 Создаётся "${p.name}"…\n<code>${p.bar} ${p.progress}%</code>`,
+  },
+  notify: {
+    serverStatus: (p) => `🖥️ <b>${p.name}</b>: ${p.status}`,
+    serverError: (p) => `🚨 <b>${p.name}</b>: ошибка <code>${p.error}</code>`,
+    login: (p) =>
+      `🔐 Вход в аккаунт <b>${p.username}</b> с <code>${p.ip}</code>`,
+    backupOps: {
+      create: "создание",
+      upload: "выгрузку",
+      restore: "восстановление",
+    },
+    backupFailed: (p) =>
+      `💾 <b>${p.name}</b>: не удалось выполнить ${p.op} бэкапа <b>${p.backup}</b>\n<code>${p.error}</code>`,
+    storageUnreachable: (p) =>
+      `☁️ Хранилище <b>${p.name}</b> недоступно\n<code>${p.error}</code>`,
+    locked: (p) =>
+      `⛔ Слишком много неудачных попыток входа с <code>${p.ip}</code>. Попытки заблокированы на ${p.minutes} мин`,
   },
   statusValues: {
     running: "🟢 Запущен",
     stopped: "🔴 Остановлен",
     starting: "🟡 Запускается",
     stopping: "🟠 Останавливается",
+    crashed: "💥 Упал",
     error: "❌ Ошибка",
     unknown: "⚪ Неизвестно",
   },
@@ -134,11 +162,13 @@ export const ru: typeof en = {
     done: "выполнена",
     failed: "завершилась с ошибкой",
     cancelled: "отменена",
-    title: (p) => `${p.emoji} Задача «${p.type}» ${p.status}`,
-    duration: (p) => `⏱️ Длительность: ${p.value}`,
-    server: (p) => `🖥️ Сервер: ${p.name}`,
-    plugin: (p) => `🧩 Плагин: ${p.name}`,
-    error: (p) => `Ошибка: ${p.message}`,
+    title: (p) => `${p.emoji} Задача "${p.type}" ${p.status}`,
+    labels: {
+      server: "🖥️ Сервер",
+      plugin: "🧩 Плагин",
+      duration: "⏱️ Длительность",
+      finishedAt: "🕒 Завершена",
+    },
     units: { ms: "мс", sec: "с", min: "м", hour: "ч" },
   },
 };

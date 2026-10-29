@@ -1,8 +1,11 @@
+import { getErrorMessage } from "@/core/utils/error";
 import { TelegramUsersRepository } from "@/modules/database/repositories/telegram-users.repository";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import type { TelegramLang } from "@/modules/telegram-bot/telegram.types";
-import { Bot, InlineKeyboard } from "grammy";
-import { escapeHtml } from "./bot-reply";
+import { Bot } from "grammy";
+import { renderTwofaRequest } from "./bot-format";
+import { twofaKeyboard } from "./bot-keyboards";
+import { isNotModified, isUnreachable, sendRich } from "./bot-reply";
 import type { MyContext } from "./bot-types";
 import { t } from "./i18n";
 
@@ -17,6 +20,7 @@ export type TwofaResolver = (
  */
 @Injectable()
 export class BotTwofaService {
+  private readonly logger = new Logger(BotTwofaService.name);
   private bot: Bot<MyContext> | null = null;
   private resolver: TwofaResolver | null = null;
 
@@ -49,12 +53,17 @@ export class BotTwofaService {
       const key = `twofa.errors.${result.reason ?? "generic"}`;
       return void ctx.answerCallbackQuery(t(lang, key));
     }
+    const verdict = t(
+      lang,
+      decision === "approve" ? "twofa.approved" : "twofa.denied",
+    );
     try {
-      await ctx.editMessageText(
-        t(lang, decision === "approve" ? "twofa.approved" : "twofa.denied"),
-      );
-    } catch {
-      // message may be too old to edit
+      await ctx.editMessageText(verdict);
+    } catch (error) {
+      // the request card may be rich, so try a rich edit
+      if (!isNotModified(error)) {
+        await ctx.editMessageText({ html: verdict }).catch(() => {});
+      }
     }
     await ctx.answerCallbackQuery(
       t(
@@ -75,23 +84,17 @@ export class BotTwofaService {
     if (!tgUser || !tgUser.isActive) return null;
 
     const lang = tgUser.language ?? "en";
-    const text = t(lang, "twofa.request", {
-      username: escapeHtml(meta.username),
-      ip: escapeHtml(meta.ip ?? "?"),
-      ua: escapeHtml((meta.userAgent ?? "?").slice(0, 120)),
-    });
-    const keyboard = new InlineKeyboard()
-      .text(t(lang, "twofa.approve"), `2fa:approve:${challengeId}`)
-      .text(t(lang, "twofa.deny"), `2fa:deny:${challengeId}`);
-
     try {
-      const sent = await this.bot.api.sendMessage(tgUser.id, text, {
-        parse_mode: "HTML",
-        reply_markup: keyboard,
-      });
+      const sent = await sendRich(
+        this.bot.api,
+        tgUser.id,
+        renderTwofaRequest(lang, meta, Date.now()),
+        twofaKeyboard(lang, challengeId),
+      );
       return { chatId: tgUser.id, messageId: sent.message_id };
     } catch (err) {
-      console.error("[TelegramBot] sendApprovalRequest failed:", err);
+      if (isUnreachable(err)) this.telegramUsersRepo.deactivate(tgUser.id);
+      this.logger.error(`sendApprovalRequest failed: ${getErrorMessage(err)}`);
       return null;
     }
   }

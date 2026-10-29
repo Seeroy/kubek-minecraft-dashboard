@@ -1,6 +1,7 @@
 import type { TranslationDictionary } from "../../../locales/types";
 
 export const notificationsTranslations: TranslationDictionary = {
+  close: "Close",
   serverStatus: {
     started: "The instance is now running",
     stopped: "The instance has been stopped",
@@ -28,6 +29,9 @@ export const notificationsTranslations: TranslationDictionary = {
       downloadingJava: "Downloading Java runtime…",
       unpackingJava: "Unpacking Java runtime…",
       creatingBat: "Finalizing startup scripts…",
+      downloadingMods: (progress: string) => `Downloading mods ${progress}`,
+      applyingOverrides: "Applying pack settings…",
+      registeringContent: "Linking mods to Modrinth…",
       completed: "Finalizing setup…",
     },
     plugin: {
@@ -56,6 +60,9 @@ export const notificationsTranslations: TranslationDictionary = {
       createInProgressTitle: (name: string) => `Creating backup for ${name}`,
       restoreInProgressTitle: (name: string) => `Restoring backup for ${name}`,
       deleteInProgressTitle: (name: string) => `Deleting backup for ${name}`,
+      uploadInProgressTitle: (name: string) => `Uploading backup for ${name}`,
+      uploadedTitle: (name: string) => `Backup for ${name} uploaded`,
+      uploadFailedTitle: (name: string) => `Failed to upload backup for ${name}`,
       inProgressMessage: "Operation is running in the background…",
       createdTitle: (name: string) => `Backup for ${name} created`,
       restoredTitle: (name: string) => `Backup for ${name} restored`,
@@ -93,11 +100,5 @@ export const notificationsTranslations: TranslationDictionary = {
         "The core change was interrupted. Check the logs and try again",
     },
     defaultProgress: "Provisioning your server…",
-  },
-  updateAvailable: {
-    title: "Update Available",
-    message: (version: string, notes: string) =>
-      `New version available: ${version}`,
-    viewRelease: "View Release",
   },
 };

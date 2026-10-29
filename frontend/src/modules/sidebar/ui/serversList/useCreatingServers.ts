@@ -6,7 +6,8 @@ import {
 } from "@/modules/server/modals/CreateServerModal/stages";
 import { useServerCreationStore } from "@/modules/server/store/server-creation.store";
 import { useLanguageContext } from "@/shared/context/language-context";
-import { TaskStatus, type ITask } from "@shared/types/task.types";
+import { isTaskActive } from "@/shared/lib/task-status";
+import type { ITask } from "@shared/types/task.types";
 import { useMemo } from "react";
 
 /**
@@ -21,7 +22,7 @@ export function useCreatingServers(): Map<string, CreationStatusView> {
     for (const c of Object.values(creations)) {
       if (
         c.serverId &&
-        (c.status === TaskStatus.PENDING || c.status === TaskStatus.RUNNING)
+        isTaskActive(c)
       ) {
         map.set(c.serverId, {
           progress: creationOverallPercent(c),

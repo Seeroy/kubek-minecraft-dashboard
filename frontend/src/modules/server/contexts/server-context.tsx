@@ -1,12 +1,25 @@
 "use client";
 import { useSocketStore } from "@/shared/context/socket-context";
+import { serverRoom, WsRoomEventTypes } from "@shared/types/ws/room-events.types";
+import { WsServerEventTypes } from "@shared/types/ws/server-events.types";
+import type {
+  WsServerListItem,
+  WsServerQueryData,
+  WsServerStatusUpdate,
+} from "@shared/types/ws/server-payloads.types";
+import { useQueryClient } from "@tanstack/react-query";
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from "react";
+import {
+  applyServerListPush,
+  useServersListQuery,
+} from "../api/servers.queries";
 import { useServerStatusesStore } from "../store/server-statuses.store";
 import type { Server, ServerStatusData } from "../types";
 
@@ -15,210 +28,95 @@ export type { Server, ServerStatusData };
 interface ServerContextValue {
   servers: Server[];
   selectedServer: Server | null;
-  setServers: (servers: Server[]) => void;
   selectServer: (serverId: string) => void;
-  updateServer: (serverId: string, updates: Partial<Server>) => void;
-  clear: () => void;
 }
 
 const ServerContext = createContext<ServerContextValue | undefined>(undefined);
 
 const LOCAL_KEY = "selected_server_id";
+const NO_SERVERS: Server[] = [];
+
+const readSavedId = () => {
+  try {
+    return localStorage.getItem(LOCAL_KEY);
+  } catch {
+    return null;
+  }
+};
+
+/** Picked server, else the saved one, else the first */
+function pickSelected(servers: Server[], selectedId: string | null) {
+  if (servers.length === 0) return null;
+  const savedId = readSavedId();
+  return (
+    servers.find((s) => s.id === selectedId) ??
+    servers.find((s) => s.id === savedId) ??
+    servers[0]
+  );
+}
 
 export function ServerProvider({ children }: { children: React.ReactNode }) {
-  const [servers, setServersState] = React.useState<Server[]>([]);
-  const [selectedServer, setSelectedServer] = React.useState<Server | null>(
-    null
+  const queryClient = useQueryClient();
+  const { data: servers = NO_SERVERS } = useServersListQuery();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { subscribe, unsubscribe, socket, status } = useSocketStore();
+
+  const selectedServer = useMemo(
+    () => pickSelected(servers, selectedId),
+    [servers, selectedId]
   );
-  const { subscribe, unsubscribe, socket } = useSocketStore();
-
-  const serverIdsKey = servers.map((s) => s.id).join(",");
-  useEffect(() => {
-    const savedId = localStorage.getItem(LOCAL_KEY);
-    if (savedId && servers.length > 0) {
-      const savedServer = servers.find((s) => s.id === savedId);
-      if (savedServer) {
-        setSelectedServer(savedServer);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverIdsKey]);
-
-  const setServers = useCallback((newServers: Server[]) => {
-    // The socket list payload is reduced
-    const isSocketUpdate =
-      newServers.length > 0 &&
-      newServers.some((server) => !("restartOnError" in server));
-
-    setServersState((prevServers) => {
-      if (isSocketUpdate) {
-        return newServers.map((newServer) => {
-          const existingServer = prevServers.find((s) => s.id === newServer.id);
-          if (existingServer) {
-            return {
-              ...newServer,
-              restartOnError: existingServer.restartOnError,
-            };
-          }
-          return newServer;
-        });
-      } else {
-        return newServers;
-      }
-    });
-
-    if (newServers.length === 0) {
-      setSelectedServer(null);
-      return;
-    }
-
-    setSelectedServer((current) => {
-      if (current) {
-        const updatedServer = newServers.find((s) => s.id === current.id);
-        if (updatedServer) {
-          if (isSocketUpdate) {
-            return { ...updatedServer, restartOnError: current.restartOnError };
-          } else {
-            return updatedServer;
-          }
-        }
-      }
-
-      const savedId = localStorage.getItem(LOCAL_KEY);
-      const savedServer = newServers.find((s) => s.id === savedId);
-      return savedServer || newServers[0] || null;
-    });
-  }, []);
 
   const selectServer = useCallback(
     (serverId: string) => {
-      const previousServer = selectedServer;
-      const newServer = servers.find((s) => s.id === serverId);
-      if (!newServer) return;
-
-      if (previousServer) {
-        socket?.emit("room:unsubscribe", `server:${previousServer.id}`);
-      }
-      socket?.emit("room:subscribe", `server:${newServer.id}`);
-
-      setSelectedServer(newServer);
-      localStorage.setItem(LOCAL_KEY, newServer.id);
+      if (!servers.some((s) => s.id === serverId)) return;
+      setSelectedId(serverId);
+      localStorage.setItem(LOCAL_KEY, serverId);
     },
-    [selectedServer, servers, socket?.emit]
+    [servers]
   );
 
-  const updateServer = useCallback(
-    (serverId: string, updates: Partial<Server>) => {
-      setServersState((prev) =>
-        prev.map((server) =>
-          server.id === serverId ? { ...server, ...updates } : server
-        )
-      );
-      setSelectedServer((current) =>
-        current?.id === serverId ? { ...current, ...updates } : current
-      );
-    },
-    []
-  );
+  useEffect(() => {
+    const handleServerList = (rows: WsServerListItem[]) =>
+      applyServerListPush(queryClient, rows);
 
-  const clear = useCallback(() => {
-    if (selectedServer) {
-      socket?.emit("room:unsubscribe", `server:${selectedServer.id}`);
-    }
-    setServersState([]);
-    setSelectedServer(null);
-    useServerStatusesStore.getState().clearAll();
-    localStorage.removeItem(LOCAL_KEY);
-  }, [selectedServer, socket?.emit]);
-
-  const handleServerList = useCallback(
-    (servers: Server[]) => {
-      setServers(servers);
-      // Seed the status store so per-server selectors have data before the
-      // first status_update tick arrives
-      const store = useServerStatusesStore.getState();
-      for (const server of servers) {
-        if (server.status) {
-          store.updateStatus({ serverId: server.id, status: server.status });
-        }
-      }
-    },
-    [setServers]
-  );
-
-  const handleServerStatusUpdate = useCallback(
-    (data: {
-      serverId: string;
-      status:
-        | ServerStatusData["status"]
-        | { status: ServerStatusData["status"] };
-      timestamp: string;
-    }) => {
-      const statusValue =
-        typeof data.status === "string"
-          ? data.status
-          : data.status?.status || "unknown";
-
-      // Live status lives only in the status store
+    // Live status lives only in the status store
+    const handleServerStatusUpdate = (data: WsServerStatusUpdate) =>
       useServerStatusesStore.getState().updateStatus({
         serverId: data.serverId,
-        status: statusValue,
+        status: data.status.status,
         timestamp: data.timestamp,
       });
-    },
-    []
-  );
 
-  const handleServerQueryData = useCallback(
-    (data: {
-      serverId: string;
-      players?: { online: number; max: number; list?: string[] };
-      version?: string;
-      runtime?: { playersOnline?: number; startedAt?: string };
-      error?: string;
-      timestamp: string;
-    }) => {
+    const handleServerQueryData = (data: WsServerQueryData) =>
       useServerStatusesStore.getState().updateQueryData(data.serverId, data);
-    },
-    []
-  );
 
-  useEffect(() => {
-    subscribe("server:list", handleServerList);
-    subscribe("server:status_update", handleServerStatusUpdate);
-    subscribe("server:query_data", handleServerQueryData);
+    subscribe(WsServerEventTypes.LIST, handleServerList);
+    subscribe(WsServerEventTypes.STATUS_UPDATE, handleServerStatusUpdate);
+    subscribe(WsServerEventTypes.QUERY_DATA, handleServerQueryData);
 
     return () => {
-      unsubscribe("server:list", handleServerList);
-      unsubscribe("server:status_update", handleServerStatusUpdate);
-      unsubscribe("server:query_data", handleServerQueryData);
+      unsubscribe(WsServerEventTypes.LIST, handleServerList);
+      unsubscribe(WsServerEventTypes.STATUS_UPDATE, handleServerStatusUpdate);
+      unsubscribe(WsServerEventTypes.QUERY_DATA, handleServerQueryData);
     };
-  }, [
-    subscribe,
-    unsubscribe,
-    handleServerList,
-    handleServerStatusUpdate,
-    handleServerQueryData,
-  ]);
+  }, [subscribe, unsubscribe, queryClient]);
 
+  // The only room subscribe, rooms are lost on reconnect so it depends on status
+  const selectedServerId = selectedServer?.id;
   useEffect(() => {
-    if (!selectedServer) return;
-    socket?.emit("room:subscribe", `server:${selectedServer.id}`);
+    if (!socket || !selectedServerId || status !== "connected") return;
+    socket.emit(WsRoomEventTypes.ROOM_SUBSCRIBE, serverRoom(selectedServerId));
     return () => {
-      socket?.emit("room:unsubscribe", `server:${selectedServer.id}`);
+      socket.emit(
+        WsRoomEventTypes.ROOM_UNSUBSCRIBE,
+        serverRoom(selectedServerId)
+      );
     };
-  }, [selectedServer?.id, socket?.emit]);
+  }, [socket, status, selectedServerId]);
 
   const value = useMemo<ServerContextValue>(
-    () => ({
-      servers,
-      selectedServer,
-      setServers,
-      selectServer,
-      updateServer,
-      clear,
-    }),
-    [servers, selectedServer, setServers, selectServer, updateServer, clear]
+    () => ({ servers, selectedServer, selectServer }),
+    [servers, selectedServer, selectServer]
   );
 
   return (

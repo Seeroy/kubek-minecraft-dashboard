@@ -1,6 +1,6 @@
 import type { BatchPathsDto, CreateArchiveDto, ExtractArchiveDto } from "@/api";
 import { api } from "@/api";
-import type { IFile } from "@shared/types/file.types";
+import { FileType, type IFile } from "@shared/types/file.types";
 import {
   keepPreviousData,
   useMutation,
@@ -67,5 +67,54 @@ export function useExtractFilesArchiveMutation(serverId: string | undefined) {
   return useMutation({
     mutationFn: (data: ExtractArchiveDto) =>
       api.files.extractArchive(serverId!, data),
+  });
+}
+
+/** File content for the editor, not cached */
+export function useReadFileMutation(serverId: string | undefined) {
+  return useMutation({
+    mutationFn: (path: string) => api.files.readFile(serverId!, path),
+    meta: { silent: true },
+  });
+}
+
+export function useWriteFileMutation(serverId: string | undefined) {
+  return useMutation({
+    mutationFn: (data: { path: string; data: string }) =>
+      api.files.writeFile(serverId!, data),
+    meta: { silent: true },
+  });
+}
+
+export function useCreateDirectoryMutation(serverId: string | undefined) {
+  return useMutation({
+    mutationFn: (data: { path: string; name: string }) =>
+      api.files.createDirectory(serverId!, data),
+    meta: { silent: true },
+  });
+}
+
+export function useUploadFileMutation(serverId: string | undefined) {
+  return useMutation({
+    mutationFn: ({ path, file }: { path: string; file: File }) =>
+      api.files.uploadFile(serverId!, path, file),
+    meta: { silent: true },
+  });
+}
+
+export function useDeleteEntryMutation(serverId: string | undefined) {
+  return useMutation({
+    mutationFn: (file: Pick<IFile, "path" | "type">) =>
+      file.type === FileType.DIRECTORY
+        ? api.files.deleteDirectory(serverId!, { path: file.path })
+        : api.files.deleteFile(serverId!, { path: file.path }),
+    meta: { silent: true },
+  });
+}
+
+export function useDownloadFileMutation(serverId: string | undefined) {
+  return useMutation({
+    mutationFn: (path: string) => api.files.downloadFile(serverId!, path),
+    meta: { silent: true },
   });
 }

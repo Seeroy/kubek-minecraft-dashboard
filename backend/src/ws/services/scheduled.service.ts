@@ -4,6 +4,7 @@ import type { ServerInstance } from "@/modules/instances/instance";
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { KubekService } from "@/modules/kubek/kubek.service";
 import { SystemMonitoringService } from "@/modules/system-monitoring/system-monitoring.service";
+import { toServerListItem } from "@/ws/server-list";
 import { ServerBroadcastService } from "@/ws/services/server-broadcast.service";
 import { ServerEventsService } from "@/ws/services/server-events.service";
 import { Injectable } from "@nestjs/common";
@@ -43,15 +44,9 @@ export class WsScheduledService {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   broadcastServersList() {
-    const servers = this.serversRepo.findAll().map((server) => ({
-      id: server.id,
-      name: server.name,
-      status: server.status,
-      folderId: server.folderId ?? null,
-      blueprintId: server.blueprintId,
-      variables: server.variables,
-    }));
-    this.broadcast.emitServersList(servers);
+    this.broadcast.emitServersList(
+      this.serversRepo.findAll().map(toServerListItem),
+    );
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
@@ -59,7 +54,7 @@ export class WsScheduledService {
     const instances = this.instancesRegistry.findAll();
     for (const instance of instances) {
       if (!instance.pid) continue;
-      let reachable = false;
+      let reachable: boolean;
       try {
         reachable = !!(await instance.queryServer());
       } catch {
@@ -118,7 +113,6 @@ export class WsScheduledService {
         timestamp: new Date().toISOString(),
       });
       this.serverEvents.emitServerError(serverId, {
-        type: "error",
         errorType: "server_unresponsive",
         severity: "high",
       });
@@ -134,13 +128,21 @@ export class WsScheduledService {
 
     if (activeOtps.length === 0) return;
 
-    const latestOtp = activeOtps.sort((a, b) => b.createdAt - a.createdAt)[0];
-    const timeLeft = Math.max(0, Math.ceil((latestOtp.expiresAt - now) / 1000));
+    // Latest code per user, countdown goes only to its owner
+    const latest = new Map<string, (typeof activeOtps)[number]>();
+    for (const otp of activeOtps) {
+      const current = latest.get(otp.userId);
+      if (!current || otp.createdAt > current.createdAt) {
+        latest.set(otp.userId, otp);
+      }
+    }
 
-    this.broadcast.emitOtpUpdate({
-      code: "",
-      expiresAt: latestOtp.expiresAt,
-      countdown: timeLeft,
-    });
+    for (const [userId, otp] of latest) {
+      this.broadcast.emitOtpUpdate(userId, {
+        code: "",
+        expiresAt: otp.expiresAt,
+        countdown: Math.max(0, Math.ceil((otp.expiresAt - now) / 1000)),
+      });
+    }
   }
 }

@@ -1,4 +1,6 @@
 import { ApiErrorCode } from "@/core/errors/error-codes";
+import { PasswordRecheckService } from "@/modules/rate-limit/password-recheck.service";
+import { RateLimitService } from "@/modules/rate-limit/rate-limit.service";
 import { AccountsService } from "@/modules/accounts/accounts.service";
 import { ConfigService } from "@/modules/config/config.service";
 import {
@@ -7,7 +9,7 @@ import {
 } from "@/modules/database/repositories/auth-challenges.repository";
 import { TelegramUsersRepository } from "@/modules/database/repositories/telegram-users.repository";
 import { SessionsService } from "@/modules/sessions/sessions.service";
-import { TelegramBotService } from "@/modules/telegram-bot/telegram-bot.service";
+import { BotTwofaService } from "@/modules/telegram-bot/bot-twofa.service";
 import {
   BadRequestException,
   ForbiddenException,
@@ -18,7 +20,6 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import type { IUser, TwoFactorMethod } from "@shared/types/user.types";
-import * as bcrypt from "bcryptjs";
 import { createHmac, randomBytes, randomUUID } from "crypto";
 import { generateSecret, generateURI, verifySync } from "otplib";
 import * as qrcode from "qrcode";
@@ -35,6 +36,14 @@ interface SetupTokenPayload {
   exp: number;
 }
 
+// Setup runs inside a live session, so a bad token is a 400 and not a sign-out
+function badSetupToken(message: string): BadRequestException {
+  return new BadRequestException({
+    code: ApiErrorCode.TOTP_SETUP_EXPIRED,
+    message,
+  });
+}
+
 @Injectable()
 export class TwofaService implements OnModuleInit {
   private readonly logger = new Logger(TwofaService.name);
@@ -45,12 +54,14 @@ export class TwofaService implements OnModuleInit {
     private readonly telegramUsers: TelegramUsersRepository,
     private readonly accounts: AccountsService,
     private readonly sessions: SessionsService,
-    private readonly telegramBot: TelegramBotService,
+    private readonly telegramTwofa: BotTwofaService,
     private readonly config: ConfigService,
+    private readonly rateLimit: RateLimitService,
+    private readonly passwordRecheck: PasswordRecheckService,
   ) {}
 
   onModuleInit(): void {
-    this.telegramBot.setTwofaResolver((challengeId, decision, telegramId) =>
+    this.telegramTwofa.setTwofaResolver((challengeId, decision, telegramId) =>
       this.resolveTelegramChallenge(challengeId, decision, telegramId),
     );
     this.setupSecretCache = this.loadOrCreateSetupSecret();
@@ -108,7 +119,7 @@ export class TwofaService implements OnModuleInit {
 
     if (method === "telegram") {
       try {
-        const sent = await this.telegramBot.sendApprovalRequest(
+        const sent = await this.telegramTwofa.sendApprovalRequest(
           user.id,
           challenge.id,
           {
@@ -169,7 +180,14 @@ export class TwofaService implements OnModuleInit {
     if (!user || !user.totpEnabled || !user.totpSecret) {
       throw new BadRequestException("TOTP is not configured for this account");
     }
+    // Per challenge attempts reset with every new login, this one does not
+    this.rateLimit.check("totp", user.id);
     if (!this.verifyCode(user.totpSecret, code)) {
+      this.rateLimit.fail("totp", user.id, {
+        userId: user.id,
+        username: user.username,
+        ip: challenge.ip,
+      });
       challenge.attempts += 1;
       const attemptsLeft = Math.max(0, MAX_TOTP_ATTEMPTS - challenge.attempts);
       if (challenge.attempts >= MAX_TOTP_ATTEMPTS) {
@@ -189,6 +207,7 @@ export class TwofaService implements OnModuleInit {
         attemptsLeft,
       });
     }
+    this.rateLimit.succeed("totp", user.id);
     return this.consumeChallenge(challenge, user);
   }
 
@@ -303,8 +322,12 @@ export class TwofaService implements OnModuleInit {
   confirmTotpSetup(user: IUser, setupToken: string, code: string): void {
     const payload = this.verifySetupToken(setupToken);
     if (payload.userId !== user.id) throw new ForbiddenException();
+    // Not 401: the client signs out on any 401
     if (!this.verifyCode(payload.secret, code)) {
-      throw new UnauthorizedException("Invalid code");
+      throw new BadRequestException({
+        code: ApiErrorCode.TOTP_INVALID,
+        message: "Invalid code",
+      });
     }
     const updated: IUser = {
       ...user,
@@ -315,9 +338,12 @@ export class TwofaService implements OnModuleInit {
     this.accounts.update(updated);
   }
 
-  async disableTotp(user: IUser, password: string): Promise<void> {
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) throw new UnauthorizedException("Invalid password");
+  async disableTotp(
+    user: IUser,
+    password: string,
+    ip: string | null,
+  ): Promise<void> {
+    await this.passwordRecheck.assert(user, password, ip);
     const updated: IUser = {
       ...user,
       totpSecret: null,
@@ -433,19 +459,18 @@ export class TwofaService implements OnModuleInit {
 
   private verifySetupToken(token: string): SetupTokenPayload {
     const [body, sig] = token.split(".");
-    if (!body || !sig) throw new UnauthorizedException("Bad setup token");
+    if (!body || !sig) throw badSetupToken("Bad setup token");
     const expected = createHmac("sha256", this.setupSecret())
       .update(body)
       .digest("base64url");
-    if (expected !== sig) throw new UnauthorizedException("Bad setup token");
+    if (expected !== sig) throw badSetupToken("Bad setup token");
     let parsed: SetupTokenPayload;
     try {
       parsed = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
     } catch {
-      throw new UnauthorizedException("Bad setup token");
+      throw badSetupToken("Bad setup token");
     }
-    if (parsed.exp < Date.now())
-      throw new UnauthorizedException("Setup token expired");
+    if (parsed.exp < Date.now()) throw badSetupToken("Setup token expired");
     return parsed;
   }
 }

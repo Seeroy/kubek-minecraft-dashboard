@@ -2,4 +2,5 @@
 // domain-specific queries live under their owning module's api/ folder.
 export * from "./config.queries";
 export * from "./modrinth-content.queries";
+export * from "./preferences.queries";
 export { qk } from "./query-keys";
