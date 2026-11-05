@@ -33,6 +33,10 @@ export interface TaskFormState {
   webhookMethod: HttpMethod;
   webhookHeaders: string;
   webhookBody: string;
+  // Stop and restart, the countdown needs Kubek Companion
+  countdownSec: number;
+  countdownMessage: string;
+  skipIfPlayersOnline: boolean;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -64,6 +68,9 @@ export const initialFormState = (): TaskFormState => ({
   webhookMethod: "POST",
   webhookHeaders: '{"Content-Type": "application/json"}',
   webhookBody: "",
+  countdownSec: 0,
+  countdownMessage: "",
+  skipIfPlayersOnline: false,
 });
 
 export function formStateFromTask(task: IScheduledTask): TaskFormState {
@@ -85,6 +92,11 @@ export function formStateFromTask(task: IScheduledTask): TaskFormState {
   const action = task.actionPayload;
   state.actionType = action.type;
   if (action.type === SchedulerActionType.SERVER_COMMAND) state.command = action.command;
+  if (action.type === SchedulerActionType.SERVER_STOP || action.type === SchedulerActionType.SERVER_RESTART) {
+    state.countdownSec = action.countdownSec ?? 0;
+    state.countdownMessage = action.countdownMessage ?? "";
+    state.skipIfPlayersOnline = !!action.skipIfPlayersOnline;
+  }
   if (action.type === SchedulerActionType.BACKUP_CREATE) {
     state.backupNameTemplate = action.nameTemplate;
     state.backupDescription = action.description ?? "";
@@ -150,7 +162,14 @@ export function buildTaskPayload(state: TaskFormState): TaskPayload {
               headers: state.webhookHeaders.trim() ? (JSON.parse(state.webhookHeaders) as Record<string, string>) : undefined,
               body: state.webhookBody || undefined,
             }
-          : { type: state.actionType };
+          : state.actionType === SchedulerActionType.SERVER_STOP || state.actionType === SchedulerActionType.SERVER_RESTART
+            ? {
+                type: state.actionType,
+                countdownSec: state.countdownSec || undefined,
+                countdownMessage: (state.countdownSec && state.countdownMessage.trim()) || undefined,
+                skipIfPlayersOnline: state.skipIfPlayersOnline || undefined,
+              }
+            : { type: state.actionType };
 
   // The schedule enums are string valued and match the contract literals
   return {

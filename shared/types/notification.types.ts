@@ -21,6 +21,7 @@ export interface NotificationParamsMap {
   "server.status": { serverId: string; serverName: string; status: string };
   "server.crashed": { serverId: string; serverName: string };
   "server.error": { serverId: string; serverName: string; errorType: string };
+  "server.low_tps": { serverId: string; serverName: string; tps: number };
   "auth.login": { username: string; ip: string | null };
   "backup.failed": {
     serverId: string;
@@ -102,6 +103,11 @@ export const NOTIFICATION_KINDS: Record<NotificationKind, NotificationKindSpec> 
   "server.crashed": {
     category: NotificationCategory.SERVERS,
     severity: "error",
+    inbox: true,
+  },
+  "server.low_tps": {
+    category: NotificationCategory.SERVERS,
+    severity: "warning",
     inbox: true,
   },
   "server.error": {

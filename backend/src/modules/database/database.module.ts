@@ -2,6 +2,9 @@ import { Global, Module } from "@nestjs/common";
 import { DatabaseSeeder } from "./database.seeder";
 import { AuditLogsRepository } from "./repositories/audit-logs.repository";
 import { AuthChallengesRepository } from "./repositories/auth-challenges.repository";
+import { CompanionEventsRepository } from "./repositories/companion-events.repository";
+import { CompanionMetricsRepository } from "./repositories/companion-metrics.repository";
+import { CompanionSettingsRepository } from "./repositories/companion-settings.repository";
 import { ConfigRepository } from "./repositories/config.repository";
 import { ExtensionKvRepository } from "./repositories/extension-kv.repository";
 import { ExtensionsRepository } from "./repositories/extensions.repository";
@@ -46,6 +49,9 @@ import { SqliteProvider } from "./sqlite.provider";
     AuthChallengesRepository,
     AuditLogsRepository,
     MetricsRepository,
+    CompanionSettingsRepository,
+    CompanionMetricsRepository,
+    CompanionEventsRepository,
     NotificationsRepository,
     NotificationPrefsRepository,
     ExtensionsRepository,
@@ -72,6 +78,9 @@ import { SqliteProvider } from "./sqlite.provider";
     AuthChallengesRepository,
     AuditLogsRepository,
     MetricsRepository,
+    CompanionSettingsRepository,
+    CompanionMetricsRepository,
+    CompanionEventsRepository,
     NotificationsRepository,
     NotificationPrefsRepository,
     ExtensionsRepository,

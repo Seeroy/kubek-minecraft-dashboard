@@ -6,7 +6,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Panel } from "@/shared/ui/panel";
 import { Crown, PowerOff, UsersRound } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { PlayerActions } from "../hooks/usePlayerActions";
 import type { PlayersAccess } from "../hooks/usePlayersAccess";
 import { matchesQuery } from "../lib/players";
@@ -20,9 +20,11 @@ interface OnlineTabProps {
   overview: PlayersOverview | undefined;
   access: PlayersAccess;
   actions: PlayerActions;
+  /** Extra line under a name, filled in by Kubek Companion */
+  detailFor?: (name: string) => ReactNode;
 }
 
-export function OnlineTab({ online, overview, access, actions }: OnlineTabProps) {
+export function OnlineTab({ online, overview, access, actions, detailFor }: OnlineTabProps) {
   const { t } = useTranslation("modules.players");
   const [query, setQuery] = useState("");
   const search = useDebouncedValue(query.trim().toLowerCase(), 150);
@@ -64,6 +66,7 @@ export function OnlineTab({ online, overview, access, actions }: OnlineTabProps)
             key={name}
             name={name}
             uuid={op?.uuid ?? listed?.uuid}
+            detail={detailFor?.(name)}
             badges={
               <>
                 {op && (

@@ -14,6 +14,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
     network: "Сеть",
     other: "Другое",
     velocity: "Сеть Velocity",
+    companion: "Kubek Companion",
   },
   modal: {
     title: "Требуется перезапуск сервера",

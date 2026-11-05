@@ -9,6 +9,7 @@ import {
   Database,
   FileText,
   FolderOpen,
+  Gauge,
   LayoutDashboard,
   Package,
   Puzzle,
@@ -25,6 +26,8 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   access?: AccessRequirement;
+  /** Shows a beta badge next to the label */
+  beta?: boolean;
 }
 
 // Primary navigation shown in the main list
@@ -75,6 +78,12 @@ export const navigation: NavItem[] = [
     href: "/backups",
     icon: Database,
     access: [AccessArea.BACKUPS, "read"],
+  },
+  {
+    nameKey: "navigation.performance",
+    href: "/performance",
+    icon: Gauge,
+    beta: true,
   },
   {
     nameKey: "navigation.scheduler",
@@ -141,6 +150,7 @@ export const adminNavigation: NavItem[] = [
 // Routes that only make sense with a selected server
 export const serverScopedRoutes = new Set([
   "/console",
+  "/performance",
   "/files",
   "/players",
   "/server-settings",

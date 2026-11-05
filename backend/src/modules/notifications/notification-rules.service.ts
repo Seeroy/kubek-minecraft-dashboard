@@ -55,6 +55,20 @@ export class NotificationRulesService implements OnModuleInit {
     this.events.on("auth.locked", (e) => this.onLocked(e));
     this.events.on("backup.operation", (e) => this.onBackupOperation(e));
     this.events.on("storage.unreachable", (e) => this.onStorageUnreachable(e));
+    this.events.on("server.low_tps", (e) => this.onLowTps(e));
+  }
+
+  // Dedup lives in CompanionAlertsService, one event per bad stretch
+  private onLowTps({
+    serverId,
+    serverName,
+    tps,
+  }: AppEventMap["server.low_tps"]): void {
+    this.notifications.notify({
+      kind: "server.low_tps",
+      params: { serverId, serverName, tps },
+      audience: { serverId, area: AccessArea.POWER, level: "read" },
+    });
   }
 
   private onTaskFinished(task: ITask): void {

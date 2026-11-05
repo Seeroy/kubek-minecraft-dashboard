@@ -17,6 +17,8 @@ export class InstanceConsole {
     onEntry: (entry: IInstanceLog) => void,
     // Plain text of every finished output line, after it's logged
     private readonly onLine: (clean: string) => void,
+    // Lines the panel itself caused, like a request echoed by the terminal
+    private readonly isNoise: (clean: string) => boolean = () => false,
   ) {
     this.log = new InstanceLog(onEntry);
   }
@@ -88,7 +90,7 @@ export class InstanceConsole {
 
   private emit(rawLine: string): void {
     const line = normalizeLine(rawLine);
-    if (!line) return;
+    if (!line || this.isNoise(line.clean)) return;
     this.write(line.display);
     this.onLine(line.clean);
   }

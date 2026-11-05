@@ -15,6 +15,7 @@ import type { ServerTypesRegistry } from "@/modules/server-types/server-types-re
 import type { ServerEventsService } from "@/ws/services/server-events.service";
 import type { DockerRuntime } from "@/modules/server-types/runtime/docker.runtime";
 import type { IServerRuntime } from "@/modules/server-types/runtime/runtime.interface";
+import type { CompanionHub } from "@/modules/companion/link/companion-link";
 import { fake } from "@/testing/fake";
 import type { IInstanceLog } from "@shared/types/server/instance.types";
 import { type IServer, ServerStatus } from "@shared/types/server/server.types";
@@ -91,6 +92,7 @@ function makeInstance(restartOnError: IServer["restartOnError"]) {
     queryRegistry: fake<QueryRegistry>({ get: () => null }),
     blueprintResolver: fake<BlueprintResolver>(),
     locks: fake<ServerLocksService>({ holder: () => null }),
+    companionHub: fake<CompanionHub>({ connected: () => [] }),
     launcher: fake<LaunchCommandBuilder>({
       scope: () => ({}),
       dockerCommand: () => "",

@@ -28,6 +28,7 @@ export const playersTranslations: TranslationDictionary = {
     whitelist: "Whitelist",
     ops: "Operators",
     bans: "Bans",
+    activity: "Activity",
   },
   search: "Search by name or UUID…",
   count: players,
@@ -38,8 +39,6 @@ export const playersTranslations: TranslationDictionary = {
   },
   add: {
     placeholder: "Player name",
-    check: "Check",
-    checking: "Checking…",
     invalid: "1 to 16 letters, digits or _",
     mojang: "Mojang account",
     offline: "Offline UUID",

@@ -755,238 +755,6 @@
         }
       }
     },
-    "/api/accounts/me/preferences": {
-      "get": {
-        "operationId": "AccountsController_getMyPreferences",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get current user's preferences",
-        "tags": [
-          "Accounts"
-        ]
-      },
-      "patch": {
-        "operationId": "AccountsController_updateMyPreferences",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePreferencesDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update current user's preferences (2FA primary, dashboard, avatar)",
-        "tags": [
-          "Accounts"
-        ]
-      }
-    },
-    "/api/accounts/me/ftp-password": {
-      "get": {
-        "description": "Read on demand like other panel secrets, 404 when none is set",
-        "operationId": "AccountsController_revealOwnFtpPassword",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FtpPasswordResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reveal the FTP password of the current user",
-        "tags": [
-          "Accounts"
-        ],
-        "x-access": {
-          "area": "files",
-          "level": "read"
-        }
-      },
-      "post": {
-        "description": "An older password stops working right away",
-        "operationId": "AccountsController_issueOwnFtpPassword",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FtpPasswordResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Issue a new FTP password for the current user",
-        "tags": [
-          "Accounts"
-        ],
-        "x-access": {
-          "area": "files",
-          "level": "read"
-        }
-      },
-      "delete": {
-        "operationId": "AccountsController_removeOwnFtpPassword",
-        "parameters": [],
-        "responses": {
-          "204": {
-            "description": "FTP access disabled for the user"
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Remove the FTP password of the current user",
-        "tags": [
-          "Accounts"
-        ]
-      }
-    },
     "/api/accounts/{username}": {
       "get": {
         "operationId": "AccountsController_getAccount",
@@ -1274,6 +1042,238 @@
           "area": "accounts",
           "level": "write"
         }
+      }
+    },
+    "/api/accounts/me/preferences": {
+      "get": {
+        "operationId": "AccountsController_getMyPreferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user's preferences",
+        "tags": [
+          "Accounts"
+        ]
+      },
+      "patch": {
+        "operationId": "AccountsController_updateMyPreferences",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferencesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update current user's preferences (2FA primary, dashboard, avatar)",
+        "tags": [
+          "Accounts"
+        ]
+      }
+    },
+    "/api/accounts/me/ftp-password": {
+      "get": {
+        "description": "Read on demand like other panel secrets, 404 when none is set",
+        "operationId": "AccountsController_revealOwnFtpPassword",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtpPasswordResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reveal the FTP password of the current user",
+        "tags": [
+          "Accounts"
+        ],
+        "x-access": {
+          "area": "files",
+          "level": "read"
+        }
+      },
+      "post": {
+        "description": "An older password stops working right away",
+        "operationId": "AccountsController_issueOwnFtpPassword",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtpPasswordResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Issue a new FTP password for the current user",
+        "tags": [
+          "Accounts"
+        ],
+        "x-access": {
+          "area": "files",
+          "level": "read"
+        }
+      },
+      "delete": {
+        "operationId": "AccountsController_removeOwnFtpPassword",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "FTP access disabled for the user"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove the FTP password of the current user",
+        "tags": [
+          "Accounts"
+        ]
       }
     },
     "/api/accounts/{username}/ftp-password": {
@@ -3017,6 +3017,363 @@
         }
       }
     },
+    "/api/servers/{id}/properties": {
+      "get": {
+        "operationId": "ServersController_getProperties",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server properties (free-form key/value map)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "max-players": "20",
+                    "motd": "A Minecraft Server"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get server.properties",
+        "tags": [
+          "Servers"
+        ],
+        "x-access": {
+          "area": "settings",
+          "level": "read"
+        }
+      },
+      "put": {
+        "operationId": "ServersController_saveProperties",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerPropertiesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Properties saved successfully"
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save server.properties",
+        "tags": [
+          "Servers"
+        ],
+        "x-access": {
+          "area": "settings",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{id}/settings": {
+      "patch": {
+        "operationId": "ServersController_updateSettings",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateServerSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update server settings",
+        "tags": [
+          "Servers"
+        ],
+        "x-access": {
+          "area": "settings",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{id}/core": {
+      "post": {
+        "operationId": "ServersController_changeCore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "string",
+                    "description": "JSON string containing ChangeServerCoreDto payload",
+                    "example": "{\"blueprintId\":\"com.kubek.purpur\",\"version\":\"1.21.4\"}"
+                  },
+                  "coreFile": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Custom core JAR file (required for the com.kubek.custom blueprint)"
+                  }
+                },
+                "required": [
+                  "payload"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Core change started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCreatedResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change server core/version",
+        "tags": [
+          "Servers"
+        ],
+        "x-access": {
+          "area": "settings",
+          "level": "manage"
+        }
+      }
+    },
     "/api/servers/{id}/duplicate": {
       "post": {
         "operationId": "ServersController_duplicate",
@@ -3389,166 +3746,6 @@
         }
       }
     },
-    "/api/servers/{id}/properties": {
-      "get": {
-        "operationId": "ServersController_getProperties",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Server ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Server properties (free-form key/value map)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "example": {
-                    "max-players": "20",
-                    "motd": "A Minecraft Server"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get server.properties",
-        "tags": [
-          "Servers"
-        ],
-        "x-access": {
-          "area": "settings",
-          "level": "read"
-        }
-      },
-      "put": {
-        "operationId": "ServersController_saveProperties",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Server ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ServerPropertiesDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": "Properties saved successfully"
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Save server.properties",
-        "tags": [
-          "Servers"
-        ],
-        "x-access": {
-          "area": "settings",
-          "level": "write"
-        }
-      }
-    },
     "/api/servers/{id}/icon": {
       "post": {
         "operationId": "ServersController_uploadIcon",
@@ -3695,203 +3892,6 @@
         "tags": [
           "Servers"
         ]
-      }
-    },
-    "/api/servers/{id}/settings": {
-      "patch": {
-        "operationId": "ServersController_updateSettings",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Server ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateServerSettingsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Settings updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServerEntity"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update server settings",
-        "tags": [
-          "Servers"
-        ],
-        "x-access": {
-          "area": "settings",
-          "level": "write"
-        }
-      }
-    },
-    "/api/servers/{id}/core": {
-      "post": {
-        "operationId": "ServersController_changeCore",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Server ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "payload": {
-                    "type": "string",
-                    "description": "JSON string containing ChangeServerCoreDto payload",
-                    "example": "{\"blueprintId\":\"com.kubek.purpur\",\"version\":\"1.21.4\"}"
-                  },
-                  "coreFile": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "Custom core JAR file (required for the com.kubek.custom blueprint)"
-                  }
-                },
-                "required": [
-                  "payload"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Core change started",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServerCreatedResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Change server core/version",
-        "tags": [
-          "Servers"
-        ],
-        "x-access": {
-          "area": "settings",
-          "level": "manage"
-        }
       }
     },
     "/api/java": {
@@ -8237,6 +8237,1097 @@
         ],
         "x-access": {
           "area": "content",
+          "level": "manage"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion": {
+      "get": {
+        "operationId": "CompanionController_overview",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionOverviewDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Plugin install state, live link and settings",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "serverView": true
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/install": {
+      "post": {
+        "operationId": "CompanionController_install",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionInstallResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Install or update the plugin from GitHub releases",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "content",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/settings": {
+      "put": {
+        "operationId": "CompanionController_updateSettings",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanionSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionSettingsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Chat logging and player coordinates",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "settings",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/metrics": {
+      "get": {
+        "operationId": "CompanionController_metrics",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "window",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/CompanionMetricsWindow"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompanionMetricPointDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "TPS, MSPT, heap and online history",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "serverView": true
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/lag-report": {
+      "get": {
+        "operationId": "CompanionController_lagReport",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionLagReportDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Entities, tiles and plugin tasks right now",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "serverView": true
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/plugins": {
+      "get": {
+        "operationId": "CompanionController_plugins",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompanionLivePluginDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Plugins as the running server sees them",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "content",
+          "level": "read"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/events": {
+      "get": {
+        "operationId": "CompanionController_events",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "types",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CompanionEventType"
+              }
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "description": "Events older than this id",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Substring of the name, uuid, chat message or kick reason",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionEventsPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activity feed, newest first",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "read"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/activity": {
+      "get": {
+        "operationId": "CompanionController_activity",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 30,
+              "default": 7,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionActivityDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Peak online and top players by time played",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "read"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/broadcast": {
+      "post": {
+        "operationId": "CompanionController_broadcast",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanionBroadcastDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Chat message to everyone online",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/title": {
+      "post": {
+        "operationId": "CompanionController_title",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanionTitleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Title on every player's screen",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/companion/maintenance": {
+      "put": {
+        "operationId": "CompanionController_maintenance",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanionMaintenanceRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionMaintenanceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Maintenance mode, only allowed players can join",
+        "tags": [
+          "Companion"
+        ],
+        "x-access": {
+          "area": "players",
           "level": "manage"
         }
       }
@@ -17102,7 +18193,13 @@
               "ROLE_NAME_TAKEN",
               "ROLE_BUILTIN",
               "ROLE_UNKNOWN",
-              "ACCESS_ESCALATION"
+              "ACCESS_ESCALATION",
+              "COMPANION_UNSUPPORTED",
+              "COMPANION_NOT_CONNECTED",
+              "COMPANION_TIMEOUT",
+              "COMPANION_REJECTED",
+              "COMPANION_RATE_LIMITED",
+              "COMPANION_RELEASE_UNAVAILABLE"
             ],
             "example": "BAD_REQUEST"
           },
@@ -17820,105 +18917,6 @@
           }
         }
       },
-      "UserPreferencesResponseDto": {
-        "type": "object",
-        "properties": {
-          "twofaPrimary": {
-            "type": "string",
-            "description": "Primary 2FA method, or null when none is set",
-            "enum": [
-              "totp",
-              "telegram"
-            ],
-            "nullable": true,
-            "example": "totp"
-          },
-          "totpEnabled": {
-            "type": "boolean",
-            "description": "Whether TOTP 2FA is enabled",
-            "example": false
-          },
-          "telegram2faEnabled": {
-            "type": "boolean",
-            "description": "Whether Telegram 2FA is enabled",
-            "example": false
-          },
-          "dashboardLayout": {
-            "type": "string",
-            "description": "Persisted dashboard layout as serialized JSON, or null",
-            "nullable": true
-          },
-          "lastSeenWhatsNewVersion": {
-            "type": "string",
-            "description": "Panel version for which the what's-new modal was last seen",
-            "nullable": true,
-            "example": "4.0.0"
-          },
-          "skinName": {
-            "type": "string",
-            "description": "Minecraft nickname used for the avatar, null to use the username",
-            "nullable": true,
-            "example": "Notch"
-          },
-          "panelVersion": {
-            "type": "string",
-            "description": "Current running panel version",
-            "example": "4.0.0"
-          }
-        },
-        "required": [
-          "skinName",
-          "panelVersion"
-        ]
-      },
-      "UpdatePreferencesDto": {
-        "type": "object",
-        "properties": {
-          "twofaPrimary": {
-            "type": "string",
-            "enum": [
-              "totp",
-              "telegram"
-            ],
-            "nullable": true
-          },
-          "dashboardLayout": {
-            "type": "string",
-            "nullable": true,
-            "description": "Serialized dashboard layout (JSON)"
-          },
-          "lastSeenWhatsNewVersion": {
-            "type": "string",
-            "nullable": true,
-            "description": "Panel version for which the what's-new modal was last seen"
-          },
-          "skinName": {
-            "type": "string",
-            "nullable": true,
-            "description": "Minecraft nickname for the avatar, null or empty to use the username",
-            "example": "Notch"
-          }
-        }
-      },
-      "FtpPasswordResponseDto": {
-        "type": "object",
-        "properties": {
-          "password": {
-            "type": "string",
-            "description": "FTP password",
-            "example": "q3Xv0tH4c5yWkP9aZ1mN7bLe"
-          },
-          "setAt": {
-            "type": "number",
-            "description": "When the password was set (ms)",
-            "example": 1735689600000
-          }
-        },
-        "required": [
-          "password",
-          "setAt"
-        ]
-      },
       "CreateAccountDto": {
         "type": "object",
         "properties": {
@@ -18073,6 +19071,105 @@
         "required": [
           "old",
           "new"
+        ]
+      },
+      "UserPreferencesResponseDto": {
+        "type": "object",
+        "properties": {
+          "twofaPrimary": {
+            "type": "string",
+            "description": "Primary 2FA method, or null when none is set",
+            "enum": [
+              "totp",
+              "telegram"
+            ],
+            "nullable": true,
+            "example": "totp"
+          },
+          "totpEnabled": {
+            "type": "boolean",
+            "description": "Whether TOTP 2FA is enabled",
+            "example": false
+          },
+          "telegram2faEnabled": {
+            "type": "boolean",
+            "description": "Whether Telegram 2FA is enabled",
+            "example": false
+          },
+          "dashboardLayout": {
+            "type": "string",
+            "description": "Persisted dashboard layout as serialized JSON, or null",
+            "nullable": true
+          },
+          "lastSeenWhatsNewVersion": {
+            "type": "string",
+            "description": "Panel version for which the what's-new modal was last seen",
+            "nullable": true,
+            "example": "4.0.0"
+          },
+          "skinName": {
+            "type": "string",
+            "description": "Minecraft nickname used for the avatar, null to use the username",
+            "nullable": true,
+            "example": "Notch"
+          },
+          "panelVersion": {
+            "type": "string",
+            "description": "Current running panel version",
+            "example": "4.0.0"
+          }
+        },
+        "required": [
+          "skinName",
+          "panelVersion"
+        ]
+      },
+      "UpdatePreferencesDto": {
+        "type": "object",
+        "properties": {
+          "twofaPrimary": {
+            "type": "string",
+            "enum": [
+              "totp",
+              "telegram"
+            ],
+            "nullable": true
+          },
+          "dashboardLayout": {
+            "type": "string",
+            "nullable": true,
+            "description": "Serialized dashboard layout (JSON)"
+          },
+          "lastSeenWhatsNewVersion": {
+            "type": "string",
+            "nullable": true,
+            "description": "Panel version for which the what's-new modal was last seen"
+          },
+          "skinName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Minecraft nickname for the avatar, null or empty to use the username",
+            "example": "Notch"
+          }
+        }
+      },
+      "FtpPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "FTP password",
+            "example": "q3Xv0tH4c5yWkP9aZ1mN7bLe"
+          },
+          "setAt": {
+            "type": "number",
+            "description": "When the password was set (ms)",
+            "example": 1735689600000
+          }
+        },
+        "required": [
+          "password",
+          "setAt"
         ]
       },
       "RoleResponseDto": {
@@ -18627,31 +19724,6 @@
           "failed"
         ]
       },
-      "DuplicateServerDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the new (duplicated) server"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
-      "TaskRefResponseDto": {
-        "type": "object",
-        "properties": {
-          "taskId": {
-            "type": "string",
-            "description": "ID of the started background task",
-            "example": "a1b2c3d4"
-          }
-        },
-        "required": [
-          "taskId"
-        ]
-      },
       "ServerPropertiesDto": {
         "type": "object",
         "properties": {
@@ -18718,6 +19790,31 @@
         },
         "required": [
           "blueprintId"
+        ]
+      },
+      "DuplicateServerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the new (duplicated) server"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "TaskRefResponseDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "ID of the started background task",
+            "example": "a1b2c3d4"
+          }
+        },
+        "required": [
+          "taskId"
         ]
       },
       "JavaVersionEntity": {
@@ -20538,6 +21635,34 @@
           "loaders"
         ]
       },
+      "InstalledCompanionInfoDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "latestVersion": {
+            "type": "string",
+            "nullable": true,
+            "description": "Newest release"
+          },
+          "connected": {
+            "type": "boolean",
+            "description": "Plugin is talking to the panel right now"
+          },
+          "releaseUrl": {
+            "type": "string",
+            "description": "Release page on GitHub"
+          }
+        },
+        "required": [
+          "version",
+          "latestVersion",
+          "connected",
+          "releaseUrl"
+        ]
+      },
       "InstalledContentProjectSummaryDto": {
         "type": "object",
         "properties": {
@@ -20809,9 +21934,18 @@
             "type": "string",
             "enum": [
               "modrinth",
-              "manual"
+              "manual",
+              "companion"
             ],
             "description": "Install source"
+          },
+          "companion": {
+            "description": "Set on the Kubek Companion row",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InstalledCompanionInfoDto"
+              }
+            ]
           },
           "metadata": {
             "description": "Modrinth project metadata",
@@ -20936,6 +22070,1101 @@
             "default": true
           }
         }
+      },
+      "CompanionInstalledDto": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "example": "KubekCompanion-1.0.0.jar"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          }
+        },
+        "required": [
+          "fileName",
+          "version"
+        ]
+      },
+      "CompanionReleaseDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "url": {
+            "type": "string",
+            "description": "Release page"
+          },
+          "publishedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "url",
+          "publishedAt"
+        ]
+      },
+      "CompanionServerInfoDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Paper"
+          },
+          "version": {
+            "type": "string"
+          },
+          "bukkitVersion": {
+            "type": "string",
+            "example": "1.21.11-R0.1-SNAPSHOT"
+          },
+          "onlineMode": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "bukkitVersion",
+          "onlineMode"
+        ]
+      },
+      "CompanionJavaInfoDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "example": "21.0.5"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "vm": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "vendor",
+          "vm"
+        ]
+      },
+      "CompanionTpsSource": {
+        "type": "string",
+        "enum": [
+          "PAPER",
+          "SPIGOT",
+          "FOLIA",
+          "COUNTER"
+        ]
+      },
+      "CompanionMsptSource": {
+        "type": "string",
+        "enum": [
+          "EVENTS",
+          "AVERAGE",
+          "SAMPLED",
+          "NONE"
+        ]
+      },
+      "CompanionCapsDto": {
+        "type": "object",
+        "properties": {
+          "tps": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionTpsSource"
+              }
+            ]
+          },
+          "mspt": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionMsptSource"
+              }
+            ]
+          },
+          "folia": {
+            "type": "boolean"
+          },
+          "ping": {
+            "type": "boolean"
+          },
+          "tileCounters": {
+            "type": "boolean"
+          },
+          "bossBar": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tps",
+          "mspt",
+          "folia",
+          "ping",
+          "tileCounters",
+          "bossBar"
+        ]
+      },
+      "CompanionPluginSettingsDto": {
+        "type": "object",
+        "properties": {
+          "intervalSec": {
+            "type": "number"
+          },
+          "coords": {
+            "type": "boolean"
+          },
+          "chat": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "intervalSec",
+          "coords",
+          "chat"
+        ]
+      },
+      "CompanionHelloDto": {
+        "type": "object",
+        "properties": {
+          "protocol": {
+            "type": "number"
+          },
+          "plugin": {
+            "type": "string",
+            "description": "Plugin version",
+            "example": "1.0.0"
+          },
+          "server": {
+            "$ref": "#/components/schemas/CompanionServerInfoDto"
+          },
+          "java": {
+            "$ref": "#/components/schemas/CompanionJavaInfoDto"
+          },
+          "caps": {
+            "$ref": "#/components/schemas/CompanionCapsDto"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CompanionPluginSettingsDto"
+          }
+        },
+        "required": [
+          "protocol",
+          "plugin",
+          "server",
+          "java",
+          "caps",
+          "settings"
+        ]
+      },
+      "CompanionMsptDto": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "example": "events"
+          },
+          "avg": {
+            "type": "number"
+          },
+          "p50": {
+            "type": "number"
+          },
+          "p95": {
+            "type": "number"
+          },
+          "p99": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "ticks": {
+            "type": "number"
+          },
+          "load": {
+            "type": "number",
+            "description": "Busy share of the main thread, 0..1"
+          },
+          "samples": {
+            "type": "number",
+            "description": "Folia, player readings behind the worst region average"
+          }
+        },
+        "required": [
+          "source",
+          "avg"
+        ]
+      },
+      "CompanionGcDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "timeMs": {
+            "type": "number"
+          },
+          "pauses": {
+            "type": "number"
+          },
+          "pauseMs": {
+            "type": "number"
+          },
+          "maxPauseMs": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "count",
+          "timeMs"
+        ]
+      },
+      "CompanionJvmDto": {
+        "type": "object",
+        "properties": {
+          "heapUsed": {
+            "type": "number"
+          },
+          "heapCommitted": {
+            "type": "number"
+          },
+          "heapMax": {
+            "type": "number"
+          },
+          "nonHeapUsed": {
+            "type": "number"
+          },
+          "threads": {
+            "type": "number"
+          },
+          "daemonThreads": {
+            "type": "number"
+          },
+          "uptime": {
+            "type": "number",
+            "description": "JVM uptime in ms"
+          },
+          "gc": {
+            "$ref": "#/components/schemas/CompanionGcDto"
+          }
+        },
+        "required": [
+          "heapUsed",
+          "heapCommitted",
+          "heapMax",
+          "nonHeapUsed",
+          "threads",
+          "daemonThreads",
+          "uptime",
+          "gc"
+        ]
+      },
+      "CompanionWorldDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "env": {
+            "type": "string",
+            "example": "NORMAL"
+          },
+          "players": {
+            "type": "number",
+            "nullable": true
+          },
+          "chunks": {
+            "type": "number",
+            "nullable": true
+          },
+          "entities": {
+            "type": "number",
+            "nullable": true
+          },
+          "tiles": {
+            "type": "number",
+            "nullable": true
+          },
+          "tickingTiles": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "env",
+          "players",
+          "chunks",
+          "entities",
+          "tiles",
+          "tickingTiles"
+        ]
+      },
+      "CompanionPlayerDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "world": {
+            "type": "string"
+          },
+          "gamemode": {
+            "type": "string",
+            "example": "SURVIVAL"
+          },
+          "ping": {
+            "type": "number",
+            "nullable": true
+          },
+          "since": {
+            "type": "number",
+            "nullable": true,
+            "description": "Join time, ms epoch"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "z": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "world",
+          "gamemode",
+          "ping",
+          "since"
+        ]
+      },
+      "CompanionStatsDto": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "number"
+          },
+          "intervalSec": {
+            "type": "number"
+          },
+          "tps": {
+            "nullable": true,
+            "description": "1m, 5m, 15m",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "tpsSource": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionTpsSource"
+              }
+            ]
+          },
+          "mspt": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionMsptDto"
+              }
+            ]
+          },
+          "jvm": {
+            "$ref": "#/components/schemas/CompanionJvmDto"
+          },
+          "online": {
+            "type": "number"
+          },
+          "maxPlayers": {
+            "type": "number"
+          },
+          "worlds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanionWorldDto"
+            }
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanionPlayerDto"
+            }
+          }
+        },
+        "required": [
+          "ts",
+          "intervalSec",
+          "tps",
+          "tpsSource",
+          "mspt",
+          "jvm",
+          "online",
+          "maxPlayers",
+          "worlds",
+          "players"
+        ]
+      },
+      "CompanionLiveStateDto": {
+        "type": "object",
+        "properties": {
+          "connected": {
+            "type": "boolean"
+          },
+          "hello": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionHelloDto"
+              }
+            ]
+          },
+          "stats": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionStatsDto"
+              }
+            ]
+          },
+          "lastSeen": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "connected",
+          "hello",
+          "stats",
+          "lastSeen"
+        ]
+      },
+      "CompanionSettingsDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "boolean",
+            "description": "Joins and quits go to the activity feed"
+          },
+          "kicks": {
+            "type": "boolean",
+            "description": "Kicks go to the activity feed"
+          },
+          "deaths": {
+            "type": "boolean",
+            "description": "Deaths go to the activity feed"
+          },
+          "chat": {
+            "type": "boolean",
+            "description": "Chat messages go to the activity feed"
+          },
+          "coords": {
+            "type": "boolean",
+            "description": "Player coordinates are sent with stats"
+          }
+        },
+        "required": [
+          "sessions",
+          "kicks",
+          "deaths",
+          "chat",
+          "coords"
+        ]
+      },
+      "CompanionMaintenanceDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "description": "Kick message, & color codes"
+          },
+          "motd": {
+            "type": "string",
+            "nullable": true,
+            "description": "Server list MOTD while it's on"
+          },
+          "allow": {
+            "description": "Names or UUIDs let in anyway",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowOps": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled",
+          "message",
+          "motd",
+          "allow",
+          "allowOps"
+        ]
+      },
+      "CompanionOverviewDto": {
+        "type": "object",
+        "properties": {
+          "supported": {
+            "type": "boolean",
+            "description": "Server type can run the plugin"
+          },
+          "installed": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionInstalledDto"
+              }
+            ]
+          },
+          "latest": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionReleaseDto"
+              }
+            ]
+          },
+          "updateAvailable": {
+            "type": "boolean"
+          },
+          "live": {
+            "$ref": "#/components/schemas/CompanionLiveStateDto"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CompanionSettingsDto"
+          },
+          "maintenance": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionMaintenanceDto"
+              }
+            ]
+          },
+          "repoUrl": {
+            "type": "string",
+            "example": "https://github.com/KubekPanel/kubek-companion"
+          }
+        },
+        "required": [
+          "supported",
+          "installed",
+          "latest",
+          "updateAvailable",
+          "live",
+          "settings",
+          "maintenance",
+          "repoUrl"
+        ]
+      },
+      "CompanionInstallResultDto": {
+        "type": "object",
+        "properties": {
+          "installed": {
+            "$ref": "#/components/schemas/CompanionInstalledDto"
+          },
+          "restartRequired": {
+            "type": "boolean",
+            "description": "Server is running, the plugin loads on the next start"
+          }
+        },
+        "required": [
+          "installed",
+          "restartRequired"
+        ]
+      },
+      "UpdateCompanionSettingsDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "boolean",
+            "description": "Log joins and quits to the activity feed"
+          },
+          "kicks": {
+            "type": "boolean",
+            "description": "Log kicks to the activity feed"
+          },
+          "deaths": {
+            "type": "boolean",
+            "description": "Log deaths to the activity feed"
+          },
+          "chat": {
+            "type": "boolean",
+            "description": "Log chat to the activity feed"
+          },
+          "coords": {
+            "type": "boolean",
+            "description": "Send player coordinates with stats"
+          }
+        }
+      },
+      "CompanionMetricsWindow": {
+        "type": "string",
+        "enum": [
+          "1h",
+          "6h",
+          "24h",
+          "7d"
+        ]
+      },
+      "CompanionMetricPointDto": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "number"
+          },
+          "tps": {
+            "type": "number",
+            "nullable": true
+          },
+          "tpsMin": {
+            "type": "number",
+            "nullable": true,
+            "description": "Lowest TPS in the bucket"
+          },
+          "mspt": {
+            "type": "number",
+            "nullable": true
+          },
+          "msptMax": {
+            "type": "number",
+            "nullable": true,
+            "description": "Slowest MSPT in the bucket"
+          },
+          "heapUsed": {
+            "type": "number"
+          },
+          "heapMax": {
+            "type": "number"
+          },
+          "players": {
+            "type": "number"
+          },
+          "playersMax": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ts",
+          "tps",
+          "tpsMin",
+          "mspt",
+          "msptMax",
+          "heapUsed",
+          "heapMax",
+          "players",
+          "playersMax"
+        ]
+      },
+      "LagTypeCountDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "ITEM"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "type",
+          "count"
+        ]
+      },
+      "LagChunkDto": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "z": {
+            "type": "number"
+          },
+          "count": {
+            "type": "number"
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LagTypeCountDto"
+            }
+          }
+        },
+        "required": [
+          "x",
+          "z",
+          "count",
+          "types"
+        ]
+      },
+      "LagWorldDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "chunks": {
+            "type": "number"
+          },
+          "entities": {
+            "type": "number"
+          },
+          "entityTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LagTypeCountDto"
+            }
+          },
+          "topEntityChunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LagChunkDto"
+            }
+          },
+          "topTileChunks": {
+            "nullable": true,
+            "description": "Null where counting tiles would be too heavy",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LagChunkDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "chunks",
+          "entities",
+          "entityTypes",
+          "topEntityChunks",
+          "topTileChunks"
+        ]
+      },
+      "LagTaskDto": {
+        "type": "object",
+        "properties": {
+          "plugin": {
+            "type": "string"
+          },
+          "sync": {
+            "type": "number"
+          },
+          "async": {
+            "type": "number"
+          },
+          "running": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "plugin",
+          "sync",
+          "async",
+          "running"
+        ]
+      },
+      "CompanionLagReportDto": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "number"
+          },
+          "partial": {
+            "type": "boolean",
+            "description": "Folia, no entity scan"
+          },
+          "worlds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LagWorldDto"
+            }
+          },
+          "tasks": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LagTaskDto"
+            }
+          }
+        },
+        "required": [
+          "ts",
+          "worlds",
+          "tasks"
+        ]
+      },
+      "CompanionLivePluginDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "apiVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "depend": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "softDepend": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "enabled",
+          "authors",
+          "apiVersion",
+          "depend",
+          "softDepend"
+        ]
+      },
+      "CompanionEventType": {
+        "type": "string",
+        "enum": [
+          "join",
+          "quit",
+          "kick",
+          "death",
+          "chat",
+          "countdown_done",
+          "countdown_cancelled"
+        ]
+      },
+      "CompanionEventDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanionEventType"
+              }
+            ]
+          },
+          "ts": {
+            "type": "number"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "firstJoin": {
+            "type": "boolean"
+          },
+          "session": {
+            "type": "number",
+            "description": "Session length in ms, quit only"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "kicked": {
+            "type": "boolean"
+          },
+          "cause": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "killer": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "ts"
+        ]
+      },
+      "CompanionEventsPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanionEventDto"
+            }
+          },
+          "nextBefore": {
+            "type": "number",
+            "nullable": true,
+            "description": "Pass as before for the next page"
+          }
+        },
+        "required": [
+          "items",
+          "nextBefore"
+        ]
+      },
+      "CompanionPlaytimeDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "playtimeMs": {
+            "type": "number"
+          },
+          "sessions": {
+            "type": "number"
+          },
+          "lastSeen": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "playtimeMs",
+          "sessions",
+          "lastSeen"
+        ]
+      },
+      "CompanionActivityDto": {
+        "type": "object",
+        "properties": {
+          "peakOnline": {
+            "type": "number",
+            "description": "Most players online at once in the period"
+          },
+          "top": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanionPlaytimeDto"
+            }
+          }
+        },
+        "required": [
+          "peakOnline",
+          "top"
+        ]
+      },
+      "CompanionBroadcastDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Chat message, & color codes",
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "CompanionTitleDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "subtitle": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "seconds": {
+            "type": "number",
+            "description": "Seconds on screen",
+            "minimum": 1,
+            "maximum": 30
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "CompanionMaintenanceRequestDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "description": "Kick message, & color codes",
+            "maxLength": 256
+          },
+          "motd": {
+            "type": "string",
+            "description": "Server list MOTD while it's on",
+            "maxLength": 256
+          },
+          "allow": {
+            "description": "Names or UUIDs let in anyway",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowOps": {
+            "type": "boolean",
+            "description": "Operators can still join",
+            "default": true
+          },
+          "kickOnline": {
+            "type": "boolean",
+            "description": "Kick everyone who isn't allowed right away"
+          }
+        },
+        "required": [
+          "enabled"
+        ]
       },
       "ModpackWarningDto": {
         "type": "object",
@@ -22961,6 +25190,21 @@
               "server_restart"
             ],
             "description": "Start/stop/restart the server"
+          },
+          "countdownSec": {
+            "type": "number",
+            "description": "Stop and restart: warn players this many seconds before",
+            "minimum": 0,
+            "maximum": 600
+          },
+          "countdownMessage": {
+            "type": "string",
+            "description": "Countdown text, {s} and {time} are replaced",
+            "maxLength": 256
+          },
+          "skipIfPlayersOnline": {
+            "type": "boolean",
+            "description": "Stop and restart: skip the run while players are online"
           }
         },
         "required": [

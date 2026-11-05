@@ -31,6 +31,8 @@ export const inboxTranslations: TranslationDictionary = {
     serverCrashedText: "Процесс неожиданно завершился. Подробности в логах",
     serverError: (name: string) => `Проблема на "${name}"`,
     serverStatus: (name: string, status: string) => `"${name}": ${status}`,
+    lowTps: (name: string) => `"${name}" лагает`,
+    lowTpsText: (tps: string) => `TPS упал до ${tps} и не поднимается`,
     login: (username: string) => `Новый вход в ${username}`,
     loginText: (ip: string) => `С адреса ${ip}`,
     backupFailed: {

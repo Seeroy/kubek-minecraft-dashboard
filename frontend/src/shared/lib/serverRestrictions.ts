@@ -21,6 +21,8 @@ export function settingsTabAllowedByBlueprint(
       return hasProperties;
     case "velocity":
       return bp.id === "com.kubek.velocity";
+    case "companion":
+      return bp.features.includes("plugins:modrinth");
     default:
       return true;
   }
@@ -33,6 +35,8 @@ export function routeAllowedByBlueprint(
 ): boolean {
   switch (href) {
     case "/plugins":
+    // Kubek Companion runs where Bukkit plugins run
+    case "/performance":
       return bp.features.includes("plugins:modrinth");
     case "/mods":
       return bp.features.includes("mods:fabric");

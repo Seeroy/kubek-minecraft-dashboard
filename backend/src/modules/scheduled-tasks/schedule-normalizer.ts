@@ -101,9 +101,15 @@ export function normalizeAction(
 ): SchedulerActionPayload {
   switch (action.type) {
     case SchedulerActionType.SERVER_START:
+      return { type: action.type };
     case SchedulerActionType.SERVER_STOP:
     case SchedulerActionType.SERVER_RESTART:
-      return { type: action.type };
+      return {
+        type: action.type,
+        countdownSec: action.countdownSec || undefined,
+        countdownMessage: action.countdownMessage?.trim() || undefined,
+        skipIfPlayersOnline: action.skipIfPlayersOnline || undefined,
+      };
     case SchedulerActionType.SERVER_COMMAND:
       if (!action.command) throw new BadRequestException("command is required");
       return { type: action.type, command: action.command };

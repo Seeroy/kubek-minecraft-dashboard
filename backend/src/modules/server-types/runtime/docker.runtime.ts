@@ -134,9 +134,11 @@ export class DockerRuntime implements IServerRuntime {
    * Take over a container that kept running while the panel was down
    * Returns recent output and the start time
    */
-  async adopt(
-    containerId: string,
-  ): Promise<{ history: string; startedAt?: string }> {
+  async adopt(containerId: string): Promise<{
+    history: string;
+    startedAt?: string;
+    env: Record<string, string>;
+  }> {
     const container = this.docker.getDocker().getContainer(containerId);
     const info = await container.inspect();
     if (!info.State?.Running) {
@@ -171,6 +173,7 @@ export class DockerRuntime implements IServerRuntime {
       history,
       startedAt:
         startedAt && !startedAt.startsWith("0001") ? startedAt : undefined,
+      env: parseEnv(info.Config?.Env),
     };
   }
 
@@ -413,4 +416,14 @@ export class DockerRuntime implements IServerRuntime {
     for (const port of Object.keys(this.opts.portBindings)) out[port] = {};
     return out;
   }
+}
+
+// Container env comes as KEY=VALUE strings
+function parseEnv(entries: string[] | undefined): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const entry of entries ?? []) {
+    const eq = entry.indexOf("=");
+    if (eq > 0) env[entry.slice(0, eq)] = entry.slice(eq + 1);
+  }
+  return env;
 }

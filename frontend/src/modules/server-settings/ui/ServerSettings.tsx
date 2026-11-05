@@ -14,8 +14,9 @@ import { SaveBar } from "@/shared/ui/settings";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
-import { BookMarked, Coffee, Earth, GamepadDirectional, Network, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints, type LucideIcon } from "lucide-react";
+import { BookMarked, Coffee, Earth, GamepadDirectional, Network, Plug, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints, type LucideIcon } from "lucide-react";
 import { Fragment } from "react";
+import { CompanionSettingsTab } from "@/modules/companion/ui/settings/CompanionSettingsTab";
 import { NetworkTab } from "@/modules/networks/ui/NetworkTab";
 import { useSettingsDraft } from "../hooks/useSettingsDraft";
 import type { SettingsTab } from "../lib/schema";
@@ -35,6 +36,7 @@ const TABS: { id: SettingsTab; icon: LucideIcon; separatorBefore?: boolean }[] =
   { id: "network", icon: Network },
   { id: "other", icon: RectangleEllipsis },
   { id: "velocity", icon: Waypoints, separatorBefore: true },
+  { id: "companion", icon: Plug, separatorBefore: true },
 ];
 
 function ServerSettingsForm({ server }: { server: Server }) {
@@ -72,6 +74,11 @@ function ServerSettingsForm({ server }: { server: Server }) {
       {active === "velocity" ? (
         <TabsContent value="velocity">
           <NetworkTab serverId={server.id} />
+        </TabsContent>
+      ) : active === "companion" ? (
+        // Saved on its own, not part of the server.properties draft
+        <TabsContent value="companion">
+          <CompanionSettingsTab serverId={server.id} />
         </TabsContent>
       ) : draft.loading ? (
         <Skeleton className="h-96 rounded-lg" />

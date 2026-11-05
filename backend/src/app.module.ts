@@ -5,6 +5,7 @@ import { AccountsModule } from "@/modules/accounts/accounts.module";
 import { AssistantModule } from "@/modules/assistant/assistant.module";
 import { AuditLogModule } from "@/modules/audit-log/audit-log.module";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { CompanionModule } from "@/modules/companion/companion.module";
 import { SubnetGuard } from "@/modules/auth/guards/subnet.guard";
 import { BackupsModule } from "@/modules/backups/backups.module";
 import { DatabaseModule } from "@/modules/database/database.module";
@@ -60,6 +61,7 @@ import { APP_GUARD } from "@nestjs/core";
     ServersModule,
     FilesModule,
     PluginsModule,
+    CompanionModule,
     ModsModule,
     ModpacksModule,
     NetworksModule,

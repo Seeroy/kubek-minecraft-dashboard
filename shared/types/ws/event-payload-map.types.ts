@@ -1,3 +1,4 @@
+import type { WsCompanionUpdate } from "../companion.types";
 import type { INotification } from "../notification.types";
 import {
   WsAssistantDelta,
@@ -56,6 +57,7 @@ export interface WsEventPayloadMap {
   [WsServerEventTypes.ERROR_UPDATE]: WsServerErrorUpdate;
   [WsServerEventTypes.ERROR_RESOLVED]: WsServerErrorResolved;
   [WsServerEventTypes.FULL_LOG]: WsServerFullLog;
+  [WsServerEventTypes.COMPANION]: WsCompanionUpdate;
 
   [WsTelegramEventTypes.OTP_UPDATE]: WsOtpUpdate;
 }

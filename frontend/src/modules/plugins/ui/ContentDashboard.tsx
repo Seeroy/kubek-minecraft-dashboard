@@ -1,6 +1,7 @@
 "use client";
 
 import type { ContentKind } from "@/api";
+import { CompanionBanner } from "@/modules/companion";
 import { useServerStore, type Server } from "@/modules/server";
 import { useBlueprint, useBlueprints } from "@/modules/server-types/api/server-types.queries";
 import { useRouteTab } from "@/shared/hooks/useRouteTab";
@@ -92,6 +93,12 @@ function ServerContent({ kind, server }: { kind: ContentKind; server: Server }) 
           </>
         }
       />
+
+      {kind === "plugin" && available && (
+        <div className="mb-4">
+          <CompanionBanner serverId={server.id} section="plugins" />
+        </div>
+      )}
 
       {blueprintsLoading ? (
         <Skeleton className="h-96 rounded-lg" />

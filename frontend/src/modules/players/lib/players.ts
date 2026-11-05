@@ -1,4 +1,4 @@
-export const PLAYERS_TABS = ["online", "whitelist", "ops", "bans"] as const;
+export const PLAYERS_TABS = ["online", "whitelist", "ops", "bans", "activity"] as const;
 
 export type PlayersTab = (typeof PLAYERS_TABS)[number];
 

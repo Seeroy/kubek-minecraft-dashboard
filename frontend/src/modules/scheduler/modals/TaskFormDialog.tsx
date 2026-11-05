@@ -213,6 +213,7 @@ export default function TaskFormDialog({ serverId, isOpen, onClose, editingTask 
 
             <Section icon={<Zap />} tone="purple" title={t("action")}>
               <ActionFields
+                serverId={serverId}
                 state={state}
                 set={set}
                 headersError={headersError}

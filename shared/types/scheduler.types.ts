@@ -55,10 +55,20 @@ export interface WebhookActionPayload {
   body?: string;
 }
 
+/** Stop and restart extras, the countdown needs Kubek Companion */
+export interface ShutdownOptions {
+  /** Warn players in game this many seconds before */
+  countdownSec?: number;
+  /** {s} and {time} are replaced, & color codes work */
+  countdownMessage?: string;
+  /** Do nothing while somebody is online */
+  skipIfPlayersOnline?: boolean;
+}
+
 export type SchedulerActionPayload =
   | { type: SchedulerActionType.SERVER_START }
-  | { type: SchedulerActionType.SERVER_STOP }
-  | { type: SchedulerActionType.SERVER_RESTART }
+  | ({ type: SchedulerActionType.SERVER_STOP } & ShutdownOptions)
+  | ({ type: SchedulerActionType.SERVER_RESTART } & ShutdownOptions)
   | ({ type: SchedulerActionType.SERVER_COMMAND } & CommandActionPayload)
   | ({ type: SchedulerActionType.BACKUP_CREATE } & BackupActionPayload)
   | ({ type: SchedulerActionType.HTTP_WEBHOOK } & WebhookActionPayload);

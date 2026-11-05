@@ -55,7 +55,8 @@ export function InstalledView({ kind, server, items = [], loading, onOpenCatalog
   const canRemove = useAccess([AccessArea.CONTENT, "manage"], server.id);
   const [filter, setFilter] = useState<Filter>("all");
 
-  const updates = useMemo(() => items.filter(FILTERS.updates), [items]);
+  // Kubek Companion updates from GitHub through its own row, not with the Modrinth batch
+  const updates = useMemo(() => items.filter((item) => FILTERS.updates(item) && item.type === "modrinth"), [items]);
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter(

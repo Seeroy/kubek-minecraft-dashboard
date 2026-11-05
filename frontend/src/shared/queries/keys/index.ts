@@ -4,6 +4,7 @@ import { assistantKeys } from "./assistant.keys";
 import { auditLogKeys } from "./audit-log.keys";
 import { authKeys } from "./auth.keys";
 import { backupsKeys } from "./backups.keys";
+import { companionKeys } from "./companion.keys";
 import { configKeys } from "./config.keys";
 import { extensionsKeys } from "./extensions.keys";
 import { filesKeys } from "./files.keys";
@@ -35,6 +36,7 @@ export const qk = {
   backups: backupsKeys,
   plugins: pluginsKeys,
   players: playersKeys,
+  companion: companionKeys,
   mods: modsKeys,
   modpacks: modpacksKeys,
   networks: networksKeys,
@@ -65,6 +67,7 @@ export {
   auditLogKeys,
   authKeys,
   backupsKeys,
+  companionKeys,
   configKeys,
   extensionsKeys,
   filesKeys,

@@ -127,6 +127,21 @@ export class InstalledContentVersionSummaryDto {
 }
 
 /** A plugin/mod installed on a server (Modrinth-managed or a manual jar) */
+/** Kubek Companion details, only on its own row */
+export class InstalledCompanionInfoDto {
+  @ApiProperty({ example: "1.0.0" })
+  version: string;
+
+  @ApiProperty({ type: String, nullable: true, description: "Newest release" })
+  latestVersion: string | null;
+
+  @ApiProperty({ description: "Plugin is talking to the panel right now" })
+  connected: boolean;
+
+  @ApiProperty({ description: "Release page on GitHub" })
+  releaseUrl: string;
+}
+
 export class InstalledContentDto {
   @ApiProperty({
     description: "Installed record id (or `manual-<file>` for manual jars)",
@@ -163,8 +178,18 @@ export class InstalledContentDto {
   })
   updatedAt?: number;
 
-  @ApiProperty({ enum: ["modrinth", "manual"], description: "Install source" })
-  type: "modrinth" | "manual";
+  @ApiProperty({
+    enum: ["modrinth", "manual", "companion"],
+    description: "Install source",
+  })
+  type: "modrinth" | "manual" | "companion";
+
+  @ApiProperty({
+    required: false,
+    type: InstalledCompanionInfoDto,
+    description: "Set on the Kubek Companion row",
+  })
+  companion?: InstalledCompanionInfoDto;
 
   @ApiProperty({
     required: false,

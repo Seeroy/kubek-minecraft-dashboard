@@ -103,6 +103,12 @@ export const sharedTranslations: TranslationDictionary = {
       ROLE_BUILTIN: "A built-in role can't be renamed or deleted",
       ROLE_UNKNOWN: "One of the picked roles no longer exists, reload the list",
       ACCESS_ESCALATION: "You can't give more access than you have",
+      COMPANION_UNSUPPORTED: "This server type can't run Kubek Companion",
+      COMPANION_NOT_CONNECTED: "Kubek Companion is not connected on this server",
+      COMPANION_TIMEOUT: "Kubek Companion did not answer in time",
+      COMPANION_REJECTED: "Kubek Companion refused the request",
+      COMPANION_RATE_LIMITED: "A lag report was just collected, try again in a few seconds",
+      COMPANION_RELEASE_UNAVAILABLE: "Could not get Kubek Companion from GitHub, try again later",
     },
   },
   fileSizes: {

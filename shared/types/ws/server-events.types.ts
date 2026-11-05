@@ -4,6 +4,8 @@ export enum WsServerEventTypes {
   LOG_UPDATE = "server:log_update",
   ERROR_UPDATE = "server:error_update",
   ERROR_RESOLVED = "server:error_resolved",
+  // Live data from the Kubek Companion plugin
+  COMPANION = "server:companion",
   FULL_LOG = "server:fullLog",
   LIST = "server:list",
   SUBMIT_COMMAND = "server:client:submit_cmd",

@@ -1,4 +1,5 @@
 "use client";
+import { Badge } from "@/shared/ui/badge";
 import { useExtensionSidebarItems } from "@/modules/extensions";
 import { useServerStore } from "@/modules/server";
 import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
@@ -91,6 +92,10 @@ export default function Navigation() {
         badge={
           item.href === PANEL_SETTINGS_HREF && hasUpdate ? (
             <UpdateIndicator label={t("navigation.updateAvailable")} />
+          ) : item.beta ? (
+            <Badge variant="warning" className="ml-auto flex-none!">
+              {t("navigation.beta")}
+            </Badge>
           ) : undefined
         }
       />

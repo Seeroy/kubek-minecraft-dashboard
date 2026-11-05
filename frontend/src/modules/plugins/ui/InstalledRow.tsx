@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { TableCell, TableRow } from "@/shared/ui/table";
 import type { InstalledPluginView } from "@shared/types/plugins";
 import { Check, Download, RotateCw, Trash2 } from "lucide-react";
+import { CompanionInstalledRow } from "@/modules/companion/ui/plugins/CompanionInstalledRow";
 import { getContentKind } from "../content-kind";
 import { displayName, fileNameOf, primaryCategory } from "../lib/installed";
 import { ProjectIcon } from "./ProjectIcon";
@@ -28,6 +29,10 @@ export function InstalledRow({ item, kind, onUpdate, onRemove }: InstalledRowPro
   const name = displayName(item);
   const file = fileNameOf(item);
   const latest = item.hasUpdate ? item.latestVersion?.versionNumber : undefined;
+
+  if (item.type === "companion") {
+    return <CompanionInstalledRow item={item} canUpdate={!!onUpdate} removeLabel={tk("remove.title")} onRemove={onRemove} />;
+  }
 
   return (
     <TableRow className="h-[58px]">

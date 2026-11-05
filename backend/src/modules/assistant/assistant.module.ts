@@ -1,3 +1,4 @@
+import { CompanionModule } from "@/modules/companion/companion.module";
 import { BackupsModule } from "@/modules/backups/backups.module";
 import { ConfigModule } from "@/modules/config/config.module";
 import { FilesModule } from "@/modules/files/files.module";
@@ -22,6 +23,7 @@ import { BackupsTools } from "./tools/backups.tools";
 import { ConsoleTools } from "./tools/console.tools";
 import { ContentTools } from "./tools/content.tools";
 import { FilesTools } from "./tools/files.tools";
+import { CompanionTools } from "./tools/companion.tools";
 import { PlayersTools } from "./tools/players.tools";
 import { PropertiesTools } from "./tools/properties.tools";
 import { SchedulerTools } from "./tools/scheduler.tools";
@@ -41,6 +43,7 @@ const GROUPS = [
   BackupsTools,
   SchedulerTools,
   PlayersTools,
+  CompanionTools,
 ];
 
 @Module({
@@ -56,6 +59,7 @@ const GROUPS = [
     BackupsModule,
     ScheduledTasksModule,
     PlayersModule,
+    CompanionModule,
   ],
   controllers: [AssistantSettingsController, AssistantController],
   providers: [

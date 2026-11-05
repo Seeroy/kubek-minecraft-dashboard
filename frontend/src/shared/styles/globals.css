@@ -141,7 +141,7 @@
   --animate-blink: blink 1s steps(2) infinite;
   --animate-shimmer: shimmer 1.4s linear infinite;
   --animate-beat: beat 3s ease-out infinite;
-  --animate-toast-timer: toast-timer var(--toast-duration, 3.5s) linear forwards;
+  --animate-toast-ring: toast-ring var(--toast-duration, 3.5s) linear forwards;
 
   @keyframes enter {
     from {
@@ -167,9 +167,12 @@
       transform: translateX(16px);
     }
   }
-  @keyframes toast-timer {
+  @keyframes toast-ring {
+    from {
+      stroke-dashoffset: 0;
+    }
     to {
-      transform: scaleX(0);
+      stroke-dashoffset: 100;
     }
   }
   @keyframes crumb-in {

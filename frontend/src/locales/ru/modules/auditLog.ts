@@ -125,6 +125,11 @@ export const auditLogTranslations: TranslationDictionary = {
     content_install: "Установка плагина или мода",
     content_update: "Обновление плагина или мода",
     content_remove: "Удаление плагина или мода",
+    companion_install: "Установка Kubek Companion",
+    companion_settings_update: "Настройки Kubek Companion",
+    companion_broadcast: "Сообщение игрокам",
+    companion_title: "Заголовок игрокам",
+    companion_maintenance: "Режим тех. работ",
     scheduled_task_create: "Создание задачи",
     scheduled_task_update: "Изменение задачи",
     scheduled_task_delete: "Удаление задачи",
@@ -189,6 +194,7 @@ export const auditLogTranslations: TranslationDictionary = {
     telegram_bot: "Telegram-бот",
     session: "Сессия",
     audit_retention: "Журнал аудита",
+    companion: "Kubek Companion",
   },
   // Changed fields per resource type, dots in a path become underscores
   fields: {

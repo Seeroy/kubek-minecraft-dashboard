@@ -1,10 +1,9 @@
 "use client";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { X } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 import type { ToastEntry } from "../store/notifications.store";
 import NotificationIcon from "./NotificationIcon";
-import NotificationTimerBar from "./NotificationTimerBar";
+import NotificationCloseButton from "./NotificationCloseButton";
 import { notificationTone } from "./tone";
 import { cn } from "@/shared/lib/cn";
 
@@ -50,15 +49,29 @@ export default function NotificationItem({ notification }: { notification: Toast
             )}
           </>
         )}
+        {notification.progress !== undefined && (
+          <div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(notification.progress)}
+            className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-tone/14"
+          >
+            <div
+              className="h-full origin-left rounded-full bg-tone transition-[scale] duration-300 ease-out"
+              style={{ scale: `${Math.min(Math.max(notification.progress, 0), 100) / 100} 1` }}
+            />
+          </div>
+        )}
         {notification.actions?.length ? (
-          <div className="mt-2 flex items-center gap-4">
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
             {notification.actions.map((action, index) => (
               <button
                 key={action.key ?? index}
                 type="button"
                 onClick={action.onClick}
                 data-primary={index === 0 || undefined}
-                className="cursor-pointer text-[12.5px] font-semibold text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline data-primary:text-primary"
+                className="h-7 cursor-pointer rounded-full bg-secondary px-3 text-[12.5px] font-semibold text-muted-foreground transition-colors outline-none hover:bg-hover hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tone/70 data-primary:bg-tone/14 data-primary:text-tone data-primary:hover:bg-tone/22"
               >
                 {action.label}
               </button>
@@ -67,16 +80,7 @@ export default function NotificationItem({ notification }: { notification: Toast
         ) : null}
       </div>
 
-      <button
-        type="button"
-        onClick={() => close(notification.id)}
-        aria-label={t("close")}
-        className="relative grid size-6 shrink-0 cursor-pointer place-items-center rounded-sm text-muted-foreground transition-colors hover:bg-hover hover:text-foreground"
-      >
-        <X className="size-3.5" />
-      </button>
-
-      <NotificationTimerBar progress={notification.progress} duration={notification.duration} />
+      <NotificationCloseButton label={t("close")} onClose={() => close(notification.id)} duration={notification.duration} />
     </div>
   );
 }

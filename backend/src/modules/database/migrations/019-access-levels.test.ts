@@ -153,7 +153,7 @@ describe("access levels migration", () => {
       rmSync(dir, { recursive: true, force: true });
     }
 
-    expect(schemaVersion(db)).toBe(19);
+    expect(schemaVersion(db)).toBe(MIGRATIONS.at(-1)!.version);
     expect(grantsOf(db, "u").console).toBe("read");
   });
 

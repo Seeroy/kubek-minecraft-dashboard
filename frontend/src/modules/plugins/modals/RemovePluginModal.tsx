@@ -50,7 +50,8 @@ function RemovePluginModalComponent({ isOpen, onClose, kind, serverId, item, ins
   const queryClient = useQueryClient();
   const [withDependants, setWithDependants] = useState(true);
 
-  const manual = item.type === "manual";
+  // Manual jars and Kubek Companion are plain files, not Modrinth records
+  const manual = item.type !== "modrinth";
   const name = displayName(item);
   const file = fileNameOf(item);
   const dependants = installed.filter((other) => other.dependencyOf === item.id);

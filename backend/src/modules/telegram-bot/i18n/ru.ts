@@ -135,6 +135,7 @@ export const ru: typeof en = {
   notify: {
     serverStatus: (p) => `🖥️ <b>${p.name}</b>: ${p.status}`,
     serverError: (p) => `🚨 <b>${p.name}</b>: ошибка <code>${p.error}</code>`,
+    lowTps: (p) => `🐢 <b>${p.name}</b> лагает: TPS <code>${p.tps}</code>`,
     login: (p) =>
       `🔐 Вход в аккаунт <b>${p.username}</b> с <code>${p.ip}</code>`,
     backupOps: {

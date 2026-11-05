@@ -18,6 +18,7 @@ import { modsTranslations } from "./modules/mods";
 import { networksTranslations } from "./modules/networks";
 import { newServerModalTranslations } from "./modules/newServerModal";
 import { assistantTranslations } from "./modules/assistant";
+import { companionTranslations } from "./modules/companion";
 import { inboxTranslations } from "./modules/inbox";
 import { notificationsTranslations } from "./modules/notifications";
 import { oobeTranslations } from "./modules/oobe";
@@ -55,6 +56,7 @@ export const ruTranslations: TranslationDictionary = {
     newServerModal: newServerModalTranslations,
     notifications: notificationsTranslations,
     inbox: inboxTranslations,
+    companion: companionTranslations,
     assistant: assistantTranslations,
     oobe: oobeTranslations,
     serverSettings: serverSettingsTranslations,

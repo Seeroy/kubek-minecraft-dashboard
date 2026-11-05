@@ -135,7 +135,7 @@ curl -fsSL .../install.sh | bash -s -- --docker
 curl -fsSL .../install.sh | bash -s -- --binary
 
 # Своя папка / версия / установка без запуска
-curl -fsSL .../install.sh | bash -s -- --dir /opt/kubek --version v4.1.0 --no-run
+curl -fsSL .../install.sh | bash -s -- --dir /opt/kubek --version v4.1.1 --no-run
 ```
 
 </details>

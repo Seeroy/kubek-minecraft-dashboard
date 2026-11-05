@@ -1,4 +1,5 @@
 import { ServerLocksService } from "@/core/locks/server-locks.service";
+import { CompanionHubService } from "@/modules/companion/companion-hub.service";
 import { NetworksRepository } from "@/modules/database/repositories/networks.repository";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { ErrorRecognizerService } from "@/modules/error-recognition/error-recognizer.service";
@@ -29,6 +30,7 @@ export class ServerInstanceFactory {
     dockerService: DockerService,
     locks: ServerLocksService,
     networksRepo: NetworksRepository,
+    companionHub: CompanionHubService,
   ) {
     this.deps = {
       serverEventsService,
@@ -38,6 +40,7 @@ export class ServerInstanceFactory {
       queryRegistry,
       blueprintResolver,
       locks,
+      companionHub,
       launcher: new LaunchCommandBuilder({
         javaService,
         blueprintResolver,

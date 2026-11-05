@@ -1,3 +1,4 @@
+import { CompanionCoreModule } from "@/modules/companion/companion-core.module";
 import { ErrorRecognitionModule } from "@/modules/error-recognition/error-recognition.module";
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { ServerInstanceFactory } from "@/modules/instances/server-instance.factory";
@@ -7,7 +8,12 @@ import { Global, Module } from "@nestjs/common";
 
 @Global()
 @Module({
-  imports: [JavaModule, ErrorRecognitionModule, ServerTypesModule],
+  imports: [
+    JavaModule,
+    ErrorRecognitionModule,
+    ServerTypesModule,
+    CompanionCoreModule,
+  ],
   providers: [InstancesRegistry, ServerInstanceFactory],
   exports: [InstancesRegistry, ServerInstanceFactory],
 })

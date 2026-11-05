@@ -17,6 +17,8 @@ import { networks } from "./016-networks";
 import { auditServers } from "./017-audit-servers";
 import { ftpCredentials } from "./018-ftp-credentials";
 import { accessLevels } from "./019-access-levels";
+import { companion } from "./020-companion";
+import { companionFeed } from "./021-companion-feed";
 import type { Migration } from "./migration.types";
 
 // Only add new steps at the end, never edit released ones
@@ -142,5 +144,17 @@ export const MIGRATIONS: Migration[] = [
       "user_roles",
       "user_grants",
     ],
+  },
+  {
+    version: 20,
+    name: "companion",
+    up: companion,
+    touches: ["companion_settings", "companion_metrics", "companion_events"],
+  },
+  {
+    version: 21,
+    name: "companion-feed",
+    up: companionFeed,
+    touches: ["companion_settings", "companion_events"],
   },
 ];

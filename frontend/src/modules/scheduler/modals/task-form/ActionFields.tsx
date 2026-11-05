@@ -10,20 +10,25 @@ import { SchedulerActionType } from "@shared/types/scheduler.types";
 import { HTTP_METHODS, type HttpMethod, type TaskFormState } from "../../lib/form";
 import { actionLook } from "../../lib/look";
 import type { SetField } from "../TaskFormDialog";
+import { ShutdownFields } from "./ShutdownFields";
 
 const ACTIONS = Object.values(SchedulerActionType);
 
 interface ActionFieldsProps {
+  serverId: string;
   state: TaskFormState;
   set: SetField;
   headersError: boolean;
   onHeadersChange: (value: string) => void;
 }
 
-function Params({ state, set, headersError, onHeadersChange }: ActionFieldsProps) {
+function Params({ serverId, state, set, headersError, onHeadersChange }: ActionFieldsProps) {
   const { t } = useTranslation("modules.scheduler.form");
 
   switch (state.actionType) {
+    case SchedulerActionType.SERVER_STOP:
+    case SchedulerActionType.SERVER_RESTART:
+      return <ShutdownFields serverId={serverId} state={state} set={set} />;
     case SchedulerActionType.SERVER_COMMAND:
       return (
         <Field>

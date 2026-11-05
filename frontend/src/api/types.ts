@@ -159,6 +159,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/accounts/{username}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get account by username */
+        get: operations["AccountsController_getAccount"];
+        /** Update account */
+        put: operations["AccountsController_updateAccount"];
+        post?: never;
+        /** Delete account */
+        delete: operations["AccountsController_deleteAccount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{username}/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change account password */
+        post: operations["AccountsController_changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/me/preferences": {
         parameters: {
             query?: never;
@@ -197,42 +233,6 @@ export interface paths {
         post: operations["AccountsController_issueOwnFtpPassword"];
         /** Remove the FTP password of the current user */
         delete: operations["AccountsController_removeOwnFtpPassword"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{username}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get account by username */
-        get: operations["AccountsController_getAccount"];
-        /** Update account */
-        put: operations["AccountsController_updateAccount"];
-        post?: never;
-        /** Delete account */
-        delete: operations["AccountsController_deleteAccount"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{username}/change-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Change account password */
-        post: operations["AccountsController_changePassword"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -562,6 +562,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/servers/{id}/properties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get server.properties */
+        get: operations["ServersController_getProperties"];
+        /** Save server.properties */
+        put: operations["ServersController_saveProperties"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{id}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update server settings */
+        patch: operations["ServersController_updateSettings"];
+        trace?: never;
+    };
+    "/api/servers/{id}/core": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change server core/version */
+        post: operations["ServersController_changeCore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/servers/{id}/duplicate": {
         parameters: {
             query?: never;
@@ -631,24 +683,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/servers/{id}/properties": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get server.properties */
-        get: operations["ServersController_getProperties"];
-        /** Save server.properties */
-        put: operations["ServersController_saveProperties"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/servers/{id}/icon": {
         parameters: {
             query?: never;
@@ -661,40 +695,6 @@ export interface paths {
         put?: never;
         /** Upload server icon */
         post: operations["ServersController_uploadIcon"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/servers/{id}/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update server settings */
-        patch: operations["ServersController_updateSettings"];
-        trace?: never;
-    };
-    "/api/servers/{id}/core": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Change server core/version */
-        post: operations["ServersController_changeCore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1572,6 +1572,193 @@ export interface paths {
         post?: never;
         /** Remove installed plugin */
         delete: operations["PluginsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plugin install state, live link and settings */
+        get: operations["CompanionController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Install or update the plugin from GitHub releases */
+        post: operations["CompanionController_install"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Chat logging and player coordinates */
+        put: operations["CompanionController_updateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** TPS, MSPT, heap and online history */
+        get: operations["CompanionController_metrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/lag-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Entities, tiles and plugin tasks right now */
+        get: operations["CompanionController_lagReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/plugins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plugins as the running server sees them */
+        get: operations["CompanionController_plugins"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Activity feed, newest first */
+        get: operations["CompanionController_events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Peak online and top players by time played */
+        get: operations["CompanionController_activity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/broadcast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Chat message to everyone online */
+        post: operations["CompanionController_broadcast"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Title on every player's screen */
+        post: operations["CompanionController_title"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/companion/maintenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Maintenance mode, only allowed players can join */
+        put: operations["CompanionController_maintenance"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3197,7 +3384,7 @@ export interface components {
              * @example BAD_REQUEST
              * @enum {string}
              */
-            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION";
+            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION" | "COMPANION_UNSUPPORTED" | "COMPANION_NOT_CONNECTED" | "COMPANION_TIMEOUT" | "COMPANION_REJECTED" | "COMPANION_RATE_LIMITED" | "COMPANION_RELEASE_UNAVAILABLE";
             /**
              * @description Human-readable error message
              * @example Validation failed
@@ -3553,66 +3740,6 @@ export interface components {
             /** @description Challenge expiry timestamp (ms epoch) */
             expiresAt?: number;
         };
-        UserPreferencesResponseDto: {
-            /**
-             * @description Primary 2FA method, or null when none is set
-             * @example totp
-             * @enum {string|null}
-             */
-            twofaPrimary?: "totp" | "telegram" | null;
-            /**
-             * @description Whether TOTP 2FA is enabled
-             * @example false
-             */
-            totpEnabled?: boolean;
-            /**
-             * @description Whether Telegram 2FA is enabled
-             * @example false
-             */
-            telegram2faEnabled?: boolean;
-            /** @description Persisted dashboard layout as serialized JSON, or null */
-            dashboardLayout?: string | null;
-            /**
-             * @description Panel version for which the what's-new modal was last seen
-             * @example 4.0.0
-             */
-            lastSeenWhatsNewVersion?: string | null;
-            /**
-             * @description Minecraft nickname used for the avatar, null to use the username
-             * @example Notch
-             */
-            skinName: string | null;
-            /**
-             * @description Current running panel version
-             * @example 4.0.0
-             */
-            panelVersion: string;
-        };
-        UpdatePreferencesDto: {
-            /** @enum {string|null} */
-            twofaPrimary?: "totp" | "telegram" | null;
-            /** @description Serialized dashboard layout (JSON) */
-            dashboardLayout?: string | null;
-            /** @description Panel version for which the what's-new modal was last seen */
-            lastSeenWhatsNewVersion?: string | null;
-            /**
-             * @description Minecraft nickname for the avatar, null or empty to use the username
-             * @example Notch
-             */
-            skinName?: string | null;
-        };
-        FtpPasswordResponseDto: {
-            /**
-             * @description FTP password
-             * @example q3Xv0tH4c5yWkP9aZ1mN7bLe
-             */
-            password: string;
-            /**
-             * @description When the password was set (ms)
-             * @example 1735689600000
-             */
-            setAt: number;
-        };
         CreateAccountDto: {
             /**
              * @description Username
@@ -3688,6 +3815,66 @@ export interface components {
              * @example newSecurePassword123
              */
             new: string;
+        };
+        UserPreferencesResponseDto: {
+            /**
+             * @description Primary 2FA method, or null when none is set
+             * @example totp
+             * @enum {string|null}
+             */
+            twofaPrimary?: "totp" | "telegram" | null;
+            /**
+             * @description Whether TOTP 2FA is enabled
+             * @example false
+             */
+            totpEnabled?: boolean;
+            /**
+             * @description Whether Telegram 2FA is enabled
+             * @example false
+             */
+            telegram2faEnabled?: boolean;
+            /** @description Persisted dashboard layout as serialized JSON, or null */
+            dashboardLayout?: string | null;
+            /**
+             * @description Panel version for which the what's-new modal was last seen
+             * @example 4.0.0
+             */
+            lastSeenWhatsNewVersion?: string | null;
+            /**
+             * @description Minecraft nickname used for the avatar, null to use the username
+             * @example Notch
+             */
+            skinName: string | null;
+            /**
+             * @description Current running panel version
+             * @example 4.0.0
+             */
+            panelVersion: string;
+        };
+        UpdatePreferencesDto: {
+            /** @enum {string|null} */
+            twofaPrimary?: "totp" | "telegram" | null;
+            /** @description Serialized dashboard layout (JSON) */
+            dashboardLayout?: string | null;
+            /** @description Panel version for which the what's-new modal was last seen */
+            lastSeenWhatsNewVersion?: string | null;
+            /**
+             * @description Minecraft nickname for the avatar, null or empty to use the username
+             * @example Notch
+             */
+            skinName?: string | null;
+        };
+        FtpPasswordResponseDto: {
+            /**
+             * @description FTP password
+             * @example q3Xv0tH4c5yWkP9aZ1mN7bLe
+             */
+            password: string;
+            /**
+             * @description When the password was set (ms)
+             * @example 1735689600000
+             */
+            setAt: number;
         };
         RoleResponseDto: {
             /** @example builtin:viewer */
@@ -3953,17 +4140,6 @@ export interface components {
             /** @description Servers that failed to delete */
             failed: components["schemas"]["BulkDeleteFailureDto"][];
         };
-        DuplicateServerDto: {
-            /** @description Name of the new (duplicated) server */
-            name: string;
-        };
-        TaskRefResponseDto: {
-            /**
-             * @description ID of the started background task
-             * @example a1b2c3d4
-             */
-            taskId: string;
-        };
         ServerPropertiesDto: {
             /**
              * @description Server properties as key-value pairs
@@ -3999,6 +4175,17 @@ export interface components {
              * @example 1.21.4
              */
             version?: string;
+        };
+        DuplicateServerDto: {
+            /** @description Name of the new (duplicated) server */
+            name: string;
+        };
+        TaskRefResponseDto: {
+            /**
+             * @description ID of the started background task
+             * @example a1b2c3d4
+             */
+            taskId: string;
         };
         JavaVersionEntity: {
             /**
@@ -4943,6 +5130,16 @@ export interface components {
             /** @description Supported loaders */
             loaders: string[];
         };
+        InstalledCompanionInfoDto: {
+            /** @example 1.0.0 */
+            version: string;
+            /** @description Newest release */
+            latestVersion: string | null;
+            /** @description Plugin is talking to the panel right now */
+            connected: boolean;
+            /** @description Release page on GitHub */
+            releaseUrl: string;
+        };
         InstalledContentProjectSummaryDto: {
             /** @description Project id */
             id: string;
@@ -5054,7 +5251,9 @@ export interface components {
              * @description Install source
              * @enum {string}
              */
-            type: "modrinth" | "manual";
+            type: "modrinth" | "manual" | "companion";
+            /** @description Set on the Kubek Companion row */
+            companion?: components["schemas"]["InstalledCompanionInfoDto"];
             /** @description Modrinth project metadata */
             metadata?: components["schemas"]["InstalledContentProjectSummaryDto"];
             /** @description Installed version metadata */
@@ -5099,6 +5298,304 @@ export interface components {
              * @default true
              */
             removeDependants: boolean;
+        };
+        CompanionInstalledDto: {
+            /** @example KubekCompanion-1.0.0.jar */
+            fileName: string;
+            /** @example 1.0.0 */
+            version: string;
+        };
+        CompanionReleaseDto: {
+            /** @example 1.0.0 */
+            version: string;
+            /** @description Release page */
+            url: string;
+            publishedAt: string;
+        };
+        CompanionServerInfoDto: {
+            /** @example Paper */
+            name: string;
+            version: string;
+            /** @example 1.21.11-R0.1-SNAPSHOT */
+            bukkitVersion: string;
+            onlineMode: boolean;
+        };
+        CompanionJavaInfoDto: {
+            /** @example 21.0.5 */
+            version: string;
+            vendor: string;
+            vm: string;
+        };
+        /** @enum {string} */
+        CompanionTpsSource: "PAPER" | "SPIGOT" | "FOLIA" | "COUNTER";
+        /** @enum {string} */
+        CompanionMsptSource: "EVENTS" | "AVERAGE" | "SAMPLED" | "NONE";
+        CompanionCapsDto: {
+            tps: components["schemas"]["CompanionTpsSource"];
+            mspt: components["schemas"]["CompanionMsptSource"];
+            folia: boolean;
+            ping: boolean;
+            tileCounters: boolean;
+            bossBar: boolean;
+        };
+        CompanionPluginSettingsDto: {
+            intervalSec: number;
+            coords: boolean;
+            chat: boolean;
+        };
+        CompanionHelloDto: {
+            protocol: number;
+            /**
+             * @description Plugin version
+             * @example 1.0.0
+             */
+            plugin: string;
+            server: components["schemas"]["CompanionServerInfoDto"];
+            java: components["schemas"]["CompanionJavaInfoDto"];
+            caps: components["schemas"]["CompanionCapsDto"];
+            settings: components["schemas"]["CompanionPluginSettingsDto"];
+        };
+        CompanionMsptDto: {
+            /** @example events */
+            source: string;
+            avg: number;
+            p50?: number;
+            p95?: number;
+            p99?: number;
+            max?: number;
+            ticks?: number;
+            /** @description Busy share of the main thread, 0..1 */
+            load?: number;
+            /** @description Folia, player readings behind the worst region average */
+            samples?: number;
+        };
+        CompanionGcDto: {
+            count: number;
+            timeMs: number;
+            pauses?: number;
+            pauseMs?: number;
+            maxPauseMs?: number;
+        };
+        CompanionJvmDto: {
+            heapUsed: number;
+            heapCommitted: number;
+            heapMax: number;
+            nonHeapUsed: number;
+            threads: number;
+            daemonThreads: number;
+            /** @description JVM uptime in ms */
+            uptime: number;
+            gc: components["schemas"]["CompanionGcDto"];
+        };
+        CompanionWorldDto: {
+            name: string;
+            /** @example NORMAL */
+            env: string;
+            players: number | null;
+            chunks: number | null;
+            entities: number | null;
+            tiles: number | null;
+            tickingTiles: number | null;
+        };
+        CompanionPlayerDto: {
+            uuid: string;
+            name: string;
+            world: string;
+            /** @example SURVIVAL */
+            gamemode: string;
+            ping: number | null;
+            /** @description Join time, ms epoch */
+            since: number | null;
+            x?: number;
+            y?: number;
+            z?: number;
+        };
+        CompanionStatsDto: {
+            ts: number;
+            intervalSec: number;
+            /** @description 1m, 5m, 15m */
+            tps: number[] | null;
+            tpsSource: components["schemas"]["CompanionTpsSource"];
+            mspt: components["schemas"]["CompanionMsptDto"] | null;
+            jvm: components["schemas"]["CompanionJvmDto"];
+            online: number;
+            maxPlayers: number;
+            worlds: components["schemas"]["CompanionWorldDto"][];
+            players: components["schemas"]["CompanionPlayerDto"][];
+        };
+        CompanionLiveStateDto: {
+            connected: boolean;
+            hello: components["schemas"]["CompanionHelloDto"] | null;
+            stats: components["schemas"]["CompanionStatsDto"] | null;
+            lastSeen: number | null;
+        };
+        CompanionSettingsDto: {
+            /** @description Joins and quits go to the activity feed */
+            sessions: boolean;
+            /** @description Kicks go to the activity feed */
+            kicks: boolean;
+            /** @description Deaths go to the activity feed */
+            deaths: boolean;
+            /** @description Chat messages go to the activity feed */
+            chat: boolean;
+            /** @description Player coordinates are sent with stats */
+            coords: boolean;
+        };
+        CompanionMaintenanceDto: {
+            enabled: boolean;
+            /** @description Kick message, & color codes */
+            message: string;
+            /** @description Server list MOTD while it's on */
+            motd: string | null;
+            /** @description Names or UUIDs let in anyway */
+            allow: string[];
+            allowOps: boolean;
+        };
+        CompanionOverviewDto: {
+            /** @description Server type can run the plugin */
+            supported: boolean;
+            installed: components["schemas"]["CompanionInstalledDto"] | null;
+            latest: components["schemas"]["CompanionReleaseDto"] | null;
+            updateAvailable: boolean;
+            live: components["schemas"]["CompanionLiveStateDto"];
+            settings: components["schemas"]["CompanionSettingsDto"];
+            maintenance: components["schemas"]["CompanionMaintenanceDto"] | null;
+            /** @example https://github.com/KubekPanel/kubek-companion */
+            repoUrl: string;
+        };
+        CompanionInstallResultDto: {
+            installed: components["schemas"]["CompanionInstalledDto"];
+            /** @description Server is running, the plugin loads on the next start */
+            restartRequired: boolean;
+        };
+        UpdateCompanionSettingsDto: {
+            /** @description Log joins and quits to the activity feed */
+            sessions?: boolean;
+            /** @description Log kicks to the activity feed */
+            kicks?: boolean;
+            /** @description Log deaths to the activity feed */
+            deaths?: boolean;
+            /** @description Log chat to the activity feed */
+            chat?: boolean;
+            /** @description Send player coordinates with stats */
+            coords?: boolean;
+        };
+        /** @enum {string} */
+        CompanionMetricsWindow: "1h" | "6h" | "24h" | "7d";
+        CompanionMetricPointDto: {
+            ts: number;
+            tps: number | null;
+            /** @description Lowest TPS in the bucket */
+            tpsMin: number | null;
+            mspt: number | null;
+            /** @description Slowest MSPT in the bucket */
+            msptMax: number | null;
+            heapUsed: number;
+            heapMax: number;
+            players: number;
+            playersMax: number;
+        };
+        LagTypeCountDto: {
+            /** @example ITEM */
+            type: string;
+            count: number;
+        };
+        LagChunkDto: {
+            x: number;
+            z: number;
+            count: number;
+            types: components["schemas"]["LagTypeCountDto"][];
+        };
+        LagWorldDto: {
+            name: string;
+            chunks: number;
+            entities: number;
+            entityTypes: components["schemas"]["LagTypeCountDto"][];
+            topEntityChunks: components["schemas"]["LagChunkDto"][];
+            /** @description Null where counting tiles would be too heavy */
+            topTileChunks: components["schemas"]["LagChunkDto"][] | null;
+        };
+        LagTaskDto: {
+            plugin: string;
+            sync: number;
+            async: number;
+            running: number;
+        };
+        CompanionLagReportDto: {
+            ts: number;
+            /** @description Folia, no entity scan */
+            partial?: boolean;
+            worlds: components["schemas"]["LagWorldDto"][];
+            tasks: components["schemas"]["LagTaskDto"][] | null;
+        };
+        CompanionLivePluginDto: {
+            name: string;
+            version: string;
+            enabled: boolean;
+            authors: string[];
+            apiVersion: string | null;
+            depend: string[];
+            softDepend: string[];
+        };
+        /** @enum {string} */
+        CompanionEventType: "join" | "quit" | "kick" | "death" | "chat" | "countdown_done" | "countdown_cancelled";
+        CompanionEventDto: {
+            id: number;
+            type: components["schemas"]["CompanionEventType"];
+            ts: number;
+            uuid?: string;
+            name?: string;
+            firstJoin?: boolean;
+            /** @description Session length in ms, quit only */
+            session?: number;
+            reason?: string | null;
+            kicked?: boolean;
+            cause?: string | null;
+            message?: string | null;
+            killer?: string | null;
+        };
+        CompanionEventsPageDto: {
+            items: components["schemas"]["CompanionEventDto"][];
+            /** @description Pass as before for the next page */
+            nextBefore: number | null;
+        };
+        CompanionPlaytimeDto: {
+            uuid: string;
+            name: string;
+            playtimeMs: number;
+            sessions: number;
+            lastSeen: number;
+        };
+        CompanionActivityDto: {
+            /** @description Most players online at once in the period */
+            peakOnline: number;
+            top: components["schemas"]["CompanionPlaytimeDto"][];
+        };
+        CompanionBroadcastDto: {
+            /** @description Chat message, & color codes */
+            message: string;
+        };
+        CompanionTitleDto: {
+            title: string;
+            subtitle?: string;
+            /** @description Seconds on screen */
+            seconds?: number;
+        };
+        CompanionMaintenanceRequestDto: {
+            enabled: boolean;
+            /** @description Kick message, & color codes */
+            message?: string;
+            /** @description Server list MOTD while it's on */
+            motd?: string;
+            /** @description Names or UUIDs let in anyway */
+            allow?: string[];
+            /**
+             * @description Operators can still join
+             * @default true
+             */
+            allowOps: boolean;
+            /** @description Kick everyone who isn't allowed right away */
+            kickOnline?: boolean;
         };
         ModpackWarningDto: {
             /** @enum {string} */
@@ -5857,6 +6354,12 @@ export interface components {
              * @enum {string}
              */
             type: "server_start" | "server_stop" | "server_restart";
+            /** @description Stop and restart: warn players this many seconds before */
+            countdownSec?: number;
+            /** @description Countdown text, {s} and {time} are replaced */
+            countdownMessage?: string;
+            /** @description Stop and restart: skip the run while players are online */
+            skipIfPlayersOnline?: boolean;
         };
         CommandActionDto: {
             /**
@@ -6899,176 +7402,6 @@ export interface operations {
             };
         };
     };
-    AccountsController_getMyPreferences: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserPreferencesResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    AccountsController_updateMyPreferences: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePreferencesDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserPreferencesResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    AccountsController_revealOwnFtpPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FtpPasswordResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    AccountsController_issueOwnFtpPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FtpPasswordResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    AccountsController_removeOwnFtpPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description FTP access disabled for the user */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
     AccountsController_getAccount: {
         parameters: {
             query?: never;
@@ -7258,6 +7591,176 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_getMyPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPreferencesResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_updateMyPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePreferencesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPreferencesResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_revealOwnFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FtpPasswordResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_issueOwnFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FtpPasswordResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AccountsController_removeOwnFtpPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FTP access disabled for the user */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8489,6 +8992,241 @@ export interface operations {
             };
         };
     };
+    ServersController_getProperties: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Server properties (free-form key/value map) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServersController_saveProperties: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServerPropertiesDto"];
+            };
+        };
+        responses: {
+            /** @description Properties saved successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServersController_updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateServerSettingsDto"];
+            };
+        };
+        responses: {
+            /** @description Settings updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerEntity"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServersController_changeCore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * @description JSON string containing ChangeServerCoreDto payload
+                     * @example {"blueprintId":"com.kubek.purpur","version":"1.21.4"}
+                     */
+                    payload: string;
+                    /**
+                     * Format: binary
+                     * @description Custom core JAR file (required for the com.kubek.custom blueprint)
+                     */
+                    coreFile?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Core change started */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerCreatedResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     ServersController_duplicate: {
         parameters: {
             query?: never;
@@ -8737,112 +9475,6 @@ export interface operations {
             };
         };
     };
-    ServersController_getProperties: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Server ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Server properties (free-form key/value map) */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    ServersController_saveProperties: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Server ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServerPropertiesDto"];
-            };
-        };
-        responses: {
-            /** @description Properties saved successfully */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
     ServersController_getIcon: {
         parameters: {
             query?: never;
@@ -8913,135 +9545,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    ServersController_updateSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Server ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateServerSettingsDto"];
-            };
-        };
-        responses: {
-            /** @description Settings updated successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerEntity"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-        };
-    };
-    ServersController_changeCore: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Server ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * @description JSON string containing ChangeServerCoreDto payload
-                     * @example {"blueprintId":"com.kubek.purpur","version":"1.21.4"}
-                     */
-                    payload: string;
-                    /**
-                     * Format: binary
-                     * @description Custom core JAR file (required for the com.kubek.custom blueprint)
-                     */
-                    coreFile?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Core change started */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerCreatedResponseDto"];
-                };
             };
             400: {
                 headers: {
@@ -12115,6 +12618,705 @@ export interface operations {
                 };
             };
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionOverviewDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_install: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionInstallResultDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCompanionSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionSettingsDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_metrics: {
+        parameters: {
+            query: {
+                window: components["schemas"]["CompanionMetricsWindow"];
+            };
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionMetricPointDto"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_lagReport: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionLagReportDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_plugins: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionLivePluginDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_events: {
+        parameters: {
+            query?: {
+                types?: components["schemas"]["CompanionEventType"][];
+                /** @description Events older than this id */
+                before?: number;
+                /** @description Substring of the name, uuid, chat message or kick reason */
+                q?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionEventsPageDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_activity: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionActivityDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_broadcast: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanionBroadcastDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_title: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanionTitleDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    CompanionController_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanionMaintenanceRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanionMaintenanceDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            504: {
                 headers: {
                     [name: string]: unknown;
                 };

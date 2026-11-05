@@ -1,5 +1,9 @@
 import type { IConfiguration } from "@/core/types/config";
 import type { BackupJournalEntry } from "@shared/types/backup.types";
+import type {
+  CompanionEvent,
+  CompanionStats,
+} from "@shared/types/companion.types";
 import type { ServerStatus } from "@shared/types/server/server.types";
 import type { ITask } from "@shared/types/task.types";
 
@@ -46,6 +50,12 @@ export interface AppEventMap {
     ip: string | null;
     retryAfterSec: number;
   };
+  /** Stats snapshot from the Kubek Companion plugin */
+  "companion.stats": { serverId: string; stats: CompanionStats };
+  /** Player and countdown events from the plugin */
+  "companion.events": { serverId: string; events: CompanionEvent[] };
+  /** TPS stayed low for a while */
+  "server.low_tps": { serverId: string; serverName: string; tps: number };
 }
 
 export type AppEventName = keyof AppEventMap;

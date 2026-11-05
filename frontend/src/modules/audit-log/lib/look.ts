@@ -2,6 +2,9 @@ import type { Tone } from "@/shared/ui/tone";
 import { AuditCategory } from "@shared/types/audit.types";
 import {
   Archive,
+  Construction,
+  Megaphone,
+  MonitorPlay,
   Coffee,
   Eraser,
   Copy,
@@ -135,6 +138,11 @@ const ACTIONS: Record<string, Look> = {
   "content.install": { icon: Puzzle, tone: "purple" },
   "content.update": { icon: RefreshCw, tone: "purple" },
   "content.remove": { icon: Trash2, tone: "red" },
+  "companion.install": { icon: Puzzle, tone: "primary" },
+  "companion.settings_update": { icon: SlidersHorizontal, tone: "blue" },
+  "companion.broadcast": { icon: Megaphone, tone: "blue" },
+  "companion.title": { icon: MonitorPlay, tone: "blue" },
+  "companion.maintenance": { icon: Construction, tone: "amber" },
   "scheduled_task.create": { icon: CalendarClock, tone: "cyan" },
   "scheduled_task.update": { icon: CalendarClock, tone: "blue" },
   "scheduled_task.delete": { icon: Trash2, tone: "red" },

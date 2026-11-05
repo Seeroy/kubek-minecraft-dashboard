@@ -6,6 +6,12 @@ import { getErrorMessage } from "@/core/utils/error";
 import { generateRandomString } from "@/core/utils/randomString";
 import { propertyPort } from "@/core/properties/properties-values";
 import { getServerPath } from "@/core/utils/serverPath";
+import { COMPANION_TOKEN_ENV } from "@/modules/companion/companion.constants";
+import {
+  CompanionLink,
+  type CompanionHub,
+} from "@/modules/companion/link/companion-link";
+import { stripFrames } from "@/modules/companion/protocol/frame-decoder";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { ErrorRecognizerService } from "@/modules/error-recognition/error-recognizer.service";
 import { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
@@ -47,6 +53,7 @@ export interface ServerInstanceDeps {
   blueprintResolver: BlueprintResolver;
   locks: ServerLocksService;
   launcher: LaunchCommandBuilder;
+  companionHub: CompanionHub;
 }
 
 export class ServerInstance implements IInstance {
@@ -70,6 +77,9 @@ export class ServerInstance implements IInstance {
     startedAt?: string;
     playersList?: string[];
   };
+
+  /** Kubek Companion plugin link, idle until the plugin says hello */
+  readonly companion: CompanionLink;
 
   // Internal metadata
   private serverRuntime?: IServerRuntime | null;
@@ -106,9 +116,15 @@ export class ServerInstance implements IInstance {
 
     this.config = config;
     this.serverId = serverId || generateRandomString(16);
+    this.companion = new CompanionLink(
+      this.serverId,
+      deps.companionHub,
+      (line) => this.input(line),
+    );
     this.console = new InstanceConsole(
       (entry) => this.serverEventsService.emitServerLog(this.serverId, entry),
       (line) => this.onLine(line),
+      (line) => this.companion.isEcho(line),
     );
     this.diagnostics = new InstanceDiagnostics(
       this.serverId,
@@ -172,6 +188,7 @@ export class ServerInstance implements IInstance {
     this.stoppedAt = new Date().toISOString();
     this.pid = undefined;
 
+    this.companion.detach();
     this.console.close();
 
     const crashed = exitCode != null && exitCode > 1 && exitCode !== 127;
@@ -265,7 +282,7 @@ export class ServerInstance implements IInstance {
   }
 
   private onData(data: string): void {
-    this.console.feed(data);
+    this.console.feed(this.companion.filter(data));
   }
 
   // Finished output line, already in the log
@@ -371,7 +388,7 @@ export class ServerInstance implements IInstance {
     await this.serverRuntime.start({
       cwd: getServerPath(this.serverId),
       command,
-      env: {},
+      env: { [COMPANION_TOKEN_ENV]: this.companion.issueToken() },
     });
 
     this.console.attach(this.serverRuntime);
@@ -416,8 +433,12 @@ export class ServerInstance implements IInstance {
       throw e;
     }
 
+    // The container still has the token it was started with
+    this.companion.restoreToken(adopted.env[COMPANION_TOKEN_ENV]);
+    this.companion.ping();
+
     // Old lines only go to the console, no alerts for old errors
-    const lines = this.console.replay(adopted.history);
+    const lines = this.console.replay(stripFrames(adopted.history));
 
     this.pid = undefined;
     this.startedAt = adopted.startedAt ?? new Date().toISOString();

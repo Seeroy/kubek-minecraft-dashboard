@@ -6,7 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { PlayerHead } from "@/shared/ui/player-head";
 import { Spinner } from "@/shared/ui/spinner";
-import { BadgeCheck, Search, type LucideIcon } from "lucide-react";
+import { Search, type LucideIcon } from "lucide-react";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useResolvePlayerMutation } from "../api/players.queries";
 import { usePlayersError } from "../hooks/usePlayersError";
@@ -22,7 +22,7 @@ interface AddPlayerFormProps {
   onSubmit: (player: ResolvedPlayer) => Promise<boolean>;
 }
 
-/** Name first, then a check against the server's UUID rules, then the actual change */
+/** One button: resolves the name by the server's UUID rules, then applies the change */
 export function AddPlayerForm({ serverId, submitLabel, submitIcon: SubmitIcon, disabled, extra, onSubmit }: AddPlayerFormProps) {
   const { t } = useTranslation("modules.players.add");
   const errorText = usePlayersError();
@@ -40,13 +40,16 @@ export function AddPlayerForm({ serverId, submitLabel, submitIcon: SubmitIcon, d
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!trimmed || invalid || busy || disabled) return;
-    if (!checked) {
-      resolve.mutate(trimmed);
-      return;
-    }
     setSubmitting(true);
-    const ok = await onSubmit(checked);
-    setSubmitting(false);
+    let ok = false;
+    try {
+      const player = checked ?? (await resolve.mutateAsync(trimmed));
+      ok = await onSubmit(player);
+    } catch {
+      // resolve error is shown under the field
+    } finally {
+      setSubmitting(false);
+    }
     if (ok) {
       setName("");
       resolve.reset();
@@ -71,9 +74,9 @@ export function AddPlayerForm({ serverId, submitLabel, submitIcon: SubmitIcon, d
           />
         </InputGroup>
         {extra}
-        <Button type="submit" variant={checked ? "default" : "outline"} disabled={!trimmed || invalid || busy || disabled}>
-          {busy ? <Spinner /> : checked ? <SubmitIcon /> : <BadgeCheck />}
-          {checked ? submitLabel : resolve.isPending ? t("checking") : t("check")}
+        <Button type="submit" disabled={!trimmed || invalid || busy || disabled}>
+          {busy ? <Spinner /> : <SubmitIcon />}
+          {submitLabel}
         </Button>
       </div>
 

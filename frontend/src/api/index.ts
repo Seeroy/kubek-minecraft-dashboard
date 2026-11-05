@@ -3,6 +3,7 @@ import { assistantApi } from "./assistant/assistant.api";
 import { auditLogApi } from "./audit-log/audit-log.api";
 import { authApi } from "./auth/auth.api";
 import { backupsApi } from "./backups/backups.api";
+import { companionApi } from "./companion/companion.api";
 import { extensionsApi } from "./extensions/extensions.api";
 import { filesApi } from "./files/files.api";
 import { javaApi } from "./java/java.api";
@@ -44,6 +45,7 @@ export const api = {
   plugins: pluginsApi,
   mods: modsApi,
   players: playersApi,
+  companion: companionApi,
   modpacks: modpacksApi,
   networks: networksApi,
   scheduler: schedulerApi,
@@ -65,6 +67,7 @@ export * from "./assistant";
 export * from "./audit-log";
 export * from "./auth";
 export * from "./backups";
+export * from "./companion";
 export * from "./extensions";
 export * from "./files";
 export * from "./java";

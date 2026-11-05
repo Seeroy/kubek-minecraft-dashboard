@@ -30,6 +30,8 @@ export const inboxTranslations: TranslationDictionary = {
     serverCrashedText: "The instance exited unexpectedly. Check the logs for details",
     serverError: (name: string) => `Problem on "${name}"`,
     serverStatus: (name: string, status: string) => `"${name}" is ${status}`,
+    lowTps: (name: string) => `"${name}" is lagging`,
+    lowTpsText: (tps: string) => `TPS dropped to ${tps} and stays there`,
     login: (username: string) => `New sign-in to ${username}`,
     loginText: (ip: string) => `From ${ip}`,
     backupFailed: {

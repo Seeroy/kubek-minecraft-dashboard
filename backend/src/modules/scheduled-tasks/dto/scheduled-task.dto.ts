@@ -21,6 +21,7 @@ import {
   IsString,
   IsUrl,
   Matches,
+  Max,
   MaxLength,
   Min,
   ValidateIf,
@@ -107,6 +108,33 @@ export class ServerLifecycleActionDto {
     | SchedulerActionType.SERVER_START
     | SchedulerActionType.SERVER_STOP
     | SchedulerActionType.SERVER_RESTART;
+
+  @ApiPropertyOptional({
+    description: "Stop and restart: warn players this many seconds before",
+    minimum: 0,
+    maximum: 600,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(600)
+  countdownSec?: number;
+
+  @ApiPropertyOptional({
+    description: "Countdown text, {s} and {time} are replaced",
+    maxLength: 256,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(256)
+  countdownMessage?: string;
+
+  @ApiPropertyOptional({
+    description: "Stop and restart: skip the run while players are online",
+  })
+  @IsOptional()
+  @IsBoolean()
+  skipIfPlayersOnline?: boolean;
 }
 
 export class CommandActionDto {

@@ -124,6 +124,11 @@ export const auditLogTranslations: TranslationDictionary = {
     content_install: "Install plugin or mod",
     content_update: "Update plugin or mod",
     content_remove: "Remove plugin or mod",
+    companion_install: "Install Kubek Companion",
+    companion_settings_update: "Change Kubek Companion settings",
+    companion_broadcast: "Message to players",
+    companion_title: "Title to players",
+    companion_maintenance: "Maintenance mode",
     scheduled_task_create: "Create scheduled task",
     scheduled_task_update: "Change scheduled task",
     scheduled_task_delete: "Delete scheduled task",
@@ -188,6 +193,7 @@ export const auditLogTranslations: TranslationDictionary = {
     telegram_bot: "Telegram bot",
     session: "Session",
     audit_retention: "Audit log",
+    companion: "Kubek Companion",
   },
   // Changed fields per resource type, dots in a path become underscores
   fields: {

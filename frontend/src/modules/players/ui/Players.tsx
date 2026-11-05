@@ -1,4 +1,8 @@
 "use client";
+import { CompanionBanner, useCompanion } from "@/modules/companion";
+import { CompanionPlayerActions } from "@/modules/companion/ui/players/CompanionPlayerActions";
+import { ActivityTab } from "@/modules/companion/ui/players/ActivityTab";
+import { CompanionPlayerDetail } from "@/modules/companion/ui/players/CompanionPlayerDetail";
 import { useServerStore } from "@/modules/server/contexts/server-context";
 import { resolveServerStatus, useServerLive } from "@/modules/server/store/server-statuses.store";
 import type { Server } from "@/modules/server/types";
@@ -12,8 +16,8 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { Stat, StatStrip } from "@/shared/ui/stat-strip";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { ServerStatus } from "@shared/types/server/server.types";
-import { Ban, Crown, ListChecks, Radio, RotateCw, ServerOff, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { Ban, Crown, History, ListChecks, Lock, Radio, RotateCw, ServerOff, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
 import { usePlayersOverview } from "../api/players.queries";
 import { usePlayerActions } from "../hooks/usePlayerActions";
 import { usePlayersAccess } from "../hooks/usePlayersAccess";
@@ -28,6 +32,7 @@ const TAB_ICONS: Record<PlayersTab, LucideIcon> = {
   whitelist: ListChecks,
   ops: Crown,
   bans: Ban,
+  activity: History,
 };
 
 function Unavailable({ icon: Icon, title, description, action }: { icon: LucideIcon; title: string; description?: string; action?: ReactNode }) {
@@ -53,6 +58,19 @@ function ServerPlayers({ server }: { server: Server }) {
   const query = usePlayersOverview(server.id, access.supported && access.canView);
   const actions = usePlayerActions(server.id);
   const [tab, setTab] = useRouteTab<PlayersTab>("/players", PLAYERS_TABS, "online");
+  const companion = useCompanion(server.id);
+  const tabs = companion.state === "unsupported" ? PLAYERS_TABS.filter((id) => id !== "activity") : PLAYERS_TABS;
+
+  // Ping, world and session per online player, only while the plugin reports
+  const livePlayers = companion.connected ? companion.live?.stats?.players : undefined;
+  const detailFor = useMemo(() => {
+    if (!livePlayers) return undefined;
+    const byName = new Map(livePlayers.map((p) => [p.name.toLowerCase(), p]));
+    return function detailFor(name: string) {
+      const player = byName.get(name.toLowerCase());
+      return player ? <CompanionPlayerDetail player={player} /> : undefined;
+    };
+  }, [livePlayers]);
 
   const overview = query.data;
   const busy = state === ServerStatus.STARTING || state === ServerStatus.STOPPING;
@@ -65,9 +83,10 @@ function ServerPlayers({ server }: { server: Server }) {
     whitelist: overview?.whitelist.length,
     ops: overview?.ops.length,
     bans: overview && overview.bans.length + overview.ipBans.length,
+    activity: undefined,
   };
 
-  const header = <PageHeader title={t("title")} description={t("description")} />;
+  const header = <PageHeader title={t("title")} description={t("description")} actions={<CompanionPlayerActions serverId={server.id} />} />;
 
   if (unsupported) {
     return (
@@ -78,6 +97,8 @@ function ServerPlayers({ server }: { server: Server }) {
     );
   }
 
+  // Activity has its own data, only the list tabs wait for the overview
+  const listTab = tab !== "online" && tab !== "activity";
   const tabProps = overview && { serverId: server.id, overview, busy, access, actions };
 
   return (
@@ -85,6 +106,7 @@ function ServerPlayers({ server }: { server: Server }) {
       {header}
       {/* minmax(0) so the tabs don't stretch the page on mobile */}
       <div className="grid gap-4 max-md:grid-cols-[minmax(0,1fr)]">
+        <CompanionBanner serverId={server.id} section="players" />
         <StatStrip className="max-sm:grid-cols-2 max-sm:*:data-[slot=stat]:p-3 max-sm:**:data-[slot=stat-value]:text-xl">
           <Stat
             label={t("stats.online")}
@@ -113,8 +135,10 @@ function ServerPlayers({ server }: { server: Server }) {
         <Tabs value={tab} onValueChange={(value) => setTab(value as PlayersTab)} className="gap-4">
           <div className="w-fit max-w-full">
             <TabsList>
-              {PLAYERS_TABS.map((id) => {
-                const Icon = TAB_ICONS[id];
+              {tabs.map((id) => {
+                // The activity tab still opens without the plugin, it explains how to get it
+                const locked = id === "activity" && (companion.state === "missing" || companion.state === "loading");
+                const Icon = locked ? Lock : TAB_ICONS[id];
                 return (
                   <TabsTrigger key={id} value={id}>
                     <Icon />
@@ -127,11 +151,15 @@ function ServerPlayers({ server }: { server: Server }) {
           </div>
 
           <TabsContent value="online">
-            <OnlineTab online={online} overview={overview} access={access} actions={actions} />
+            <OnlineTab online={online} overview={overview} access={access} actions={actions} detailFor={detailFor} />
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <ActivityTab serverId={server.id} />
           </TabsContent>
 
           {query.isError && !overview ? (
-            tab !== "online" && (
+            listTab && (
               <Unavailable
                 icon={TriangleAlert}
                 title={t("loadFailed")}
@@ -144,7 +172,7 @@ function ServerPlayers({ server }: { server: Server }) {
               />
             )
           ) : !tabProps ? (
-            tab !== "online" && <Skeleton className="h-80 rounded-lg" />
+            listTab && <Skeleton className="h-80 rounded-lg" />
           ) : (
             <>
               <TabsContent value="whitelist">

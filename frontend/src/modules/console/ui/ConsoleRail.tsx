@@ -1,4 +1,5 @@
 "use client";
+import { CompanionConsoleCard } from "@/modules/companion/ui/CompanionConsoleCard";
 import { OnlinePlayerMenu } from "@/modules/players/ui/OnlinePlayerMenu";
 import { formatDuration } from "@/shared/lib/formatDuration";
 import { useNow } from "@/shared/hooks/useNow";
@@ -130,6 +131,7 @@ export function ConsoleRail({ serverId, blueprintId, status, version, players, s
       </Popover>
 
       <InfoCard icon={Activity} tone={statusTone[status]} label={t("status")} value={<span className="text-tone">{tStatus(status)}</span>} />
+      <CompanionConsoleCard serverId={serverId} />
       <UptimeCard startedAt={startedAt} running={status === ServerStatus.RUNNING} />
       <FreshnessCard timestamp={timestamp} />
       <BufferCard />

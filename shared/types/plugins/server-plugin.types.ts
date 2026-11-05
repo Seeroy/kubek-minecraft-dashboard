@@ -12,10 +12,19 @@ export interface ServerPluginRecord {
   updatedAt?: number;
 }
 
-export type PluginType = "modrinth" | "manual";
+export type PluginType = "modrinth" | "manual" | "companion";
+
+/** Kubek Companion jar, updated from GitHub releases instead of Modrinth */
+export interface CompanionContentInfo {
+  version: string;
+  latestVersion: string | null;
+  connected: boolean;
+  releaseUrl: string;
+}
 
 export interface InstalledPluginView extends ServerPluginRecord {
   type: PluginType;
+  companion?: CompanionContentInfo;
   metadata?: ModrinthProjectSummary;
   version?: ModrinthVersionSummary;
   hasUpdate: boolean;

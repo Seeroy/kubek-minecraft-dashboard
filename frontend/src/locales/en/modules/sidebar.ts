@@ -5,6 +5,8 @@ export const sidebarTranslations: TranslationDictionary = {
     server: "Server",
     dashboard: "Dashboard",
     console: "Console",
+    performance: "Performance",
+    beta: "Beta",
     files: "Files",
     logViewer: "Logs",
     serverSettings: "Server Settings",

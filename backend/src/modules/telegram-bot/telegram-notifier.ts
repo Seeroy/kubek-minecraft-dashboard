@@ -54,6 +54,11 @@ const RENDERERS: { [K in NotificationKind]?: Renderer<K> } = {
       name: escapeHtml(p.serverName),
       error: escapeHtml(p.errorType),
     }),
+  "server.low_tps": (lang, p) =>
+    t(lang, "notify.lowTps", {
+      name: escapeHtml(p.serverName),
+      tps: p.tps.toFixed(1),
+    }),
   "auth.login": (lang, p) =>
     t(lang, "notify.login", {
       username: escapeHtml(p.username),

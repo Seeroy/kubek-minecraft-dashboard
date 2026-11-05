@@ -34,6 +34,7 @@ export const playersTranslations: TranslationDictionary = {
     whitelist: "Белый список",
     ops: "Операторы",
     bans: "Баны",
+    activity: "Активность",
   },
   search: "Поиск по нику или UUID…",
   count: (n: number) => `${n} ${plural(n, "игрок", "игрока", "игроков")}`,
@@ -44,8 +45,6 @@ export const playersTranslations: TranslationDictionary = {
   },
   add: {
     placeholder: "Ник игрока",
-    check: "Проверить",
-    checking: "Проверяем…",
     invalid: "От 1 до 16 латинских букв, цифр или _",
     mojang: "Аккаунт Mojang",
     offline: "Офлайн UUID",

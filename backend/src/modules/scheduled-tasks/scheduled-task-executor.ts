@@ -1,5 +1,6 @@
 import { getErrorMessage } from "@/core/utils/error";
 import { BackupCreatorService } from "@/modules/backups/backup-creator.service";
+import { CompanionService } from "@/modules/companion/companion.service";
 import { ScheduledTaskRunsRepository } from "@/modules/database/repositories/scheduled-task-runs.repository";
 import { UsersRepository } from "@/modules/database/repositories/users.repository";
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
@@ -12,12 +13,17 @@ import {
   ScheduledRunStatus,
   ScheduledRunTrigger,
   SchedulerActionType,
+  type ShutdownOptions,
 } from "@shared/types/scheduler.types";
 import { TaskStatus } from "@shared/types/task.types";
 import { canRunAction } from "./action-access";
 import { WebhookClient } from "./webhook-client";
 
 const RUNS_HISTORY_LIMIT = 100;
+const DEFAULT_COUNTDOWN = {
+  [SchedulerActionType.SERVER_STOP]: "&eServer stops in {time}",
+  [SchedulerActionType.SERVER_RESTART]: "&eServer restarts in {time}",
+};
 
 /**
  * Runs a scheduled task's action and records the run in its history
@@ -35,6 +41,7 @@ export class ScheduledTaskExecutor {
     private readonly backupCreator: BackupCreatorService,
     private readonly tasksService: TasksService,
     private readonly webhook: WebhookClient,
+    private readonly companion: CompanionService,
   ) {}
 
   async execute(
@@ -118,15 +125,19 @@ export class ScheduledTaskExecutor {
       }
       case SchedulerActionType.SERVER_STOP: {
         const inst = this.requireInstance(task.serverId);
+        const prep = await this.beforeShutdown(task.serverId, action);
+        if (prep.skip) return prep.skip;
         const ok = await inst.stop(owner);
         if (!ok) throw new Error("Server is not running or stop timed out");
-        return "stopped";
+        return withNote("stopped", prep.note);
       }
       case SchedulerActionType.SERVER_RESTART: {
         const inst = this.requireInstance(task.serverId);
+        const prep = await this.beforeShutdown(task.serverId, action);
+        if (prep.skip) return prep.skip;
         const ok = await inst.restart(owner);
         if (!ok) throw new Error("Server is not running");
-        return "restarted";
+        return withNote("restarted", prep.note);
       }
       case SchedulerActionType.SERVER_COMMAND: {
         const inst = this.requireInstance(task.serverId);
@@ -160,6 +171,34 @@ export class ScheduledTaskExecutor {
     }
   }
 
+  /**
+   * Player check and in game countdown before a stop or restart
+   * skip means the action should not run, note goes to the run output
+   */
+  private async beforeShutdown(
+    serverId: string,
+    action: ShutdownOptions & { type: keyof typeof DEFAULT_COUNTDOWN },
+  ): Promise<{ skip?: string; note?: string }> {
+    if (action.skipIfPlayersOnline) {
+      const online =
+        this.companion.onlinePlayers(serverId) ??
+        this.instancesRegistry.getByServerId(serverId)?.runtime
+          ?.playersOnline ??
+        0;
+      if (online > 0) return { skip: `skipped, ${online} players online` };
+    }
+    if (!action.countdownSec) return {};
+    if (!this.companion.isConnected(serverId)) {
+      return { note: "no countdown, Kubek Companion is not connected" };
+    }
+    const finished = await this.companion.countdown(
+      serverId,
+      action.countdownSec,
+      action.countdownMessage ?? DEFAULT_COUNTDOWN[action.type],
+    );
+    return finished ? {} : { skip: "skipped, the countdown was cancelled" };
+  }
+
   private requireInstance(serverId: string) {
     const inst = this.instancesRegistry.getByServerId(serverId);
     if (!inst) throw new Error("Server instance is not registered");
@@ -170,4 +209,8 @@ export class ScheduledTaskExecutor {
 function formatBackupName(template: string): string {
   const date = new Date().toISOString().replace(/[:.]/g, "-");
   return template.replace(/\{\{\s*date\s*\}\}/g, date).slice(0, 120);
+}
+
+function withNote(output: string, note?: string): string {
+  return note ? `${output} (${note})` : output;
 }

@@ -3,7 +3,7 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { Tone } from "@/shared/ui/tone";
 import type { INotification, NotificationParamsMap, NotificationSeverity } from "@shared/types/notification.types";
 import { TaskType } from "@shared/types/task.types";
-import { ArchiveX, CircleCheck, CloudOff, Info, CircleX, LogIn, type LucideIcon, Power, ServerCrash, ShieldAlert, TriangleAlert } from "lucide-react";
+import { ArchiveX, CircleCheck, CloudOff, Gauge, Info, CircleX, LogIn, type LucideIcon, Power, ServerCrash, ShieldAlert, TriangleAlert } from "lucide-react";
 import { useCallback } from "react";
 
 export interface NotificationView {
@@ -54,6 +54,12 @@ export function useDescribeNotification() {
           title: t("kinds.serverError", p.serverName),
           description: errorTitle(p.errorType),
           icon: TriangleAlert,
+          serverId: p.serverId,
+        }),
+        "server.low_tps": (p) => ({
+          title: t("kinds.lowTps", p.serverName),
+          description: t("kinds.lowTpsText", p.tps.toFixed(1)),
+          icon: Gauge,
           serverId: p.serverId,
         }),
         "server.status": (p) => ({ title: t("kinds.serverStatus", p.serverName, p.status), icon: Power, serverId: p.serverId }),

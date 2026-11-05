@@ -143,6 +143,8 @@ export const en = {
       `🖥️ <b>${p.name}</b>: ${p.status}`,
     serverError: (p: { name: string; error: string }) =>
       `🚨 <b>${p.name}</b>: error <code>${p.error}</code>`,
+    lowTps: (p: { name: string; tps: string }) =>
+      `🐢 <b>${p.name}</b> is lagging: TPS <code>${p.tps}</code>`,
     login: (p: { username: string; ip: string }) =>
       `🔐 Signed in to <b>${p.username}</b> from <code>${p.ip}</code>`,
     backupOps: { create: "creation", upload: "upload", restore: "restore" },

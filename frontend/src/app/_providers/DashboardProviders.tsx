@@ -1,5 +1,6 @@
 "use client";
 import { CommandPaletteProvider } from "@/modules/command-palette";
+import { CompanionBridge } from "@/modules/companion";
 import { ExtensionRuntimeProvider } from "@/modules/extensions";
 import { ServerStatusNotifier, TaskNotificationsBridge } from "@/modules/notifications";
 import { ServerCreationBridge } from "@/modules/server";
@@ -19,6 +20,7 @@ export function DashboardProviders() {
       <CommandPaletteProvider />
       <ExtensionRuntimeProvider />
       <HostMetricsBridge />
+      <CompanionBridge />
     </>
   );
 }
