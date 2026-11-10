@@ -10,6 +10,8 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-
 import { Panel, PanelBody, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
 import { PlayerHead } from "@/shared/ui/player-head";
+import { LoadReveal } from "@/shared/ui/data-reveal";
+import { LoadError } from "@/shared/ui/load-error";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Toggle } from "@/shared/ui/toggle";
@@ -110,16 +112,20 @@ function Feed({ serverId, chatOn }: { serverId: string; chatOn: boolean }) {
         <FeedSettingsPopover serverId={serverId} />
       </PanelHead>
       {filter === "chat" && !chatOn && <p className="border-b border-border px-4 py-2 text-xs text-muted-foreground">{t("chatOff")}</p>}
-      {!events.data ? (
-        <div className="grid gap-2 p-4">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="h-8 rounded-md" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
+      {events.data && items.length === 0 ? (
         <p className="px-4 py-12 text-center text-[13px] text-muted-foreground">{search ? t("noMatches") : t("empty")}</p>
       ) : (
-        <>
+        <LoadReveal
+          loading={!events.data}
+          items=":scope li"
+          skeleton={
+            <div className="grid gap-2 p-4">
+              {Array.from({ length: 6 }, (_, i) => (
+                <Skeleton key={i} className="h-8 rounded-md" />
+              ))}
+            </div>
+          }
+        >
           <ul className="divide-y divide-border">
             {items.map((event) => (
               <EventRow key={event.id} event={event} />
@@ -133,7 +139,7 @@ function Feed({ serverId, chatOn }: { serverId: string; chatOn: boolean }) {
               </Button>
             </div>
           )}
-        </>
+        </LoadReveal>
       )}
     </Panel>
   );
@@ -164,21 +170,21 @@ function Summary({ serverId }: { serverId: string }) {
             <Timer className="size-3.5" />
             {t("top")}
           </div>
-          {!data ? (
-            <Skeleton className="h-40 rounded-md" />
-          ) : data.top.length === 0 ? (
+          {data && data.top.length === 0 ? (
             <p className="text-[12.5px] text-muted-foreground">{t("noSessions")}</p>
           ) : (
-            <ol className="grid gap-1.5">
-              {data.top.map((row) => (
-                <li key={row.uuid} className="flex items-center gap-2 text-[13px]">
-                  <PlayerHead name={row.name} size={20} />
-                  <span className="min-w-0 flex-1 truncate">{row.name}</span>
-                  <span className="text-xs text-muted-foreground">{t("sessions", row.sessions)}</span>
-                  <b className="w-16 text-right font-semibold tabular-nums">{formatDuration(row.playtimeMs / 1000, tComponents)}</b>
-                </li>
-              ))}
-            </ol>
+            <LoadReveal loading={!data} items=":scope li" skeleton={<Skeleton className="h-40 rounded-md" />}>
+              <ol className="grid gap-1.5">
+                {data?.top.map((row) => (
+                  <li key={row.uuid} className="flex items-center gap-2 text-[13px]">
+                    <PlayerHead name={row.name} size={20} />
+                    <span className="min-w-0 flex-1 truncate">{row.name}</span>
+                    <span className="text-xs text-muted-foreground">{t("sessions", row.sessions)}</span>
+                    <b className="w-16 text-right font-semibold tabular-nums">{formatDuration(row.playtimeMs / 1000, tComponents)}</b>
+                  </li>
+                ))}
+              </ol>
+            </LoadReveal>
           )}
         </div>
       </PanelBody>
@@ -189,15 +195,19 @@ function Summary({ serverId }: { serverId: string }) {
 /** Joins, deaths, chat and so on, stored by the panel so it outlives restarts */
 export function ActivityTab({ serverId }: { serverId: string }) {
   const { t } = useTranslation("modules.companion.activity");
-  const { state, overview } = useCompanion(serverId);
+  const { state, overview, failed, retry, retrying } = useCompanion(serverId);
 
-  if (state === "loading") return <Skeleton className="h-80 rounded-lg" />;
+  if (failed) return <LoadError onRetry={retry} retrying={retrying} />;
   if (state === "missing" || state === "unsupported") return <CompanionRequired serverId={serverId} description={t("required")} />;
 
   return (
-    <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+    <LoadReveal
+      loading={state === "loading"}
+      className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]"
+      skeleton={<Skeleton className="h-80 rounded-lg lg:col-span-2" />}
+    >
       <Feed serverId={serverId} chatOn={!!overview?.settings.chat} />
       <Summary serverId={serverId} />
-    </div>
+    </LoadReveal>
   );
 }

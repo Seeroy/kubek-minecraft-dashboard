@@ -3,10 +3,10 @@ import { useModal } from "@/shared/hooks/useModalsManager";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import { Badge } from "@/shared/ui/badge";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Panel, PanelHead } from "@/shared/ui/panel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { toneClass } from "@/shared/ui/tone";
@@ -15,6 +15,7 @@ import { ToggleGroup } from "@/shared/ui/toggle-group";
 import { ScheduledRunStatus, type IScheduledTask, type IScheduledTaskRun } from "@shared/types/scheduler.types";
 import { useMemo, useState } from "react";
 import { useTaskRunsByServer } from "../api/scheduler.queries";
+import { SAMPLE_RUNS } from "../data/samples";
 import { RUN_INFO_MODAL_ID } from "../modals";
 import { actionLook, runBadge, shortDateTime } from "../lib/look";
 import { formatRunDuration } from "../lib/schedule";
@@ -65,13 +66,7 @@ export function RunsPanel({ serverId, tasks }: { serverId: string; tasks: ISched
         </Select>
       </PanelHead>
 
-      {runs.isLoading ? (
-        <div className="grid gap-2 p-4">
-          <Skeleton className="h-9" />
-          <Skeleton className="h-9" />
-          <Skeleton className="h-9" />
-        </div>
-      ) : items.length === 0 ? (
+      {!runs.isLoading && items.length === 0 ? (
         <Empty>
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -82,57 +77,61 @@ export function RunsPanel({ serverId, tasks }: { serverId: string; tasks: ISched
           </EmptyHeader>
         </Empty>
       ) : (
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-28">{t("runs.headers.time")}</TableHead>
-              <TableHead>{t("runs.headers.task")}</TableHead>
-              <TableHead className="hidden w-56 @3xl/table:table-cell">{t("runs.headers.action")}</TableHead>
-              <TableHead className="w-32">{t("runs.headers.status")}</TableHead>
-              <TableHead className="hidden w-28 @2xl/table:table-cell">{t("runs.headers.duration")}</TableHead>
-              <TableHead className="hidden w-32 @3xl/table:table-cell">{t("runs.headers.trigger")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((run) => {
-              const task = taskById.get(run.taskId);
-              const look = task && actionLook[task.action];
-              const running = run.status === ScheduledRunStatus.RUNNING;
-              return (
-                <TableRow
-                  key={run.id}
-                  tabIndex={0}
-                  className="h-12 cursor-pointer"
-                  onClick={() => openRun(run)}
-                  onKeyDown={(event) => event.key === "Enter" && openRun(run)}
-                >
-                  <TableCell className="text-muted-foreground tabular-nums">{shortDateTime(run.startedAt)}</TableCell>
-                  <TableCell className="truncate font-medium">{task?.name ?? t("runs.deletedTask")}</TableCell>
-                  <TableCell className="hidden @3xl/table:table-cell">
-                    {task && look && (
-                      <span className="flex min-w-0 items-center gap-2">
-                        <look.icon className={cn("size-3.5 shrink-0 text-tone", toneClass[look.tone])} />
-                        <span className="truncate">{t(`actions.${task.action}`)}</span>
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={runBadge[run.status]}>
-                      {running && <Spinner className="size-3" />}
-                      {t(`status.${run.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden text-muted-foreground tabular-nums @2xl/table:table-cell">
-                    {running ? "…" : formatRunDuration(run.durationMs, t)}
-                  </TableCell>
-                  <TableCell className="hidden @3xl/table:table-cell">
-                    <Badge variant="secondary">{t(`trigger.${run.triggeredBy}`)}</Badge>
-                  </TableCell>
+        <DataReveal id="scheduler-runs" data={items} loading={runs.isLoading} sample={SAMPLE_RUNS}>
+          {(items) => (
+            <Table className="table-fixed">
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-28">{t("runs.headers.time")}</TableHead>
+                  <TableHead>{t("runs.headers.task")}</TableHead>
+                  <TableHead className="hidden w-56 @3xl/table:table-cell">{t("runs.headers.action")}</TableHead>
+                  <TableHead className="w-32">{t("runs.headers.status")}</TableHead>
+                  <TableHead className="hidden w-28 @2xl/table:table-cell">{t("runs.headers.duration")}</TableHead>
+                  <TableHead className="hidden w-32 @3xl/table:table-cell">{t("runs.headers.trigger")}</TableHead>
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {items.map((run) => {
+                  const task = taskById.get(run.taskId);
+                  const look = task && actionLook[task.action];
+                  const running = run.status === ScheduledRunStatus.RUNNING;
+                  return (
+                    <TableRow
+                      key={run.id}
+                      tabIndex={0}
+                      className="h-12 cursor-pointer"
+                      onClick={() => openRun(run)}
+                      onKeyDown={(event) => event.key === "Enter" && openRun(run)}
+                    >
+                      <TableCell className="text-muted-foreground tabular-nums">{shortDateTime(run.startedAt)}</TableCell>
+                      <TableCell className="truncate font-medium">{task?.name ?? t("runs.deletedTask")}</TableCell>
+                      <TableCell className="hidden @3xl/table:table-cell">
+                        {task && look && (
+                          <span className="flex min-w-0 items-center gap-2">
+                            <look.icon className={cn("size-3.5 shrink-0 text-tone", toneClass[look.tone])} />
+                            <span className="truncate">{t(`actions.${task.action}`)}</span>
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={runBadge[run.status]}>
+                          {running && <Spinner className="size-3" />}
+                          {t(`status.${run.status}`)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground tabular-nums @2xl/table:table-cell">
+                        {running ? "…" : formatRunDuration(run.durationMs, t)}
+                      </TableCell>
+                      <TableCell className="hidden @3xl/table:table-cell">
+                        <Badge variant="secondary">{t(`trigger.${run.triggeredBy}`)}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </DataReveal>
       )}
     </Panel>
   );

@@ -6,6 +6,8 @@ import type { Server } from "@/modules/server/types";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { PageHeader } from "@/shared/ui/page-header";
+import { LoadReveal } from "@/shared/ui/data-reveal";
+import { LoadError } from "@/shared/ui/load-error";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
@@ -34,7 +36,7 @@ const readWindow = (): CompanionMetricsWindow => {
 
 function ServerPerformance({ server }: { server: Server }) {
   const { t } = useTranslation("modules.companion.performance");
-  const { state, live } = useCompanion(server.id);
+  const { state, live, failed, retry, retrying } = useCompanion(server.id);
   const [window, setWindow] = useState<CompanionMetricsWindow>(readWindow);
   const usable = state === "connected" || state === "waiting" || state === "offline";
 
@@ -65,16 +67,22 @@ function ServerPerformance({ server }: { server: Server }) {
         }
       />
 
-      {state === "loading" ? (
-        <div className="grid gap-4">
-          <Skeleton className="h-28 rounded-lg" />
-          <Skeleton className="h-80 rounded-lg" />
-        </div>
-      ) : !usable ? (
+      {failed ? (
+        <LoadError onRetry={retry} retrying={retrying} />
+      ) : state !== "loading" && !usable ? (
         <CompanionRequired serverId={server.id} description={t("required")} />
       ) : (
         // minmax(0) so wide tables scroll instead of stretching the page on mobile
-        <div className="grid gap-4 max-md:grid-cols-[minmax(0,1fr)]">
+        <LoadReveal
+          loading={state === "loading"}
+          className="grid gap-4 max-md:grid-cols-[minmax(0,1fr)]"
+          skeleton={
+            <>
+              <Skeleton className="h-28 rounded-lg" />
+              <Skeleton className="h-80 rounded-lg" />
+            </>
+          }
+        >
           <CompanionBanner serverId={server.id} section="performance" />
           <PerformanceStats stats={state === "connected" ? (live?.stats ?? null) : null} />
           <MetricCharts serverId={server.id} window={window} />
@@ -85,7 +93,7 @@ function ServerPerformance({ server }: { server: Server }) {
             </div>
           )}
           <LagReportPanel serverId={server.id} state={state} />
-        </div>
+        </LoadReveal>
       )}
     </>
   );

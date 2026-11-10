@@ -9,6 +9,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText } from "@/shared/ui/input-group";
 import { Panel } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
+import { LoadReveal } from "@/shared/ui/data-reveal";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Archive, ChevronDown, ChevronUp, Download, FileText, Search, WrapText } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -157,17 +158,24 @@ export function LogView({ file, content, loading }: LogViewProps) {
             <EmptyTitle>{t("pick")}</EmptyTitle>
           </EmptyHeader>
         </Empty>
-      ) : loading ? (
-        <div className="grid flex-1 content-start gap-2 bg-code p-4">
-          {SKELETON_WIDTHS.map((width) => (
-            <Skeleton key={width} className="h-3" style={{ width }} />
-          ))}
-          <span className="text-[12.5px] text-muted-foreground">{t("loading")}</span>
-        </div>
-      ) : lines.length === 0 ? (
+      ) : !loading && lines.length === 0 ? (
         <p className="flex-1 bg-code p-4 text-[13px] text-muted-foreground">{t("empty")}</p>
       ) : (
-        <LogLines ref={linesRef} lines={lines} needle={needle} hits={hits} current={current >= 0 ? hits[current] : -1} wrap={wrap} />
+        // Flex column so the virtualized lines keep their height chain
+        <LoadReveal
+          loading={loading}
+          className="flex min-h-0 flex-1 flex-col"
+          skeleton={
+            <div className="grid flex-1 content-start gap-2 bg-code p-4">
+              {SKELETON_WIDTHS.map((width) => (
+                <Skeleton key={width} className="h-3" style={{ width }} />
+              ))}
+              <span className="text-[12.5px] text-muted-foreground">{t("loading")}</span>
+            </div>
+          }
+        >
+          <LogLines ref={linesRef} lines={lines} needle={needle} hits={hits} current={current >= 0 ? hits[current] : -1} wrap={wrap} />
+        </LoadReveal>
       )}
 
       <div className="flex shrink-0 items-center gap-3 border-t border-border px-4 py-2 text-xs text-muted-foreground">

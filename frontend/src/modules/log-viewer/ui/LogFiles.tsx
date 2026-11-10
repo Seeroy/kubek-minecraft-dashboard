@@ -3,12 +3,13 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatBytes } from "@/shared/lib/bytesToGb";
 import { cn } from "@/shared/lib/cn";
 import { Badge } from "@/shared/ui/badge";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { Panel, PanelFoot, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Archive, FileText, HardDrive, Search } from "lucide-react";
 import { useState } from "react";
+import { SAMPLE_LOG_GROUPS } from "../data/samples";
 import type { ILogFile } from "../types";
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -74,23 +75,21 @@ export function LogFiles({ files, selected, onSelect }: LogFilesProps) {
         </InputGroup>
       </div>
       <div role="listbox" aria-label={t("title")} className="min-h-0 flex-1 scrollbar-thin overflow-y-auto p-1">
-        {!files ? (
-          <div className="grid gap-1.5 p-1">
-            <Skeleton className="h-10" />
-            <Skeleton className="h-10" />
-            <Skeleton className="h-10" />
-          </div>
-        ) : groups.length === 0 ? (
+        {files && groups.length === 0 ? (
           <p className="px-3 py-6 text-center text-[13px] text-muted-foreground">{q ? t("noMatches", query.trim()) : t("empty")}</p>
         ) : (
-          groups.map((group) => (
-            <div key={group.key} role="group" aria-label={t(group.key)}>
-              <div className="label-caps px-2 pt-3 pb-1">{t(group.key)}</div>
-              {group.items.map((file) => (
-                <FileItem key={file.name} file={file} selected={file.name === selected} onSelect={onSelect} />
-              ))}
-            </div>
-          ))
+          <DataReveal id="log-files" data={groups} loading={!files} sample={SAMPLE_LOG_GROUPS}>
+            {(groups) => (
+              groups.map((group) => (
+                <div key={group.key} role="group" aria-label={t(group.key)}>
+                  <div className="label-caps px-2 pt-3 pb-1">{t(group.key)}</div>
+                  {group.items.map((file) => (
+                    <FileItem key={file.name} file={file} selected={file.name === selected} onSelect={onSelect} />
+                  ))}
+                </div>
+              ))
+            )}
+          </DataReveal>
         )}
       </div>
       <PanelFoot>

@@ -7,6 +7,7 @@ import { useAuthStore } from "@/shared/stores/auth-store";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Panel } from "@/shared/ui/panel";
@@ -20,6 +21,7 @@ import { AccessArea } from "@shared/access/areas";
 import { AlertTriangle, Archive, LogIn, ScrollText, Search, Server, X, type LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAuditLogsQuery } from "../api/audit-log.queries";
+import { SAMPLE_AUDIT } from "../data/samples";
 import { AuditTable } from "./AuditTable";
 import { AUDIT_TABS, type AuditTab } from "../lib/tabs";
 import { RetentionPanel } from "./RetentionPanel";
@@ -220,14 +222,9 @@ export function AuditLog() {
               )}
             </div>
 
-            <AuditTable
-              items={query.data?.items ?? []}
-              total={query.data?.total ?? 0}
-              loading={query.isLoading}
-              page={page}
-              pageSize={PAGE_SIZE}
-              onPage={setPage}
-            />
+            <DataReveal id="audit-log" data={query.data?.items ?? []} loading={query.isLoading} sample={SAMPLE_AUDIT}>
+              {(items) => <AuditTable items={items} total={query.data?.total ?? 0} page={page} pageSize={PAGE_SIZE} onPage={setPage} />}
+            </DataReveal>
           </Panel>
         </TabsContent>
         {canRotate && (

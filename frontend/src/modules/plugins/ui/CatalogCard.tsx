@@ -33,6 +33,7 @@ export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: Cata
   const serverSide = hit.server_side !== "unsupported";
   // Modrinth lists versions oldest first, the newest are the interesting ones
   const versions = hit.versions.slice(-VISIBLE_VERSIONS).reverse();
+  const updated = hit.date_modified ? formatRelative(new Date(hit.date_modified).getTime(), t("catalog.justNow")) : "";
 
   return (
     <article className="flex flex-col gap-2.5 rounded-lg border border-border bg-card p-4 transition-[border-color,translate,box-shadow] duration-200 ease-smooth hover:-translate-y-0.5 hover:border-foreground/18 hover:shadow-lg">
@@ -49,7 +50,8 @@ export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: Cata
 
       <p className="line-clamp-2 min-h-[37px] text-[12.5px] leading-normal text-muted-foreground">{hit.description}</p>
 
-      <div className="flex gap-4 text-xs text-muted-foreground tabular-nums [&_svg]:size-3.5">
+      {/* One line, a long relative date truncates instead of wrapping */}
+      <div className="flex min-w-0 gap-4 text-xs whitespace-nowrap text-muted-foreground tabular-nums [&_svg]:size-3.5 [&_svg]:shrink-0">
         <span className="inline-flex items-center gap-1" title={t("catalog.downloads", hit.downloads)}>
           <Download />
           {compact.format(hit.downloads)}
@@ -59,9 +61,9 @@ export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: Cata
           {compact.format(hit.follows)}
         </span>
         {hit.date_modified && (
-          <span className="inline-flex items-center gap-1" title={t("catalog.lastUpdate")}>
+          <span className="inline-flex min-w-0 items-center gap-1" title={`${t("catalog.lastUpdate")}: ${updated}`}>
             <Clock />
-            {formatRelative(new Date(hit.date_modified).getTime(), t("catalog.justNow"))}
+            <span className="truncate">{updated}</span>
           </span>
         )}
       </div>

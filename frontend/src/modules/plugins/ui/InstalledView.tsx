@@ -12,7 +12,6 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { Panel, PanelActions, PanelFoot, PanelHead } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
@@ -39,11 +38,10 @@ interface InstalledViewProps {
   kind: ContentKind;
   server: Server;
   items: InstalledPluginView[] | undefined;
-  loading: boolean;
   onOpenCatalog: () => void;
 }
 
-export function InstalledView({ kind, server, items = [], loading, onOpenCatalog }: InstalledViewProps) {
+export function InstalledView({ kind, server, items = [], onOpenCatalog }: InstalledViewProps) {
   const config = getContentKind(kind);
   const { t } = useTranslation(config.i18nNs);
   const { t: tc } = useTranslation("modules.content.installed");
@@ -85,8 +83,6 @@ export function InstalledView({ kind, server, items = [], loading, onOpenCatalog
     const scheduled = results.filter((result) => result.status === "fulfilled").length;
     if (scheduled) notify({ type: "success", title: t("install.updatesScheduled", scheduled) });
   };
-
-  if (loading) return <Skeleton className="h-80 rounded-lg" />;
 
   if (items.length === 0) {
     return (

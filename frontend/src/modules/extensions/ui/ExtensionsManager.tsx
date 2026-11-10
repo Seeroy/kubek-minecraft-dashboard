@@ -7,12 +7,12 @@ import { qk } from "@/shared/queries/query-keys";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import type { InstalledExtension } from "@/shared/types/extensions.types";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { FileDropZone } from "@/shared/ui/file-drop-zone";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Panel, PanelActions, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +28,7 @@ import {
   useRemoveExtensionMutation,
 } from "../api/extensions.queries";
 import { ExtensionRow, needsConsent } from "./ExtensionRow";
+import { SAMPLE_EXTENSIONS } from "../data/samples";
 
 type Filter = "all" | "active" | "attention";
 
@@ -155,12 +156,7 @@ export const ExtensionsManager = () => {
           </PanelActions>
         </PanelHead>
 
-        {extensions.isLoading ? (
-          <div className="grid gap-2 p-4">
-            <Skeleton className="h-14" />
-            <Skeleton className="h-14" />
-          </div>
-        ) : shown.length === 0 ? (
+        {!extensions.isLoading && shown.length === 0 ? (
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -171,19 +167,23 @@ export const ExtensionsManager = () => {
             </EmptyHeader>
           </Empty>
         ) : (
-          shown.map((ext) => (
-            <ExtensionRow
-              key={`${ext.id}:${ext.grantedCapabilities.join(",")}`}
-              ext={ext}
-              open={open.has(ext.id)}
-              busy={busy}
-              canManage={canManage}
-              onToggleOpen={() => toggleOpen(ext.id)}
-              onConsent={(capabilities) => onConsent(ext, capabilities)}
-              onEnabledChange={(enabled) => onEnabledChange(ext, enabled)}
-              onRemove={() => void onRemove(ext)}
-            />
-          ))
+          <DataReveal id="extensions-list" data={shown} loading={extensions.isLoading} sample={SAMPLE_EXTENSIONS}>
+            {(shown) => (
+              shown.map((ext) => (
+                <ExtensionRow
+                  key={`${ext.id}:${ext.grantedCapabilities.join(",")}`}
+                  ext={ext}
+                  open={open.has(ext.id)}
+                  busy={busy}
+                  canManage={canManage}
+                  onToggleOpen={() => toggleOpen(ext.id)}
+                  onConsent={(capabilities) => onConsent(ext, capabilities)}
+                  onEnabledChange={(enabled) => onEnabledChange(ext, enabled)}
+                  onRemove={() => void onRemove(ext)}
+                />
+              ))
+            )}
+          </DataReveal>
         )}
       </Panel>
     </div>

@@ -1,5 +1,5 @@
 "use client";
-import type { AuditRetention } from "@/api";
+import type { AuditRetention, AuditRetentionState } from "@/api";
 import { useNotifications } from "@/modules/notifications";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { useTranslation } from "@/shared/hooks/useTranslation";
@@ -7,13 +7,15 @@ import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
+import { queryLoadError } from "@/shared/ui/load-error";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/shared/ui/input-group";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { CalendarDays, Layers, ScrollText, TriangleAlert } from "lucide-react";
 import { useId, useState } from "react";
 import { useAuditRetention, useAuditRetentionPreview, useSaveAuditRetention } from "../api/audit-log.queries";
+import { SAMPLE_RETENTION } from "../data/samples";
 
 const LIMITS = { keepDays: { min: 1, max: 3650 }, maxEntries: { min: 1000, max: 10_000_000 } } as const;
 
@@ -46,21 +48,27 @@ function LimitInput({ id, value, unit, onChange }: { id: string; value: number |
 
 /** Rotation limits of the audit log, saving prunes old entries right away */
 export function RetentionPanel() {
+  const retention = useAuditRetention();
+  return (
+    <DataReveal id="audit-retention" data={retention.data} sample={SAMPLE_RETENTION} error={queryLoadError(retention)}>
+      {(state) => <RetentionForm state={state} />}
+    </DataReveal>
+  );
+}
+
+function RetentionForm({ state }: { state: AuditRetentionState }) {
   const { t } = useTranslation("modules.auditLog.retention");
   const { notify } = useNotifications();
   const id = useId();
-  const state = useAuditRetention().data;
   const save = useSaveAuditRetention();
   const [draft, setDraft] = useState<AuditRetention | null>(null);
 
-  const saved = state?.retention;
+  const saved = state.retention;
   const value = draft ?? saved;
-  const dirty = !!draft && !!saved && (draft.keepDays !== saved.keepDays || draft.maxEntries !== saved.maxEntries);
-  const valid = !!value && inRange(value.keepDays, LIMITS.keepDays) && inRange(value.maxEntries, LIMITS.maxEntries);
+  const dirty = !!draft && (draft.keepDays !== saved.keepDays || draft.maxEntries !== saved.maxEntries);
+  const valid = inRange(value.keepDays, LIMITS.keepDays) && inRange(value.maxEntries, LIMITS.maxEntries);
   const preview = useAuditRetentionPreview(useDebouncedValue(dirty && valid ? draft : null, 400));
   const doomed = dirty && valid ? (preview.data?.removed ?? 0) : 0;
-
-  if (!state || !value) return <Skeleton className="h-72 rounded-lg" />;
 
   const submit = () =>
     draft &&

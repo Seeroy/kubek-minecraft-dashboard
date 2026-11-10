@@ -19,10 +19,10 @@ import {
 import type { ModalProps } from "@/shared/types/modal.types";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Plate } from "@/shared/ui/plate";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
 import { AccessArea } from "@shared/access/areas";
@@ -30,6 +30,7 @@ import type { InstalledPluginView, ModrinthVersion } from "@shared/types/plugins
 import { AlertTriangle, Check, Download, ExternalLink } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { getContentKind } from "../content-kind";
+import { SAMPLE_PROJECT_ICON, SAMPLE_VERSIONS } from "../data/samples";
 import { primaryCategory } from "../lib/installed";
 import { ProjectIcon } from "../ui/ProjectIcon";
 import { getInstallableDependencies, getMissingDependencies } from "../utils/resolveDependencies";
@@ -123,8 +124,10 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
   };
 
   // The selected version always stays in view, even when it is past the fold
-  const shown = showAll ? versions : versions.slice(0, VISIBLE_VERSIONS);
-  const visible = selected && !shown.includes(selected) ? [...shown, selected] : shown;
+  const visibleOf = (list: ModrinthVersion[]) => {
+    const shown = showAll ? list : list.slice(0, VISIBLE_VERSIONS);
+    return selected && !shown.includes(selected) ? [...shown, selected] : shown;
+  };
   const compatible = !gameVersion || !selected || selected.game_versions.includes(gameVersion);
   const coreLabel = [blueprint?.shortName ?? blueprint?.name, gameVersion].filter(Boolean).join(" ");
   const data = project.data;
@@ -133,11 +136,13 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
     <Dialog open={isOpen} onOpenChange={(open) => !open && !pending && onClose()}>
       <DialogContent className="sm:max-w-[720px]">
         <DialogHeader className="flex-row items-center gap-3">
-          {data ? (
-            <ProjectIcon title={data.title} iconUrl={data.icon_url} category={primaryCategory(data.categories)} size="lg" />
-          ) : (
-            <Skeleton className="size-9 rounded-[10px]" />
-          )}
+          <DataReveal
+            id="content-install-icon"
+            data={data && { title: data.title, icon_url: data.icon_url, categories: data.categories }}
+            sample={SAMPLE_PROJECT_ICON}
+          >
+            {(icon) => <ProjectIcon title={icon.title} iconUrl={icon.icon_url} category={primaryCategory(icon.categories)} size="lg" />}
+          </DataReveal>
           <div className="min-w-0">
             <DialogTitle className="truncate">
               {record ? tk("install.update") : tk("install.title")}
@@ -150,56 +155,54 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
         <DialogBody className="grid gap-5">
           {project.isError || versionsQuery.isError ? (
             <p className="text-danger">{t("loadFailed")}</p>
-          ) : versionsQuery.isLoading ? (
-            <div className="grid gap-2">
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
-            </div>
           ) : (
             <>
-              <Section title={t("versions")}>
-                {versions.length === 0 ? (
-                  <p className="text-muted-foreground">{t("noVersions")}</p>
-                ) : (
-                  <RadioGroup
-                    value={selectedId}
-                    onValueChange={(value) => setChosen(value as string)}
-                    className="flex scrollbar-thin max-h-72 flex-col gap-0 overflow-y-auto rounded-lg border border-border"
-                  >
-                    {visible.map((version) => (
-                      <label
-                        key={version.id}
-                        className={cn(
-                          "flex min-h-10 shrink-0 cursor-pointer items-center gap-2.5 px-3 py-2 text-[12.5px] not-first:border-t not-first:border-border hover:bg-hover",
-                          version.id === selectedId && "bg-primary/8 hover:bg-primary/8"
-                        )}
+              <DataReveal id="content-install-versions" data={versions} loading={versionsQuery.isLoading} sample={SAMPLE_VERSIONS}>
+                {(list) => (
+                  <Section title={t("versions")}>
+                    {list.length === 0 ? (
+                      <p className="text-muted-foreground">{t("noVersions")}</p>
+                    ) : (
+                      <RadioGroup
+                        value={selectedId}
+                        onValueChange={(value) => setChosen(value as string)}
+                        className="flex scrollbar-thin max-h-72 flex-col gap-0 overflow-y-auto rounded-lg border border-border"
                       >
-                        <RadioGroupItem value={version.id} />
-                        <span className="grid min-w-0 flex-1 gap-1 sm:flex sm:items-center sm:gap-2">
-                          <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-                            <span className="min-w-0 truncate font-mono font-semibold">{version.version_number}</span>
-                            <Badge variant={version.version_type === "release" ? "success" : "warning"}>{version.version_type}</Badge>
-                            {version.game_versions.length > 0 && (
-                              <Badge variant="secondary" className="font-mono">
-                                MC {version.game_versions.at(-1)}
-                              </Badge>
+                        {visibleOf(list).map((version) => (
+                          <label
+                            key={version.id}
+                            className={cn(
+                              "flex min-h-10 shrink-0 cursor-pointer items-center gap-2.5 px-3 py-2 text-[12.5px] not-first:border-t not-first:border-border hover:bg-hover",
+                              version.id === selectedId && "bg-primary/8 hover:bg-primary/8"
                             )}
-                          </span>
-                          <span className="text-xs text-muted-foreground tabular-nums sm:ml-auto sm:shrink-0">
-                            {dateFormat.format(new Date(version.date_published))} · {t("versionDownloads", version.downloads)}
-                          </span>
-                        </span>
-                      </label>
-                    ))}
-                  </RadioGroup>
+                          >
+                            <RadioGroupItem value={version.id} />
+                            <span className="grid min-w-0 flex-1 gap-1 sm:flex sm:items-center sm:gap-2">
+                              <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                                <span className="min-w-0 truncate font-mono font-semibold">{version.version_number}</span>
+                                <Badge variant={version.version_type === "release" ? "success" : "warning"}>{version.version_type}</Badge>
+                                {version.game_versions.length > 0 && (
+                                  <Badge variant="secondary" className="font-mono">
+                                    MC {version.game_versions.at(-1)}
+                                  </Badge>
+                                )}
+                              </span>
+                              <span className="text-xs text-muted-foreground tabular-nums sm:ml-auto sm:shrink-0">
+                                {dateFormat.format(new Date(version.date_published))} · {t("versionDownloads", version.downloads)}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                      </RadioGroup>
+                    )}
+                    {!showAll && list.length > VISIBLE_VERSIONS && (
+                      <Button variant="ghost" size="sm" className="justify-self-start" onClick={() => setShowAll(true)}>
+                        {t("showAllVersions", list.length)}
+                      </Button>
+                    )}
+                  </Section>
                 )}
-                {!showAll && versions.length > VISIBLE_VERSIONS && (
-                  <Button variant="ghost" size="sm" className="justify-self-start" onClick={() => setShowAll(true)}>
-                    {t("showAllVersions", versions.length)}
-                  </Button>
-                )}
-              </Section>
+              </DataReveal>
 
               {selected && (
                 <Section title={t("compatibility")}>

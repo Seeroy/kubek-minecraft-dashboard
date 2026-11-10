@@ -4,13 +4,14 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Input } from "@/shared/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { AccessArea } from "@shared/access/areas";
 import { AlertTriangle, CheckCircle2, FolderSearch, Star, XCircle } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { SAMPLE_JAVA_OPTIONS } from "../../../data/samples";
 
 const MANUAL = "__manual";
 
@@ -42,7 +43,6 @@ export function JavaPicker({ value, onChange, path, onPathChange, recommended, r
   const { options, isLoading } = useJavaVersionOptions();
   const canEnterPath = useAuthStore((s) => s.can(AccessArea.JAVA, "manage"));
   const validate = useValidateJavaPathMutation();
-  const managed = options.filter((o) => o.managed);
   const custom = onPathChange ? options.filter((o) => o.custom) : [];
   const registered = path ? custom.find((o) => o.path === path) : undefined;
   // null follows the saved path, a path outside the registry opens the manual editor prefilled
@@ -52,16 +52,6 @@ export function JavaPicker({ value, onChange, path, onPathChange, recommended, r
   const unregistered = !isLoading && !!path && !registered;
   const manual = choice ?? unregistered;
   const typed = typedPath ?? (unregistered ? path : "");
-
-  if (resolving || isLoading) {
-    return (
-      <div className="grid gap-1.5">
-        {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} className="h-[38px]" />
-        ))}
-      </div>
-    );
-  }
 
   const selected = manual ? MANUAL : (registered?.version ?? String(value ?? ""));
 
@@ -90,91 +80,99 @@ export function JavaPicker({ value, onChange, path, onPathChange, recommended, r
   const mismatch = !path && recommended != null && value != null && value !== recommended;
 
   return (
-    <div className="grid gap-1.5">
-      <RadioGroup value={selected} onValueChange={(next) => select(String(next))} aria-label={t("label")} className="gap-1.5">
-        {managed.map((o) => (
-          <Row
-            key={o.version}
-            value={o.version}
-            end={
-              <>
-                {Number(o.version) === recommended && (
-                  <Badge variant="success">
-                    <Star className="fill-current" />
-                    {t("badges.recommended")}
-                  </Badge>
+    <DataReveal id="create-server-java" data={options} loading={resolving || isLoading} sample={SAMPLE_JAVA_OPTIONS}>
+      {(list) => {
+        const managed = list.filter((o) => o.managed);
+        const custom = onPathChange ? list.filter((o) => o.custom) : [];
+        return (
+          <div className="grid gap-1.5">
+            <RadioGroup value={selected} onValueChange={(next) => select(String(next))} aria-label={t("label")} className="gap-1.5">
+              {managed.map((o) => (
+                <Row
+                  key={o.version}
+                  value={o.version}
+                  end={
+                    <>
+                      {Number(o.version) === recommended && (
+                        <Badge variant="success">
+                          <Star className="fill-current" />
+                          {t("badges.recommended")}
+                        </Badge>
+                      )}
+                      {o.installed && <Badge variant="secondary">{t("badges.installed")}</Badge>}
+                    </>
+                  }
+                >
+                  <b className="font-medium">{o.label}</b>
+                  {o.description && <span className="text-xs text-muted-foreground"> · {o.description}</span>}
+                </Row>
+              ))}
+              {custom.map((o) => (
+                <Row key={o.version} value={o.version} end={<Badge variant="secondary">{t("badges.custom")}</Badge>}>
+                  <b className="font-medium">{o.label}</b>
+                  <span className="font-mono text-xs text-muted-foreground"> · {o.path}</span>
+                </Row>
+              ))}
+              {onPathChange && canEnterPath && (
+                <Row value={MANUAL}>
+                  <span className="inline-flex items-center gap-2 text-muted-foreground">
+                    <FolderSearch className="size-3.5" />
+                    {t("manual.option")}
+                  </span>
+                </Row>
+              )}
+            </RadioGroup>
+
+            {manual && (
+              <div className="grid gap-2 rounded-md border border-border bg-subtle p-2.5">
+                <div className="flex gap-2">
+                  <Input
+                    value={typed}
+                    placeholder={t("manual.placeholder")}
+                    className="font-mono"
+                    onChange={(event) => {
+                      setTyped(event.target.value);
+                      setError(null);
+                    }}
+                    onKeyDown={(event) => {
+                      // Apply the path instead of advancing the wizard
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      event.stopPropagation();
+                      if (typed.trim()) void apply();
+                    }}
+                  />
+                  <Button type="button" variant="outline" disabled={!typed.trim() || validate.isPending} onClick={() => void apply()}>
+                    {validate.isPending ? <Spinner /> : t("manual.apply")}
+                  </Button>
+                </div>
+                {error ? (
+                  <p className="flex items-start gap-1.5 text-xs text-danger">
+                    <XCircle className="mt-px size-3.5 shrink-0" />
+                    {error}
+                  </p>
+                ) : (
+                  path &&
+                  path === typed.trim() && (
+                    <p className="flex items-start gap-1.5 text-xs text-success">
+                      <CheckCircle2 className="mt-px size-3.5 shrink-0" />
+                      {t("manual.applied")}
+                    </p>
+                  )
                 )}
-                {o.installed && <Badge variant="secondary">{t("badges.installed")}</Badge>}
-              </>
-            }
-          >
-            <b className="font-medium">{o.label}</b>
-            {o.description && <span className="text-xs text-muted-foreground"> · {o.description}</span>}
-          </Row>
-        ))}
-        {custom.map((o) => (
-          <Row key={o.version} value={o.version} end={<Badge variant="secondary">{t("badges.custom")}</Badge>}>
-            <b className="font-medium">{o.label}</b>
-            <span className="font-mono text-xs text-muted-foreground"> · {o.path}</span>
-          </Row>
-        ))}
-        {onPathChange && canEnterPath && (
-          <Row value={MANUAL}>
-            <span className="inline-flex items-center gap-2 text-muted-foreground">
-              <FolderSearch className="size-3.5" />
-              {t("manual.option")}
-            </span>
-          </Row>
-        )}
-      </RadioGroup>
+              </div>
+            )}
 
-      {manual && (
-        <div className="grid gap-2 rounded-md border border-border bg-subtle p-2.5">
-          <div className="flex gap-2">
-            <Input
-              value={typed}
-              placeholder={t("manual.placeholder")}
-              className="font-mono"
-              onChange={(event) => {
-                setTyped(event.target.value);
-                setError(null);
-              }}
-              onKeyDown={(event) => {
-                // Apply the path instead of advancing the wizard
-                if (event.key !== "Enter") return;
-                event.preventDefault();
-                event.stopPropagation();
-                if (typed.trim()) void apply();
-              }}
-            />
-            <Button type="button" variant="outline" disabled={!typed.trim() || validate.isPending} onClick={() => void apply()}>
-              {validate.isPending ? <Spinner /> : t("manual.apply")}
-            </Button>
-          </div>
-          {error ? (
-            <p className="flex items-start gap-1.5 text-xs text-danger">
-              <XCircle className="mt-px size-3.5 shrink-0" />
-              {error}
-            </p>
-          ) : (
-            path &&
-            path === typed.trim() && (
-              <p className="flex items-start gap-1.5 text-xs text-success">
-                <CheckCircle2 className="mt-px size-3.5 shrink-0" />
-                {t("manual.applied")}
+            {mismatch && (
+              <p className="flex items-start gap-1.5 text-xs text-warn">
+                <AlertTriangle className="mt-px size-3.5 shrink-0" />
+                {t("mismatch", coreLabel, recommended)}
+                {value < recommended && `. ${t("tooOld")}`}
               </p>
-            )
-          )}
-        </div>
-      )}
-
-      {mismatch && (
-        <p className="flex items-start gap-1.5 text-xs text-warn">
-          <AlertTriangle className="mt-px size-3.5 shrink-0" />
-          {t("mismatch", coreLabel, recommended)}
-          {value < recommended && `. ${t("tooOld")}`}
-        </p>
-      )}
-    </div>
+            )}
+          </div>
+        );
+      }}
+    </DataReveal>
   );
 }

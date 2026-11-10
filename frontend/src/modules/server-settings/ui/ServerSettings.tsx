@@ -8,14 +8,14 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAccess } from "@/shared/lib/access";
 import { settingsTabAllowedByBlueprint } from "@/shared/lib/serverRestrictions";
 import { Button } from "@/shared/ui/button";
+import { DataReveal, useTabReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { SaveBar } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
 import { BookMarked, Coffee, Earth, GamepadDirectional, Network, Plug, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints, type LucideIcon } from "lucide-react";
-import { Fragment } from "react";
+import { Fragment, useRef } from "react";
 import { CompanionSettingsTab } from "@/modules/companion/ui/settings/CompanionSettingsTab";
 import { NetworkTab } from "@/modules/networks/ui/NetworkTab";
 import { useSettingsDraft } from "../hooks/useSettingsDraft";
@@ -52,9 +52,11 @@ function ServerSettingsForm({ server }: { server: Server }) {
   const allowed = (id: SettingsTab) => (id !== "velocity" || canSeeNetwork) && (!blueprint || settingsTabAllowedByBlueprint(id, blueprint));
   const tabs = TABS.filter((item) => allowed(item.id));
   const active = tabs.some((item) => item.id === tab) ? tab : "general";
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useTabReveal(tabsRef, active);
 
   return (
-    <Tabs value={active} onValueChange={(value) => changeTab(value as SettingsTab)} className="gap-5">
+    <Tabs ref={tabsRef} value={active} onValueChange={(value) => changeTab(value as SettingsTab)} className="gap-5">
       <div className="sticky top-0 z-10 w-fit max-w-full rounded-lg bg-background">
         <TabsList>
           {tabs.map(({ id, icon: Icon, separatorBefore }) => (
@@ -80,8 +82,6 @@ function ServerSettingsForm({ server }: { server: Server }) {
         <TabsContent value="companion">
           <CompanionSettingsTab serverId={server.id} />
         </TabsContent>
-      ) : draft.loading ? (
-        <Skeleton className="h-96 rounded-lg" />
       ) : draft.loadFailed ? (
         <Empty className="rounded-lg border border-border bg-card py-14">
           <EmptyHeader>
@@ -98,23 +98,27 @@ function ServerSettingsForm({ server }: { server: Server }) {
           </EmptyContent>
         </Empty>
       ) : (
-        // Without write the settings stay readable but locked
-        <fieldset disabled={!canWrite} className="contents">
-          <TabsContent value="general">
-            <GeneralTab server={server} draft={draft} />
-          </TabsContent>
-          <TabsContent value="java">
-            <JavaTab server={server} draft={draft} />
-          </TabsContent>
-          {(["information", "gameplay", "world", "network"] as const).map((id) => (
-            <TabsContent key={id} value={id}>
-              <PropertyGroups tab={id} draft={draft} server={server} />
-            </TabsContent>
-          ))}
-          <TabsContent value="other">
-            <OtherPropertiesTab draft={draft} />
-          </TabsContent>
-        </fieldset>
+        // The draft has fallbacks, so it doubles as its own sample
+        <DataReveal id={`server-settings-${active}`} data={draft} loading={draft.loading} sample={draft}>
+          {(d) => (
+            <fieldset disabled={!canWrite} className="contents">
+              <TabsContent value="general">
+                <GeneralTab server={server} draft={d} />
+              </TabsContent>
+              <TabsContent value="java">
+                <JavaTab server={server} draft={d} />
+              </TabsContent>
+              {(["information", "gameplay", "world", "network"] as const).map((id) => (
+                <TabsContent key={id} value={id}>
+                  <PropertyGroups tab={id} draft={d} server={server} />
+                </TabsContent>
+              ))}
+              <TabsContent value="other">
+                <OtherPropertiesTab draft={d} />
+              </TabsContent>
+            </fieldset>
+          )}
+        </DataReveal>
       )}
 
       {canWrite && <SaveBar count={draft.total} saving={draft.saving} onSave={draft.save} onReset={draft.reset} />}

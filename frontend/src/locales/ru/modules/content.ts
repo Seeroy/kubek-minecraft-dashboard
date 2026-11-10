@@ -53,6 +53,18 @@ export const contentTranslations: TranslationDictionary = {
   },
   catalog: {
     all: "Все",
+    view: {
+      label: "Вид каталога",
+      cards: "Карточки",
+      table: "Таблица",
+    },
+    headers: {
+      name: "Название",
+      author: "Автор",
+      downloads: "Загрузки",
+      versions: "Версии",
+      updated: "Обновлён",
+    },
     sort: {
       label: "Сортировка",
       relevance: "По релевантности",

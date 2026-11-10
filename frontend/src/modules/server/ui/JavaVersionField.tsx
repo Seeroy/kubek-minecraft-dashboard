@@ -4,6 +4,7 @@ import { useLanguageContext } from "@/shared/context/language-context";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Input } from "@/shared/ui/input";
 import {
   Select,
@@ -122,73 +123,72 @@ export function JavaVersionField({
 
   return (
     <div className="space-y-2">
-      {isResolving ? (
-        <div className="flex h-ctl items-center gap-2 rounded-md border border-dashed border-border bg-subtle px-3 text-[13px] text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          {t("modules.newServerModal.java.version.resolving")}
-        </div>
-      ) : isLoading ? (
-        <div className="flex h-ctl items-center gap-2 rounded-md border border-dashed border-border bg-subtle px-3 text-[13px] text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          {t("modules.newServerModal.java.version.loading")}
-        </div>
-      ) : (
-        <Select
-          items={selectLabels}
-          value={selectValue}
-          onValueChange={handleSelect}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select Java version" />
-          </SelectTrigger>
-          <SelectContent>
-            {managed.map((o) => (
-              <SelectItem key={o.version} value={o.version}>
-                <span className="flex items-center gap-2">
-                  {o.label}
-                  {recommendedVersion != null &&
-                    Number(o.version) === recommendedVersion && (
-                      <Badge
-                        variant="warning"
-                        className="size-4 px-0"
-                        title={t(
-                          "modules.newServerModal.java.version.badges.recommended"
+      {/* Only the trigger is measured, so the options list itself needs no sample */}
+      <DataReveal
+        id="java-version-field"
+        data={options}
+        loading={isResolving || isLoading}
+        label={t(isResolving ? "modules.newServerModal.java.version.resolving" : "modules.newServerModal.java.version.loading")}
+        sample={[]}
+      >
+        {() => (
+            <Select
+              items={selectLabels}
+              value={selectValue}
+              onValueChange={handleSelect}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Java version" />
+              </SelectTrigger>
+              <SelectContent>
+                {managed.map((o) => (
+                  <SelectItem key={o.version} value={o.version}>
+                    <span className="flex items-center gap-2">
+                      {o.label}
+                      {recommendedVersion != null &&
+                        Number(o.version) === recommendedVersion && (
+                          <Badge
+                            variant="warning"
+                            className="size-4 px-0"
+                            title={t(
+                              "modules.newServerModal.java.version.badges.recommended"
+                            )}
+                          >
+                            <Star className="!size-2 fill-current" />
+                          </Badge>
                         )}
-                      >
-                        <Star className="!size-2 fill-current" />
-                      </Badge>
-                    )}
-                  {o.installed && (
-                    <Badge variant="success" className="h-4 px-1.5 text-[10px]">
-                      {t(
-                        "modules.newServerModal.java.version.badges.installed"
+                      {o.installed && (
+                        <Badge variant="success" className="h-4 px-1.5 text-[10px]">
+                          {t(
+                            "modules.newServerModal.java.version.badges.installed"
+                          )}
+                        </Badge>
                       )}
-                    </Badge>
-                  )}
-                </span>
-              </SelectItem>
-            ))}
-            {custom.map((o) => (
-              <SelectItem key={o.version} value={o.version}>
-                <span className="flex items-center gap-2">
-                  {o.label}
-                  <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
-                    {t("modules.newServerModal.java.version.badges.custom")}
-                  </Badge>
-                </span>
-              </SelectItem>
-            ))}
-            {showManualOption && (
-              <SelectItem value={MANUAL_OPTION}>
-                <span className="flex items-center gap-2">
-                  <FolderSearch className="size-3.5" />
-                  {t("modules.newServerModal.java.version.manual.option")}
-                </span>
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-      )}
+                    </span>
+                  </SelectItem>
+                ))}
+                {custom.map((o) => (
+                  <SelectItem key={o.version} value={o.version}>
+                    <span className="flex items-center gap-2">
+                      {o.label}
+                      <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+                        {t("modules.newServerModal.java.version.badges.custom")}
+                      </Badge>
+                    </span>
+                  </SelectItem>
+                ))}
+                {showManualOption && (
+                  <SelectItem value={MANUAL_OPTION}>
+                    <span className="flex items-center gap-2">
+                      <FolderSearch className="size-3.5" />
+                      {t("modules.newServerModal.java.version.manual.option")}
+                    </span>
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+        )}
+      </DataReveal>
 
       {onPathChange && selectValue === MANUAL_OPTION && (
         <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 p-3">

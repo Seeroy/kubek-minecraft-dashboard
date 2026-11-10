@@ -10,6 +10,7 @@ import { ServerProvider } from "@/modules/server";
 import { LanguageProvider } from "@/shared/context/language-context";
 import { SocketProvider } from "@/shared/context/socket-context";
 import { SharedModalsRegistration } from "@/shared/modals";
+import { DataRevealProvider } from "@/shared/ui/data-reveal";
 import { ReactQueryProvider } from "@/shared/queries/query-client";
 import { ThemeProvider } from "next-themes";
 import type { FC, PropsWithChildren } from "react";
@@ -38,7 +39,7 @@ const Providers: FC<PropsWithChildren> = ({ children }) => {
               <DocumentTitle/>
               <ClientStatsReporter/>
 
-              { children }
+              <DataRevealProvider>{ children }</DataRevealProvider>
             </ServerProvider>
           </SocketProvider>
         </ReactQueryProvider>

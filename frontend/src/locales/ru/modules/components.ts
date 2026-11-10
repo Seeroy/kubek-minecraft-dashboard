@@ -63,6 +63,11 @@ export const componentsTranslations: TranslationDictionary = {
     stopping: "Останавливается",
     crashed: "Упал",
   },
+  loadError: {
+    title: "Не удалось загрузить данные",
+    description: "Проверьте соединение с панелью и попробуйте ещё раз",
+    retry: "Повторить",
+  },
   statusButton: {
     loading: "Загрузка...",
     success: "Успешно",

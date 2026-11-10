@@ -140,6 +140,7 @@
   --animate-crumb-out: crumb-out 0.5s var(--ease-smooth) both;
   --animate-blink: blink 1s steps(2) infinite;
   --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-preloader-in: preloader-in 0.5s var(--ease-smooth) 0.15s backwards;
   --animate-beat: beat 3s ease-out infinite;
   --animate-toast-ring: toast-ring var(--toast-duration, 3.5s) linear forwards;
 
@@ -195,6 +196,12 @@
   @keyframes shimmer {
     to {
       background-position: -200% 0;
+    }
+  }
+  @keyframes preloader-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.96);
     }
   }
   @keyframes beat {
@@ -385,6 +392,14 @@
 @utility row-selected {
   background: color-mix(in oklch, var(--primary) 8%, transparent);
   box-shadow: inset 2px 0 0 var(--primary);
+}
+
+/* Measured skeletons from DataReveal, same colors as the old shimmer */
+:root {
+  --skullet-base: var(--secondary);
+  --skullet-highlight: color-mix(in oklch, var(--foreground) 6%, transparent);
+  --skullet-radius: 4px;
+  --skullet-speed: fast;
 }
 
 @utility skeleton-shimmer {

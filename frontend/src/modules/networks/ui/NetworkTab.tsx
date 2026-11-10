@@ -7,14 +7,15 @@ import { useAuthStore } from "@/shared/stores/auth-store";
 import { confirmDialog } from "@/shared/modals";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { KeyValue, KeyValueItem } from "@/shared/ui/key-value";
 import { Panel, PanelActions, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { AccessArea } from "@shared/access/areas";
 import { KeyRound, Network as NetworkIcon, Plus, RotateCw, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { useNetworkChangeMutation, useNetworkOf, type NetworkChange } from "../api/networks.queries";
+import { SAMPLE_NETWORK } from "../data/samples";
 import { networkErrorMessage } from "../lib/errors";
 import { NETWORK_WIZARD_MODAL_ID } from "../modal-ids";
 import { AddMemberForm } from "./AddMemberForm";
@@ -28,8 +29,6 @@ export function NetworkTab({ serverId }: { serverId: string }) {
   const query = useNetworkOf(serverId);
   // The wizard can create proxy backends, so it needs servers write too
   const canCreate = useAuthStore((s) => s.can(AccessArea.NETWORKS, "write") && s.can(AccessArea.SERVERS, "write"));
-
-  if (query.isLoading) return <Skeleton className="h-64 rounded-lg" />;
 
   if (query.isError) {
     return (
@@ -45,7 +44,7 @@ export function NetworkTab({ serverId }: { serverId: string }) {
   }
 
   const network = query.data;
-  if (!network || network.proxy.serverId !== serverId) {
+  if (!query.isLoading && (!network || network.proxy.serverId !== serverId)) {
     return (
       <Empty className="rounded-lg border border-border bg-card py-14">
         <EmptyHeader>
@@ -67,7 +66,11 @@ export function NetworkTab({ serverId }: { serverId: string }) {
     );
   }
 
-  return <NetworkPanel network={network} />;
+  return (
+    <DataReveal id="network-tab" data={network} loading={query.isLoading} sample={SAMPLE_NETWORK}>
+      {(network) => <NetworkPanel network={network} />}
+    </DataReveal>
+  );
 }
 
 function NetworkPanel({ network }: { network: Network }) {

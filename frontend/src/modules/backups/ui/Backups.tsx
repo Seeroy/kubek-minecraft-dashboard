@@ -7,15 +7,16 @@ import { useAccess } from "@/shared/lib/access";
 import { formatBytes } from "@/shared/lib/bytesToGb";
 import { formatRelative } from "@/shared/lib/formatRelative";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Stat, StatStrip } from "@/shared/ui/stat-strip";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
-import { BackupStatus } from "@shared/types/backup.types";
+import { BackupStatus, type Backup } from "@shared/types/backup.types";
 import { Archive, CheckCircle2, Database, HardDrive, History, Plus, ServerOff, ShieldCheck } from "lucide-react";
-import { useMemo } from "react";
 import { useBackupsByServer } from "../api/backups.queries";
+import { SAMPLE_BACKUPS } from "../data/samples";
 import { useBackupTaskSync } from "../hooks/useBackups";
 import { BackupInfoModalRegistration } from "../modals/BackupInfoModal";
 import { CREATE_BACKUP_MODAL_ID } from "../modals/CreateBackupModal";
@@ -23,6 +24,16 @@ import { BACKUP_TABS, type BackupTab } from "../lib/tabs";
 import { BackupJournal } from "./BackupJournal";
 import { BackupsPanel } from "./BackupsPanel";
 import { ServerPolicyPanel } from "./policy/ServerPolicyPanel";
+
+function summarize(backups: Backup[]) {
+  const completed = backups.filter((b) => b.status === BackupStatus.COMPLETED);
+  return {
+    count: backups.length,
+    completed: completed.length,
+    size: completed.reduce((sum, b) => sum + b.totalSize, 0),
+    last: completed.reduce((latest, b) => Math.max(latest, b.createdAt), 0),
+  };
+}
 
 function ServerBackups({ server }: { server: Server }) {
   const { t } = useTranslation("modules.backups");
@@ -32,15 +43,6 @@ function ServerBackups({ server }: { server: Server }) {
   const [tab, changeTab] = useRouteTab("/backups", BACKUP_TABS, "list");
   const progress = useBackupTaskSync(server.id);
   const canCreate = useAccess([AccessArea.BACKUPS, "write"], server.id);
-
-  const summary = useMemo(() => {
-    const completed = backups.filter((b) => b.status === BackupStatus.COMPLETED);
-    return {
-      completed: completed.length,
-      size: completed.reduce((sum, b) => sum + b.totalSize, 0),
-      last: completed.reduce((latest, b) => Math.max(latest, b.createdAt), 0),
-    };
-  }, [backups]);
 
   const create = () => openModal(CREATE_BACKUP_MODAL_ID, { serverId: server.id });
 
@@ -59,16 +61,23 @@ function ServerBackups({ server }: { server: Server }) {
         }
       />
       <div className="grid gap-4">
-        <StatStrip>
-          <Stat label={t("stats.count")} icon={<Database />} tone="blue" value={backups.length} unit={t("stats.successful", summary.completed)} />
-          <Stat label={t("stats.size")} icon={<HardDrive />} tone="purple" value={summary.size ? formatBytes(summary.size) : "—"} />
-          <Stat
-            label={t("stats.last")}
-            icon={<CheckCircle2 />}
-            tone="green"
-            value={summary.last ? formatRelative(summary.last, tc("justNow")) : "—"}
-          />
-        </StatStrip>
+        <DataReveal id="backups-stats" data={backups} loading={isLoading} sample={SAMPLE_BACKUPS}>
+          {(list) => {
+            const summary = summarize(list);
+            return (
+              <StatStrip>
+                <Stat label={t("stats.count")} icon={<Database />} tone="blue" value={summary.count} unit={t("stats.successful", summary.completed)} />
+                <Stat label={t("stats.size")} icon={<HardDrive />} tone="purple" value={summary.size ? formatBytes(summary.size) : "—"} />
+                <Stat
+                  label={t("stats.last")}
+                  icon={<CheckCircle2 />}
+                  tone="green"
+                  value={summary.last ? formatRelative(summary.last, tc("justNow")) : "—"}
+                />
+              </StatStrip>
+            );
+          }}
+        </DataReveal>
         <Tabs value={tab} onValueChange={(value) => changeTab(value as BackupTab)} className="gap-4">
           <TabsList>
             <TabsTrigger value="list">
@@ -86,7 +95,9 @@ function ServerBackups({ server }: { server: Server }) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="list">
-            <BackupsPanel serverId={server.id} backups={backups} progress={progress} loading={isLoading} onCreate={canCreate ? create : undefined} />
+            <DataReveal id="backups-list" data={backups} loading={isLoading} sample={SAMPLE_BACKUPS}>
+              {(list) => <BackupsPanel serverId={server.id} backups={list} progress={progress} onCreate={canCreate ? create : undefined} />}
+            </DataReveal>
           </TabsContent>
           <TabsContent value="journal">
             <BackupJournal serverId={server.id} />

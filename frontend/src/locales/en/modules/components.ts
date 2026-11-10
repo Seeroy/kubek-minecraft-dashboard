@@ -54,6 +54,11 @@ export const componentsTranslations: TranslationDictionary = {
     stopping: "Stopping",
     crashed: "Crashed",
   },
+  loadError: {
+    title: "Couldn't load data",
+    description: "Check the connection to the panel and try again",
+    retry: "Retry",
+  },
   statusButton: {
     loading: "Loading...",
     success: "Success",

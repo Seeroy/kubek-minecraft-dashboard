@@ -73,6 +73,7 @@ export const filesTranslations: TranslationDictionary = {
         createFile: "Создать файл",
         createFolder: "Создать папку",
         upload: "Загрузить",
+        refresh: "Обновить",
       },
       delete: {
         fileTitle: "Удалить файл?",

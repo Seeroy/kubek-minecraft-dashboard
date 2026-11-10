@@ -6,15 +6,17 @@ import { ApiError } from "@/shared/lib/http/types";
 import { confirmDialog } from "@/shared/modals";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
+import { queryLoadError } from "@/shared/ui/load-error";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { SettingsGroup } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { AccessArea } from "@shared/access/areas";
 import type { BackupPolicy, BackupStorage } from "@shared/types/backup.types";
 import { Cloud, HardDriveDownload, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 import { useBackupStorages, useDefaultPolicy, useDeleteStorageMutation, useSaveDefaultPolicyMutation } from "../../api/backups.queries";
+import { SAMPLE_DEFAULT_POLICY, SAMPLE_STORAGES } from "../../data/samples";
 import { PolicyFields } from "../policy/PolicyFields";
 import { OrphanArchives } from "./OrphanArchives";
 
@@ -32,25 +34,7 @@ export function BackupStoragesSettings() {
   return (
     <>
       <SettingsGroup tone="blue" icon={Cloud} title={t("title")} description={t("description")} flush>
-        {storages.isPending ? (
-          <Skeleton className="m-5 h-24 rounded-md" />
-        ) : storages.data?.length ? (
-          <>
-            <ul className="divide-y divide-border">
-              {storages.data.map((storage) => (
-                <StorageRow key={storage.id} storage={storage} onEdit={canManage ? () => setEditing(storage) : undefined} />
-              ))}
-            </ul>
-            {canManage && (
-              <div className="border-t border-border px-5 py-3">
-                <Button variant="outline" size="sm" onClick={() => setEditing("new")}>
-                  <Plus />
-                  {t("add")}
-                </Button>
-              </div>
-            )}
-          </>
-        ) : (
+        {!storages.isPending && !storages.data?.length ? (
           <Empty className="py-10">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -68,6 +52,26 @@ export function BackupStoragesSettings() {
               </EmptyContent>
             )}
           </Empty>
+        ) : (
+          <DataReveal id="settings-backup-storages" data={storages.data ?? []} loading={storages.isPending} sample={SAMPLE_STORAGES}>
+            {(list) => (
+              <>
+                <ul className="divide-y divide-border">
+                  {list.map((storage) => (
+                    <StorageRow key={storage.id} storage={storage} onEdit={canManage ? () => setEditing(storage) : undefined} />
+                  ))}
+                </ul>
+                {canManage && (
+                  <div className="border-t border-border px-5 py-3">
+                    <Button variant="outline" size="sm" onClick={() => setEditing("new")}>
+                      <Plus />
+                      {t("add")}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </DataReveal>
         )}
       </SettingsGroup>
 
@@ -143,40 +147,45 @@ function DefaultPolicy({ storages, canSave }: { storages: BackupStorage[]; canSa
   const saved = useDefaultPolicy();
   const save = useSaveDefaultPolicyMutation();
   const [draft, setDraft] = useState<BackupPolicy | null>(null);
-  if (!saved.data) return <Skeleton className="h-64 rounded-lg" />;
-  const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(saved.data);
 
   return (
-    <section aria-label={t("storages.defaults.title")}>
-      <div className="mb-3 flex items-end justify-between gap-3">
-        <div>
-          <h3 className="flex items-center gap-2 text-[15px] font-semibold">
-            <ShieldCheck className="size-4 text-muted-foreground" />
-            {t("storages.defaults.title")}
-          </h3>
-          <p className="text-[13px] text-muted-foreground">{t("storages.defaults.description")}</p>
-        </div>
-        {canSave && (
-          <Button
-            disabled={!dirty || save.isPending}
-            onClick={() =>
-              draft &&
-              save.mutate(draft, {
-                onSuccess: () => {
-                  setDraft(null);
-                  notify({ type: "success", title: t("policy.saved") });
-                },
-              })
-            }
-          >
-            {save.isPending && <Spinner />}
-            {t("policy.save")}
-          </Button>
-        )}
-      </div>
-      <fieldset disabled={!canSave} className="contents">
-        <PolicyFields value={draft ?? saved.data} onChange={setDraft} storages={storages} />
-      </fieldset>
-    </section>
+    <DataReveal id="settings-default-policy" data={saved.data} sample={SAMPLE_DEFAULT_POLICY} error={queryLoadError(saved)}>
+      {(policy) => {
+        const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(policy);
+        return (
+          <section aria-label={t("storages.defaults.title")}>
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div>
+                <h3 className="flex items-center gap-2 text-[15px] font-semibold">
+                  <ShieldCheck className="size-4 text-muted-foreground" />
+                  {t("storages.defaults.title")}
+                </h3>
+                <p className="text-[13px] text-muted-foreground">{t("storages.defaults.description")}</p>
+              </div>
+              {canSave && (
+                <Button
+                  disabled={!dirty || save.isPending}
+                  onClick={() =>
+                    draft &&
+                    save.mutate(draft, {
+                      onSuccess: () => {
+                        setDraft(null);
+                        notify({ type: "success", title: t("policy.saved") });
+                      },
+                    })
+                  }
+                >
+                  {save.isPending && <Spinner />}
+                  {t("policy.save")}
+                </Button>
+              )}
+            </div>
+            <fieldset disabled={!canSave} className="contents">
+              <PolicyFields value={draft ?? policy} onChange={setDraft} storages={storages} />
+            </fieldset>
+          </section>
+        );
+      }}
+    </DataReveal>
   );
 }

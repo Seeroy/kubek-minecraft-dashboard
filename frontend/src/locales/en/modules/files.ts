@@ -72,6 +72,7 @@ export const filesTranslations: TranslationDictionary = {
         createFile: "Create file",
         createFolder: "Create folder",
         upload: "Upload",
+        refresh: "Refresh",
       },
       delete: {
         fileTitle: "Delete file?",

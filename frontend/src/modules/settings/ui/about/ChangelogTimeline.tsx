@@ -5,9 +5,10 @@ import { cn } from "@/shared/lib/cn";
 import { useGithubReleasesQuery, type GithubRelease } from "@/modules/settings/api/about.queries";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { SettingsGroup } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { AlertCircle, ExternalLink, History, RotateCw } from "lucide-react";
+import { SAMPLE_RELEASES } from "../../data/samples";
 import { MarkdownLite } from "./MarkdownLite";
 import { formatVersion } from "./version";
 
@@ -24,20 +25,19 @@ function formatDate(iso: string | null): string {
   return Number.isNaN(ms) ? "" : DATE_FMT.format(ms);
 }
 
+// First stable release marks the "current" node in the timeline
+const latestStable = (releases: GithubRelease[]) => releases.find((r) => !r.prerelease)?.id;
+
 export function ChangelogTimeline() {
   const { t } = useTranslation("modules.settings.about.changelog");
   const releasesQuery = useGithubReleasesQuery();
 
   const releases = releasesQuery.data ?? [];
-  // First stable release marks the "current" node in the timeline
-  const latestStableId = releases.find((r) => !r.prerelease)?.id;
 
   return (
     <SettingsGroup tone="blue" icon={History} title={t("title")} description={t("description")} flush>
       <div className="p-5">
-        {releasesQuery.isLoading ? (
-          <ChangelogSkeleton />
-        ) : releasesQuery.isError ? (
+        {releasesQuery.isError ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
             <AlertCircle className="size-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
@@ -52,21 +52,28 @@ export function ChangelogTimeline() {
               {t("retry")}
             </Button>
           </div>
-        ) : releases.length === 0 ? (
+        ) : !releasesQuery.isLoading && releases.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {t("empty")}
           </p>
         ) : (
-          <ol className="relative">
-            {releases.map((release, i) => (
-              <ReleaseEntry
-                key={release.id}
-                release={release}
-                isLatest={release.id === latestStableId}
-                isLast={i === releases.length - 1}
-              />
-            ))}
-          </ol>
+          <DataReveal id="settings-about-changelog" data={releases} loading={releasesQuery.isLoading} sample={SAMPLE_RELEASES}>
+            {(list) => {
+              const latestId = latestStable(list);
+              return (
+                <ol className="relative">
+                  {list.map((release, i) => (
+                    <ReleaseEntry
+                      key={release.id}
+                      release={release}
+                      isLatest={release.id === latestId}
+                      isLast={i === list.length - 1}
+                    />
+                  ))}
+                </ol>
+              );
+            }}
+          </DataReveal>
         )}
       </div>
     </SettingsGroup>
@@ -147,23 +154,5 @@ function ReleaseEntry({ release, isLatest, isLast }: ReleaseEntryProps) {
         </Button>
       </div>
     </li>
-  );
-}
-
-function ChangelogSkeleton() {
-  return (
-    <div className="space-y-8">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="relative space-y-3 pl-8">
-          <span className="absolute top-1.5 left-0 size-3.5 rounded-full bg-muted" />
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-20 rounded-full" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      ))}
-    </div>
   );
 }

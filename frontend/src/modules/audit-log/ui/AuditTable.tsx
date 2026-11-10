@@ -7,7 +7,6 @@ import { Button } from "@/shared/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Plate } from "@/shared/ui/plate";
 import { PlayerHead } from "@/shared/ui/player-head";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { AuditResult } from "@shared/types/audit.types";
 import { ChevronLeft, ChevronRight, Cpu, ScrollText } from "lucide-react";
@@ -20,7 +19,6 @@ import { AuditTarget } from "./AuditTarget";
 interface AuditTableProps {
   items: AuditLogEntry[];
   total: number;
-  loading: boolean;
   page: number;
   pageSize: number;
   onPage: (page: number) => void;
@@ -78,11 +76,11 @@ function useVisibleColumns(mounted: boolean) {
   return [ref, count] as const;
 }
 
-export function AuditTable({ items, total, loading, page, pageSize, onPage }: AuditTableProps) {
+export function AuditTable({ items, total, page, pageSize, onPage }: AuditTableProps) {
   const { t } = useTranslation("modules.auditLog");
   const label = useActionLabel();
   const [open, setOpen] = useState<string | null>(null);
-  const [headerRow, columns] = useVisibleColumns(!loading && items.length > 0);
+  const [headerRow, columns] = useVisibleColumns(items.length > 0);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const from = total ? page * pageSize + 1 : 0;
   const to = Math.min((page + 1) * pageSize, total);
@@ -91,16 +89,6 @@ export function AuditTable({ items, total, loading, page, pageSize, onPage }: Au
     setOpen(null);
     onPage(next);
   };
-
-  if (loading) {
-    return (
-      <div className="grid gap-2 p-4">
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="h-9" />
-        ))}
-      </div>
-    );
-  }
 
   if (items.length === 0) {
     return (

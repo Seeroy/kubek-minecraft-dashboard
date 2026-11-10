@@ -43,8 +43,8 @@ export function useFilesSearch(
 export function useInvalidateFiles() {
   const queryClient = useQueryClient();
   return (serverId: string | undefined) => {
-    if (!serverId) return;
-    queryClient.invalidateQueries({
+    if (!serverId) return Promise.resolve();
+    return queryClient.invalidateQueries({
       queryKey: qk.files.scanByServer(serverId),
     });
   };

@@ -1,4 +1,5 @@
 import type { UserProfile } from "@/api";
+import { forgetShapes } from "skullet";
 import { authAdapter, type SafeUser } from "@/shared/queries/auth.adapter";
 import type { AccessArea, AccessLevel } from "@shared/access/areas";
 import { can, canOnServer, hasExtPermission, reachesServer, seesServers } from "@shared/access/can";
@@ -67,6 +68,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearAuth: () => {
+        // Remembered skeleton shapes belong to this user, expired sessions land here too
+        forgetShapes();
         set({
           token: null,
           isAuthenticated: false,

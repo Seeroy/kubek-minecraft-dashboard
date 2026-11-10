@@ -10,15 +10,16 @@ import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { ApiError } from "@/shared/lib/http";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { PageHeader } from "@/shared/ui/page-header";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Stat, StatStrip } from "@/shared/ui/stat-strip";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { ServerStatus } from "@shared/types/server/server.types";
 import { Ban, Crown, History, ListChecks, Lock, Radio, RotateCw, ServerOff, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { usePlayersOverview } from "../api/players.queries";
+import { SAMPLE_PLAYERS_OVERVIEW } from "../data/samples";
 import { usePlayerActions } from "../hooks/usePlayerActions";
 import { usePlayersAccess } from "../hooks/usePlayersAccess";
 import { PLAYERS_TABS, type PlayersTab } from "../lib/players";
@@ -99,7 +100,6 @@ function ServerPlayers({ server }: { server: Server }) {
 
   // Activity has its own data, only the list tabs wait for the overview
   const listTab = tab !== "online" && tab !== "activity";
-  const tabProps = overview && { serverId: server.id, overview, busy, access, actions };
 
   return (
     <>
@@ -107,30 +107,35 @@ function ServerPlayers({ server }: { server: Server }) {
       {/* minmax(0) so the tabs don't stretch the page on mobile */}
       <div className="grid gap-4 max-md:grid-cols-[minmax(0,1fr)]">
         <CompanionBanner serverId={server.id} section="players" />
-        <StatStrip className="max-sm:grid-cols-2 max-sm:*:data-[slot=stat]:p-3 max-sm:**:data-[slot=stat-value]:text-xl">
-          <Stat
-            label={t("stats.online")}
-            icon={<Radio />}
-            tone="green"
-            value={online ? (status?.players?.online ?? online.length) : "—"}
-            unit={online && status?.players?.max ? ` / ${status.players.max}` : undefined}
-          />
-          <Stat
-            label={t("stats.whitelist")}
-            icon={<ListChecks />}
-            tone="blue"
-            value={overview?.whitelist.length ?? "—"}
-            unit={overview && !overview.settings.whitelist ? t("stats.whitelistOff") : undefined}
-          />
-          <Stat label={t("stats.ops")} icon={<Crown />} tone="amber" value={overview?.ops.length ?? "—"} />
-          <Stat
-            label={t("stats.bans")}
-            icon={<Ban />}
-            tone="red"
-            value={overview?.bans.length ?? "—"}
-            unit={overview?.ipBans.length ? t("stats.ipBans", overview.ipBans.length) : undefined}
-          />
-        </StatStrip>
+        {/* Wrapped so a missing or disabled overview still renders the dashes */}
+        <DataReveal id="players-stats" data={{ overview }} loading={query.isLoading} sample={{ overview: SAMPLE_PLAYERS_OVERVIEW }}>
+          {({ overview }) => (
+            <StatStrip className="max-sm:grid-cols-2 max-sm:*:data-[slot=stat]:p-3 max-sm:**:data-[slot=stat-value]:text-xl">
+              <Stat
+                label={t("stats.online")}
+                icon={<Radio />}
+                tone="green"
+                value={online ? (status?.players?.online ?? online.length) : "—"}
+                unit={online && status?.players?.max ? ` / ${status.players.max}` : undefined}
+              />
+              <Stat
+                label={t("stats.whitelist")}
+                icon={<ListChecks />}
+                tone="blue"
+                value={overview?.whitelist.length ?? "—"}
+                unit={overview && !overview.settings.whitelist ? t("stats.whitelistOff") : undefined}
+              />
+              <Stat label={t("stats.ops")} icon={<Crown />} tone="amber" value={overview?.ops.length ?? "—"} />
+              <Stat
+                label={t("stats.bans")}
+                icon={<Ban />}
+                tone="red"
+                value={overview?.bans.length ?? "—"}
+                unit={overview?.ipBans.length ? t("stats.ipBans", overview.ipBans.length) : undefined}
+              />
+            </StatStrip>
+          )}
+        </DataReveal>
 
         <Tabs value={tab} onValueChange={(value) => setTab(value as PlayersTab)} className="gap-4">
           <div className="w-fit max-w-full">
@@ -171,20 +176,27 @@ function ServerPlayers({ server }: { server: Server }) {
                 }
               />
             )
-          ) : !tabProps ? (
-            listTab && <Skeleton className="h-80 rounded-lg" />
           ) : (
-            <>
-              <TabsContent value="whitelist">
-                <WhitelistTab {...tabProps} />
-              </TabsContent>
-              <TabsContent value="ops">
-                <OpsTab {...tabProps} />
-              </TabsContent>
-              <TabsContent value="bans">
-                <BansTab {...tabProps} />
-              </TabsContent>
-            </>
+            listTab && (
+              <DataReveal id={`players-${tab}`} data={overview} sample={SAMPLE_PLAYERS_OVERVIEW}>
+                {(overview) => {
+                  const tabProps = { serverId: server.id, overview, busy, access, actions };
+                  return (
+                    <>
+                      <TabsContent value="whitelist">
+                        <WhitelistTab {...tabProps} />
+                      </TabsContent>
+                      <TabsContent value="ops">
+                        <OpsTab {...tabProps} />
+                      </TabsContent>
+                      <TabsContent value="bans">
+                        <BansTab {...tabProps} />
+                      </TabsContent>
+                    </>
+                  );
+                }}
+              </DataReveal>
+            )
           )}
         </Tabs>
       </div>

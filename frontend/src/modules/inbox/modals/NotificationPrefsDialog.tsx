@@ -2,9 +2,10 @@
 import { useNotifications } from "@/modules/notifications";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
+import { queryLoadError } from "@/shared/ui/load-error";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Plate } from "@/shared/ui/plate";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
 import { Toggle } from "@/shared/ui/toggle";
@@ -13,6 +14,7 @@ import { NotificationCategory, NotificationChannel, type NotificationPrefs } fro
 import { Bell } from "lucide-react";
 import { useState } from "react";
 import { useNotificationPrefsQuery, useUpdateNotificationPrefsMutation } from "../api/inbox.queries";
+import { SAMPLE_PREFS } from "../data/samples";
 import { INBOX_TOAST_LEVELS, setInboxToastLevel, useInboxToastLevel, type InboxToastLevel } from "../lib/toast-level";
 
 const CATEGORIES = Object.values(NotificationCategory);
@@ -70,29 +72,29 @@ export default function NotificationPrefsDialog({ onClose }: { onClose: () => vo
               </span>
             ))}
           </div>
-          <ul className="divide-y divide-border rounded-lg border border-border">
-            {CATEGORIES.map((category) => (
-              <li key={category} className="flex items-center gap-4 px-4 py-3">
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13.5px] font-medium">{t(`categories.${category}.title`)}</div>
-                  <div className="text-[12.5px] text-muted-foreground">{t(`categories.${category}.description`)}</div>
-                </div>
-                {CHANNELS.map((channel) => (
-                  <div key={channel} className="grid w-16 shrink-0 place-items-center">
-                    {prefs ? (
-                      <Switch
-                        checked={prefs[category][channel]}
-                        onCheckedChange={(enabled) => toggle(category, channel, enabled)}
-                        aria-label={`${t(`categories.${category}.title`)}: ${t(channel)}`}
-                      />
-                    ) : (
-                      <Skeleton className="h-5 w-9 rounded-full" />
-                    )}
-                  </div>
+          <DataReveal id="inbox-prefs" data={prefs} sample={SAMPLE_PREFS} error={queryLoadError(saved)}>
+            {(prefs) => (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {CATEGORIES.map((category) => (
+                  <li key={category} className="flex items-center gap-4 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13.5px] font-medium">{t(`categories.${category}.title`)}</div>
+                      <div className="text-[12.5px] text-muted-foreground">{t(`categories.${category}.description`)}</div>
+                    </div>
+                    {CHANNELS.map((channel) => (
+                      <div key={channel} className="grid w-16 shrink-0 place-items-center">
+                        <Switch
+                          checked={prefs[category][channel]}
+                          onCheckedChange={(enabled) => toggle(category, channel, enabled)}
+                          aria-label={`${t(`categories.${category}.title`)}: ${t(channel)}`}
+                        />
+                      </div>
+                    ))}
+                  </li>
                 ))}
-              </li>
-            ))}
-          </ul>
+              </ul>
+            )}
+          </DataReveal>
           <p className="text-[12px] text-muted-foreground">{t("telegramUnlinked")}</p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 rounded-lg border border-border px-4 py-3">
             <div className="min-w-0 flex-1 basis-56">

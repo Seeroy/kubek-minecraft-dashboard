@@ -6,8 +6,8 @@ import { useNotifications } from "@/modules/notifications";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
 import { Toggle } from "@/shared/ui/toggle";
@@ -24,6 +24,7 @@ import {
   useTwofaStatusQuery,
   useUpdatePreferencesMutation,
 } from "../api/twofa.queries";
+import { SAMPLE_TWOFA } from "../data/samples";
 import { DisableTotpDialog, TotpSetupDialog, type TotpSetup } from "./twofa/TotpDialogs";
 
 function MethodLabel({ title, enabled }: { title: string; enabled: boolean }) {
@@ -62,63 +63,72 @@ export default function TwoFactorTab() {
       onSuccess: () => notify({ type: "success", title: t(next ? "toasts.telegramEnabled" : "toasts.telegramDisabled") }),
     });
 
-  if (status.isLoading || preferences.isLoading) return <Skeleton className="h-80 rounded-lg" />;
-
   return (
     <>
-      <SettingsGroup tone="purple" icon={Lock} title={t("title")} description={t("description")}>
-        <SettingsField label={<MethodLabel title={t("totp.title")} enabled={totp} />} icon={Shield} hint={t("totp.description")} inline>
-          {totp ? (
-            <Button variant="destructive" onClick={() => setDisabling(true)}>
-              {t("totp.disable")}
-            </Button>
-          ) : (
-            <Button disabled={setupTotp.isPending} onClick={() => setupTotp.mutate(undefined, { onSuccess: setSetup })}>
-              {setupTotp.isPending ? <Spinner /> : <Plus />}
-              {t("totp.connect")}
-            </Button>
-          )}
-        </SettingsField>
+      <DataReveal
+        id="settings-twofa"
+        data={{ totp, telegram, primary }}
+        loading={status.isLoading || preferences.isLoading}
+        sample={SAMPLE_TWOFA}
+      >
+        {({ totp, telegram, primary }) => (
+          <>
+            <SettingsGroup tone="purple" icon={Lock} title={t("title")} description={t("description")}>
+              <SettingsField label={<MethodLabel title={t("totp.title")} enabled={totp} />} icon={Shield} hint={t("totp.description")} inline>
+                {totp ? (
+                  <Button variant="destructive" onClick={() => setDisabling(true)}>
+                    {t("totp.disable")}
+                  </Button>
+                ) : (
+                  <Button disabled={setupTotp.isPending} onClick={() => setupTotp.mutate(undefined, { onSuccess: setSetup })}>
+                    {setupTotp.isPending ? <Spinner /> : <Plus />}
+                    {t("totp.connect")}
+                  </Button>
+                )}
+              </SettingsField>
 
-        <SettingsField
-          label={<MethodLabel title={t("telegram.title")} enabled={telegram} />}
-          icon={Send}
-          hint={telegramReady ? t("telegram.available") : t("telegram.unavailable")}
-          inline
-        >
-          <Switch
-            checked={telegram}
-            disabled={!telegramReady || enableTelegram.isPending || disableTelegram.isPending}
-            onCheckedChange={toggleTelegram}
-            aria-label={t("telegram.title")}
-          />
-        </SettingsField>
+              <SettingsField
+                label={<MethodLabel title={t("telegram.title")} enabled={telegram} />}
+                icon={Send}
+                hint={telegramReady ? t("telegram.available") : t("telegram.unavailable")}
+                inline
+              >
+                <Switch
+                  checked={telegram}
+                  disabled={!telegramReady || enableTelegram.isPending || disableTelegram.isPending}
+                  onCheckedChange={toggleTelegram}
+                  aria-label={t("telegram.title")}
+                />
+              </SettingsField>
 
-        <div className="col-span-full transition-opacity aria-disabled:pointer-events-none aria-disabled:opacity-50" aria-disabled={!(totp && telegram)}>
-          <SettingsField label={t("primary.label")} icon={Pin} hint={t("primary.hint")}>
-            <ToggleGroup
-              variant="segmented"
-              className="w-fit"
-              disabled={!(totp && telegram)}
-              value={primary ? [primary] : []}
-              onValueChange={(next) => next[0] && updatePreferences.mutate({ twofaPrimary: next[0] as TwoFactorMethod })}
-            >
-              <Toggle variant="segmented" value="totp">
-                TOTP
-              </Toggle>
-              <Toggle variant="segmented" value="telegram">
-                Telegram
-              </Toggle>
-            </ToggleGroup>
-          </SettingsField>
-        </div>
-      </SettingsGroup>
+              <div className="col-span-full transition-opacity aria-disabled:pointer-events-none aria-disabled:opacity-50" aria-disabled={!(totp && telegram)}>
+                <SettingsField label={t("primary.label")} icon={Pin} hint={t("primary.hint")}>
+                  <ToggleGroup
+                    variant="segmented"
+                    className="w-fit"
+                    disabled={!(totp && telegram)}
+                    value={primary ? [primary] : []}
+                    onValueChange={(next) => next[0] && updatePreferences.mutate({ twofaPrimary: next[0] as TwoFactorMethod })}
+                  >
+                    <Toggle variant="segmented" value="totp">
+                      TOTP
+                    </Toggle>
+                    <Toggle variant="segmented" value="telegram">
+                      Telegram
+                    </Toggle>
+                  </ToggleGroup>
+                </SettingsField>
+              </div>
+            </SettingsGroup>
 
-      <SettingsGroup tone="amber" icon={Bell} title={t("notifications.title")} description={t("notifications.description")}>
-        <SettingsField label={t("notifications.toggle")} icon={CalendarClock} hint={t("notifications.hint")} inline>
-          <NotificationPrefsButton>{t("notifications.open")}</NotificationPrefsButton>
-        </SettingsField>
-      </SettingsGroup>
+            <SettingsGroup tone="amber" icon={Bell} title={t("notifications.title")} description={t("notifications.description")}>
+              <SettingsField label={t("notifications.toggle")} icon={CalendarClock} hint={t("notifications.hint")} inline>
+                <NotificationPrefsButton>{t("notifications.open")}</NotificationPrefsButton>
+              </SettingsField>
+            </SettingsGroup>
+          </>
+        )}
+      </DataReveal>
 
       {setup && <TotpSetupDialog setup={setup} onClose={() => setSetup(null)} />}
       {disabling && <DisableTotpDialog onClose={() => setDisabling(false)} />}

@@ -5,6 +5,7 @@ import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAccess } from "@/shared/lib/access";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
@@ -12,6 +13,7 @@ import { AccessArea } from "@shared/access/areas";
 import type { IScheduledTask } from "@shared/types/scheduler.types";
 import { CalendarClock, Plus, ScrollText, ServerOff } from "lucide-react";
 import { useScheduledTasksByServer, useTaskRunsByServer } from "../api/scheduler.queries";
+import { SAMPLE_TASKS } from "../data/samples";
 import { SCHEDULER_TABS, type SchedulerTab } from "../lib/tabs";
 import { TASK_FORM_MODAL_ID } from "../modals";
 import { RunsPanel } from "./RunsPanel";
@@ -57,7 +59,9 @@ function ServerScheduler({ server }: { server: Server }) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="tasks">
-          <TasksPanel serverId={server.id} tasks={tasks.data} loading={tasks.isLoading} onEdit={openForm} onCreate={() => openForm()} />
+          <DataReveal id="scheduler-tasks" data={tasks.data ?? []} loading={tasks.isLoading} sample={SAMPLE_TASKS}>
+            {(list) => <TasksPanel serverId={server.id} tasks={list} onEdit={openForm} onCreate={() => openForm()} />}
+          </DataReveal>
         </TabsContent>
         <TabsContent value="runs">
           <RunsPanel serverId={server.id} tasks={tasks.data ?? []} />

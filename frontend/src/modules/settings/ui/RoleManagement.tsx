@@ -8,21 +8,24 @@ import { confirmDialog } from "@/shared/modals";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { SettingsGroup } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { AccessArea } from "@shared/access/areas";
 import { Copy, Eye, Pencil, Plus, Search, ShieldCheck, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDeleteRoleMutation, useDuplicateRoleMutation, useRoles } from "../api/roles.queries";
 import { grantedAreas, toAccessMap, useRoleLabels } from "../data/access-areas";
+import { SAMPLE_ROLES } from "../data/samples";
 import { useAccessErrorMessage } from "../lib/access-errors";
 import { ROLE_FORM_MODAL_ID } from "../modals";
 import { roleWithin, useAccessLimit } from "./access/useAccessContext";
 
 const BUILTIN_ORDER = ["viewer", "moderator", "operator", "server-admin"];
+
+const SAMPLE_ROWS = SAMPLE_ROLES.map((role) => ({ role, name: role.name }));
 
 const builtinRank = (role: Role) => {
   const index = BUILTIN_ORDER.indexOf(role.builtinKey ?? "");
@@ -85,95 +88,93 @@ export default function RoleManagement() {
         )}
       </div>
 
-      {roles.isLoading ? (
-        <div className="grid gap-2 p-4">
-          <Skeleton className="h-12" />
-          <Skeleton className="h-12" />
-          <Skeleton className="h-12" />
-        </div>
-      ) : rows.length === 0 ? (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ShieldCheck />
-            </EmptyMedia>
-            <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
-            <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead>{t("role")}</TableHead>
-              <TableHead className="hidden w-32 @xl/table:table-cell">{t("access")}</TableHead>
-              <TableHead className="hidden w-32 @lg/table:table-cell">{t("members")}</TableHead>
-              <TableHead className="w-40" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map(({ role, name }) => {
-              const description = labels.description(role);
-              const areas = grantedAreas(toAccessMap(role.grants)).length;
-              // Roles above your own access can be looked at but not changed
-              const editable = canManage && roleWithin(role, limit);
-              return (
-                <TableRow key={role.id} className="h-14">
-                  <TableCell className="whitespace-normal">
-                    <span className="grid min-w-0 gap-0.5">
-                      <span className="flex min-w-0 items-center gap-2">
-                        <b className="truncate font-semibold">{name}</b>
-                        {role.builtin && <Badge variant="secondary">{t("builtinBadge")}</Badge>}
-                      </span>
-                      {description && <span className="truncate text-xs text-muted-foreground">{description}</span>}
-                    </span>
-                  </TableCell>
-                  <TableCell className="hidden @xl/table:table-cell">
-                    {areas > 0 || role.ext.length > 0 ? (
-                      <Badge variant="info">{t("areasCount", areas)}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">{t("noAccess")}</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="hidden text-muted-foreground tabular-nums @lg/table:table-cell">{t("membersCount", role.members)}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-0.5">
-                      <Button variant="ghost" size="sm" onClick={() => openModal(ROLE_FORM_MODAL_ID, { role, readOnly: !editable })}>
-                        {editable ? <Pencil /> : <Eye />}
-                        {editable ? t("edit") : t("view")}
-                      </Button>
-                      {canManage && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          title={t("duplicate")}
-                          aria-label={t("duplicate")}
-                          disabled={duplicate.isPending || !roleWithin(role, limit)}
-                          onClick={() => copy(role)}
-                        >
-                          <Copy />
-                        </Button>
-                      )}
-                      {editable && !role.builtin && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="hover:bg-danger/10 hover:text-danger"
-                          title={t("delete")}
-                          aria-label={t("delete")}
-                          onClick={() => void confirmRemove(role, name)}
-                        >
-                          <Trash2 />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+      <DataReveal id="settings-roles" data={rows} loading={roles.isLoading} sample={SAMPLE_ROWS}>
+        {(rows) =>
+          rows.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <ShieldCheck />
+                </EmptyMedia>
+                <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+                <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <Table className="table-fixed">
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>{t("role")}</TableHead>
+                  <TableHead className="hidden w-32 @xl/table:table-cell">{t("access")}</TableHead>
+                  <TableHead className="hidden w-32 @lg/table:table-cell">{t("members")}</TableHead>
+                  <TableHead className="w-40" />
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      )}
+              </TableHeader>
+              <TableBody>
+                {rows.map(({ role, name }) => {
+                  const description = labels.description(role);
+                  const areas = grantedAreas(toAccessMap(role.grants)).length;
+                  // Roles above your own access can be looked at but not changed
+                  const editable = canManage && roleWithin(role, limit);
+                  return (
+                    <TableRow key={role.id} className="h-14">
+                      <TableCell className="whitespace-normal">
+                        <span className="grid min-w-0 gap-0.5">
+                          <span className="flex min-w-0 items-center gap-2">
+                            <b className="truncate font-semibold">{name}</b>
+                            {role.builtin && <Badge variant="secondary">{t("builtinBadge")}</Badge>}
+                          </span>
+                          {description && <span className="truncate text-xs text-muted-foreground">{description}</span>}
+                        </span>
+                      </TableCell>
+                      <TableCell className="hidden @xl/table:table-cell">
+                        {areas > 0 || role.ext.length > 0 ? (
+                          <Badge variant="info">{t("areasCount", areas)}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">{t("noAccess")}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground tabular-nums @lg/table:table-cell">{t("membersCount", role.members)}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-0.5">
+                          <Button variant="ghost" size="sm" onClick={() => openModal(ROLE_FORM_MODAL_ID, { role, readOnly: !editable })}>
+                            {editable ? <Pencil /> : <Eye />}
+                            {editable ? t("edit") : t("view")}
+                          </Button>
+                          {canManage && (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              title={t("duplicate")}
+                              aria-label={t("duplicate")}
+                              disabled={duplicate.isPending || !roleWithin(role, limit)}
+                              onClick={() => copy(role)}
+                            >
+                              <Copy />
+                            </Button>
+                          )}
+                          {editable && !role.builtin && (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="hover:bg-danger/10 hover:text-danger"
+                              title={t("delete")}
+                              aria-label={t("delete")}
+                              onClick={() => void confirmRemove(role, name)}
+                            >
+                              <Trash2 />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )
+        }
+      </DataReveal>
     </SettingsGroup>
   );
 }

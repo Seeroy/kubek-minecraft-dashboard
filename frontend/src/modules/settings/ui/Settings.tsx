@@ -5,19 +5,21 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { AccessRequirement } from "@/shared/lib/access";
 import { meetsAccess } from "@/shared/lib/access";
 import { useAuthStore } from "@/shared/stores/auth-store";
+import { DataReveal, useTabReveal } from "@/shared/ui/data-reveal";
 import { PageHeader } from "@/shared/ui/page-header";
 import { SaveBar } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
 import { AlertTriangle, Blocks, Cloud, Globe, Info, Lock, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { CrashScreen } from "@/shared/ui/ErrorBoundary";
 import { useSearchParams } from "next/navigation";
-import { Fragment, lazy, Suspense } from "react";
-import { useWatch } from "react-hook-form";
+import { Fragment, lazy, Suspense, useRef } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { SAMPLE_CONFIG_FORM } from "../data/samples";
 import { useConfigForm } from "../hooks/useConfigForm";
 import { SETTINGS_EXT_TAB, SETTINGS_TABS, type SettingsTabId } from "../lib/tabs";
+import type { MainConfigFormData } from "../validations/schema";
 import AboutPanel from "./AboutPanel";
 import AssistantSettings from "./AssistantSettings";
 import GeneralSettings from "./GeneralSettings";
@@ -69,6 +71,7 @@ export default function Settings() {
   const tabs = TABS.filter((item) => meetsAccess(user, item.access));
   const panels = useExtensionSettingsPanels().filter((panel) => canAccessItem(panel.permission));
   const config = useConfigForm();
+  const sampleForm = useForm<MainConfigFormData>({ defaultValues: SAMPLE_CONFIG_FORM });
   const [routeTab, setRouteTab] = useRouteTab(BASE, ROUTE_TABS, "general");
   const panelParam = useSearchParams().get("panel");
   const tab = routeTab === SETTINGS_EXT_TAB ? `ext:${panelParam ?? ""}` : routeTab;
@@ -80,6 +83,8 @@ export default function Settings() {
 
   const tabIds = [...tabs.map((item) => item.id as string), ...panels.map((panel) => `ext:${panel.extId}:${panel.id}`)];
   const active = tabIds.includes(tab) ? tab : (tabIds[0] ?? "about");
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useTabReveal(tabsRef, active);
 
   const changeTab = (next: string) => {
     if (next.startsWith("ext:")) {
@@ -93,7 +98,7 @@ export default function Settings() {
   return (
     <div className="stagger-enter">
       <PageHeader title={t("title")} description={t("description")} />
-      <Tabs value={active} onValueChange={(value) => changeTab(String(value))} className="gap-5">
+      <Tabs ref={tabsRef} value={active} onValueChange={(value) => changeTab(String(value))} className="gap-5">
         <div className="sticky top-0 z-10 w-fit max-w-full rounded-lg bg-background">
           <TabsList>
             {tabs.map(({ id, icon: Icon, separatorBefore }) => (
@@ -115,23 +120,24 @@ export default function Settings() {
           </TabsList>
         </div>
 
-        {config.loading ? (
-          <Skeleton className="h-96 rounded-lg" />
-        ) : (
-          <>
-            <TabsContent value="general">
-              <GeneralSettings form={config.form} />
-            </TabsContent>
-            <TabsContent value="security">
-              <SecuritySettings form={config.form} />
-            </TabsContent>
-            <TabsContent value="telegram">
-              <TelegramSettings form={config.form} />
-            </TabsContent>
-          </>
-        )}
+        {/* The skeleton gets its own throwaway form so the real one never registers sample fields */}
+        <DataReveal id={`settings-config-${active}`} data={config.form} loading={config.loading} sample={sampleForm}>
+          {(form) => (
+            <>
+              <TabsContent value="general">
+                <GeneralSettings form={form} />
+              </TabsContent>
+              <TabsContent value="security">
+                <SecuritySettings form={form} />
+              </TabsContent>
+              <TabsContent value="telegram">
+                <TelegramSettings form={form} />
+              </TabsContent>
+            </>
+          )}
+        </DataReveal>
         <TabsContent value="storages">
-          <Suspense fallback={<Skeleton className="h-96 rounded-lg" />}>
+          <Suspense fallback={null}>
             <BackupStoragesSettings />
           </Suspense>
         </TabsContent>

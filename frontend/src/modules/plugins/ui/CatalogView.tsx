@@ -10,12 +10,13 @@ import { useAccess } from "@/shared/lib/access";
 import { cn } from "@/shared/lib/cn";
 import { useAvailableContentInfinite } from "@/shared/queries";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { Panel } from "@/shared/ui/panel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
 import { toneClass } from "@/shared/ui/tone";
@@ -24,9 +25,12 @@ import type { InstalledPluginView } from "@shared/types/plugins";
 import { ArrowDown, Search, SearchX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getContentKind } from "../content-kind";
+import { SAMPLE_CATALOG } from "../data/samples";
+import type { CatalogLayout } from "../hooks/useCatalogView";
 import { CATALOG_CATEGORIES, categoryTone } from "../lib/categories";
 import { INSTALL_PLUGIN_MODAL_ID } from "../modals/InstallPluginModal";
 import { CatalogCard } from "./CatalogCard";
+import { CatalogRow } from "./CatalogRow";
 
 const PAGE_SIZE = 12;
 const SORTS: ContentSortIndex[] = ["relevance", "downloads", "follows", "newest", "updated"];
@@ -38,9 +42,10 @@ interface CatalogViewProps {
   kind: ContentKind;
   server: Server;
   installed: InstalledPluginView[] | undefined;
+  view: CatalogLayout;
 }
 
-export function CatalogView({ kind, server, installed }: CatalogViewProps) {
+export function CatalogView({ kind, server, installed, view }: CatalogViewProps) {
   const config = getContentKind(kind);
   const { t } = useTranslation(config.i18nNs);
   const { t: tc } = useTranslation("modules.content");
@@ -136,13 +141,7 @@ export function CatalogView({ kind, server, installed }: CatalogViewProps) {
         </div>
       </Panel>
 
-      {search.isLoading ? (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-          {Array.from({ length: 12 }, (_, i) => (
-            <Skeleton key={i} className="h-52 rounded-lg" />
-          ))}
-        </div>
-      ) : hits.length === 0 ? (
+      {!search.isLoading && hits.length === 0 ? (
         <Empty className="rounded-lg border border-border bg-card">
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -154,19 +153,52 @@ export function CatalogView({ kind, server, installed }: CatalogViewProps) {
         </Empty>
       ) : (
         <>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-            {hits.map((hit) => (
-              <CatalogCard
-                key={hit.project_id}
-                hit={hit}
-                kind={kind}
-                installed={installedIds.has(hit.project_id)}
-                onInstall={canInstall ? () => openInstall(hit.project_id, hit.latest_version) : undefined}
-                onDetails={() => openInstall(hit.project_id)}
-              />
-            ))}
-          </div>
-          {hasNextPage ? (
+          <DataReveal id={`content-catalog-${kind}-${view}`} data={hits} loading={search.isLoading} sample={SAMPLE_CATALOG}>
+            {(hits) =>
+              view === "table" ? (
+                <Panel>
+                  <Table className="table-fixed">
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead>{tc("catalog.headers.name")}</TableHead>
+                        <TableHead className="hidden w-36 @3xl/table:table-cell">{tc("catalog.headers.author")}</TableHead>
+                        <TableHead className="hidden w-24 text-right @2xl/table:table-cell">{tc("catalog.headers.downloads")}</TableHead>
+                        <TableHead className="hidden w-40 @xl/table:table-cell">{tc("catalog.headers.versions")}</TableHead>
+                        <TableHead className="hidden w-32 @4xl/table:table-cell">{tc("catalog.headers.updated")}</TableHead>
+                        <TableHead className="w-40" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {hits.map((hit) => (
+                        <CatalogRow
+                          key={hit.project_id}
+                          hit={hit}
+                          kind={kind}
+                          installed={installedIds.has(hit.project_id)}
+                          onInstall={canInstall ? () => openInstall(hit.project_id, hit.latest_version) : undefined}
+                          onDetails={() => openInstall(hit.project_id)}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Panel>
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+                  {hits.map((hit) => (
+                    <CatalogCard
+                      key={hit.project_id}
+                      hit={hit}
+                      kind={kind}
+                      installed={installedIds.has(hit.project_id)}
+                      onInstall={canInstall ? () => openInstall(hit.project_id, hit.latest_version) : undefined}
+                      onDetails={() => openInstall(hit.project_id)}
+                    />
+                  ))}
+                </div>
+              )
+            }
+          </DataReveal>
+          {search.isLoading ? null : hasNextPage ? (
             <div ref={sentinelRef} className="flex justify-center">
               {isFetchNextPageError ? (
                 <Button variant="outline" onClick={() => void fetchNextPage()}>

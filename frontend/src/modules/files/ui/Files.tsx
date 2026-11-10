@@ -26,7 +26,7 @@ function ServerFiles({ server }: { server: Server }) {
   const router = useRouter();
   const navigation = useFilesNavigation();
   const { currentPath } = navigation;
-  const { files, isInitialLoading, loadFiles } = useFilesData({ serverId: server.id, currentPath });
+  const { files, isInitialLoading, loadedPath, loadFiles, refresh, refreshing } = useFilesData({ serverId: server.id, currentPath });
   const selection = useFilesSelection();
   const { clear: clearSelection } = selection;
   const canWrite = useAccess([AccessArea.FILES, "write"], server.id);
@@ -98,6 +98,8 @@ function ServerFiles({ server }: { server: Server }) {
         canManage={canManage}
         onUpload={ops.handleFileUpload}
         onCreated={loadFiles}
+        onRefresh={refresh}
+        refreshing={refreshing}
         uploadDisabled={isInitialLoading || ops.isMutating}
         selectionCount={selection.count}
         onClearSelection={clearSelection}
@@ -110,6 +112,7 @@ function ServerFiles({ server }: { server: Server }) {
         files={files}
         loading={isInitialLoading}
         currentPath={currentPath}
+        loadedPath={loadedPath}
         actions={actions}
         selection={selection}
         onGoUp={navigate.up}

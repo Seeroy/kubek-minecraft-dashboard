@@ -1,5 +1,6 @@
 import { contentApi, type ContentKind, type ContentSearchParams } from "@/api";
 import { keepPreviousData, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { qk } from "./query-keys";
 
 const keysFor = (kind: ContentKind) => (kind === "mod" ? qk.mods : qk.plugins);
@@ -29,6 +30,23 @@ export function useAvailableContentInfinite(
     },
     placeholderData: keepPreviousData,
   });
+}
+
+/** Refetches the catalog pages on screen, own flag so paging down doesn't spin the button */
+export function useRefreshContentSearch(kind: ContentKind) {
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await queryClient.refetchQueries({ queryKey: keysFor(kind).searches(), type: "active" });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  return { refresh, refreshing };
 }
 
 export function useContentProject(kind: ContentKind, projectId: string | undefined) {

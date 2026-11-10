@@ -7,18 +7,19 @@ import { confirmDialog } from "@/shared/modals";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import type { BlueprintSummary } from "@/shared/types/server-types.types";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { FileDropZone } from "@/shared/ui/file-drop-zone";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Plate } from "@/shared/ui/plate";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
 import { AccessArea } from "@shared/access/areas";
 import { Boxes, RotateCw, Search, Shield, Trash2, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useBlueprints, useInstallBlueprintMutation, useRemoveBlueprintMutation } from "../api/server-types.queries";
+import { SAMPLE_BLUEPRINTS } from "../data/samples";
 import { BlueprintCard } from "./BlueprintCard";
 
 type Filter = "all" | BlueprintSummary["source"];
@@ -114,13 +115,7 @@ export const ServerTypesManager = () => {
         </InputGroup>
       </div>
 
-      {blueprints.isLoading ? (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="h-60 rounded-lg" />
-          ))}
-        </div>
-      ) : shown.length === 0 ? (
+      {!blueprints.isLoading && shown.length === 0 ? (
         <Empty className="rounded-lg border border-border bg-card">
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -131,18 +126,22 @@ export const ServerTypesManager = () => {
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-          {shown.map((bp) => (
-            <BlueprintCard
-              key={bp.id}
-              blueprint={bp}
-              usedBy={usage.get(bp.id) ?? 0}
-              canRemove={canManage}
-              busy={remove.isPending}
-              onRemove={() => void confirmRemove(bp)}
-            />
-          ))}
-        </div>
+        <DataReveal id="server-types" data={shown} loading={blueprints.isLoading} sample={SAMPLE_BLUEPRINTS}>
+          {(shown) => (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+              {shown.map((bp) => (
+                <BlueprintCard
+                  key={bp.id}
+                  blueprint={bp}
+                  usedBy={usage.get(bp.id) ?? 0}
+                  canRemove={canManage}
+                  busy={remove.isPending}
+                  onRemove={() => void confirmRemove(bp)}
+                />
+              ))}
+            </div>
+          )}
+        </DataReveal>
       )}
     </div>
   );

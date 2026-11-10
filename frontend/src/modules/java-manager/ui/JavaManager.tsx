@@ -9,17 +9,18 @@ import { confirmDialog } from "@/shared/modals";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { SettingsGroup } from "@/shared/ui/settings";
 import type { Tone } from "@/shared/ui/tone";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
 import { Check, Coffee, Download, Folder, RotateCw, Server, Trash2, type LucideIcon } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { useDeleteJavaMutation, useInstallJavaMutation, useJavaVersions, useRemoveCustomJavaMutation } from "../api/java.queries";
 import { useJavaTasks } from "../hooks/useJavaTasks";
+import { SAMPLE_JAVA } from "../data/samples";
 import { majorOf, serverJavaUsage } from "../lib/java";
 import { JAVA_TABS, type JavaTab } from "../lib/tabs";
 import { AvailableTab } from "./AvailableTab";
@@ -64,6 +65,13 @@ function EmptyList({ title, description }: { title: string; description: string 
   );
 }
 
+// One list from the API holds all three kinds, a path means it is on disk
+const splitJava = (all: JavaVersion[]) => ({
+  installed: all.filter((v) => v.path && !v.custom).sort((a, b) => (majorOf(b.version) ?? 0) - (majorOf(a.version) ?? 0)),
+  available: all.filter((v) => !v.path),
+  customs: all.filter((v) => v.custom),
+});
+
 const JavaManager = () => {
   const { t } = useTranslation("modules.javaManager");
   const { notify } = useNotifications();
@@ -77,15 +85,7 @@ const JavaManager = () => {
   const canInstall = useAuthStore((s) => s.can(AccessArea.JAVA, "write"));
   const canManage = useAuthStore((s) => s.can(AccessArea.JAVA, "manage"));
 
-  // One list from the API holds all three kinds, a path means it is on disk
-  const { installed, available, customs } = useMemo(() => {
-    const all = java.data ?? [];
-    return {
-      installed: all.filter((v) => v.path && !v.custom).sort((a, b) => (majorOf(b.version) ?? 0) - (majorOf(a.version) ?? 0)),
-      available: all.filter((v) => !v.path),
-      customs: all.filter((v) => v.custom),
-    };
-  }, [java.data]);
+  const { installed, available, customs } = useMemo(() => splitJava(java.data ?? []), [java.data]);
   const usage = useMemo(() => serverJavaUsage(servers, customs), [servers, customs]);
 
   const counts: Record<JavaTab, number> = { installed: installed.length, available: available.length, custom: customs.length, usage: usage.length };
@@ -136,81 +136,84 @@ const JavaManager = () => {
           ))}
         </TabsList>
 
-        {java.isLoading ? (
-          <Skeleton className="h-72 rounded-lg" />
-        ) : (
-          <>
-            <TabsContent value="installed">
-              <ListPanel tone="green" icon={Coffee} title={t("installed.title")} description={t("installed.description")}>
-                {installed.length === 0 ? (
-                  <EmptyList title={t("installed.empty.title")} description={t("installed.empty.description")} />
-                ) : (
-                  installed.map((version) => (
-                    <JavaRow
-                      key={version.version}
-                      major={majorOf(version.version)}
-                      title={version.name}
-                      badges={
-                        <>
-                          <Badge variant="success">{t("installed.badge")}</Badge>
-                          <Badge variant="secondary" className="uppercase">
-                            {version.type}
-                          </Badge>
-                        </>
-                      }
-                      meta={
-                        <>
-                          {version.vendor && <span>{t("installed.vendor", version.vendor)}</span>}
-                          {version.runtime && <span className="font-mono">{version.runtime}</span>}
-                        </>
-                      }
-                      path={version.path}
-                      usedBy={usersOf(version)}
-                      removing={remove.isPending}
-                      onRemove={canManage ? () => void confirmRemove(version) : undefined}
-                    />
-                  ))
-                )}
-              </ListPanel>
-            </TabsContent>
+        <DataReveal id={`java-${tab}`} data={java.data ?? []} loading={java.isLoading} sample={SAMPLE_JAVA}>
+          {(all) => {
+            const { installed, available, customs } = splitJava(all);
+            return (
+              <>
+                <TabsContent value="installed">
+                  <ListPanel tone="green" icon={Coffee} title={t("installed.title")} description={t("installed.description")}>
+                    {installed.length === 0 ? (
+                      <EmptyList title={t("installed.empty.title")} description={t("installed.empty.description")} />
+                    ) : (
+                      installed.map((version) => (
+                        <JavaRow
+                          key={version.version}
+                          major={majorOf(version.version)}
+                          title={version.name}
+                          badges={
+                            <>
+                              <Badge variant="success">{t("installed.badge")}</Badge>
+                              <Badge variant="secondary" className="uppercase">
+                                {version.type}
+                              </Badge>
+                            </>
+                          }
+                          meta={
+                            <>
+                              {version.vendor && <span>{t("installed.vendor", version.vendor)}</span>}
+                              {version.runtime && <span className="font-mono">{version.runtime}</span>}
+                            </>
+                          }
+                          path={version.path}
+                          usedBy={usersOf(version)}
+                          removing={remove.isPending}
+                          onRemove={canManage ? () => void confirmRemove(version) : undefined}
+                        />
+                      ))
+                    )}
+                  </ListPanel>
+                </TabsContent>
 
-            <TabsContent value="available">
-              <AvailableTab available={available} progress={progress} pending={install.isPending ? install.variables : undefined} onInstall={canInstall ? onInstall : undefined} />
-            </TabsContent>
+                <TabsContent value="available">
+                  <AvailableTab available={available} progress={progress} pending={install.isPending ? install.variables : undefined} onInstall={canInstall ? onInstall : undefined} />
+                </TabsContent>
 
-            <TabsContent value="custom" className="grid gap-4">
-              {canManage && <CustomJavaForm />}
-              <ListPanel tone="purple" icon={Folder} title={t("custom.list.title")} description={t("custom.list.description")}>
-                {customs.length === 0 ? (
-                  <EmptyList title={t("custom.list.empty.title")} description={t("custom.list.empty.description")} />
-                ) : (
-                  customs.map((version) => (
-                    <JavaRow
-                      key={version.id ?? version.path}
-                      major={majorOf(version.version)}
-                      title={version.name}
-                      badges={<Badge variant="info">{t("custom.list.badge")}</Badge>}
-                      meta={
-                        <>
-                          <span>Java {version.version}</span>
-                          {version.vendor && <span>{version.vendor}</span>}
-                        </>
-                      }
-                      path={version.path}
-                      usedBy={usersOf(version)}
-                      removing={removeCustom.isPending}
-                      onRemove={canManage ? () => void confirmRemove(version) : undefined}
-                    />
-                  ))
-                )}
-              </ListPanel>
-            </TabsContent>
+                <TabsContent value="custom" className="grid gap-4">
+                  {canManage && <CustomJavaForm />}
+                  <ListPanel tone="purple" icon={Folder} title={t("custom.list.title")} description={t("custom.list.description")}>
+                    {customs.length === 0 ? (
+                      <EmptyList title={t("custom.list.empty.title")} description={t("custom.list.empty.description")} />
+                    ) : (
+                      customs.map((version) => (
+                        <JavaRow
+                          key={version.id ?? version.path}
+                          major={majorOf(version.version)}
+                          title={version.name}
+                          badges={<Badge variant="info">{t("custom.list.badge")}</Badge>}
+                          meta={
+                            <>
+                              <span>Java {version.version}</span>
+                              {version.vendor && <span>{version.vendor}</span>}
+                            </>
+                          }
+                          path={version.path}
+                          usedBy={usersOf(version)}
+                          removing={removeCustom.isPending}
+                          onRemove={canManage ? () => void confirmRemove(version) : undefined}
+                        />
+                      ))
+                    )}
+                  </ListPanel>
+                </TabsContent>
 
-            <TabsContent value="usage">
-              <UsageTab usage={usage} />
-            </TabsContent>
-          </>
-        )}
+                <TabsContent value="usage">
+                  <UsageTab usage={usage} />
+                </TabsContent>
+              </>
+            );
+          }}
+        </DataReveal>
       </Tabs>
     </div>
   );

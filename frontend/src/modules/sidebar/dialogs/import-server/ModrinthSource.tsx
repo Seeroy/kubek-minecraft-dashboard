@@ -6,15 +6,16 @@ import { useTaskWaiter, useWatchedTask } from "@/shared/hooks/useWatchedTask";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader } from "@/shared/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { TaskStageList } from "@/shared/ui/task-stages";
 import type { ModrinthSearchHit } from "@shared/types/plugins";
 import { TaskStatus } from "@shared/types/task.types";
 import { AlertCircle, Download, PackageOpen, Search } from "lucide-react";
 import { useState } from "react";
+import { SAMPLE_MODPACK_VERSIONS, SAMPLE_MODPACKS } from "../../data/samples";
 import { modpackErrorMessage, modpackTaskErrorMessage } from "./errors";
 import { useModpackSearch, useModpackVersions, useStartModrinthInspect } from "./modpacks.queries";
 
@@ -43,18 +44,12 @@ export function ModrinthSource({ onPreview }: { onPreview: (preview: ModpackPrev
         />
       </InputGroup>
 
-      {search.isPending ? (
-        <div className="grid gap-1.5">
-          {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="h-[58px] rounded-lg" />
-          ))}
-        </div>
-      ) : search.isError ? (
+      {search.isError ? (
         <p role="alert" className="flex items-start gap-1.5 text-xs text-danger">
           <AlertCircle className="mt-px size-3.5 shrink-0" />
           {t("modrinth.error")}
         </p>
-      ) : search.data.hits.length === 0 ? (
+      ) : !search.isPending && search.data.hits.length === 0 ? (
         <Empty className="py-8">
           <EmptyHeader>
             <PackageOpen className="size-6 text-muted-foreground" />
@@ -62,18 +57,22 @@ export function ModrinthSource({ onPreview }: { onPreview: (preview: ModpackPrev
           </EmptyHeader>
         </Empty>
       ) : (
-        <ul
-          aria-label={t("modrinth.searchLabel")}
-          className="grid min-w-0 grid-cols-1 gap-1.5 data-[state=loading]:opacity-70"
-          data-state={search.isFetching ? "loading" : "idle"}
-        >
-          {search.data.hits.map((hit) => (
-            <li key={hit.project_id} className="grid min-w-0 grid-cols-1">
-              <HitRow hit={hit} selected={picked?.project_id === hit.project_id} onSelect={() => setPicked(hit)} />
-              {picked?.project_id === hit.project_id && <VersionPicker hit={hit} onPreview={onPreview} />}
-            </li>
-          ))}
-        </ul>
+        <DataReveal id="modpack-search" data={search.data?.hits} loading={search.isPending} sample={SAMPLE_MODPACKS}>
+          {(hits) => (
+            <ul
+              aria-label={t("modrinth.searchLabel")}
+              className="grid min-w-0 grid-cols-1 gap-1.5 data-[state=loading]:opacity-70"
+              data-state={search.isFetching ? "loading" : "idle"}
+            >
+              {hits.map((hit) => (
+                <li key={hit.project_id} className="grid min-w-0 grid-cols-1">
+                  <HitRow hit={hit} selected={picked?.project_id === hit.project_id} onSelect={() => setPicked(hit)} />
+                  {picked?.project_id === hit.project_id && <VersionPicker hit={hit} onPreview={onPreview} />}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DataReveal>
       )}
     </div>
   );
@@ -136,38 +135,40 @@ function VersionPicker({ hit, onPreview }: { hit: ModrinthSearchHit; onPreview: 
 
   return (
     <div className="grid min-w-0 animate-enter grid-cols-1 gap-2 rounded-b-lg border border-t-0 border-primary/60 bg-primary/6 p-2.5">
-      {versions.isPending ? (
-        <Skeleton className="h-24" aria-label={t("modrinth.loadingVersions")} />
-      ) : !versions.data?.length ? (
+      {!versions.isPending && !versions.data?.length ? (
         <p className="text-xs text-muted-foreground">{t("modrinth.noVersions")}</p>
       ) : busy && task?.stages?.length ? (
         <TaskStageList stages={task.stages} className="rounded-lg bg-card p-1" />
       ) : (
-        <>
-          <ul aria-label={t("modrinth.version")} className="grid scrollbar-thin max-h-48 min-w-0 grid-cols-1 gap-1 overflow-y-auto">
-            {versions.data.map((v) => (
-              <li key={v.id} className="min-w-0">
-                <button
-                  type="button"
-                  aria-pressed={v.id === version?.id}
-                  disabled={busy}
-                  onClick={() => setChosen(v.id)}
-                  className="flex w-full min-w-0 items-center gap-2 rounded-md border border-transparent bg-card px-2.5 py-1.5 text-left text-[13px] transition-colors duration-150 hover:bg-hover aria-pressed:border-primary/60 aria-pressed:bg-primary/8"
-                >
-                  <span className="min-w-0 flex-1 truncate font-medium">{v.version_number}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{gameVersions(v.game_versions)}</span>
-                  {v.version_type !== "release" && <Badge variant="warning">{t(`modrinth.types.${v.version_type}`)}</Badge>}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-            <Button disabled={!version || busy} onClick={() => void read()}>
-              {busy ? <Spinner /> : <PackageOpen />}
-              {t("modrinth.read")}
-            </Button>
-          </div>
-        </>
+        <DataReveal id="modpack-versions" data={versions.data} loading={versions.isPending} label={t("modrinth.loadingVersions")} sample={SAMPLE_MODPACK_VERSIONS}>
+          {(list) => (
+            <div className="grid min-w-0 grid-cols-1 gap-2">
+              <ul aria-label={t("modrinth.version")} className="grid scrollbar-thin max-h-48 min-w-0 grid-cols-1 gap-1 overflow-y-auto">
+                {list.map((v) => (
+                  <li key={v.id} className="min-w-0">
+                    <button
+                      type="button"
+                      aria-pressed={v.id === version?.id}
+                      disabled={busy}
+                      onClick={() => setChosen(v.id)}
+                      className="flex w-full min-w-0 items-center gap-2 rounded-md border border-transparent bg-card px-2.5 py-1.5 text-left text-[13px] transition-colors duration-150 hover:bg-hover aria-pressed:border-primary/60 aria-pressed:bg-primary/8"
+                    >
+                      <span className="min-w-0 flex-1 truncate font-medium">{v.version_number}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{gameVersions(v.game_versions)}</span>
+                      {v.version_type !== "release" && <Badge variant="warning">{t(`modrinth.types.${v.version_type}`)}</Badge>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+                <Button disabled={!version || busy} onClick={() => void read()}>
+                  {busy ? <Spinner /> : <PackageOpen />}
+                  {t("modrinth.read")}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DataReveal>
       )}
       {error && (
         <p role="alert" className="flex items-start gap-1.5 text-xs text-danger">

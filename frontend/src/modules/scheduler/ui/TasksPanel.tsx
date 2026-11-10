@@ -9,7 +9,6 @@ import { Button } from "@/shared/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Panel } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Switch } from "@/shared/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { AccessArea } from "@shared/access/areas";
@@ -26,7 +25,6 @@ import { describeSchedule } from "../lib/schedule";
 interface TasksPanelProps {
   serverId: string;
   tasks: IScheduledTask[] | undefined;
-  loading: boolean;
   onEdit: (task: IScheduledTask) => void;
   onCreate: () => void;
 }
@@ -41,7 +39,7 @@ function actionDetail(task: IScheduledTask, label: string) {
 
 const monoDetail = new Set([SchedulerActionType.SERVER_COMMAND, SchedulerActionType.HTTP_WEBHOOK]);
 
-export function TasksPanel({ serverId, tasks = [], loading, onEdit, onCreate }: TasksPanelProps) {
+export function TasksPanel({ serverId, tasks = [], onEdit, onCreate }: TasksPanelProps) {
   const { t } = useTranslation("modules.scheduler");
   const { t: tc } = useTranslation("modules.components");
   const { notify } = useNotifications();
@@ -76,8 +74,6 @@ export function TasksPanel({ serverId, tasks = [], loading, onEdit, onCreate }: 
     await removeMutation.mutateAsync(task.id);
     notify({ type: "success", title: t("toasts.deleted") });
   };
-
-  if (loading) return <Skeleton className="h-72 rounded-lg" />;
 
   if (tasks.length === 0) {
     return (

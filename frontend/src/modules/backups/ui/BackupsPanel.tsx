@@ -7,7 +7,6 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { Panel, PanelHead } from "@/shared/ui/panel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
@@ -29,12 +28,11 @@ interface BackupsPanelProps {
   serverId: string;
   backups: Backup[];
   progress: Record<string, BackupProgress>;
-  loading: boolean;
   /** Missing when the user may not create backups */
   onCreate?: () => void;
 }
 
-export function BackupsPanel({ serverId, backups, progress, loading, onCreate }: BackupsPanelProps) {
+export function BackupsPanel({ serverId, backups, progress, onCreate }: BackupsPanelProps) {
   const { t } = useTranslation("modules.backups");
   const storages = useBackupStorages().data ?? [];
   const { openModal } = useModal();
@@ -58,8 +56,6 @@ export function BackupsPanel({ serverId, backups, progress, loading, onCreate }:
   );
 
   const openInfo = (backup: Backup) => openModal(BACKUP_INFO_MODAL_ID, { backup, actions });
-
-  if (loading) return <Skeleton className="h-80 rounded-lg" />;
 
   if (backups.length === 0) {
     return (

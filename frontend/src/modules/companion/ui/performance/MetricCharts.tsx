@@ -6,6 +6,8 @@ import { formatBytes } from "@/shared/lib/bytesToGb";
 import { AreaChart } from "@/shared/ui/area-chart";
 import { Panel, PanelBody, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
+import { LoadReveal } from "@/shared/ui/data-reveal";
+import { queryLoadError } from "@/shared/ui/load-error";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { Tone } from "@/shared/ui/tone";
 import { Gauge, MemoryStick, Timer, UsersRound, type LucideIcon } from "lucide-react";
@@ -87,21 +89,19 @@ function MetricChart({ spec, points, window }: { spec: ChartSpec; points: Compan
 export function MetricCharts({ serverId, window }: { serverId: string; window: CompanionMetricsWindow }) {
   const query = useCompanionMetrics(serverId, window);
 
-  if (!query.data) {
-    return (
-      <div className="grid gap-4 lg:grid-cols-2">
-        {CHARTS.map((spec) => (
-          <Skeleton key={spec.key} className="h-60 rounded-lg" />
-        ))}
-      </div>
-    );
-  }
+  const points = query.data;
+  const failed = queryLoadError(query);
+  if (failed) return failed;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {CHARTS.map((spec) => (
-        <MetricChart key={spec.key} spec={spec} points={query.data} window={window} />
+    <LoadReveal
+      loading={!points}
+      className="grid gap-4 lg:grid-cols-2"
+      skeleton={CHARTS.map((spec) => (
+        <Skeleton key={spec.key} className="h-60 rounded-lg" />
       ))}
-    </div>
+    >
+      {() => points && CHARTS.map((spec) => <MetricChart key={spec.key} spec={spec} points={points} window={window} />)}
+    </LoadReveal>
   );
 }

@@ -1,11 +1,12 @@
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { BlueprintVariable } from "@/shared/types/server-types.types";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Input } from "@/shared/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Switch } from "@/shared/ui/switch";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
+import { SAMPLE_VERSIONS } from "../data/samples";
 
 // Short static lists read better as a segmented control
 const SEGMENTED_MAX = 3;
@@ -28,31 +29,34 @@ export function VariableControl({ variable, id, label, value, onChange, versions
   const options = variable.options?.from === "versions" ? versions : variable.options?.from === "static" ? variable.options.values.map(String) : null;
 
   if (options) {
-    if (versionsLoading) return <Skeleton className="h-ctl" />;
-    if (segmented && variable.options?.from === "static" && options.length <= SEGMENTED_MAX) {
-      return (
+    const control = (list: string[]) =>
+      segmented && variable.options?.from === "static" && list.length <= SEGMENTED_MAX ? (
         <ToggleGroup variant="segmented" value={[String(value ?? "")]} onValueChange={(next) => next[0] && onChange(next[0])} aria-label={label}>
-          {options.map((option) => (
+          {list.map((option) => (
             <Toggle key={option} variant="segmented" value={option}>
               {option}
             </Toggle>
           ))}
         </ToggleGroup>
+      ) : (
+        <Select value={String(value ?? "")} onValueChange={(next) => next != null && onChange(next)}>
+          <SelectTrigger id={id} className="w-full" aria-invalid={invalid || undefined}>
+            <SelectValue placeholder={variable.options?.from === "versions" ? t("selectVersion") : t("selectOption", label)} />
+          </SelectTrigger>
+          <SelectContent>
+            {list.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       );
-    }
+    if (variable.options?.from !== "versions") return control(options);
     return (
-      <Select value={String(value ?? "")} onValueChange={(next) => next != null && onChange(next)}>
-        <SelectTrigger id={id} className="w-full" aria-invalid={invalid || undefined}>
-          <SelectValue placeholder={variable.options?.from === "versions" ? t("selectVersion") : t("selectOption", label)} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <DataReveal id={`variable-${id}`} data={options} loading={versionsLoading} sample={SAMPLE_VERSIONS}>
+        {control}
+      </DataReveal>
     );
   }
 

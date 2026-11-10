@@ -1,13 +1,14 @@
 import { FEATURE_TONE, iconType } from "@/modules/server-types/lib/blueprint";
+import { SAMPLE_BLUEPRINTS } from "@/modules/server-types/data/samples";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import type { BlueprintSummary } from "@/shared/types/server-types.types";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { BlueprintIcon } from "@/shared/ui/BlueprintIcon";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { toneClass } from "@/shared/ui/tone";
 import { Check, Package, Search, SearchX } from "lucide-react";
 import { useState } from "react";
@@ -58,13 +59,7 @@ export function TypeStep({ blueprints, loading, error, selectedId, onSelect, onC
         <p className="mt-3 rounded-md border border-danger/30 bg-danger/8 px-3 py-2 text-danger">{t("modal.notifications.catalogError")}</p>
       )}
 
-      {loading ? (
-        <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="h-[118px] rounded-lg" />
-          ))}
-        </div>
-      ) : shown.length === 0 ? (
+      {!loading && shown.length === 0 ? (
         <Empty>
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -75,47 +70,51 @@ export function TypeStep({ blueprints, loading, error, selectedId, onSelect, onC
           </EmptyHeader>
         </Empty>
       ) : (
-        <div role="radiogroup" aria-label={t("steps.type.label")} className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3">
-          {shown.map((bp) => {
-            const selected = bp.id === selectedId;
-            const features = bp.features.filter((feature) => CONTENT_FEATURES.has(feature));
-            return (
-              <button
-                key={bp.id}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => onSelect(bp)}
-                onDoubleClick={onConfirm}
-                className="relative grid cursor-pointer content-start gap-1.5 rounded-lg border border-border bg-card p-3 text-left transition-[border-color,background-color,translate,box-shadow] duration-150 outline-none hover:-translate-y-px hover:border-foreground/20 focus-visible:ring-3 focus-visible:ring-primary/18 aria-checked:border-primary/65 aria-checked:bg-primary/7 aria-checked:shadow-[0_0_0_3px_color-mix(in_oklch,var(--primary)_14%,transparent)]"
-              >
-                {selected && (
-                  <span className="absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
-                    <Check className="size-3" />
-                  </span>
-                )}
-                <span className="flex min-w-0 items-center gap-2.5 pr-6">
-                  <BlueprintIcon icon={bp.icon} coreType={iconType(bp.id)} label={bp.name} className="size-[34px] rounded-lg" />
-                  <span className="min-w-0">
-                    <b className="block truncate text-sm font-semibold">{bp.shortName ?? bp.name}</b>
-                    <span className="block truncate font-mono text-[11px] text-muted-foreground">{bp.id}</span>
-                  </span>
-                </span>
-                {bp.description && <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{bp.description}</span>}
-                {(features.length > 0 || bp.dockerCapable) && (
-                  <span className="flex flex-wrap gap-1">
-                    {features.map((feature) => (
-                      <Badge key={feature} className={cn("bg-tone/12 text-tone", toneClass[FEATURE_TONE[feature]])}>
-                        {tf(feature)}
-                      </Badge>
-                    ))}
-                    {bp.dockerCapable && <Badge variant="secondary">Docker</Badge>}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <DataReveal id="create-server-type" data={shown} loading={loading} sample={SAMPLE_BLUEPRINTS}>
+          {(shown) => (
+            <div role="radiogroup" aria-label={t("steps.type.label")} className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3">
+              {shown.map((bp) => {
+                const selected = bp.id === selectedId;
+                const features = bp.features.filter((feature) => CONTENT_FEATURES.has(feature));
+                return (
+                  <button
+                    key={bp.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => onSelect(bp)}
+                    onDoubleClick={onConfirm}
+                    className="relative grid cursor-pointer content-start gap-1.5 rounded-lg border border-border bg-card p-3 text-left transition-[border-color,background-color,translate,box-shadow] duration-150 outline-none hover:-translate-y-px hover:border-foreground/20 focus-visible:ring-3 focus-visible:ring-primary/18 aria-checked:border-primary/65 aria-checked:bg-primary/7 aria-checked:shadow-[0_0_0_3px_color-mix(in_oklch,var(--primary)_14%,transparent)]"
+                  >
+                    {selected && (
+                      <span className="absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                        <Check className="size-3" />
+                      </span>
+                    )}
+                    <span className="flex min-w-0 items-center gap-2.5 pr-6">
+                      <BlueprintIcon icon={bp.icon} coreType={iconType(bp.id)} label={bp.name} className="size-[34px] rounded-lg" />
+                      <span className="min-w-0">
+                        <b className="block truncate text-sm font-semibold">{bp.shortName ?? bp.name}</b>
+                        <span className="block truncate font-mono text-[11px] text-muted-foreground">{bp.id}</span>
+                      </span>
+                    </span>
+                    {bp.description && <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{bp.description}</span>}
+                    {(features.length > 0 || bp.dockerCapable) && (
+                      <span className="flex flex-wrap gap-1">
+                        {features.map((feature) => (
+                          <Badge key={feature} className={cn("bg-tone/12 text-tone", toneClass[FEATURE_TONE[feature]])}>
+                            {tf(feature)}
+                          </Badge>
+                        ))}
+                        {bp.dockerCapable && <Badge variant="secondary">Docker</Badge>}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </DataReveal>
       )}
     </>
   );

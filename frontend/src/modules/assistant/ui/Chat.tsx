@@ -2,6 +2,7 @@
 import { useServerStore } from "@/modules/server";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
+import { LoadReveal } from "@/shared/ui/data-reveal";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { IAssistantConversation, IAssistantMessage } from "@shared/types/assistant.types";
 import { CircleAlert } from "lucide-react";
@@ -76,12 +77,6 @@ export function Chat({ conversationId }: { conversationId: string | null }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div ref={scrollRef} onScroll={onScroll} className="flex scrollbar-thin min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pt-4 pb-3">
-        {conversationId && detail.isPending && (
-          <div className="grid gap-3" aria-busy>
-            <Skeleton className="ml-auto h-9 w-2/3" />
-            <Skeleton className="h-16 w-full" />
-          </div>
-        )}
         {conversationId && detail.isError && (
           <div className="flex flex-col items-center gap-2 py-8 text-center text-[13px] text-muted-foreground">
             {t("loadError")}
@@ -91,9 +86,21 @@ export function Chat({ conversationId }: { conversationId: string | null }) {
           </div>
         )}
         {!conversationId && <Welcome />}
-        {messages.map((message) => (
-          <MessageItem key={message.id} message={message} serverName={serverName} />
-        ))}
+        {/* Only saved history is revealed, live tokens are not */}
+        <LoadReveal
+          loading={!!conversationId && detail.isPending}
+          className="flex flex-col gap-4 empty:hidden"
+          skeleton={
+            <div className="grid gap-3">
+              <Skeleton className="ml-auto h-9 w-2/3" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          }
+        >
+          {messages.map((message) => (
+            <MessageItem key={message.id} message={message} serverName={serverName} />
+          ))}
+        </LoadReveal>
         <LiveTail conversationId={conversationId} saved={messages} scrollRef={scrollRef} />
       </div>
       <Composer

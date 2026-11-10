@@ -7,6 +7,7 @@ import { Meter } from "@/shared/ui/meter";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Panel, PanelBody, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
+import { LoadReveal } from "@/shared/ui/data-reveal";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Stat, StatStrip } from "@/shared/ui/stat-strip";
 import { Toggle } from "@/shared/ui/toggle";
@@ -149,36 +150,46 @@ export function SystemMonitoringDashboard() {
             <EmptyTitle>{t("loadError")}</EmptyTitle>
           </EmptyHeader>
         </Empty>
-      ) : !data ? (
-        <div className="grid gap-4">
-          <Skeleton className="h-28 rounded-lg" />
-          <Skeleton className="h-80 rounded-lg" />
-        </div>
       ) : (
-        <div className="grid gap-4">
-          <StatStrip>
-            <Stat label={t("stats.cpu")} icon={<Cpu />} tone="purple" value={Math.round(data.cpuUsage.cpu ?? 0)} unit="%">
-              <Sparkline data={cpuHistory.slice(-SPARK_POINTS)} tone="purple" />
-            </Stat>
-            <Stat label={t("stats.ram")} icon={<Activity />} tone="pink" value={formatBytes(data.ramUsage.total - data.ramUsage.available)} unit={` / ${formatBytes(data.ramUsage.total)}`}>
-              <Meter value={data.ramUsage.percentage} tone="pink" size="md" thresholds className="flex-1" aria-label={t("stats.ram")} />
-              <span className="tabular-nums">{Math.round(data.ramUsage.percentage)}%</span>
-            </Stat>
-            <Stat label={t("stats.disks")} icon={<HardDrive />} tone="amber" value={formatBytes(diskUsed)} unit={` / ${formatBytes(diskTotal)}`}>
-              <Meter value={diskPercent} tone={diskTone(diskPercent)} size="md" className="flex-1" aria-label={t("stats.disks")} />
-              <span className="tabular-nums">{diskPercent}%</span>
-            </Stat>
-          </StatStrip>
+        <LoadReveal
+          loading={!data}
+          className="grid gap-4"
+          skeleton={
+            <>
+              <Skeleton className="h-28 rounded-lg" />
+              <Skeleton className="h-80 rounded-lg" />
+            </>
+          }
+        >
+          {() =>
+            data && (
+              <>
+                <StatStrip>
+                  <Stat label={t("stats.cpu")} icon={<Cpu />} tone="purple" value={Math.round(data.cpuUsage.cpu ?? 0)} unit="%">
+                    <Sparkline data={cpuHistory.slice(-SPARK_POINTS)} tone="purple" />
+                  </Stat>
+                  <Stat label={t("stats.ram")} icon={<Activity />} tone="pink" value={formatBytes(data.ramUsage.total - data.ramUsage.available)} unit={` / ${formatBytes(data.ramUsage.total)}`}>
+                    <Meter value={data.ramUsage.percentage} tone="pink" size="md" thresholds className="flex-1" aria-label={t("stats.ram")} />
+                    <span className="tabular-nums">{Math.round(data.ramUsage.percentage)}%</span>
+                  </Stat>
+                  <Stat label={t("stats.disks")} icon={<HardDrive />} tone="amber" value={formatBytes(diskUsed)} unit={` / ${formatBytes(diskTotal)}`}>
+                    <Meter value={diskPercent} tone={diskTone(diskPercent)} size="md" className="flex-1" aria-label={t("stats.disks")} />
+                    <span className="tabular-nums">{diskPercent}%</span>
+                  </Stat>
+                </StatStrip>
 
-          <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
-            <ResourceChart period={period} />
-            <SystemInfoPanel data={data} />
-          </div>
+                <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+                  <ResourceChart period={period} />
+                  <SystemInfoPanel data={data} />
+                </div>
 
-          <ServerProcessesPanel />
+                <ServerProcessesPanel />
 
-          <DisksPanel disks={disks} />
-        </div>
+                <DisksPanel disks={disks} />
+              </>
+            )
+          }
+        </LoadReveal>
       )}
     </div>
   );

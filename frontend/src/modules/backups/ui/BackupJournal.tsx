@@ -3,15 +3,16 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatBytes } from "@/shared/lib/bytesToGb";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Panel } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import type { Tone } from "@/shared/ui/tone";
 import { BackupJournalOp, type BackupJournalEntry, type BackupStorage } from "@shared/types/backup.types";
 import { Archive, CloudDownload, CloudUpload, History, type LucideIcon, RotateCcw, Scissors, Trash2, TriangleAlert } from "lucide-react";
 import { useBackupJournal, useBackupStorages } from "../api/backups.queries";
+import { SAMPLE_JOURNAL } from "../data/samples";
 import { dateParts } from "../lib/look";
 
 const OP_LOOK: Record<BackupJournalOp, { icon: LucideIcon; tone: Tone }> = {
@@ -29,10 +30,9 @@ export function BackupJournal({ serverId }: { serverId: string }) {
   const journal = useBackupJournal(serverId);
   const storages = useBackupStorages().data ?? [];
 
-  if (journal.isPending) return <Skeleton className="h-80 rounded-lg" />;
   const entries = journal.data?.pages.flat() ?? [];
 
-  if (entries.length === 0) {
+  if (!journal.isPending && entries.length === 0) {
     return (
       <Empty className="rounded-lg border border-border bg-card py-14">
         <EmptyHeader>
@@ -47,31 +47,35 @@ export function BackupJournal({ serverId }: { serverId: string }) {
   }
 
   return (
-    <Panel>
-      <Table className="table-fixed">
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="w-32">{t("headers.time")}</TableHead>
-            <TableHead>{t("headers.operation")}</TableHead>
-            <TableHead className="hidden w-40 @3xl/table:table-cell">{t("headers.location")}</TableHead>
-            <TableHead className="hidden w-36 @2xl/table:table-cell">{t("headers.by")}</TableHead>
-            <TableHead className="w-28 text-right">{t("headers.result")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {entries.map((entry) => (
-            <JournalRow key={entry.id} entry={entry} storages={storages} />
-          ))}
-        </TableBody>
-      </Table>
-      {journal.hasNextPage && (
-        <div className="border-t border-border p-2">
-          <Button variant="ghost" size="sm" className="w-full" disabled={journal.isFetchingNextPage} onClick={() => void journal.fetchNextPage()}>
-            {t("loadMore")}
-          </Button>
-        </div>
+    <DataReveal id="backups-journal" data={entries} loading={journal.isPending} sample={SAMPLE_JOURNAL}>
+      {(entries) => (
+        <Panel>
+          <Table className="table-fixed">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-32">{t("headers.time")}</TableHead>
+                <TableHead>{t("headers.operation")}</TableHead>
+                <TableHead className="hidden w-40 @3xl/table:table-cell">{t("headers.location")}</TableHead>
+                <TableHead className="hidden w-36 @2xl/table:table-cell">{t("headers.by")}</TableHead>
+                <TableHead className="w-28 text-right">{t("headers.result")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {entries.map((entry) => (
+                <JournalRow key={entry.id} entry={entry} storages={storages} />
+              ))}
+            </TableBody>
+          </Table>
+          {journal.hasNextPage && (
+            <div className="border-t border-border p-2">
+              <Button variant="ghost" size="sm" className="w-full" disabled={journal.isFetchingNextPage} onClick={() => void journal.fetchNextPage()}>
+                {t("loadMore")}
+              </Button>
+            </div>
+          )}
+        </Panel>
       )}
-    </Panel>
+    </DataReveal>
   );
 }
 

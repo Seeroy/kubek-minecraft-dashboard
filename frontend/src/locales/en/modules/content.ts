@@ -54,6 +54,18 @@ export const contentTranslations: TranslationDictionary = {
   },
   catalog: {
     all: "All",
+    view: {
+      label: "Catalog view",
+      cards: "Cards",
+      table: "Table",
+    },
+    headers: {
+      name: "Name",
+      author: "Author",
+      downloads: "Downloads",
+      versions: "Versions",
+      updated: "Updated",
+    },
     sort: {
       label: "Sort",
       relevance: "Relevance",

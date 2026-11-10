@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { PageHeader } from "@/shared/ui/page-header";
+import { LoadReveal } from "@/shared/ui/data-reveal";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { LayoutGrid, Pencil, Plus, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -170,25 +171,27 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        ) : isLoading || !state || !mounted ? (
-          <Skeleton className="h-96 rounded-lg" />
         ) : (
-          <ResponsiveGridLayout
-            width={width}
-            breakpoints={DASHBOARD_BREAKPOINTS}
-            cols={DASHBOARD_COLS}
-            rowHeight={DASHBOARD_ROW_HEIGHT}
-            layouts={layouts}
-            margin={[GRID_GAP, GRID_GAP]}
-            containerPadding={[0, 0]}
-            dragConfig={{ enabled: editing, handle: ".dashboard-drag-handle", cancel: "button, a" }}
-            resizeConfig={{ enabled: editing }}
-            onLayoutChange={(_layout, allLayouts) => editing && setLayouts(allLayouts)}
-          >
-            {visibleWidgets.map((widget) => (
-              <div key={widget.id}>{renderWidget(widget)}</div>
-            ))}
-          </ResponsiveGridLayout>
+          <LoadReveal loading={isLoading || !state || !mounted} skeleton={<Skeleton className="h-96 rounded-lg" />} items=".react-grid-item > *">
+            {() => (
+              <ResponsiveGridLayout
+                width={width}
+                breakpoints={DASHBOARD_BREAKPOINTS}
+                cols={DASHBOARD_COLS}
+                rowHeight={DASHBOARD_ROW_HEIGHT}
+                layouts={layouts}
+                margin={[GRID_GAP, GRID_GAP]}
+                containerPadding={[0, 0]}
+                dragConfig={{ enabled: editing, handle: ".dashboard-drag-handle", cancel: "button, a" }}
+                resizeConfig={{ enabled: editing }}
+                onLayoutChange={(_layout, allLayouts) => editing && setLayouts(allLayouts)}
+              >
+                {visibleWidgets.map((widget) => (
+                  <div key={widget.id}>{renderWidget(widget)}</div>
+                ))}
+              </ResponsiveGridLayout>
+            )}
+          </LoadReveal>
         )}
       </div>
     </div>

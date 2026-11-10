@@ -6,7 +6,7 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import { Progress } from "@/shared/ui/progress";
-import { Archive, ChevronDown, FilePlus, FolderPlus, Plus, Trash2, Upload, X } from "lucide-react";
+import { Archive, ChevronDown, FilePlus, FolderPlus, Plus, RotateCw, Trash2, Upload, X } from "lucide-react";
 import { Fragment } from "react";
 import FilesHint from "./FilesHint";
 
@@ -19,6 +19,8 @@ interface FilesBarProps {
   canManage: boolean;
   onUpload: () => void;
   onCreated: () => void;
+  onRefresh: () => void;
+  refreshing: boolean;
   uploadDisabled: boolean;
   selectionCount: number;
   onClearSelection: () => void;
@@ -113,6 +115,16 @@ export function FilesBar(props: FilesBarProps) {
               </Button>
             </>
           )}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={props.onRefresh}
+            disabled={props.refreshing}
+            aria-label={t("buttons.refresh")}
+            title={t("buttons.refresh")}
+          >
+            <RotateCw className={props.refreshing ? "animate-spin" : undefined} />
+          </Button>
           <FilesHint />
         </div>
       )}

@@ -5,12 +5,13 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatRelative } from "@/shared/lib/formatRelative";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Plate } from "@/shared/ui/plate";
 import { SettingsGroup } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import type { SessionPublicView } from "@shared/types/session.types";
 import { Globe, LogOut, Monitor, Smartphone } from "lucide-react";
 import { useRevokeOtherSessionsMutation, useRevokeSessionMutation, useSessions } from "../api/sessions.queries";
+import { SAMPLE_SESSIONS } from "../data/samples";
 
 const MOBILE = /Android|iPhone|iPad/;
 
@@ -59,42 +60,41 @@ export default function SessionsTab() {
         </Button>
       </div>
 
-      {sessions.isLoading ? (
-        <div className="grid gap-2 p-4">
-          <Skeleton className="h-12" />
-          <Skeleton className="h-12" />
-        </div>
-      ) : list.length === 0 ? (
+      {!sessions.isLoading && list.length === 0 ? (
         <p className="p-6 text-center text-[13px] text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="divide-y divide-border">
-          {list.map((session: SessionPublicView) => (
-            <div key={session.id} className="flex items-center gap-3 px-4 py-3">
-              <Plate tone={session.current ? "green" : "blue"}>
-                {session.userAgent && MOBILE.test(session.userAgent) ? <Smartphone /> : <Monitor />}
-              </Plate>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-[13.5px] font-medium">
-                  <span className="truncate">{describeAgent(session.userAgent, t("unknownDevice"), t("unknownOs"))}</span>
-                  {session.current && <Badge variant="success">{t("thisDevice")}</Badge>}
+        <DataReveal id="settings-sessions" data={list} loading={sessions.isLoading} sample={SAMPLE_SESSIONS}>
+          {(rows) => (
+            <div className="divide-y divide-border">
+              {rows.map((session: SessionPublicView) => (
+                <div key={session.id} className="flex items-center gap-3 px-4 py-3">
+                  <Plate tone={session.current ? "green" : "blue"}>
+                    {session.userAgent && MOBILE.test(session.userAgent) ? <Smartphone /> : <Monitor />}
+                  </Plate>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 text-[13.5px] font-medium">
+                      <span className="truncate">{describeAgent(session.userAgent, t("unknownDevice"), t("unknownOs"))}</span>
+                      {session.current && <Badge variant="success">{t("thisDevice")}</Badge>}
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {t("details", session.ip ?? t("unknown"), relative(session.lastSeenAt), relative(session.createdAt))}
+                    </div>
+                  </div>
+                  {!session.current && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => revoke.mutate(session.id, { onSuccess: () => notify({ type: "success", title: t("toasts.revoked") }) })}
+                    >
+                      {t("revoke")}
+                    </Button>
+                  )}
                 </div>
-                <div className="truncate text-xs text-muted-foreground">
-                  {t("details", session.ip ?? t("unknown"), relative(session.lastSeenAt), relative(session.createdAt))}
-                </div>
-              </div>
-              {!session.current && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={busy}
-                  onClick={() => revoke.mutate(session.id, { onSuccess: () => notify({ type: "success", title: t("toasts.revoked") }) })}
-                >
-                  {t("revoke")}
-                </Button>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </DataReveal>
       )}
     </SettingsGroup>
   );

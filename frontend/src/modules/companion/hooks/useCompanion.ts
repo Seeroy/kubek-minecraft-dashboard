@@ -21,6 +21,10 @@ export interface CompanionView {
   live?: CompanionLive;
   /** Features that need the plugin are usable */
   connected: boolean;
+  /** The overview request failed and nothing is cached, state stays "loading" */
+  failed: boolean;
+  retry: () => void;
+  retrying: boolean;
 }
 
 export function useCompanion(serverId: string | undefined): CompanionView {
@@ -37,5 +41,13 @@ export function useCompanion(serverId: string | undefined): CompanionView {
   else if (!data.installed) state = "missing";
   else state = status === ServerStatus.RUNNING ? "waiting" : "offline";
 
-  return { state, overview: data, live, connected: state === "connected" };
+  return {
+    state,
+    overview: data,
+    live,
+    connected: state === "connected",
+    failed: overview.isError && !data,
+    retry: () => void overview.refetch(),
+    retrying: overview.isFetching,
+  };
 }

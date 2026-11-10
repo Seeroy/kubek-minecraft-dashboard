@@ -6,18 +6,20 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
+import { queryLoadError } from "@/shared/ui/load-error";
 import { Input } from "@/shared/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/shared/ui/input-group";
 import { SecretInput } from "@/shared/ui/secret-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
 import type { AssistantPresetId, AssistantSettings as Settings } from "@shared/types/assistant.types";
 import { Boxes, Footprints, Globe, KeyRound, ListRestart, Plug, Power, Sparkles, Thermometer } from "lucide-react";
 import { useState } from "react";
 import { useAssistantModels, useAssistantSettingsQuery, useSaveAssistantSettings, useTestAssistant } from "../api/assistant.queries";
+import { SAMPLE_ASSISTANT_SETTINGS } from "../data/samples";
 
 type Draft = Settings & { apiKey: string };
 
@@ -184,7 +186,10 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
 
 export default function AssistantSettings() {
   const query = useAssistantSettingsQuery();
-  if (!query.data) return <Skeleton className="h-96 rounded-lg" />;
   // Remounts the form with fresh values after each save
-  return <AssistantForm key={JSON.stringify(query.data.settings)} data={query.data} />;
+  return (
+    <DataReveal id="settings-assistant" data={query.data} sample={SAMPLE_ASSISTANT_SETTINGS} error={queryLoadError(query)}>
+      {(data) => <AssistantForm key={JSON.stringify(data.settings)} data={data} />}
+    </DataReveal>
+  );
 }

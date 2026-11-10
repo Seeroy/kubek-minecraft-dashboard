@@ -3,17 +3,18 @@ import { useFilesSearch } from "@/modules/files/api/files.queries";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { humanizeFileSize } from "@/shared/lib/bytesToGb";
+import { DataReveal, useSwapFade } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { Panel, PanelFoot, PanelHead } from "@/shared/ui/panel";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
 import { FileType, type IFile } from "@shared/types/file.types";
 import { Folder, Search, Upload } from "lucide-react";
-import { useMemo, useState, type DragEvent } from "react";
+import { useMemo, useRef, useState, type DragEvent } from "react";
 import type { FileActions } from "../lib/actions";
 import type { FilesSelection } from "../hooks/useFilesSelection";
+import { SAMPLE_FILES } from "../data/samples";
 import { FilesTable } from "./FilesTable";
 
 type Scope = "folder" | "all";
@@ -29,6 +30,7 @@ interface FilesPanelProps {
   files: IFile[];
   loading: boolean;
   currentPath: string;
+  loadedPath: string | undefined;
   actions: FileActions;
   selection: FilesSelection;
   onGoUp: () => void;
@@ -41,13 +43,15 @@ interface FilesPanelProps {
   };
 }
 
-export function FilesPanel({ serverId, files, loading, currentPath, actions, selection, onGoUp, drop }: FilesPanelProps) {
+export function FilesPanel({ serverId, files, loading, currentPath, loadedPath, actions, selection, onGoUp, drop }: FilesPanelProps) {
   const { t } = useTranslation("modules.files.ui");
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<Scope>("folder");
   const search = useDebouncedValue(query.trim().toLowerCase(), 200);
   const global = scope === "all" && search.length >= 2;
   const results = useFilesSearch(serverId, search, scope === "all");
+  const listRef = useRef<HTMLDivElement>(null);
+  useSwapFade(listRef, loadedPath);
 
   const shown = useMemo(() => {
     if (global) return results.data ?? [];
@@ -112,24 +116,22 @@ export function FilesPanel({ serverId, files, loading, currentPath, actions, sel
         </ToggleGroup>
       </PanelHead>
 
-      {loading || (global && results.isLoading) ? (
-        <div className="grid gap-2 p-4">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="h-10" />
-          ))}
-        </div>
-      ) : (
-        <FilesTable
-          files={shown}
-          actions={global ? searchActions : actions}
-          selected={selection.selected}
-          onToggle={selection.toggle}
-          onSelectMany={selection.selectMany}
-          onGoUp={currentPath && !search ? onGoUp : undefined}
-          pathHint={global ? (file) => parentDir(file.path) : undefined}
-          empty={empty}
-        />
-      )}
+      <DataReveal id="files-list" data={shown} loading={loading || (global && results.isLoading)} sample={SAMPLE_FILES}>
+        {(shown) => (
+          <div ref={listRef}>
+            <FilesTable
+              files={shown}
+              actions={global ? searchActions : actions}
+              selected={selection.selected}
+              onToggle={selection.toggle}
+              onSelectMany={selection.selectMany}
+              onGoUp={currentPath && !search ? onGoUp : undefined}
+              pathHint={global ? (file) => parentDir(file.path) : undefined}
+              empty={empty}
+            />
+          </div>
+        )}
+      </DataReveal>
 
       <PanelFoot>
         {global ? t("filesList.search.found", { count: shown.length }) : t("filesList.summary", files.length, humanizeFileSize(totalSize))}

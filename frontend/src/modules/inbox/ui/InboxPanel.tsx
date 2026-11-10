@@ -2,14 +2,15 @@
 import { useServerStore } from "@/modules/server";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import type { INotification } from "@shared/types/notification.types";
 import { BellOff, CheckCheck, Inbox, Settings2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDeleteNotificationMutation, useInboxQuery, useMarkAllReadMutation, useMarkReadMutation } from "../api/inbox.queries";
+import { SAMPLE_NOTIFICATIONS } from "../data/samples";
 import { useDescribeNotification } from "../lib/describe";
 import { InboxRow } from "./InboxRow";
 
@@ -67,22 +68,6 @@ function InboxBody({ inbox, unreadOnly, onNavigate }: { inbox: ReturnType<typeof
   const { selectServer } = useServerStore();
   const router = useRouter();
 
-  if (inbox.isPending) {
-    return (
-      <div className="grid gap-3 p-3" aria-busy>
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="grid grid-cols-[26px_1fr] gap-3">
-            <Skeleton className="size-[26px] rounded-[7px]" />
-            <div className="grid gap-1.5">
-              <Skeleton className="h-3.5 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   if (inbox.isError) {
     return (
       <div className="flex flex-col items-center gap-2 px-4 py-8 text-center text-[13px] text-muted-foreground">
@@ -94,8 +79,8 @@ function InboxBody({ inbox, unreadOnly, onNavigate }: { inbox: ReturnType<typeof
     );
   }
 
-  const items = inbox.data.pages.flatMap((page) => page.items);
-  if (items.length === 0) {
+  const items = inbox.data?.pages.flatMap((page) => page.items) ?? [];
+  if (!inbox.isPending && items.length === 0) {
     const key = unreadOnly ? "emptyUnread" : "empty";
     return (
       <Empty className="py-10">
@@ -118,20 +103,24 @@ function InboxBody({ inbox, unreadOnly, onNavigate }: { inbox: ReturnType<typeof
 
   return (
     <div className="scrollbar-thin min-h-0 overflow-y-auto overscroll-contain">
-      <ul className="divide-y divide-border">
-        {items.map((notification) => {
-          const view = describe(notification);
-          return (
-            <InboxRow
-              key={notification.id}
-              notification={notification}
-              view={view}
-              onOpen={() => open(notification, view.serverId)}
-              onRemove={() => remove.mutate(notification.id)}
-            />
-          );
-        })}
-      </ul>
+      <DataReveal id="inbox" data={items} loading={inbox.isPending} sample={SAMPLE_NOTIFICATIONS}>
+        {(items) => (
+          <ul className="divide-y divide-border">
+            {items.map((notification) => {
+              const view = describe(notification);
+              return (
+                <InboxRow
+                  key={notification.id}
+                  notification={notification}
+                  view={view}
+                  onOpen={() => open(notification, view.serverId)}
+                  onRemove={() => remove.mutate(notification.id)}
+                />
+              );
+            })}
+          </ul>
+        )}
+      </DataReveal>
       {inbox.hasNextPage && (
         <div className="border-t border-border p-2">
           <Button variant="ghost" size="sm" className="w-full" disabled={inbox.isFetchingNextPage} onClick={() => void inbox.fetchNextPage()}>

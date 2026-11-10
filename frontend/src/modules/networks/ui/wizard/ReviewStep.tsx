@@ -1,12 +1,13 @@
 "use client";
-import type { NetworkPlanNote, NetworkWizardProps } from "@/api";
+import type { NetworkPlan, NetworkPlanNote, NetworkWizardProps } from "@/api";
 import { WizardSection } from "@/modules/server/modals/CreateServerModal/wizard/WizardField";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { DataReveal } from "@/shared/ui/data-reveal";
 import { FileText, Info, RotateCw, Server, TriangleAlert } from "lucide-react";
 import { useNetworkPlan } from "../../api/networks.queries";
+import { SAMPLE_PLAN } from "../../data/samples";
 import { networkErrorMessage } from "../../lib/errors";
 import { FileDiff } from "./FileDiff";
 
@@ -30,17 +31,7 @@ export function ReviewStep({ props }: { props: NetworkWizardProps }) {
   const { t: tNetworks } = useTranslation("modules.networks");
   const plan = useNetworkPlan(props);
 
-  if (plan.isLoading) {
-    return (
-      <div className="grid gap-2" aria-busy aria-label={t("loading")}>
-        <Skeleton className="h-10 rounded-lg" />
-        <Skeleton className="h-10 rounded-lg" />
-        <Skeleton className="h-10 rounded-lg" />
-      </div>
-    );
-  }
-
-  if (plan.isError || !plan.data) {
+  if (!plan.isLoading && (plan.isError || !plan.data)) {
     return (
       <Alert variant="destructive">
         <TriangleAlert />
@@ -57,7 +48,17 @@ export function ReviewStep({ props }: { props: NetworkWizardProps }) {
     );
   }
 
-  const { notes, changes, restart } = plan.data;
+  return (
+    <DataReveal id="network-review" data={plan.data} loading={plan.isLoading} label={t("loading")} sample={SAMPLE_PLAN}>
+      {(data) => <PlanView plan={data} />}
+    </DataReveal>
+  );
+}
+
+function PlanView({ plan }: { plan: NetworkPlan }) {
+  const { t } = useTranslation("modules.networks.review");
+  const { t: tNetworks } = useTranslation("modules.networks");
+  const { notes, changes, restart } = plan;
   const created = notes.filter((note) => note.code === "new_server");
   const other = notes.filter((note) => note.code !== "new_server");
 

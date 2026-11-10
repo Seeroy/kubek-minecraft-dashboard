@@ -6,16 +6,22 @@ import { useServerStore, type Server } from "@/modules/server";
 import { useBlueprint, useBlueprints } from "@/modules/server-types/api/server-types.queries";
 import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { useInstalledContent } from "@/shared/queries";
+import { useInstalledContent, useRefreshContentSearch } from "@/shared/queries";
 import { Button } from "@/shared/ui/button";
+import { DataReveal, LoadReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Globe, Puzzle, RotateCw, Search, Server as ServerIcon, ServerOff, Upload } from "lucide-react";
+import { Toggle } from "@/shared/ui/toggle";
+import { ToggleGroup } from "@/shared/ui/toggle-group";
+import { Globe, LayoutGrid, List, Puzzle, RotateCw, Search, Server as ServerIcon, ServerOff, Upload } from "lucide-react";
+import type { InstalledPluginView } from "@shared/types/plugins";
 import { useRef } from "react";
 import { getContentKind } from "../content-kind";
+import { SAMPLE_INSTALLED } from "../data/samples";
+import { type CatalogLayout, useCatalogView } from "../hooks/useCatalogView";
 import { useContentTaskSync } from "../hooks/useContentTaskSync";
 import { useContentUpload } from "../hooks/useContentUpload";
 import { CONTENT_TABS, type ContentTab } from "../lib/tabs";
@@ -56,6 +62,7 @@ function ServerContent({ kind, server }: { kind: ContentKind; server: Server }) 
   const available = config.isAvailable(blueprint);
   const [tab, changeTab] = useRouteTab(kind === "mod" ? "/mods" : "/plugins", CONTENT_TABS, "installed");
   const fileInput = useRef<HTMLInputElement>(null);
+  const catalogView = useCatalogView();
 
   const installed = useInstalledContent(kind, available ? server.id : undefined);
   useContentTaskSync(kind, server.id);
@@ -66,7 +73,14 @@ function ServerContent({ kind, server }: { kind: ContentKind; server: Server }) 
     onComplete: () => void installed.refetch(),
   });
 
-  const refreshing = installed.isFetching && !installed.isLoading;
+  const catalog = useRefreshContentSearch(kind);
+  const onCatalog = tab === "available";
+  const refreshing = onCatalog ? catalog.refreshing : installed.isFetching && !installed.isLoading;
+  // Installed state drives the catalog badges, so the catalog refresh pulls it too
+  const refresh = () => {
+    if (onCatalog) void catalog.refresh();
+    void installed.refetch();
+  };
 
   return (
     <div
@@ -86,7 +100,7 @@ function ServerContent({ kind, server }: { kind: ContentKind; server: Server }) 
               {upload.isUploading ? <Spinner /> : <Upload />}
               {upload.isUploading ? tc("actions.uploading") : tc("actions.upload")}
             </Button>
-            <Button variant="outline" disabled={!available || refreshing} onClick={() => void installed.refetch()}>
+            <Button variant="outline" disabled={!available || refreshing} onClick={refresh}>
               <RotateCw className={refreshing ? "animate-spin" : undefined} />
               {refreshing ? tc("actions.refreshing") : tc("actions.refresh")}
             </Button>
@@ -100,43 +114,55 @@ function ServerContent({ kind, server }: { kind: ContentKind; server: Server }) 
         </div>
       )}
 
-      {blueprintsLoading ? (
-        <Skeleton className="h-96 rounded-lg" />
-      ) : !available ? (
-        <Unsupported kind={kind} server={server} />
-      ) : (
-        <Tabs value={tab} onValueChange={(value) => changeTab(value as ContentTab)} className="gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <TabsList>
-              <TabsTrigger value="installed">
-                <ServerIcon />
-                {tc("tabs.installed")}
-                {installed.data && <TabsCount>{installed.data.length}</TabsCount>}
-              </TabsTrigger>
-              <TabsTrigger value="available">
-                <Search />
-                {tc("tabs.available")}
-              </TabsTrigger>
-            </TabsList>
-            <span className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground max-sm:hidden">
-              <Globe className="size-3.5" />
-              {tc("source", config.loaderLabel)}
-            </span>
-          </div>
-          <TabsContent value="installed">
-            <InstalledView
-              kind={kind}
-              server={server}
-              items={installed.data}
-              loading={installed.isLoading}
-              onOpenCatalog={() => changeTab("available")}
-            />
-          </TabsContent>
-          <TabsContent value="available">
-            <CatalogView kind={kind} server={server} installed={installed.data} />
-          </TabsContent>
-        </Tabs>
-      )}
+      <LoadReveal loading={blueprintsLoading} skeleton={<Skeleton className="h-96 rounded-lg" />} items=":scope > * > *">
+        {!available ? (
+          <Unsupported kind={kind} server={server} />
+        ) : (
+          <Tabs value={tab} onValueChange={(value) => changeTab(value as ContentTab)} className="gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <TabsList>
+                <TabsTrigger value="installed">
+                  <ServerIcon />
+                  {tc("tabs.installed")}
+                  {installed.data && <TabsCount>{installed.data.length}</TabsCount>}
+                </TabsTrigger>
+                <TabsTrigger value="available">
+                  <Search />
+                  {tc("tabs.available")}
+                </TabsTrigger>
+              </TabsList>
+              {tab === "available" ? (
+                <ToggleGroup
+                  variant="segmented"
+                  value={[catalogView.view]}
+                  onValueChange={(next) => next[0] && catalogView.changeView(next[0] as CatalogLayout)}
+                  aria-label={tc("catalog.view.label")}
+                >
+                  <Toggle variant="segmented" value="cards" aria-label={tc("catalog.view.cards")} title={tc("catalog.view.cards")}>
+                    <LayoutGrid />
+                  </Toggle>
+                  <Toggle variant="segmented" value="table" aria-label={tc("catalog.view.table")} title={tc("catalog.view.table")}>
+                    <List />
+                  </Toggle>
+                </ToggleGroup>
+              ) : (
+                <span className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground max-sm:hidden">
+                  <Globe className="size-3.5" />
+                  {tc("source", config.loaderLabel)}
+                </span>
+              )}
+            </div>
+            <TabsContent value="installed">
+              <DataReveal<InstalledPluginView[]> id={`content-installed-${kind}`} data={installed.data ?? []} loading={installed.isLoading} sample={SAMPLE_INSTALLED}>
+                {(items) => <InstalledView kind={kind} server={server} items={items} onOpenCatalog={() => changeTab("available")} />}
+              </DataReveal>
+            </TabsContent>
+            <TabsContent value="available">
+              <CatalogView kind={kind} server={server} installed={installed.data} view={catalogView.view} />
+            </TabsContent>
+          </Tabs>
+        )}
+      </LoadReveal>
 
       {upload.isDragOver && (
         <div className="pointer-events-none fixed inset-0 z-90 grid place-items-center border-2 border-dashed border-primary/60 bg-background/80 backdrop-blur-sm">
