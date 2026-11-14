@@ -5,6 +5,7 @@ import { machineIdSync } from "node-machine-id";
 import * as os from "os";
 import { getErrorMessage } from "../../core/utils/error";
 import { getVersion } from "../../core/utils/updates";
+import { CompanionInstallerService } from "../companion/install/companion-installer.service";
 import { ConfigService } from "../config/config.service";
 import { SqliteProvider } from "../database/sqlite.provider";
 import { RolesRepository } from "../database/repositories/roles.repository";
@@ -35,6 +36,7 @@ export class StatsService implements OnModuleInit {
     private readonly rolesRepository: RolesRepository,
     private readonly configService: ConfigService,
     private readonly sqlite: SqliteProvider,
+    private readonly companionInstaller: CompanionInstallerService,
   ) {}
 
   onModuleInit(): void {
@@ -98,6 +100,18 @@ export class StatsService implements OnModuleInit {
     };
   }
 
+  // Servers with Kubek Companion in plugins, counted per plugin version
+  private async collectCompanion() {
+    const versions: string[] = [];
+    for (const server of this.serversRepository.findAll()) {
+      const installed = await this.companionInstaller
+        .detect(server.id)
+        .catch(() => null);
+      if (installed) versions.push(installed.version);
+    }
+    return { servers: versions.length, versions: countBy(versions) };
+  }
+
   private collectClients() {
     const prefs = [...this.clients.values()];
     return {
@@ -148,7 +162,10 @@ export class StatsService implements OnModuleInit {
         bun: process.versions.bun ?? null,
         node: process.versions.node,
       },
-      features: this.collectFeatures(),
+      features: {
+        ...this.collectFeatures(),
+        companion: await this.collectCompanion(),
+      },
       clients: this.collectClients(),
       tgbotEnabled: config.telegramBot?.enabled || false,
       ftpdEnabled: config.ftpd?.enabled || false,

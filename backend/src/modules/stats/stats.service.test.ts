@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { sqliteProvider } from "@/testing/sqlite";
+import type { CompanionInstallerService } from "../companion/install/companion-installer.service";
 import type { ConfigService } from "../config/config.service";
 import { RolesRepository } from "../database/repositories/roles.repository";
 import { ServersRepository } from "../database/repositories/servers.repository";
@@ -7,7 +8,10 @@ import { UsersRepository } from "../database/repositories/users.repository";
 import type { JavaService } from "../java/java.service";
 import { StatsService } from "./stats.service";
 
-function makeService(config: Record<string, unknown> = {}) {
+function makeService(
+  config: Record<string, unknown> = {},
+  companions: Record<string, string> = {},
+) {
   const provider = sqliteProvider();
   const java = {
     getInstalledJavaVersions: async () => [
@@ -25,6 +29,12 @@ function makeService(config: Record<string, unknown> = {}) {
     new RolesRepository(provider),
     configService,
     provider,
+    {
+      detect: async (id: string) =>
+        companions[id]
+          ? { fileName: "KubekCompanion.jar", version: companions[id] }
+          : null,
+    } as unknown as CompanionInstallerService,
   );
   return { service, db: provider.connection };
 }
@@ -52,6 +62,24 @@ describe("StatsService.collectStats", () => {
     expect(stats.features.scheduledTasks).toEqual({});
     expect(JSON.stringify(stats)).not.toContain("secret");
     expect(JSON.stringify(stats)).not.toContain("My S3");
+  });
+
+  test("counts servers with the companion by version", async () => {
+    const { service, db } = makeService(
+      {},
+      { a: "1.0.0", b: "1.0.0", c: "1.1.0" },
+    );
+    for (const id of ["a", "b", "c", "d"]) {
+      db.run(
+        `INSERT INTO servers (id, name, status, restartEnabled, restartAttempts, blueprintId)
+         VALUES ('${id}', '${id}', 'stopped', 0, 0, 'com.kubek.paper')`,
+      );
+    }
+    const stats = await service.collectStats();
+    expect(stats.features.companion).toEqual({
+      servers: 3,
+      versions: { "1.0.0": 2, "1.1.0": 1 },
+    });
   });
 
   test("assistant is null when disabled", async () => {
