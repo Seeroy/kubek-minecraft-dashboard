@@ -4,12 +4,17 @@ import {
   Bell,
   Bot,
   Boxes,
+  CalendarClock,
   Container,
   FileText,
+  Gauge,
+  History,
   KeyRound,
   LayoutDashboard,
+  MessageSquare,
   Package,
   PanelLeft,
+  Plug,
   ShieldCheck,
   SquareTerminal,
   Upload,
@@ -31,6 +36,19 @@ export interface Release {
 
 // Curated highlights shown once after the panel updates to a given version
 export const RELEASES: Release[] = [
+  {
+    version: "4.1.1",
+    highlights: [
+      { icon: Plug, titleKey: "releases.4-1-1.companion" },
+      { icon: Gauge, titleKey: "releases.4-1-1.performance" },
+      { icon: History, titleKey: "releases.4-1-1.activity" },
+      { icon: MessageSquare, titleKey: "releases.4-1-1.messages" },
+      { icon: CalendarClock, titleKey: "releases.4-1-1.schedule" },
+      { icon: Bell, titleKey: "releases.4-1-1.alerts" },
+      { icon: Bot, titleKey: "releases.4-1-1.assistant" },
+      { icon: FileText, titleKey: "releases.4-1-1.agreement" },
+    ],
+  },
   {
     version: "4.1.0",
     highlights: [

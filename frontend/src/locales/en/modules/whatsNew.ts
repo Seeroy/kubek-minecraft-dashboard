@@ -6,6 +6,16 @@ export const whatsNewTranslations: TranslationDictionary = {
   gotIt: "Got it",
   fullChangelog: "Full changelog on GitHub",
   releases: {
+    "4-1-1": {
+      companion: "Kubek Companion plugin for Paper, Spigot, Purpur and Folia",
+      performance: "Performance page (BETA) with TPS and a lag report",
+      activity: "Player activity feed, top players and peak online",
+      messages: "Messages to players in the chat or on the screen, and maintenance mode",
+      schedule: "Countdown for players before scheduled restarts",
+      alerts: "Low TPS alerts in the panel and in Telegram",
+      assistant: "AI assistant checks performance and messages players",
+      agreement: "Updated license agreement",
+    },
     "4-1-0": {
       redesign: "Refreshed design with a smarter layout that makes better use of the screen",
       monitoring: "Updated monitoring with CPU and RAM usage for every server",
