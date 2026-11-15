@@ -52,12 +52,12 @@ function ConfirmModalComponent({
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
       <AlertDialogContent>
-        {Icon && (
-          <AlertDialogMedia className={variant === "destructive" ? toneClass.red : undefined}>
-            <Icon />
-          </AlertDialogMedia>
-        )}
         <AlertDialogHeader>
+          {Icon && (
+            <AlertDialogMedia className={variant === "destructive" ? toneClass.red : undefined}>
+              <Icon />
+            </AlertDialogMedia>
+          )}
           <AlertDialogTitle>{title || t("defaultTitle")}</AlertDialogTitle>
           {description && (
             <AlertDialogDescription>{description}</AlertDialogDescription>

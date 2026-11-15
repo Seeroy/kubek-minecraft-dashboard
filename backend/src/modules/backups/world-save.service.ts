@@ -8,8 +8,8 @@ import { ServerStatus } from "@shared/types/server/server.types";
 const SAVE_TIMEOUT_MS = 30_000;
 // Logged by the server thread once save-all flush is done. Anchored to the log
 // prefix, so a player typing the same words in chat does not count
-const SAVED_LINE =
-  /INFO\]:?\s*(?:\[[^\]<>]*\]:?\s*)?(?:Saved the game|Saved the world|All dimensions are saved)\.?\s*$/;
+export const SAVED_LINE =
+  /INFO\]:?\s*(?:\[[^\]<>]*\]:?\s*)?(?:System chat:\s*)?(?:Saved the game|Saved the world|All dimensions are saved)\.?\s*$/;
 
 /**
  * Stops world writes while an archive of a running Java server is made,
