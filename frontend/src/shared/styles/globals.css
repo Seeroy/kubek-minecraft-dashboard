@@ -142,6 +142,7 @@
   --animate-shimmer: shimmer 1.4s linear infinite;
   --animate-preloader-in: preloader-in 0.5s var(--ease-smooth) 0.15s backwards;
   --animate-beat: beat 3s ease-out infinite;
+  --animate-loading-bar: loading-bar 1.1s var(--ease-smooth) infinite;
   --animate-toast-ring: toast-ring var(--toast-duration, 3.5s) linear forwards;
 
   @keyframes enter {
@@ -196,6 +197,14 @@
   @keyframes shimmer {
     to {
       background-position: -200% 0;
+    }
+  }
+  @keyframes loading-bar {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
     }
   }
   @keyframes preloader-in {

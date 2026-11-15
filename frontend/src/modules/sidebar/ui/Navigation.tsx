@@ -20,6 +20,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { AccessArea } from "@shared/access/areas";
 import { AdminNavigationSection } from "./AdminNavigationSection";
 import { LockedNavItem } from "./LockedNavItem";
+import { useNavPending } from "../store/nav-pending.store";
 import { NavLink } from "./NavLink";
 import { UpdateIndicator } from "./UpdateIndicator";
 
@@ -36,7 +37,10 @@ function GroupLabel({ children }: { children: string }) {
 }
 
 export default function Navigation() {
-  const activeKey = useCurrentSection()?.key;
+  // Highlight the clicked item at once, not after its page loads
+  const pendingHref = useNavPending((s) => s.href);
+  const currentKey = useCurrentSection()?.key;
+  const activeKey = pendingHref ?? currentKey;
   const closeDrawer = useSidebarStore((s) => s.close);
   const { selectedServer } = useServerStore();
   const can = useAuthStore((s) => s.can);

@@ -5,6 +5,7 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { humanizeFileSize } from "@/shared/lib/bytesToGb";
 import { DataReveal, useSwapFade } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { LoadingBar } from "@/shared/ui/loading-bar";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { Panel, PanelFoot, PanelHead } from "@/shared/ui/panel";
 import { Toggle } from "@/shared/ui/toggle";
@@ -31,6 +32,7 @@ interface FilesPanelProps {
   loading: boolean;
   currentPath: string;
   loadedPath: string | undefined;
+  navigating: boolean;
   actions: FileActions;
   selection: FilesSelection;
   onGoUp: () => void;
@@ -43,7 +45,7 @@ interface FilesPanelProps {
   };
 }
 
-export function FilesPanel({ serverId, files, loading, currentPath, loadedPath, actions, selection, onGoUp, drop }: FilesPanelProps) {
+export function FilesPanel({ serverId, files, loading, currentPath, loadedPath, navigating, actions, selection, onGoUp, drop }: FilesPanelProps) {
   const { t } = useTranslation("modules.files.ui");
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<Scope>("folder");
@@ -102,7 +104,9 @@ export function FilesPanel({ serverId, files, loading, currentPath, loadedPath, 
       onDragOver={drop.handleDragOver}
       onDrop={drop.handleDrop}
     >
-      <PanelHead className="flex-wrap gap-2 py-2">
+      <PanelHead className="relative flex-wrap gap-2 py-2">
+        {/* The old list stays until the new folder loads, the bar shows the click worked */}
+        {navigating && <LoadingBar className="-bottom-px" />}
         {/* The scope toggle only matters while searching, so it shows on focus or with a query */}
         <div
           className="contents"

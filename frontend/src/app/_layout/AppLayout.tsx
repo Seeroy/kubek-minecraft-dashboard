@@ -1,6 +1,6 @@
 "use client";
 import OOBE from "@/modules/oobe";
-import { Sidebar } from "@/modules/sidebar";
+import { NavProgress, Sidebar } from "@/modules/sidebar";
 import { RouteAccessGate } from "@/modules/sidebar/ui/RouteAccessGate";
 import { SocketStatusBar } from "@/modules/sockets";
 import { Topbar } from "@/modules/topbar";
@@ -28,6 +28,7 @@ const AppLayout = ({
           <PagePreloader />
           <Sidebar />
           <div className="@container/content relative flex min-h-0 min-w-0 flex-col">
+            <NavProgress />
             <Topbar />
             <main className="min-h-0 flex-1 scrollbar-thin overflow-auto px-4 pt-4 md:px-6 md:pt-5">
               {/* bottom gap lives on the page root, main's padding is lost once content overflows this h-full box */}

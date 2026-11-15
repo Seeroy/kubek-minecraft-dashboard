@@ -1,10 +1,12 @@
 "use client";
 import { useBatchFileOperations } from "@/modules/files/hooks/useBatchFileOperations";
 import { useFileOperations } from "@/modules/files/hooks/useFileOperations";
+import { usePrefetchFiles } from "@/modules/files/api/files.queries";
 import { useFilesData } from "@/modules/files/hooks/useFilesData";
 import { useFilesDropUpload } from "@/modules/files/hooks/useFilesDropUpload";
 import { useFilesNavigation } from "@/modules/files/hooks/useFilesNavigation";
 import { useFilesSelection } from "@/modules/files/hooks/useFilesSelection";
+import { normalizeFilesPath } from "@/modules/files/lib/path";
 import { useServerStore, type Server } from "@/modules/server";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAccess } from "@/shared/lib/access";
@@ -26,7 +28,8 @@ function ServerFiles({ server }: { server: Server }) {
   const router = useRouter();
   const navigation = useFilesNavigation();
   const { currentPath } = navigation;
-  const { files, isInitialLoading, loadedPath, loadFiles, refresh, refreshing } = useFilesData({ serverId: server.id, currentPath });
+  const { files, isInitialLoading, loadedPath, navigating, loadFiles, refresh, refreshing } = useFilesData({ serverId: server.id, currentPath });
+  const prefetchFiles = usePrefetchFiles(server.id);
   const selection = useFilesSelection();
   const { clear: clearSelection } = selection;
   const canWrite = useAccess([AccessArea.FILES, "write"], server.id);
@@ -63,6 +66,8 @@ function ServerFiles({ server }: { server: Server }) {
   const actions = useMemo<FileActions>(
     () => ({
       navigate: navigate.to,
+      // Normalized the same way as the listing query key
+      prefetch: (path) => prefetchFiles(normalizeFilesPath(path)),
       edit: canWrite ? (file) => void handleEditFile(file) : undefined,
       download: (file) => void handleDownloadFile(file),
       extract: canManage ? (file) => void handleExtractFile(file) : undefined,
@@ -70,7 +75,7 @@ function ServerFiles({ server }: { server: Server }) {
       // Gzipped logs cannot be edited inline, the log viewer reads them
       openLog: (file: IFile) => router.push(`/logs?file=${encodeURIComponent(file.name)}`),
     }),
-    [navigate.to, canWrite, canManage, handleEditFile, handleDownloadFile, handleExtractFile, handleDeleteFile, router]
+    [navigate.to, prefetchFiles, canWrite, canManage, handleEditFile, handleDownloadFile, handleExtractFile, handleDeleteFile, router]
   );
 
   // Delete or Backspace removes the selection, unless the user is typing
@@ -113,6 +118,7 @@ function ServerFiles({ server }: { server: Server }) {
         loading={isInitialLoading}
         currentPath={currentPath}
         loadedPath={loadedPath}
+        navigating={navigating}
         actions={actions}
         selection={selection}
         onGoUp={navigate.up}

@@ -3,12 +3,30 @@
 import { cn } from "@/shared/lib/cn";
 import { useSidebarStore } from "@/shared/stores/sidebar-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import Link from "next/link";
-import { type ComponentType, type ReactNode } from "react";
+import Link, { useLinkStatus } from "next/link";
+import { useEffect, type ComponentType, type ReactNode } from "react";
+import { useNavPending } from "../store/nav-pending.store";
 import { NAV_ITEM_BASE } from "./navItemBase";
 
 // Both static (Lucide) and extension-provided icons render the same way here
 export type NavIcon = ComponentType<{ className?: string }>;
+
+// Lives inside the Link, its status is only readable from there
+function PendingReporter({ href }: { href: string }) {
+  const { pending } = useLinkStatus();
+  const setHref = useNavPending((s) => s.setHref);
+
+  useEffect(() => {
+    if (!pending) return;
+    setHref(href);
+    // Another link may have taken over by the time this one settles
+    return () => {
+      if (useNavPending.getState().href === href) setHref(null);
+    };
+  }, [pending, href, setHref]);
+
+  return null;
+}
 
 export function NavLink({
   href,
@@ -47,6 +65,7 @@ export function NavLink({
         <Icon />
         <span>{label}</span>
         {badge}
+        <PendingReporter href={href} />
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={10}>
         {label}

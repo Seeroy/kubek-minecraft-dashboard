@@ -32,7 +32,7 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react";
-import { memo, type MouseEvent } from "react";
+import { memo, useRef, type MouseEvent } from "react";
 import type { FileActions, SelectModifiers } from "../lib/actions";
 
 const look: Record<FileTypeCategory | "directory", { icon: LucideIcon; tone: Tone }> = {
@@ -43,6 +43,8 @@ const look: Record<FileTypeCategory | "directory", { icon: LucideIcon; tone: Ton
   text: { icon: FileText, tone: "blue" },
   other: { icon: FileText, tone: "gray" },
 };
+
+const PREFETCH_DELAY_MS = 100;
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "short", timeStyle: "short" });
 
@@ -80,6 +82,15 @@ export const FileRow = memo(function FileRow({ file, index, actions, selected, s
     else open();
   };
 
+  // A short hover delay skips folders the pointer only sweeps across
+  const prefetchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const prefetch = isDir && actions.prefetch ? () => actions.prefetch?.(file.path) : undefined;
+  const cancelPrefetch = () => clearTimeout(prefetchTimer.current);
+  const schedulePrefetch = () => {
+    cancelPrefetch();
+    prefetchTimer.current = setTimeout(() => prefetch?.(), PREFETCH_DELAY_MS);
+  };
+
   const copyPath = () => {
     void navigator.clipboard.writeText(file.path);
     notify({ title: tNotify("pathCopied"), type: "success" });
@@ -90,6 +101,10 @@ export const FileRow = memo(function FileRow({ file, index, actions, selected, s
       data-state={selected ? "selected" : undefined}
       tabIndex={0}
       onClick={onClick}
+      onPointerEnter={prefetch && schedulePrefetch}
+      onPointerLeave={prefetch && cancelPrefetch}
+      // Touch has no hover, start loading on press
+      onPointerDown={prefetch}
       onKeyDown={(event) => event.key === "Enter" && event.target === event.currentTarget && open()}
       className="h-[54px] cursor-pointer outline-none [contain-intrinsic-size:auto_54px] [content-visibility:auto] focus-visible:bg-hover"
     >

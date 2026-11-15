@@ -10,6 +10,8 @@ export interface FilesData {
   isInitialLoading: boolean;
   /** Folder the shown files belong to, undefined while the next one loads */
   loadedPath: string | undefined;
+  /** The previous folder is still on screen while the opened one loads */
+  navigating: boolean;
   loadFiles: () => void;
   /** Manual refresh, keeps its own flag so folder navigation doesn't spin the button */
   refresh: () => void;
@@ -54,5 +56,7 @@ export function useFilesData({
 
   const loadedPath = filesQuery.data && !filesQuery.isPlaceholderData ? currentPath : undefined;
 
-  return { files, isInitialLoading, loadedPath, loadFiles, refresh, refreshing };
+  const navigating = filesQuery.isPlaceholderData && filesQuery.isFetching;
+
+  return { files, isInitialLoading, loadedPath, navigating, loadFiles, refresh, refreshing };
 }

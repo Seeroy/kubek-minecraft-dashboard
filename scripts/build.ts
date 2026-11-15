@@ -9,6 +9,7 @@ import {
   writeFileSync,
 } from "fs";
 import path from "path";
+import { brotliCompressSync, gzipSync, constants as zlibConstants } from "zlib";
 import { asciiCommentsPlugin } from "./ascii-comments.ts";
 import type { IBuildTarget } from "./build.types.ts";
 import { writeChecksums } from "./checksums.ts";
@@ -19,6 +20,10 @@ const frontendDir = path.join(rootDir, "frontend");
 const backendDir = path.join(rootDir, "backend");
 const sharedDir = path.join(rootDir, "shared");
 const outputDir = path.join(rootDir, "dist");
+
+// Fonts and images are already compressed, tiny files are not worth a variant
+const COMPRESSIBLE = /\.(js|css|html|txt|json|svg|map|ico|xml|webmanifest)$/;
+const MIN_COMPRESS_SIZE = 1024;
 
 // Build targets
 const targets: IBuildTarget[] = [
@@ -364,18 +369,44 @@ function run(cmd: string, cwd?: string, env?: Record<string, string>) {
   });
 }
 
+// Compressed once here so the panel never spends CPU on it per request
+function compressVariants(raw: Buffer) {
+  const br = brotliCompressSync(raw, {
+    params: {
+      [zlibConstants.BROTLI_PARAM_QUALITY]: 11,
+      [zlibConstants.BROTLI_PARAM_SIZE_HINT]: raw.length,
+    },
+  });
+  const gz = gzipSync(raw, { level: 9 });
+  return {
+    ...(br.length < raw.length && { br: br.toString("base64") }),
+    ...(gz.length < raw.length && { gz: gz.toString("base64") }),
+  };
+}
+
 function generateVfsFromDirectory(sourceDir: string, outFile: string) {
   const files = listFilesRecursively(sourceDir);
-  const rows = files.map((absolutePath) => {
+  const rows: string[] = [];
+  const compressedRows: string[] = [];
+  for (const absolutePath of files) {
     const relativePath = path
       .relative(sourceDir, absolutePath)
       .split(path.sep)
       .join("/");
-    const encoded = readFileSync(absolutePath).toString("base64");
-    return `  ${JSON.stringify(relativePath)}: ${JSON.stringify(encoded)},`;
-  });
+    const raw = readFileSync(absolutePath);
+    const key = JSON.stringify(relativePath);
+    rows.push(`  ${key}: ${JSON.stringify(raw.toString("base64"))},`);
+    if (COMPRESSIBLE.test(relativePath) && raw.length >= MIN_COMPRESS_SIZE) {
+      const variants = compressVariants(raw);
+      if (variants.br || variants.gz) {
+        compressedRows.push(`  ${key}: ${JSON.stringify(variants)},`);
+      }
+    }
+  }
 
-  const output = `export default {\n${rows.join("\n")}\n};\n`;
+  const output =
+    `export default {\n${rows.join("\n")}\n};\n` +
+    `export const compressed = {\n${compressedRows.join("\n")}\n};\n`;
   writeFileSync(outFile, output, "utf-8");
 }
 

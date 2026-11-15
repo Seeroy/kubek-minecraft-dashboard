@@ -1,8 +1,10 @@
 import type { BatchPathsDto, CreateArchiveDto, ExtractArchiveDto } from "@/api";
 import { api } from "@/api";
 import { FileType, type IFile } from "@shared/types/file.types";
+import { useCallback } from "react";
 import {
   keepPreviousData,
+  queryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -10,17 +12,28 @@ import {
 import { filesAdapter } from "./files.adapter";
 import { qk } from "@/shared/queries/query-keys";
 
-export function useFilesList(serverId: string | undefined, path: string) {
-  return useQuery({
+const filesListOptions = (serverId: string | undefined, path: string) =>
+  queryOptions({
     queryKey: qk.files.scan(serverId ?? "", path),
     queryFn: async (): Promise<IFile[]> => {
       const files = await api.files.scanDirectory(serverId!, path);
       return files.map(filesAdapter.toInternal);
     },
-    enabled: !!serverId,
-    placeholderData: keepPreviousData,
     staleTime: 30_000,
   });
+
+export function useFilesList(serverId: string | undefined, path: string) {
+  return useQuery({
+    ...filesListOptions(serverId, path),
+    enabled: !!serverId,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Loads a folder ahead of the click, a fresh cached listing is left alone */
+export function usePrefetchFiles(serverId: string) {
+  const queryClient = useQueryClient();
+  return useCallback((path: string) => void queryClient.prefetchQuery(filesListOptions(serverId, path)), [queryClient, serverId]);
 }
 
 export function useFilesSearch(
