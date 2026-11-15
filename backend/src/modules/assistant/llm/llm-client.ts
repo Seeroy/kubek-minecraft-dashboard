@@ -15,6 +15,10 @@ export class LlmError extends Error {
 }
 
 const MODELS_TIMEOUT_MS = 15_000;
+// stream_options is the OpenAI way to get token counts, usage.include adds the cost on OpenRouter
+const STREAM_USAGE = { stream_options: { include_usage: true } };
+const OPENROUTER_USAGE = { ...STREAM_USAGE, usage: { include: true } };
+const REJECTED = new Set([400, 422]);
 // Whole answer, local models on a CPU are slow
 const COMPLETION_TIMEOUT_MS = 5 * 60_000;
 
@@ -46,15 +50,30 @@ export class LlmClient {
     const signal = opts.signal
       ? AbortSignal.any([opts.signal, timeout])
       : timeout;
-    const res = await this.request("chat/completions", {
-      method: "POST",
-      body: JSON.stringify({
-        ...req,
-        tools: req.tools?.length ? req.tools : undefined,
-        stream: true,
-      }),
-      signal,
-    });
+    const body = {
+      ...req,
+      tools: req.tools?.length ? req.tools : undefined,
+      stream: true,
+    };
+    const post = (extra: Record<string, unknown>) =>
+      this.request("chat/completions", {
+        method: "POST",
+        body: JSON.stringify({ ...body, ...extra }),
+        signal,
+      });
+    let res: Response;
+    try {
+      res = await post(
+        /openrouter\.ai/i.test(this.connection.baseUrl)
+          ? OPENROUTER_USAGE
+          : STREAM_USAGE,
+      );
+    } catch (err) {
+      // Strict servers reject unknown fields, usage is a nice to have
+      if (!(err instanceof LlmError) || !REJECTED.has(err.status ?? 0))
+        throw err;
+      res = await post({});
+    }
     if (!res.body) throw new LlmError("Provider returned an empty response");
 
     const acc = new CompletionAccumulator();

@@ -20,6 +20,13 @@ export class SendMessageDto {
   @IsString()
   @MaxLength(64)
   serverId?: string;
+
+  @ApiPropertyOptional({
+    description: "Run write tools without asking the user",
+  })
+  @IsOptional()
+  @IsBoolean()
+  autoApprove?: boolean;
 }
 
 export class ConfirmToolCallDto {
@@ -31,6 +38,13 @@ export class ConfirmToolCallDto {
   @ApiProperty()
   @IsBoolean()
   approve!: boolean;
+
+  @ApiPropertyOptional({
+    description: "Run write tools without asking the user",
+  })
+  @IsOptional()
+  @IsBoolean()
+  autoApprove?: boolean;
 }
 
 export class ConversationDto implements IAssistantConversation {
@@ -58,6 +72,12 @@ export class ToolCallDto {
   preview!: Record<string, unknown> | null;
 }
 
+export class UsageDto {
+  @ApiProperty() promptTokens!: number;
+  @ApiProperty() completionTokens!: number;
+  @ApiProperty({ type: Number, nullable: true }) costUsd!: number | null;
+}
+
 export class MessageDto {
   @ApiProperty() id!: string;
   @ApiProperty() conversationId!: string;
@@ -67,6 +87,7 @@ export class MessageDto {
   @ApiProperty({ type: String, nullable: true }) error!: string | null;
   @ApiProperty({ type: [ToolCallDto] }) toolCalls!: ToolCallDto[];
   @ApiProperty() createdAt!: number;
+  @ApiProperty({ type: UsageDto, nullable: true }) usage!: UsageDto | null;
 }
 
 export class ConversationDetailDto {

@@ -5,9 +5,11 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatRelative } from "@/shared/lib/formatRelative";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Spinner } from "@/shared/ui/spinner";
 import { TableCell, TableRow } from "@/shared/ui/table";
 import type { ModrinthSearchHit } from "@shared/types/plugins";
-import { Check, Download, Info } from "lucide-react";
+import { AlertTriangle, Check, Download, Info } from "lucide-react";
 import { getContentKind } from "../content-kind";
 import { primaryCategory } from "../lib/installed";
 import { ProjectIcon } from "./ProjectIcon";
@@ -18,12 +20,18 @@ interface CatalogRowProps {
   hit: ModrinthSearchHit;
   kind: ContentKind;
   installed: boolean;
+  installing: boolean;
+  /** MC version the project has no build for */
+  incompatibleWith?: string;
   /** Missing when the user may not install */
   onInstall?: () => void;
   onDetails: () => void;
+  selected: boolean;
+  /** Missing when the project can't be picked for a bulk install */
+  onSelect?: (selected: boolean) => void;
 }
 
-export function CatalogRow({ hit, kind, installed, onInstall, onDetails }: CatalogRowProps) {
+export function CatalogRow({ hit, kind, installed, installing, incompatibleWith, onInstall, onDetails, selected, onSelect }: CatalogRowProps) {
   const { t } = useTranslation("modules.content");
   const { t: tk } = useTranslation(getContentKind(kind).i18nNs);
   const serverSide = hit.server_side !== "unsupported";
@@ -31,9 +39,14 @@ export function CatalogRow({ hit, kind, installed, onInstall, onDetails }: Catal
   const newest = hit.versions.at(-1);
 
   return (
-    <TableRow className="h-[58px] cursor-pointer" onClick={onDetails}>
+    <TableRow className="h-[58px] cursor-pointer" data-state={selected ? "selected" : undefined} onClick={onDetails}>
       <TableCell>
         <div className="flex min-w-0 items-center gap-3">
+          {onSelect && (
+            <span className="flex" onClick={(event) => event.stopPropagation()}>
+              <Checkbox checked={selected} onCheckedChange={onSelect} aria-label={t("catalog.select")} />
+            </span>
+          )}
           <ProjectIcon title={hit.title} iconUrl={hit.icon_url} category={primaryCategory(hit.display_categories)} />
           <div className="min-w-0">
             <b className="block truncate font-semibold">{hit.title}</b>
@@ -71,7 +84,22 @@ export function CatalogRow({ hit, kind, installed, onInstall, onDetails }: Catal
             </Badge>
           ) : (
             onInstall &&
-            (serverSide ? (
+            (installing ? (
+              <Button variant="ghost" size="icon-sm" disabled title={t("catalog.installing")} aria-label={t("catalog.installing")}>
+                <Spinner />
+              </Button>
+            ) : serverSide && incompatibleWith ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-warn hover:text-warn"
+                title={`${t("catalog.incompatible", incompatibleWith)} · ${t("catalog.chooseVersion")}`}
+                aria-label={t("catalog.chooseVersion")}
+                onClick={onDetails}
+              >
+                <AlertTriangle />
+              </Button>
+            ) : serverSide ? (
               <Button variant="ghost" size="icon-sm" className="text-c-blue hover:text-c-blue" title={t("catalog.install")} aria-label={t("catalog.install")} onClick={onInstall}>
                 <Download />
               </Button>

@@ -6,9 +6,11 @@ import { cn } from "@/shared/lib/cn";
 import { formatRelative } from "@/shared/lib/formatRelative";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Spinner } from "@/shared/ui/spinner";
 import { toneClass } from "@/shared/ui/tone";
 import type { ModrinthSearchHit } from "@shared/types/plugins";
-import { Check, Clock, Download, Heart, Info, User } from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, Clock, Download, Heart, Info, User } from "lucide-react";
 import { getContentKind } from "../content-kind";
 import { categoryTone } from "../lib/categories";
 import { primaryCategory } from "../lib/installed";
@@ -21,12 +23,18 @@ interface CatalogCardProps {
   hit: ModrinthSearchHit;
   kind: ContentKind;
   installed: boolean;
+  installing: boolean;
+  /** MC version the project has no build for */
+  incompatibleWith?: string;
   /** Missing when the user may not install */
   onInstall?: () => void;
   onDetails: () => void;
+  selected: boolean;
+  /** Missing when the project can't be picked for a bulk install */
+  onSelect?: (selected: boolean) => void;
 }
 
-export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: CatalogCardProps) {
+export function CatalogCard({ hit, kind, installed, installing, incompatibleWith, onInstall, onDetails, selected, onSelect }: CatalogCardProps) {
   const { t } = useTranslation("modules.content");
   const { t: tk } = useTranslation(getContentKind(kind).i18nNs);
   const category = primaryCategory(hit.display_categories);
@@ -36,7 +44,12 @@ export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: Cata
   const updated = hit.date_modified ? formatRelative(new Date(hit.date_modified).getTime(), t("catalog.justNow")) : "";
 
   return (
-    <article className="flex flex-col gap-2.5 rounded-lg border border-border bg-card p-4 transition-[border-color,translate,box-shadow] duration-200 ease-smooth hover:-translate-y-0.5 hover:border-foreground/18 hover:shadow-lg">
+    <article
+      className={cn(
+        "flex flex-col gap-2.5 rounded-lg border border-border bg-card p-4 transition-[border-color,translate,box-shadow] duration-200 ease-smooth hover:-translate-y-0.5 hover:border-foreground/18 hover:shadow-lg",
+        selected && "border-primary/60 hover:border-primary/60"
+      )}
+    >
       <div className="flex items-center gap-3">
         <ProjectIcon title={hit.title} iconUrl={hit.icon_url} category={category} size="lg" />
         <div className="min-w-0 flex-1">
@@ -46,6 +59,7 @@ export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: Cata
             {hit.author}
           </span>
         </div>
+        {onSelect && <Checkbox checked={selected} onCheckedChange={onSelect} aria-label={t("catalog.select")} title={t("catalog.select")} />}
       </div>
 
       <p className="line-clamp-2 min-h-[37px] text-[12.5px] leading-normal text-muted-foreground">{hit.description}</p>
@@ -72,6 +86,12 @@ export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: Cata
         {category && (
           <Badge className={cn("bg-tone/14 text-tone", toneClass[categoryTone(category)])}>{t(`categories.${category}`)}</Badge>
         )}
+        {incompatibleWith && (
+          <Badge variant="warning">
+            <AlertTriangle />
+            {t("catalog.incompatible", incompatibleWith)}
+          </Badge>
+        )}
         {versions.map((version) => (
           <Badge key={version} variant="secondary" className="font-mono">
             {version}
@@ -90,15 +110,36 @@ export function CatalogCard({ hit, kind, installed, onInstall, onDetails }: Cata
           </Badge>
         ) : !onInstall ? (
           <span className="flex-1" />
-        ) : serverSide ? (
-          <Button className="flex-1" onClick={onInstall}>
-            <Download />
-            {t("catalog.install")}
+        ) : installing ? (
+          <Button className="flex-1" disabled>
+            <Spinner />
+            {t("catalog.installing")}
           </Button>
-        ) : (
+        ) : !serverSide ? (
           <Button variant="outline" className="flex-1" disabled title={tk("unsupported")}>
             {t("catalog.clientOnly")}
           </Button>
+        ) : incompatibleWith ? (
+          // No build for this server, pick one by hand with the warning in front
+          <Button variant="outline" className="flex-1" onClick={onDetails}>
+            {t("catalog.chooseVersion")}
+          </Button>
+        ) : (
+          <div className="flex flex-1">
+            <Button className="flex-1 rounded-r-none" onClick={onInstall}>
+              <Download />
+              {t("catalog.install")}
+            </Button>
+            <Button
+              size="icon"
+              className="w-8 rounded-l-none border-l-primary-foreground/25"
+              title={t("catalog.chooseVersion")}
+              aria-label={t("catalog.chooseVersion")}
+              onClick={onDetails}
+            >
+              <ChevronDown />
+            </Button>
+          </div>
         )}
         <Button variant="outline" size="icon" title={t("catalog.details")} aria-label={t("catalog.details")} onClick={onDetails}>
           <Info />

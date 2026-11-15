@@ -15,6 +15,7 @@ export async function packArchive(
     entries.map((entry) => ({
       path: join(serverPath, entry.path),
       relativePath: entry.path,
+      file: true,
     })),
     outputPath,
     {

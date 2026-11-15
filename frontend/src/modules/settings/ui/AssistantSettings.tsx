@@ -3,7 +3,6 @@
 import { api, type AssistantSettingsResponse } from "@/api";
 import { useNotifications } from "@/modules/notifications";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { DataReveal } from "@/shared/ui/data-reveal";
@@ -15,13 +14,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
-import type { AssistantPresetId, AssistantSettings as Settings } from "@shared/types/assistant.types";
-import { Boxes, Footprints, Globe, KeyRound, ListRestart, Plug, Power, Sparkles, Thermometer } from "lucide-react";
+import { ASSISTANT_STEPS, type AssistantPresetId, type AssistantSettings as Settings } from "@shared/types/assistant.types";
+import { Boxes, Coins, Footprints, Globe, KeyRound, ListRestart, Plug, Power, Sparkles, Thermometer } from "lucide-react";
 import { useState } from "react";
 import { useAssistantModels, useAssistantSettingsQuery, useSaveAssistantSettings, useTestAssistant } from "../api/assistant.queries";
 import { SAMPLE_ASSISTANT_SETTINGS } from "../data/samples";
 
 type Draft = Settings & { apiKey: string };
+
+const clamp = (value: number, min: number, max: number) => (Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : min);
 
 const toDraft = ({ settings }: AssistantSettingsResponse): Draft => ({
   enabled: settings.enabled,
@@ -30,10 +31,13 @@ const toDraft = ({ settings }: AssistantSettingsResponse): Draft => ({
   model: settings.model,
   temperature: settings.temperature,
   maxSteps: settings.maxSteps,
+  priceInput: settings.priceInput,
+  priceOutput: settings.priceOutput,
   apiKey: "",
 });
 
-const FIELDS = ["enabled", "preset", "baseUrl", "model", "temperature", "maxSteps", "apiKey"] as const;
+const FIELDS = ["enabled", "preset", "baseUrl", "model", "temperature", "maxSteps", "priceInput", "priceOutput", "apiKey"] as const;
+const MAX_PRICE = 10_000;
 
 function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
   const { t } = useTranslation("modules.assistant.settings");
@@ -56,7 +60,8 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
     models.reset();
   };
 
-  const loadModels = () => models.mutate(connection, { onError: (error) => notify({ type: "error", title: getApiErrorMessage(error) }) });
+  // Errors are toasted by the query client already
+  const loadModels = () => models.mutate(connection);
 
   const revealKey = async () => {
     const value = await api.assistant.revealKey();
@@ -66,13 +71,19 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
 
   const submit = () =>
     save.mutate(
-      { ...draft, apiKey: draft.apiKey || undefined },
+      {
+        ...draft,
+        temperature: clamp(draft.temperature, 0, 2),
+        maxSteps: Math.round(clamp(draft.maxSteps, ASSISTANT_STEPS.min, ASSISTANT_STEPS.max)),
+        priceInput: clamp(draft.priceInput, 0, MAX_PRICE),
+        priceOutput: clamp(draft.priceOutput, 0, MAX_PRICE),
+        apiKey: draft.apiKey || undefined,
+      },
       {
         onSuccess: () => {
           setDraft((d) => ({ ...d, apiKey: "" }));
           notify({ type: "success", title: t("saved") });
         },
-        onError: (error) => notify({ type: "error", title: getApiErrorMessage(error) }),
       }
     );
 
@@ -158,12 +169,53 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
           step={0.1}
           value={draft.temperature}
           onChange={(e) => set("temperature", Number(e.target.value))}
+          onBlur={() => set("temperature", clamp(draft.temperature, 0, 2))}
         />
       </SettingsField>
 
-      <SettingsField label={t("maxSteps")} icon={Footprints} hint={t("maxStepsHint")} changed={changed("maxSteps")} htmlFor="assistant-steps">
-        <Input id="assistant-steps" type="number" min={1} max={20} step={1} value={draft.maxSteps} onChange={(e) => set("maxSteps", Number(e.target.value))} />
+      <SettingsField
+        label={t("maxSteps")}
+        icon={Footprints}
+        hint={t("maxStepsHint", ASSISTANT_STEPS.min, ASSISTANT_STEPS.max)}
+        changed={changed("maxSteps")}
+        htmlFor="assistant-steps"
+      >
+        <Input
+          id="assistant-steps"
+          type="number"
+          min={ASSISTANT_STEPS.min}
+          max={ASSISTANT_STEPS.max}
+          step={1}
+          value={draft.maxSteps}
+          onChange={(e) => set("maxSteps", Number(e.target.value))}
+          onBlur={() => set("maxSteps", Math.round(clamp(draft.maxSteps, ASSISTANT_STEPS.min, ASSISTANT_STEPS.max)))}
+        />
       </SettingsField>
+
+      {!preset?.local && (
+        <SettingsField label={t("price")} icon={Coins} hint={t("priceHint")} changed={changed("priceInput") || changed("priceOutput")}>
+          <div className="grid grid-cols-2 gap-2">
+            {(["priceInput", "priceOutput"] as const).map((key) => (
+              <InputGroup key={key}>
+                <InputGroupAddon>$</InputGroupAddon>
+                <InputGroupInput
+                  type="number"
+                  min={0}
+                  max={MAX_PRICE}
+                  step={0.01}
+                  value={draft[key]}
+                  aria-label={t(key)}
+                  onChange={(e) => set(key, Number(e.target.value))}
+                  onBlur={() => set(key, clamp(draft[key], 0, MAX_PRICE))}
+                />
+                <InputGroupAddon align="inline-end" className="text-[11.5px]">
+                  {t(key)}
+                </InputGroupAddon>
+              </InputGroup>
+            ))}
+          </div>
+        </SettingsField>
+      )}
 
       <div className="col-span-full flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
         {test.data && (

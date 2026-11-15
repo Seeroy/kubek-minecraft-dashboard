@@ -9,12 +9,60 @@ interface PanelState {
   prefill: string | null;
   /** Bumped on every prefill so the composer picks it up again */
   prefillKey: number;
+  /** Desktop width in px, remembered across visits */
+  width: number;
+  setWidth: (width: number) => void;
+  /** Write tools run without asking, remembered across visits */
+  autoApprove: boolean;
+  setAutoApprove: (on: boolean) => void;
   setOpen: (open: boolean) => void;
   showConversation: (id: string | null) => void;
   showList: () => void;
 }
 
+const WIDTH_KEY = "assistant_panel_width";
+const AUTO_KEY = "assistant_auto_approve";
+
+const read = (key: string) => {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const write = (key: string, value: string) => {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // private mode, keep it for this visit
+  }
+};
+export const PANEL_WIDTH = { min: 360, initial: 440, max: 1100 };
+
+export const clampPanelWidth = (width: number) => {
+  // keep some of the page visible next to the panel
+  const max = typeof window === "undefined" ? PANEL_WIDTH.max : Math.min(PANEL_WIDTH.max, window.innerWidth - 120);
+  return Math.round(Math.max(PANEL_WIDTH.min, Math.min(max, width)));
+};
+
+const storedWidth = () => {
+  const value = Number(read(WIDTH_KEY));
+  return value ? clampPanelWidth(value) : PANEL_WIDTH.initial;
+};
+
 export const useAssistantPanel = create<PanelState>((set) => ({
+  width: typeof window === "undefined" ? PANEL_WIDTH.initial : storedWidth(),
+  setWidth: (width) => {
+    const next = clampPanelWidth(width);
+    set({ width: next });
+    write(WIDTH_KEY, String(next));
+  },
+  autoApprove: typeof window !== "undefined" && read(AUTO_KEY) === "1",
+  setAutoApprove: (autoApprove) => {
+    set({ autoApprove });
+    write(AUTO_KEY, autoApprove ? "1" : "0");
+  },
   open: false,
   conversationId: null,
   view: "chat",

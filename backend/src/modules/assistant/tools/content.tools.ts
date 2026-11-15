@@ -3,12 +3,14 @@ import { resolveServerGameVersion } from "@/modules/plugins/modrinth-content.ser
 import { PluginsService } from "@/modules/plugins/plugins.service";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
 import { ServersService } from "@/modules/servers/servers.service";
+import { TasksService } from "@/modules/tasks/tasks.service";
 import type { BlueprintFeature } from "@kubekpanel/blueprint-sdk";
 import { Injectable } from "@nestjs/common";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
 import { AccessArea } from "@shared/access/areas";
 import { z } from "zod";
 import { failure, json, serverArgs, text } from "./tool-args";
+import { awaitTask } from "./task-wait";
 import { type AssistantTool, type ToolGroup, defineTool } from "./tool.types";
 
 type ContentKind = "plugin" | "mod";
@@ -25,6 +27,7 @@ export class ContentTools implements ToolGroup {
     private readonly registry: ServerTypesRegistry,
     private readonly plugins: PluginsService,
     private readonly mods: ModsService,
+    private readonly tasks: TasksService,
   ) {}
 
   tools(): AssistantTool[] {
@@ -94,7 +97,7 @@ export class ContentTools implements ToolGroup {
     return defineTool({
       name: "install_content",
       description:
-        "Install a Modrinth plugin or mod on a server, the newest version that fits its game version",
+        "Install a Modrinth plugin or mod on a server, the newest version that fits its game version. Returns once the install is done or failed",
       kind: "write",
       access: [AccessArea.CONTENT, "write"],
       serverScoped: true,
@@ -120,7 +123,7 @@ export class ContentTools implements ToolGroup {
           ],
         };
       },
-      run: async ({ user }, { serverId, projectId, versionId }) => {
+      run: async ({ user, signal }, { serverId, projectId, versionId }) => {
         const kind = this.requireKind(serverId);
         const version = await this.pickVersion(
           kind,
@@ -134,8 +137,11 @@ export class ContentTools implements ToolGroup {
           versionId: version.id,
           installDependencies: true,
         });
-        return text(
-          `Installing ${version.version_number} in the background, task ${taskId}`,
+        return awaitTask(
+          this.tasks,
+          taskId,
+          `Install of ${version.version_number}`,
+          signal,
         );
       },
       audit: ({ projectId }) => ({

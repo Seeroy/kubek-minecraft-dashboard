@@ -5,9 +5,62 @@ import { Plate } from "@/shared/ui/plate";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { ArrowLeft, History, Plus, Sparkles, X } from "lucide-react";
 import { useAssistantStatus } from "../api/assistant.queries";
-import { useAssistantPanel } from "../lib/panel-store";
+import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import { PANEL_WIDTH, useAssistantPanel } from "../lib/panel-store";
 import { Chat } from "./Chat";
 import { ConversationList } from "./ConversationList";
+
+// Matches sm:right-2
+const RIGHT_GAP = 8;
+const KEY_STEP = 24;
+
+/** Left edge drag handle, desktop only */
+function ResizeHandle({ label }: { label: string }) {
+  const width = useAssistantPanel((s) => s.width);
+  const setWidth = useAssistantPanel((s) => s.setWidth);
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    const handle = event.currentTarget;
+    handle.setPointerCapture(event.pointerId);
+    document.body.style.userSelect = "none";
+    const move = (e: PointerEvent) => setWidth(window.innerWidth - RIGHT_GAP - e.clientX);
+    const end = () => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", end);
+      handle.removeEventListener("pointercancel", end);
+      document.body.style.removeProperty("user-select");
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft") setWidth(width + KEY_STEP);
+    else if (event.key === "ArrowRight") setWidth(width - KEY_STEP);
+    else return;
+    event.preventDefault();
+  };
+
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label={label}
+      aria-valuenow={width}
+      aria-valuemin={PANEL_WIDTH.min}
+      aria-valuemax={PANEL_WIDTH.max}
+      title={label}
+      tabIndex={0}
+      onPointerDown={onPointerDown}
+      onKeyDown={onKeyDown}
+      onDoubleClick={() => setWidth(PANEL_WIDTH.initial)}
+      className="absolute inset-y-0 left-0 z-10 hidden w-1.5 cursor-ew-resize touch-none transition-colors outline-none hover:bg-primary/25 focus-visible:bg-primary/40 active:bg-primary/40 sm:block"
+    />
+  );
+}
 
 /** Right slide-over, non modal so the page stays usable next to the chat */
 export default function AssistantSheet() {
@@ -19,14 +72,17 @@ export default function AssistantSheet() {
   const showConversation = useAssistantPanel((s) => s.showConversation);
   const showList = useAssistantPanel((s) => s.showList);
   const status = useAssistantStatus().data;
+  const width = useAssistantPanel((s) => s.width);
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen} modal={false} disablePointerDismissal>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Popup
           aria-label={t("title")}
-          className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-popover text-popover-foreground transition-transform duration-300 ease-smooth outline-none data-[ending-style]:translate-x-full data-[starting-style]:translate-x-full motion-reduce:transition-none sm:inset-y-2 sm:right-2 sm:left-auto sm:w-[440px] sm:rounded-xl sm:border sm:border-border sm:shadow-pop sm:data-[ending-style]:translate-x-[calc(100%+1rem)] sm:data-[starting-style]:translate-x-[calc(100%+1rem)]"
+          style={{ "--assistant-w": `${width}px` } as CSSProperties}
+          className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-popover text-popover-foreground transition-transform duration-300 ease-smooth outline-none data-[ending-style]:translate-x-full data-[starting-style]:translate-x-full motion-reduce:transition-none sm:inset-y-2 sm:right-2 sm:left-auto sm:w-(--assistant-w) sm:max-w-[calc(100vw-1rem)] sm:rounded-xl sm:border sm:border-border sm:shadow-pop sm:data-[ending-style]:translate-x-[calc(100%+1rem)] sm:data-[starting-style]:translate-x-[calc(100%+1rem)]"
         >
+          <ResizeHandle label={t("resize")} />
           <header className="flex shrink-0 items-center gap-1 border-b border-border py-2.5 pr-2 pl-3">
             {view === "list" ? (
               <Button

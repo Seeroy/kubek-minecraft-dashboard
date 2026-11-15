@@ -8,10 +8,14 @@ export interface FileEdit {
 export type EditOutcome =
   { ok: true; text: string } | { ok: false; error: string };
 
-/** Applies find and replace edits in order, each find must match exactly once */
+const toLf = (value: string) => value.replace(/\r\n/g, "\n");
+
+/** Applies find and replace edits in order, each find must match exactly once, CRLF files stay CRLF */
 export function applyEdits(source: string, edits: FileEdit[]): EditOutcome {
-  let text = source;
-  for (const [i, edit] of edits.entries()) {
+  const crlf = source.includes("\r\n");
+  let text = toLf(source);
+  for (const [i, raw] of edits.entries()) {
+    const edit = { find: toLf(raw.find), replace: toLf(raw.replace) };
     const first = text.indexOf(edit.find);
     if (first < 0) {
       return {
@@ -30,7 +34,7 @@ export function applyEdits(source: string, edits: FileEdit[]): EditOutcome {
       edit.replace +
       text.slice(first + edit.find.length);
   }
-  return { ok: true, text };
+  return { ok: true, text: crlf ? text.replace(/\n/g, "\r\n") : text };
 }
 
 /** Output shown to the model is redacted, writing the marker back would destroy the secret */

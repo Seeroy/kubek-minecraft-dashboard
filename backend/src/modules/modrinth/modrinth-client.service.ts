@@ -96,8 +96,8 @@ export class ModrinthClient {
       searchParams.append("game_versions", JSON.stringify(filter.gameVersions));
     }
     if (filter.loaders?.length) {
-      // Modrinth accepts the nested form, kept as the engine always sent it
-      searchParams.append("loaders", JSON.stringify([filter.loaders]));
+      // Must be flat, Modrinth silently ignores a nested array and returns every platform
+      searchParams.append("loaders", JSON.stringify(filter.loaders));
     }
 
     return this.http

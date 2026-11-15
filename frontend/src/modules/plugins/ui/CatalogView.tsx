@@ -16,19 +16,23 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-
 import { Panel } from "@/shared/ui/panel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Spinner } from "@/shared/ui/spinner";
+import { Switch } from "@/shared/ui/switch";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
 import { toneClass } from "@/shared/ui/tone";
 import { AccessArea } from "@shared/access/areas";
-import type { InstalledPluginView } from "@shared/types/plugins";
-import { ArrowDown, Search, SearchX } from "lucide-react";
+import type { InstalledPluginView, ModrinthSearchHit } from "@shared/types/plugins";
+import { ArrowDown, Download, Search, SearchX, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getContentKind } from "../content-kind";
 import { SAMPLE_CATALOG } from "../data/samples";
 import type { CatalogLayout } from "../hooks/useCatalogView";
+import { useQuickInstall } from "../hooks/useQuickInstall";
 import { CATALOG_CATEGORIES, categoryTone } from "../lib/categories";
+import { BULK_INSTALL_MODAL_ID } from "../modals/BulkInstallModal";
 import { INSTALL_PLUGIN_MODAL_ID } from "../modals/InstallPluginModal";
+import { isHitCompatible } from "../utils/pickVersion";
 import { CatalogCard } from "./CatalogCard";
 import { CatalogRow } from "./CatalogRow";
 
@@ -54,13 +58,16 @@ export function CatalogView({ kind, server, installed, view }: CatalogViewProps)
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>(ALL);
   const [sort, setSort] = useState<ContentSortIndex>("relevance");
+  const [showIncompatible, setShowIncompatible] = useState(false);
+  // Kept across searches so a few lookups can add up to one batch
+  const [selection, setSelection] = useState<Map<string, ModrinthSearchHit>>(() => new Map());
   const debouncedQuery = useDebouncedValue(query.trim(), 350);
 
   const gameVersion = server.variables?.GAME_VERSION != null ? String(server.variables.GAME_VERSION) : undefined;
   const search = useAvailableContentInfinite(kind, {
     pageSize: PAGE_SIZE,
     query: debouncedQuery,
-    gameVersion,
+    gameVersion: showIncompatible ? undefined : gameVersion,
     loader: config.searchLoader(blueprint),
     categories: category === ALL ? undefined : [category],
     index: sort,
@@ -89,8 +96,43 @@ export function CatalogView({ kind, server, installed, view }: CatalogViewProps)
   }, [hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage, hits.length]);
 
   const canInstall = useAccess([AccessArea.CONTENT, "write"], server.id);
-  const openInstall = (projectId: string, versionId?: string) =>
-    openModal(INSTALL_PLUGIN_MODAL_ID, { kind, server, projectId, initialVersionId: versionId });
+  const quick = useQuickInstall(kind, server);
+  const openInstall = (projectId: string) => openModal(INSTALL_PLUGIN_MODAL_ID, { kind, server, projectId });
+
+  const incompatibleWith = (hit: ModrinthSearchHit) => (isHitCompatible(hit.versions, gameVersion) ? undefined : gameVersion);
+  const selectable = (hit: ModrinthSearchHit) =>
+    canInstall && hit.server_side !== "unsupported" && !installedIds.has(hit.project_id) && !quick.isInstalling(hit.project_id) && !incompatibleWith(hit);
+  const selected = [...selection.values()].filter(selectable);
+
+  const toggleSelected = (hit: ModrinthSearchHit, on: boolean) =>
+    setSelection((current) => {
+      const next = new Map(current);
+      if (on) next.set(hit.project_id, hit);
+      else next.delete(hit.project_id);
+      return next;
+    });
+
+  const openBulkInstall = () =>
+    openModal(BULK_INSTALL_MODAL_ID, {
+      kind,
+      hits: selected,
+      onConfirm: (projectIds) => {
+        setSelection(new Map());
+        void quick.installMany(projectIds);
+      },
+    });
+
+  const itemProps = (hit: ModrinthSearchHit) => ({
+    hit,
+    kind,
+    installed: installedIds.has(hit.project_id),
+    installing: quick.isInstalling(hit.project_id),
+    incompatibleWith: incompatibleWith(hit),
+    onInstall: canInstall ? () => quick.installOne(hit.project_id) : undefined,
+    onDetails: () => openInstall(hit.project_id),
+    selected: selection.has(hit.project_id),
+    onSelect: selectable(hit) ? (on: boolean) => toggleSelected(hit, on) : undefined,
+  });
 
   return (
     // minmax(0) so categories don't stretch the page on mobile
@@ -115,6 +157,12 @@ export function CatalogView({ kind, server, installed, view }: CatalogViewProps)
               ))}
             </SelectContent>
           </Select>
+          {gameVersion && (
+            <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-muted-foreground" title={tc("catalog.showIncompatibleHint", gameVersion)}>
+              <Switch size="sm" checked={showIncompatible} onCheckedChange={setShowIncompatible} />
+              {tc("catalog.showIncompatible")}
+            </label>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-1.5 px-4 py-2.5">
           <ToggleGroup value={[category]} onValueChange={(next) => next[0] && setCategory(next[0])} className="flex-wrap gap-1.5 max-sm:w-full max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:scrollbar-hide max-sm:*:shrink-0">
@@ -136,7 +184,7 @@ export function CatalogView({ kind, server, installed, view }: CatalogViewProps)
           </ToggleGroup>
           <span className="ml-auto text-xs text-muted-foreground">
             {total ? tc("catalog.found", total, hits.length) : tc("catalog.nothing")}
-            {coreLabel && ` · ${tc("catalog.compatibleWith", coreLabel)}`}
+            {coreLabel && !showIncompatible && ` · ${tc("catalog.compatibleWith", coreLabel)}`}
           </span>
         </div>
       </Panel>
@@ -170,14 +218,7 @@ export function CatalogView({ kind, server, installed, view }: CatalogViewProps)
                     </TableHeader>
                     <TableBody>
                       {hits.map((hit) => (
-                        <CatalogRow
-                          key={hit.project_id}
-                          hit={hit}
-                          kind={kind}
-                          installed={installedIds.has(hit.project_id)}
-                          onInstall={canInstall ? () => openInstall(hit.project_id, hit.latest_version) : undefined}
-                          onDetails={() => openInstall(hit.project_id)}
-                        />
+                        <CatalogRow key={hit.project_id} {...itemProps(hit)} />
                       ))}
                     </TableBody>
                   </Table>
@@ -185,14 +226,7 @@ export function CatalogView({ kind, server, installed, view }: CatalogViewProps)
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
                   {hits.map((hit) => (
-                    <CatalogCard
-                      key={hit.project_id}
-                      hit={hit}
-                      kind={kind}
-                      installed={installedIds.has(hit.project_id)}
-                      onInstall={canInstall ? () => openInstall(hit.project_id, hit.latest_version) : undefined}
-                      onDetails={() => openInstall(hit.project_id)}
-                    />
+                    <CatalogCard key={hit.project_id} {...itemProps(hit)} />
                   ))}
                 </div>
               )
@@ -213,6 +247,20 @@ export function CatalogView({ kind, server, installed, view }: CatalogViewProps)
             <p className="text-center text-[12.5px] text-muted-foreground">{t("catalogEnd")}</p>
           )}
         </>
+      )}
+
+      {selected.length > 0 && (
+        <div className="sticky bottom-4 z-20 mx-auto flex max-w-full items-center gap-2 rounded-xl border border-border bg-popover py-2 pr-2 pl-4 shadow-pop">
+          <span className="text-[13px] font-medium whitespace-nowrap tabular-nums">{tc("catalog.selected", selected.length)}</span>
+          <Button variant="ghost" size="sm" onClick={() => setSelection(new Map())}>
+            <X />
+            {tc("catalog.clearSelection")}
+          </Button>
+          <Button size="sm" onClick={openBulkInstall}>
+            <Download />
+            {tc("catalog.installSelected")}
+          </Button>
+        </div>
       )}
     </div>
   );

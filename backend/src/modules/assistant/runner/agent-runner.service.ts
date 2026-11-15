@@ -21,6 +21,10 @@ import { buildSystemPrompt } from "./context-builder";
 export class AgentRunnerService {
   private readonly logger = new Logger(AgentRunnerService.name);
   private readonly active = new Map<string, AbortController>();
+  // Settles when the conversation's current run is over, decisions queue behind it
+  private readonly runs = new Map<string, Promise<void>>();
+  // Calls with a decision waiting for the current run to end
+  private readonly queued = new Set<string>();
   private readonly loop: AgentLoop;
 
   constructor(
@@ -40,6 +44,7 @@ export class AgentRunnerService {
       tools,
       newId: randomUUID,
       now: Date.now,
+      costOf: (usage) => this.settings.costOf(usage),
     });
   }
 
@@ -47,21 +52,41 @@ export class AgentRunnerService {
     return this.active.has(conversationId);
   }
 
-  start(user: IUser, conversation: IAssistantConversation): void {
+  isDecided(callId: string): boolean {
+    return this.queued.has(callId);
+  }
+
+  start(
+    user: IUser,
+    conversation: IAssistantConversation,
+    autoApprove: boolean,
+  ): void {
     this.background(user, conversation.id, (signal, events) =>
-      this.loop.run(this.runOf(user, conversation, signal, events)),
+      this.loop.run(
+        this.runOf(user, conversation, signal, events, autoApprove),
+      ),
     );
   }
 
-  /** Applies the user's decision, then lets the model continue */
+  /** Applies the user's decision, then lets the model continue, waits out a run still in flight */
   decide(
     user: IUser,
     conversation: IAssistantConversation,
     call: StoredToolCall,
     approve: boolean,
+    autoApprove: boolean,
   ): void {
+    const current = this.runs.get(conversation.id);
+    if (current) {
+      this.queued.add(call.id);
+      void current.then(() => {
+        this.queued.delete(call.id);
+        this.decide(user, conversation, call, approve, autoApprove);
+      });
+      return;
+    }
     this.background(user, conversation.id, async (signal, events) => {
-      const run = this.runOf(user, conversation, signal, events);
+      const run = this.runOf(user, conversation, signal, events, autoApprove);
       await this.loop.decide(run, call, approve);
       await this.loop.run(run);
     });
@@ -79,7 +104,7 @@ export class AgentRunnerService {
     const controller = new AbortController();
     this.active.set(conversationId, controller);
     const events = this.events(user.id, conversationId);
-    void work(controller.signal, events)
+    const done = work(controller.signal, events)
       .catch((err) => {
         this.logger.error(`Assistant run failed: ${getErrorMessage(err)}`);
         events.error(getErrorMessage(err));
@@ -87,7 +112,10 @@ export class AgentRunnerService {
       .finally(() => {
         if (this.active.get(conversationId) === controller)
           this.active.delete(conversationId);
+        if (this.runs.get(conversationId) === done)
+          this.runs.delete(conversationId);
       });
+    this.runs.set(conversationId, done);
   }
 
   private runOf(
@@ -95,6 +123,7 @@ export class AgentRunnerService {
     conversation: IAssistantConversation,
     signal: AbortSignal,
     events: LoopEvents,
+    autoApprove: boolean,
   ) {
     const settings = this.settings.get();
     const server = conversation.serverId
@@ -107,6 +136,7 @@ export class AgentRunnerService {
       model: settings.model,
       temperature: settings.temperature,
       maxSteps: settings.maxSteps,
+      autoApprove,
       signal,
       events,
     };

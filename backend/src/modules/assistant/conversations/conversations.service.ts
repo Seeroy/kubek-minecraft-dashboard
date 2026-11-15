@@ -58,7 +58,12 @@ export class ConversationsService {
   /** Stores the user message and starts the model in the background */
   send(
     user: IUser,
-    input: { conversationId?: string; content: string; serverId?: string },
+    input: {
+      conversationId?: string;
+      content: string;
+      serverId?: string;
+      autoApprove?: boolean;
+    },
   ): AssistantSendResult {
     if (!this.settings.isConfigured()) {
       throw new ConflictException({
@@ -86,20 +91,27 @@ export class ConversationsService {
     this.messages.insert(message);
     this.conversations.touch(conversation.id, serverId);
     const current = this.require(user, conversation.id);
-    this.runner.start(user, current);
+    this.runner.start(user, current, input.autoApprove ?? false);
     return {
       conversation: current,
       message: presentMessage(message, this.kindOf),
     };
   }
 
-  confirm(user: IUser, id: string, callId: string, approve: boolean): void {
+  confirm(
+    user: IUser,
+    id: string,
+    callId: string,
+    approve: boolean,
+    autoApprove = false,
+  ): void {
     const conversation = this.require(user, id);
-    if (this.runner.isRunning(id)) throw busy("The assistant is still working");
+    // A run still in flight is fine, the runner queues the decision behind it
     const call = this.messages.findToolCall(id, callId);
     if (!call) throw new NotFoundException("Tool call not found");
-    if (call.status !== "pending") throw busy("This call was already decided");
-    this.runner.decide(user, conversation, call, approve);
+    if (call.status !== "pending" || this.runner.isDecided(callId))
+      throw busy("This call was already decided");
+    this.runner.decide(user, conversation, call, approve, autoApprove);
   }
 
   stop(user: IUser, id: string): void {

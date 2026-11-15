@@ -21,9 +21,6 @@ export const modsTranslations: TranslationDictionary = {
   install: {
     title: "Install mod",
     update: "Update mod",
-    scheduled: "Mod installation scheduled",
-    updateScheduled: "Mod update scheduled",
-    updatesScheduled: (n: number) => `Update scheduled for ${count(n)}`,
   },
   remove: {
     title: "Remove mod",

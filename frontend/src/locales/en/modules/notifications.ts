@@ -43,6 +43,8 @@ export const notificationsTranslations: TranslationDictionary = {
       ready: "ready",
       removeMessage: "The plugin has been removed from the server",
       installMessage: "The plugin has been installed successfully",
+      modRemoveMessage: "The mod has been removed from the server",
+      modInstallMessage: "The mod has been installed successfully",
       failed: "failed",
       failedSuffix: "failed",
       errorMessage:

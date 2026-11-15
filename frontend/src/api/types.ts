@@ -6799,25 +6799,34 @@ export interface components {
             /** @description Kick message */
             reason?: string;
         };
+        AssistantPricingDto: {
+            input: number;
+            output: number;
+        };
         AssistantStatusDto: {
             enabled: boolean;
             configured: boolean;
             model: string | null;
             provider: string | null;
+            local: boolean;
+            pricing: components["schemas"]["AssistantPricingDto"] | null;
+            usdRub: number | null;
         };
         AssistantSettingsViewDto: {
             enabled: boolean;
             /** @enum {string} */
-            preset: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "openai" | "custom";
+            preset: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "deepseek" | "openai" | "custom";
             baseUrl: string;
             model: string;
             temperature: number;
             maxSteps: number;
+            priceInput: number;
+            priceOutput: number;
             apiKey: components["schemas"]["SecretHintDto"];
         };
         AssistantPresetDto: {
             /** @enum {string} */
-            id: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "openai" | "custom";
+            id: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "deepseek" | "openai" | "custom";
             label: string;
             baseUrl: string;
             requiresKey: boolean;
@@ -6831,13 +6840,17 @@ export interface components {
         UpdateAssistantSettingsDto: {
             enabled?: boolean;
             /** @enum {string} */
-            preset?: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "openai" | "custom";
+            preset?: "ollama" | "lmstudio" | "openrouter" | "groq" | "gemini" | "mistral" | "deepseek" | "openai" | "custom";
             baseUrl?: string;
             /** @description Blank or missing keeps the stored key, null clears it */
             apiKey?: string | null;
             model?: string;
             temperature?: number;
             maxSteps?: number;
+            /** @description USD per million prompt tokens, 0 when unknown */
+            priceInput?: number;
+            /** @description USD per million completion tokens, 0 when unknown */
+            priceOutput?: number;
         };
         AssistantConnectionDraftDto: {
             /** @example http://localhost:11434/v1 */
@@ -6865,6 +6878,8 @@ export interface components {
             content: string;
             /** @description Server the user is looking at */
             serverId?: string;
+            /** @description Run write tools without asking the user */
+            autoApprove?: boolean;
         };
         ToolCallDto: {
             id: string;
@@ -6879,6 +6894,11 @@ export interface components {
             /** @description diff, command, properties or summary preview */
             preview: Record<string, never> | null;
         };
+        UsageDto: {
+            promptTokens: number;
+            completionTokens: number;
+            costUsd: number | null;
+        };
         MessageDto: {
             id: string;
             conversationId: string;
@@ -6890,6 +6910,7 @@ export interface components {
             error: string | null;
             toolCalls: components["schemas"]["ToolCallDto"][];
             createdAt: number;
+            usage: components["schemas"]["UsageDto"] | null;
         };
         SendResultDto: {
             conversation: components["schemas"]["ConversationDto"];
@@ -6903,6 +6924,8 @@ export interface components {
         ConfirmToolCallDto: {
             callId: string;
             approve: boolean;
+            /** @description Run write tools without asking the user */
+            autoApprove?: boolean;
         };
     };
     responses: never;

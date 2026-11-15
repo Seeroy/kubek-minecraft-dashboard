@@ -7,6 +7,7 @@ export type AssistantPresetId =
   | "groq"
   | "gemini"
   | "mistral"
+  | "deepseek"
   | "openai"
   | "custom";
 
@@ -30,7 +31,20 @@ export interface AssistantSettings {
   model: string;
   temperature: number;
   maxSteps: number;
+  /** USD per million prompt tokens, 0 when unknown */
+  priceInput: number;
+  /** USD per million completion tokens, 0 when unknown */
+  priceOutput: number;
 }
+
+/** Fixed message errors the run writes, the UI translates them */
+export const ASSISTANT_RUN_ERRORS = {
+  stopped: "Stopped",
+  stepLimit: "Step limit reached, send a message to continue",
+} as const;
+
+/** Allowed tool rounds per answer */
+export const ASSISTANT_STEPS = { min: 1, max: 100, default: 24 } as const;
 
 export interface AssistantSettingsView extends AssistantSettings {
   apiKey: SecretHint;
@@ -60,6 +74,20 @@ export interface AssistantStatus {
   configured: boolean;
   model: string | null;
   provider: string | null;
+  /** Runs on the panel host or the local network, so it costs nothing */
+  local: boolean;
+  /** Configured prices, null when not set */
+  pricing: { input: number; output: number } | null;
+  /** Rubles per dollar from the Central Bank, null when it could not be fetched */
+  usdRub: number | null;
+}
+
+/** Tokens of one model request and what it cost */
+export interface AssistantUsage {
+  promptTokens: number;
+  completionTokens: number;
+  /** Exact cost from the provider or one from the configured prices, null when unknown */
+  costUsd: number | null;
 }
 
 export interface IAssistantConversation {
@@ -119,6 +147,8 @@ export interface IAssistantMessage {
   error: string | null;
   toolCalls: AssistantToolCall[];
   createdAt: number;
+  /** Set on assistant messages when the provider reported usage */
+  usage: AssistantUsage | null;
 }
 
 export interface AssistantConversationDetail {
@@ -130,6 +160,8 @@ export interface AssistantConversationDetail {
 /** Page or entity the user is looking at when sending a message */
 export interface AssistantMessageContext {
   serverId?: string;
+  /** Run write tools without asking */
+  autoApprove?: boolean;
 }
 
 export interface AssistantSendResult {

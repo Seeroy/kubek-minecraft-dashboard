@@ -21,9 +21,6 @@ export const pluginsTranslations: TranslationDictionary = {
   install: {
     title: "Install plugin",
     update: "Update plugin",
-    scheduled: "Plugin installation scheduled",
-    updateScheduled: "Plugin update scheduled",
-    updatesScheduled: (n: number) => `Update scheduled for ${count(n)}`,
   },
   remove: {
     title: "Remove plugin",

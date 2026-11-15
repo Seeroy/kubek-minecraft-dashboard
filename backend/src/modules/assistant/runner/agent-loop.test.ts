@@ -9,7 +9,13 @@ import type {
 } from "../conversations/messages.repository";
 import { toToolSpec } from "../tools/tool-schema";
 import { type AssistantTool, defineTool } from "../tools/tool.types";
-import { AgentLoop, type LoopEvents, STEP_LIMIT, STOPPED } from "./agent-loop";
+import {
+  AgentLoop,
+  type LoopEvents,
+  type LoopPorts,
+  STEP_LIMIT,
+  STOPPED,
+} from "./agent-loop";
 import { DECLINED } from "./history";
 
 const user = testUser("u", { username: "steve", isAdmin: true });
@@ -48,6 +54,7 @@ const answer = (content: string): ChatCompletion => ({
   content,
   toolCalls: [],
   finishReason: "stop",
+  usage: null,
 });
 const callTool = (name: string, args: unknown): ChatCompletion => ({
   content: "",
@@ -59,9 +66,10 @@ const callTool = (name: string, args: unknown): ChatCompletion => ({
     },
   ],
   finishReason: "tool_calls",
+  usage: null,
 });
 
-function harness(replies: Reply[], maxSteps = 8) {
+function harness(replies: Reply[], maxSteps = 8, costOf?: LoopPorts["costOf"]) {
   const store: StoredMessage[] = [
     {
       id: "m0",
@@ -103,6 +111,7 @@ function harness(replies: Reply[], maxSteps = 8) {
     },
     newId: () => `id${++id}`,
     now: () => 1,
+    costOf,
   });
   const events: LoopEvents = {
     delta: (_m, text) => log.push(`delta:${text}`),
@@ -194,6 +203,43 @@ describe("AgentLoop", () => {
       "message:",
       "done:true",
     ]);
+  });
+
+  it("stores the request's usage and cost with the message", async () => {
+    const h = harness(
+      [
+        {
+          ...answer("Hi"),
+          usage: { promptTokens: 1000, completionTokens: 50, costUsd: null },
+        },
+      ],
+      8,
+      (usage) => usage.promptTokens / 1_000_000,
+    );
+    await h.loop.run(h.run);
+    expect(h.store[1].usage).toEqual({
+      promptTokens: 1000,
+      completionTokens: 50,
+      costUsd: 0.001,
+    });
+  });
+
+  it("runs write tools without asking in auto mode", async () => {
+    written.length = 0;
+    const h = harness([callTool("write", { text: "op steve" }), answer("ok")]);
+    await h.loop.run({ ...h.run, autoApprove: true });
+    expect(written).toEqual(["op steve"]);
+    expect(h.log).toEqual([
+      "message:running",
+      "tool:write:done",
+      "delta:ok",
+      "message:",
+      "done:true",
+    ]);
+    expect(h.store[1].toolCalls[0].preview).toEqual({
+      type: "command",
+      command: "op steve",
+    });
   });
 
   it("tells the model when the user declines", async () => {

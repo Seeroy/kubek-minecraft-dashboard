@@ -64,6 +64,8 @@ export const SAMPLE_ASSISTANT_SETTINGS: AssistantSettingsResponse = {
     model: "sample-model-name",
     temperature: 0.4,
     maxSteps: 8,
+    priceInput: 0,
+    priceOutput: 0,
     apiKey: { set: true, hint: null },
   },
   presets: [

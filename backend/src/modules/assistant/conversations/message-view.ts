@@ -37,5 +37,6 @@ export function presentMessage(
     error: message.error,
     toolCalls: message.toolCalls.map((call) => presentToolCall(call, kindOf)),
     createdAt: message.createdAt,
+    usage: message.usage ?? null,
   };
 }

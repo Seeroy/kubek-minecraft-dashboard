@@ -12,6 +12,14 @@ describe("applyEdits", () => {
     ).toEqual({ ok: true, text: "c=2\n" });
   });
 
+  it("matches across line endings and keeps CRLF", () => {
+    expect(
+      applyEdits("a: 1\r\nb: 2\r\n", [
+        { find: "a: 1\nb: 2", replace: "a: 3\nb: 4" },
+      ]),
+    ).toEqual({ ok: true, text: "a: 3\r\nb: 4\r\n" });
+  });
+
   it("rejects a missing match", () => {
     const out = applyEdits("x", [{ find: "y", replace: "z" }]);
     expect(out.ok).toBe(false);

@@ -9,6 +9,8 @@ import { useNotifications } from "./useNotifications";
 /**
  * Notifications for plugin install / update / remove tasks
  */
+const MOD_TASKS = new Set<TaskType>([TaskType.MOD_INSTALL, TaskType.MOD_UPDATE, TaskType.MOD_REMOVE]);
+
 export function usePluginTaskNotifications(registry: NotificationRegistry) {
   const { notify, update, close } = useNotifications();
   const { t } = useLanguageContext();
@@ -22,30 +24,29 @@ export function usePluginTaskNotifications(registry: NotificationRegistry) {
         "Plugin";
 
       const actionLabel =
-        task.type === TaskType.PLUGIN_REMOVE
+        task.type === TaskType.PLUGIN_REMOVE || task.type === TaskType.MOD_REMOVE
           ? t("modules.notifications.tasks.plugin.removing")
-          : task.type === TaskType.PLUGIN_UPDATE
+          : task.type === TaskType.PLUGIN_UPDATE || task.type === TaskType.MOD_UPDATE
             ? t("modules.notifications.tasks.plugin.updating")
             : t("modules.notifications.tasks.plugin.installing");
 
       const successTitle =
-        task.type === TaskType.PLUGIN_REMOVE
+        task.type === TaskType.PLUGIN_REMOVE || task.type === TaskType.MOD_REMOVE
           ? `${pluginName} ${t("modules.notifications.tasks.plugin.removed")}`
           : `${pluginName} ${t("modules.notifications.tasks.plugin.ready")}`;
 
-      const successMessage =
-        task.message ??
-        (task.type === TaskType.PLUGIN_REMOVE
-          ? t("modules.notifications.tasks.plugin.removeMessage")
-          : t("modules.notifications.tasks.plugin.installMessage"));
+      const isMod = MOD_TASKS.has(task.type);
+      const isRemove = task.type === TaskType.PLUGIN_REMOVE || task.type === TaskType.MOD_REMOVE;
+      // task.message comes from the backend in English, so the copy stays local
+      const successMessage = t(
+        `modules.notifications.tasks.plugin.${isMod ? "mod" : ""}${isRemove ? "removeMessage" : "installMessage"}`
+      );
 
       applyTaskNotification(
         task,
         {
           inProgressTitle: `${actionLabel} ${pluginName}`,
-          inProgressMessage:
-            task.message ??
-            `${actionLabel} ${t("modules.notifications.tasks.plugin.viaModrinth")}…`,
+          inProgressMessage: `${actionLabel} ${t("modules.notifications.tasks.plugin.viaModrinth")}`,
           successTitle,
           successMessage,
           // The first-emit failed path and the update-existing failed path use

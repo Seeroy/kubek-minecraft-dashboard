@@ -1,11 +1,13 @@
 import { BackupCreatorService } from "@/modules/backups/backup-creator.service";
 import { BackupsService } from "@/modules/backups/backups.service";
+import { TasksService } from "@/modules/tasks/tasks.service";
 import { Injectable } from "@nestjs/common";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
 import { BackupType } from "@shared/types/backup.types";
 import { AccessArea } from "@shared/access/areas";
 import { z } from "zod";
-import { json, serverArgs, text } from "./tool-args";
+import { awaitTask } from "./task-wait";
+import { json, serverArgs } from "./tool-args";
 import { type AssistantTool, type ToolGroup, defineTool } from "./tool.types";
 
 @Injectable()
@@ -13,6 +15,7 @@ export class BackupsTools implements ToolGroup {
   constructor(
     private readonly backups: BackupsService,
     private readonly creator: BackupCreatorService,
+    private readonly tasks: TasksService,
   ) {}
 
   tools(): AssistantTool[] {
@@ -51,7 +54,7 @@ export class BackupsTools implements ToolGroup {
   private createBackup() {
     return defineTool({
       name: "create_backup",
-      description: "Create a full backup of a server",
+      description: "Create a full backup of a server, returns once the backup is done or failed",
       kind: "write",
       access: [AccessArea.BACKUPS, "write"],
       serverScoped: true,
@@ -72,12 +75,12 @@ export class BackupsTools implements ToolGroup {
           title: `Full backup "${name}"`,
           lines: [],
         }),
-      run: ({ user }, { serverId, name, description }) => {
+      run: ({ user, signal }, { serverId, name, description }) => {
         const { taskId } = this.creator.create(
           { serverId, name, description, type: BackupType.FULL },
           user.id,
         );
-        return Promise.resolve(text(`Backup started, task ${taskId}`));
+        return awaitTask(this.tasks, taskId, `Backup "${name}"`, signal);
       },
       audit: ({ name }) => ({
         action: AuditAction.BACKUP_CREATE,

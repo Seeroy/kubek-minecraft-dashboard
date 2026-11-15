@@ -1,13 +1,14 @@
 "use client";
-import { useNotifications } from "@/modules/notifications";
 import { useServerStore } from "@/modules/server";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
+import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
+import { Toggle } from "@/shared/ui/toggle";
 import type { IAssistantConversation } from "@shared/types/assistant.types";
-import { ArrowUp, Server, Square } from "lucide-react";
+import { ArrowUp, Server, Square, Zap } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 import { useSendMessage, useStopConversation } from "../api/assistant.queries";
+import { useAssistantPanel } from "../lib/panel-store";
 import { useLiveConversation } from "../lib/stream-store";
 
 interface ComposerProps {
@@ -22,25 +23,21 @@ interface ComposerProps {
 
 export function Composer({ conversationId, running, waiting, initialText, onStarted }: ComposerProps) {
   const { t } = useTranslation("modules.assistant.composer");
-  const { notify } = useNotifications();
   const { selectedServer } = useServerStore();
   const live = useLiveConversation(conversationId);
   const [text, setText] = useState(initialText);
   const send = useSendMessage(onStarted);
   const stop = useStopConversation();
+  const autoApprove = useAssistantPanel((s) => s.autoApprove);
+  const setAutoApprove = useAssistantPanel((s) => s.setAutoApprove);
   const busy = (live.running ?? running) || send.isPending;
   const blocked = busy || waiting;
 
   const submit = () => {
     const content = text.trim();
     if (!content || blocked) return;
-    send.mutate(
-      { id: conversationId, content, context: { serverId: selectedServer?.id } },
-      {
-        onSuccess: () => setText(""),
-        onError: (error) => notify({ type: "error", title: getApiErrorMessage(error) }),
-      }
-    );
+    // Errors are toasted by the query client already
+    send.mutate({ id: conversationId, content, context: { serverId: selectedServer?.id, autoApprove } }, { onSuccess: () => setText("") });
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -65,6 +62,17 @@ export function Composer({ conversationId, running, waiting, initialText, onStar
           className="block field-sizing-content max-h-48 min-h-[52px] w-full resize-none bg-transparent px-3.5 pt-3 text-[13px] leading-relaxed outline-none placeholder:text-muted-foreground"
         />
         <div className="flex items-center gap-2 px-2 pb-2">
+          <Toggle
+            size="sm"
+            pressed={autoApprove}
+            onPressedChange={setAutoApprove}
+            aria-label={t("auto")}
+            title={autoApprove ? t("autoOn") : t("autoOff")}
+            className={cn("h-6 gap-1 rounded-md px-2 text-[11.5px]", autoApprove && "bg-warn/14 text-warn hover:bg-warn/20 data-pressed:bg-warn/14 data-pressed:text-warn")}
+          >
+            <Zap className={cn("size-3", autoApprove && "fill-current")} />
+            {t("auto")}
+          </Toggle>
           <span
             className="mr-auto inline-flex min-w-0 items-center gap-1.5 rounded-md bg-subtle px-2 py-1 text-[11.5px] text-muted-foreground"
             title={t("contextHint")}

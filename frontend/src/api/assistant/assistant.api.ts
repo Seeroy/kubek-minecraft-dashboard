@@ -44,8 +44,8 @@ export class AssistantApi {
       json: { content, ...context },
     });
 
-  confirm = async (id: string, callId: string, approve: boolean): Promise<void> => {
-    await this.authHttp.post<void>(`assistant/conversations/${id}/confirm`, { json: { callId, approve } });
+  confirm = async (id: string, callId: string, approve: boolean, autoApprove = false): Promise<void> => {
+    await this.authHttp.post<void>(`assistant/conversations/${id}/confirm`, { json: { callId, approve, autoApprove } });
   };
 
   stop = async (id: string): Promise<void> => {

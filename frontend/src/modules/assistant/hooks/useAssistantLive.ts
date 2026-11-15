@@ -26,8 +26,11 @@ export function useAssistantLive(enabled: boolean) {
       patchConversation(queryClient, conversationId, (detail) => upsertMessage(detail, message));
       assistantStream.settle(conversationId, message.id);
     };
-    const onTool = ({ conversationId, messageId, call }: WsAssistantTool) =>
+    const onTool = ({ conversationId, messageId, call }: WsAssistantTool) => {
       patchConversation(queryClient, conversationId, (detail) => upsertCall(detail, messageId, call));
+      // A decision queued behind the previous run starts after its done event
+      if (call.status === "running") assistantStream.setRunning(conversationId, true);
+    };
     // Refetch once the turn ends, events sent before the cache existed are picked up here
     const onDone = ({ conversationId }: WsAssistantDone) => {
       assistantStream.setRunning(conversationId, false);

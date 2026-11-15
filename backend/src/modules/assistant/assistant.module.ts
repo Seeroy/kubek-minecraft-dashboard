@@ -18,6 +18,7 @@ import { ConversationsService } from "./conversations/conversations.service";
 import { MessagesRepository } from "./conversations/messages.repository";
 import { AgentRunnerService } from "./runner/agent-runner.service";
 import { AssistantProviderService } from "./settings/assistant-provider.service";
+import { ExchangeRateService } from "./settings/exchange-rate.service";
 import { AssistantSettingsService } from "./settings/assistant-settings.service";
 import { BackupsTools } from "./tools/backups.tools";
 import { ConsoleTools } from "./tools/console.tools";
@@ -72,6 +73,7 @@ const GROUPS = [
     ToolRegistryService,
     AssistantSettingsService,
     AssistantProviderService,
+    ExchangeRateService,
     ConversationsRepository,
     MessagesRepository,
     AgentRunnerService,

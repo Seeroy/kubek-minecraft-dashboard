@@ -24,6 +24,7 @@ import {
   Min,
   ValidateIf,
 } from "class-validator";
+import { ASSISTANT_STEPS } from "@shared/types/assistant.types";
 import { PRESET_IDS } from "../llm/presets";
 
 // Local providers live on plain http hosts without a TLD
@@ -92,12 +93,29 @@ export class UpdateAssistantSettingsDto implements AssistantSettingsUpdate {
   @Max(2)
   temperature?: number;
 
-  @ApiPropertyOptional({ minimum: 1, maximum: 20 })
+  @ApiPropertyOptional({
+    minimum: ASSISTANT_STEPS.min,
+    maximum: ASSISTANT_STEPS.max,
+  })
   @IsOptional()
   @IsInt()
-  @Min(1)
-  @Max(20)
+  @Min(ASSISTANT_STEPS.min)
+  @Max(ASSISTANT_STEPS.max)
   maxSteps?: number;
+
+  @ApiPropertyOptional({ minimum: 0, description: "USD per million prompt tokens, 0 when unknown" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(10_000)
+  priceInput?: number;
+
+  @ApiPropertyOptional({ minimum: 0, description: "USD per million completion tokens, 0 when unknown" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(10_000)
+  priceOutput?: number;
 }
 
 export class AssistantPresetDto implements AssistantPreset {
@@ -116,6 +134,8 @@ export class AssistantSettingsViewDto implements AssistantSettingsView {
   @ApiProperty() model!: string;
   @ApiProperty() temperature!: number;
   @ApiProperty() maxSteps!: number;
+  @ApiProperty() priceInput!: number;
+  @ApiProperty() priceOutput!: number;
   @ApiProperty({ type: SecretHintDto }) apiKey!: SecretHintDto;
 }
 
@@ -137,9 +157,18 @@ export class AssistantTestResultDto implements AssistantTestResult {
   @ApiProperty({ type: String, nullable: true }) error!: string | null;
 }
 
+export class AssistantPricingDto {
+  @ApiProperty() input!: number;
+  @ApiProperty() output!: number;
+}
+
 export class AssistantStatusDto implements AssistantStatus {
   @ApiProperty() enabled!: boolean;
   @ApiProperty() configured!: boolean;
   @ApiProperty({ type: String, nullable: true }) model!: string | null;
   @ApiProperty({ type: String, nullable: true }) provider!: string | null;
+  @ApiProperty() local!: boolean;
+  @ApiProperty({ type: AssistantPricingDto, nullable: true })
+  pricing!: AssistantPricingDto | null;
+  @ApiProperty({ type: Number, nullable: true }) usdRub!: number | null;
 }

@@ -43,6 +43,8 @@ export const notificationsTranslations: TranslationDictionary = {
       ready: "готов",
       removeMessage: "Плагин был удален с сервера",
       installMessage: "Плагин был успешно установлен",
+      modRemoveMessage: "Мод был удален с сервера",
+      modInstallMessage: "Мод был успешно установлен",
       failed: "не удалось",
       failedSuffix: "не удалось",
       errorMessage:

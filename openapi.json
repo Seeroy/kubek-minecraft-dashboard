@@ -26189,6 +26189,21 @@
           "name"
         ]
       },
+      "AssistantPricingDto": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "number"
+          },
+          "output": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "input",
+          "output"
+        ]
+      },
       "AssistantStatusDto": {
         "type": "object",
         "properties": {
@@ -26205,13 +26220,32 @@
           "provider": {
             "type": "string",
             "nullable": true
+          },
+          "local": {
+            "type": "boolean"
+          },
+          "pricing": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssistantPricingDto"
+              }
+            ]
+          },
+          "usdRub": {
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
           "enabled",
           "configured",
           "model",
-          "provider"
+          "provider",
+          "local",
+          "pricing",
+          "usdRub"
         ]
       },
       "AssistantSettingsViewDto": {
@@ -26229,6 +26263,7 @@
               "groq",
               "gemini",
               "mistral",
+              "deepseek",
               "openai",
               "custom"
             ]
@@ -26245,6 +26280,12 @@
           "maxSteps": {
             "type": "number"
           },
+          "priceInput": {
+            "type": "number"
+          },
+          "priceOutput": {
+            "type": "number"
+          },
           "apiKey": {
             "$ref": "#/components/schemas/SecretHintDto"
           }
@@ -26256,6 +26297,8 @@
           "model",
           "temperature",
           "maxSteps",
+          "priceInput",
+          "priceOutput",
           "apiKey"
         ]
       },
@@ -26271,6 +26314,7 @@
               "groq",
               "gemini",
               "mistral",
+              "deepseek",
               "openai",
               "custom"
             ]
@@ -26333,6 +26377,7 @@
               "groq",
               "gemini",
               "mistral",
+              "deepseek",
               "openai",
               "custom"
             ]
@@ -26356,7 +26401,17 @@
           "maxSteps": {
             "type": "number",
             "minimum": 1,
-            "maximum": 20
+            "maximum": 100
+          },
+          "priceInput": {
+            "type": "number",
+            "minimum": 0,
+            "description": "USD per million prompt tokens, 0 when unknown"
+          },
+          "priceOutput": {
+            "type": "number",
+            "minimum": 0,
+            "description": "USD per million completion tokens, 0 when unknown"
           }
         }
       },
@@ -26451,6 +26506,10 @@
           "serverId": {
             "type": "string",
             "description": "Server the user is looking at"
+          },
+          "autoApprove": {
+            "type": "boolean",
+            "description": "Run write tools without asking the user"
           }
         },
         "required": [
@@ -26511,6 +26570,26 @@
           "preview"
         ]
       },
+      "UsageDto": {
+        "type": "object",
+        "properties": {
+          "promptTokens": {
+            "type": "number"
+          },
+          "completionTokens": {
+            "type": "number"
+          },
+          "costUsd": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "promptTokens",
+          "completionTokens",
+          "costUsd"
+        ]
+      },
       "MessageDto": {
         "type": "object",
         "properties": {
@@ -26549,6 +26628,15 @@
           },
           "createdAt": {
             "type": "number"
+          },
+          "usage": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsageDto"
+              }
+            ]
           }
         },
         "required": [
@@ -26559,7 +26647,8 @@
           "status",
           "error",
           "toolCalls",
-          "createdAt"
+          "createdAt",
+          "usage"
         ]
       },
       "SendResultDto": {
@@ -26607,6 +26696,10 @@
           },
           "approve": {
             "type": "boolean"
+          },
+          "autoApprove": {
+            "type": "boolean",
+            "description": "Run write tools without asking the user"
           }
         },
         "required": [

@@ -2,6 +2,7 @@ import { SqliteProvider } from "@/modules/database/sqlite.provider";
 import { Injectable } from "@nestjs/common";
 import type {
   AssistantMessageRole,
+  AssistantUsage,
   AssistantToolCallStatus,
   AssistantToolPreview,
 } from "@shared/types/assistant.types";
@@ -24,6 +25,7 @@ export interface StoredMessage {
   error: string | null;
   createdAt: number;
   toolCalls: StoredToolCall[];
+  usage?: AssistantUsage | null;
 }
 
 export type ToolCallPatch = Partial<
@@ -67,6 +69,14 @@ export class MessagesRepository implements IMessagesRepository {
       error: row.error ?? null,
       createdAt: Number(row.createdAt),
       toolCalls: calls.filter((call) => call.messageId === row.id),
+      usage:
+        row.promptTokens == null
+          ? null
+          : {
+              promptTokens: Number(row.promptTokens),
+              completionTokens: Number(row.completionTokens ?? 0),
+              costUsd: row.costUsd == null ? null : Number(row.costUsd),
+            },
     }));
   }
 
@@ -74,8 +84,8 @@ export class MessagesRepository implements IMessagesRepository {
     const db = this.sqlite.connection;
     db.transaction(() => {
       db.prepare(
-        `INSERT INTO assistant_messages (id, conversationId, seq, role, content, error, createdAt)
-        VALUES (?, ?, (SELECT COALESCE(MAX(seq), 0) + 1 FROM assistant_messages WHERE conversationId = ?), ?, ?, ?, ?)`,
+        `INSERT INTO assistant_messages (id, conversationId, seq, role, content, error, createdAt, promptTokens, completionTokens, costUsd)
+        VALUES (?, ?, (SELECT COALESCE(MAX(seq), 0) + 1 FROM assistant_messages WHERE conversationId = ?), ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
         message.id,
         message.conversationId,
@@ -84,6 +94,9 @@ export class MessagesRepository implements IMessagesRepository {
         message.content,
         message.error,
         message.createdAt,
+        message.usage?.promptTokens ?? null,
+        message.usage?.completionTokens ?? null,
+        message.usage?.costUsd ?? null,
       );
       const insertCall = db.prepare(
         `INSERT INTO assistant_tool_calls (id, messageId, position, name, args, status, result, preview)

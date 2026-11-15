@@ -22,9 +22,6 @@ export const modsTranslations: TranslationDictionary = {
   install: {
     title: "Установить мод",
     update: "Обновить мод",
-    scheduled: "Установка мода запланирована",
-    updateScheduled: "Обновление мода запланировано",
-    updatesScheduled: (n: number) => `Запланировано обновление: ${mods(n)}`,
   },
   remove: {
     title: "Удалить мод",

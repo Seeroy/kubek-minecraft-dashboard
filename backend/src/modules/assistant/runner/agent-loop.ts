@@ -1,7 +1,9 @@
+import { ASSISTANT_RUN_ERRORS } from "@shared/types/assistant.types";
 import { getErrorMessage } from "@/core/utils/error";
 import type {
   AssistantToolCall,
   AssistantToolPreview,
+  AssistantUsage,
   IAssistantMessage,
 } from "@shared/types/assistant.types";
 import type { IUser } from "@shared/types/user.types";
@@ -9,6 +11,7 @@ import type {
   ChatCompletion,
   ChatRequest,
   ChatToolSpec,
+  CompletionUsage,
   StreamedToolCall,
 } from "../llm/llm.types";
 import type {
@@ -61,6 +64,8 @@ export interface LoopPorts {
   tools: ToolPort;
   newId(): string;
   now(): number;
+  /** USD for a request, null when the price is unknown */
+  costOf?(usage: CompletionUsage): number | null;
 }
 
 export interface LoopRun {
@@ -70,6 +75,8 @@ export interface LoopRun {
   model: string;
   temperature: number;
   maxSteps: number;
+  /** Write calls run right away instead of waiting for the user */
+  autoApprove?: boolean;
   signal: AbortSignal;
   events: LoopEvents;
 }
@@ -80,8 +87,8 @@ interface PlannedCall {
   args?: unknown;
 }
 
-export const STEP_LIMIT = "Step limit reached, send a message to continue";
-export const STOPPED = "Stopped";
+export const STEP_LIMIT = ASSISTANT_RUN_ERRORS.stepLimit;
+export const STOPPED = ASSISTANT_RUN_ERRORS.stopped;
 
 /** Model, tools, model again, until an answer, a step limit or a write call to confirm */
 export class AgentLoop {
@@ -159,7 +166,9 @@ export class AgentLoop {
 
     const ctx = this.context(run);
     const planned = await Promise.all(
-      completion.toolCalls.map((call) => this.plan(ctx, messageId, call)),
+      completion.toolCalls.map((call) =>
+        this.plan(ctx, messageId, call, run.autoApprove ?? false),
+      ),
     );
     this.save(
       run,
@@ -167,6 +176,11 @@ export class AgentLoop {
       null,
       planned.map((p) => p.stored),
       messageId,
+      completion.usage && {
+        promptTokens: completion.usage.promptTokens,
+        completionTokens: completion.usage.completionTokens,
+        costUsd: this.ports.costOf?.(completion.usage) ?? null,
+      },
     );
     if (!planned.length) return "answered";
 
@@ -189,6 +203,7 @@ export class AgentLoop {
     ctx: ToolContext,
     messageId: string,
     call: StreamedToolCall,
+    autoApprove: boolean,
   ): Promise<PlannedCall> {
     const tool = this.ports.tools.get(call.name);
     const parsed = tool ? parseToolArgs(tool, call.arguments) : null;
@@ -217,7 +232,11 @@ export class AgentLoop {
     try {
       const preview = await this.ports.tools.preview(ctx, tool, parsed.args);
       return {
-        stored: { ...stored, status: "pending", preview },
+        stored: {
+          ...stored,
+          status: autoApprove ? "running" : "pending",
+          preview,
+        },
         tool,
         args: parsed.args,
       };
@@ -255,6 +274,7 @@ export class AgentLoop {
     error: string | null,
     toolCalls: StoredToolCall[],
     id = this.ports.newId(),
+    usage: AssistantUsage | null = null,
   ): void {
     const message: StoredMessage = {
       id,
@@ -264,6 +284,7 @@ export class AgentLoop {
       error,
       createdAt: this.ports.now(),
       toolCalls,
+      usage,
     };
     this.ports.messages.insert(message);
     run.events.message(presentMessage(message, this.kindOf));

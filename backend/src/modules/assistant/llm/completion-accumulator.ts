@@ -1,9 +1,19 @@
-import type { ChatCompletion, StreamedToolCall } from "./llm.types";
+import type {
+  ChatCompletion,
+  CompletionUsage,
+  StreamedToolCall,
+} from "./llm.types";
 
 interface ChunkToolCall {
   index?: number;
   id?: string;
   function?: { name?: string; arguments?: string };
+}
+
+interface ChunkUsage {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  cost?: number;
 }
 
 interface ChunkChoice {
@@ -16,9 +26,19 @@ export class CompletionAccumulator {
   private content = "";
   private finishReason: string | null = null;
   private readonly calls: StreamedToolCall[] = [];
+  private usage: CompletionUsage | null = null;
 
   /** Applies one chunk, returns the text it added */
   push(chunk: unknown): string {
+    // Usage comes in the last chunk, often with no choices at all
+    const usage = (chunk as { usage?: ChunkUsage | null })?.usage;
+    if (usage && typeof usage.prompt_tokens === "number") {
+      this.usage = {
+        promptTokens: usage.prompt_tokens,
+        completionTokens: usage.completion_tokens ?? 0,
+        costUsd: typeof usage.cost === "number" ? usage.cost : null,
+      };
+    }
     const choice = (chunk as { choices?: ChunkChoice[] })?.choices?.[0];
     if (!choice) return "";
     if (choice.finish_reason) this.finishReason = choice.finish_reason;
@@ -33,6 +53,7 @@ export class CompletionAccumulator {
       content: this.content,
       toolCalls: this.calls.filter((call) => call.name),
       finishReason: this.finishReason,
+      usage: this.usage,
     };
   }
 

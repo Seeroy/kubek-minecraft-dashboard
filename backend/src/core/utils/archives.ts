@@ -2,8 +2,8 @@ import { isInside, isRealInside } from "@/core/utils/paths";
 import { BadRequestException, Logger } from "@nestjs/common";
 import compressing from "compressing";
 import fs, { createReadStream, createWriteStream } from "fs";
-import { dirname, join, resolve } from "path";
-import type { Readable } from "stream";
+import { basename, dirname, join, resolve } from "path";
+import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 
 export type ArchiveType = "zip" | "tar" | "tgz";
@@ -191,6 +191,8 @@ export interface PackSource {
   relativePath?: string;
   /** Put folder contents at the archive root */
   ignoreBase?: boolean;
+  /** Plain file that may still be written to, zipped from a live read instead of a size checked one */
+  file?: boolean;
 }
 
 export interface PackOptions {
@@ -200,17 +202,58 @@ export interface PackOptions {
   onProgress?: (writtenBytes: number, totalBytes: number) => void;
 }
 
+// Opens the file only when the zip gets to it, a file gone by then goes in empty
+function liveFile(path: string, onBytes: (bytes: number) => void): Readable {
+  async function* read() {
+    try {
+      for await (const chunk of createReadStream(path)) {
+        onBytes((chunk as Buffer).length);
+        yield chunk as Buffer;
+      }
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    }
+  }
+  return Readable.from(read(), { objectMode: false });
+}
+
 /** Stream the sources into one archive */
 export async function pack(
   sources: PackSource[],
   outputPath: string,
   opts: PackOptions = {},
 ): Promise<void> {
-  const stream =
-    opts.type === "tgz"
-      ? new compressing.tgz.Stream()
-      : new compressing.zip.Stream();
+  const zip = opts.type !== "tgz";
+  const stream = zip
+    ? new compressing.zip.Stream()
+    : new compressing.tgz.Stream();
+  // yazl reports a file that changed size on its ZipFile, which compressing never listens to,
+  // the error went uncaught and the archive hung forever
+  (stream as unknown as { _zipfile?: NodeJS.EventEmitter })._zipfile?.on(
+    "error",
+    (err: Error) => stream.destroy(err),
+  );
+
+  const totalBytes = Math.max(1, opts.totalBytes ?? 0);
+  // Raw bytes read when every source is a live file, archive bytes otherwise
+  const byInput = zip && sources.length > 0 && sources.every((s) => s.file);
+  let read = 0;
+  const onRead = (bytes: number) => {
+    read += bytes;
+    opts.onProgress?.(read, totalBytes);
+  };
+
   for (const source of sources) {
+    if (zip && source.file) {
+      const stat = await fs.promises.stat(source.path).catch(() => null);
+      // compressing types only know fs streams, any readable works
+      stream.addEntry(liveFile(source.path, onRead) as fs.ReadStream, {
+        relativePath: source.relativePath ?? basename(source.path),
+        mtime: stat?.mtime,
+        mode: stat?.mode,
+      } as { relativePath: string });
+      continue;
+    }
     const entryOpts: { relativePath?: string; ignoreBase?: boolean } = {};
     if (source.relativePath !== undefined)
       entryOpts.relativePath = source.relativePath;
@@ -219,9 +262,8 @@ export async function pack(
   }
 
   const onProgress = opts.onProgress;
-  if (onProgress) {
+  if (onProgress && !byInput) {
     // Archive bytes against raw bytes is only an estimate, compression makes it lag
-    const totalBytes = Math.max(1, opts.totalBytes ?? 0);
     let written = 0;
     stream.on("data", (chunk: Buffer) => {
       written += chunk.length;

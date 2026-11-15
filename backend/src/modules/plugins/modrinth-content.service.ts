@@ -108,7 +108,9 @@ export abstract class ModrinthContentService {
   search(dto: SearchPluginsDto): Promise<ModrinthSearchResponse> {
     const facets: string[][] = [[`project_type:${this.config.projectType}`]];
     if (this.config.serverSideRequired) facets.push(["server_side:required"]);
-    if (dto.loader) facets.push([`categories:${dto.loader}`]);
+    // Inner facet arrays are OR, so a project for any of the platforms matches
+    const loaders = dto.loader ? [dto.loader] : this.config.defaultLoaders;
+    facets.push(loaders.map((loader) => `categories:${loader}`));
     dto.categories?.forEach((category) =>
       facets.push([`categories:${category}`]),
     );

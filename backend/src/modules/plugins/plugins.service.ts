@@ -32,7 +32,8 @@ export class PluginsService extends ModrinthContentService {
       loggerName: PluginsService.name,
       projectType: "plugin",
       folder: "plugins",
-      defaultLoaders: ["paper", "spigot", "bukkit"],
+      // Everything a Bukkit family server can load, proxies have no catalog
+      defaultLoaders: ["paper", "spigot", "bukkit", "purpur", "folia"],
       serverSideRequired: true,
       taskTypes: {
         install: TaskType.PLUGIN_INSTALL,

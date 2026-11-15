@@ -10,6 +10,7 @@ import type {
 } from "@shared/types/assistant.types";
 import { AccessArea } from "@shared/access/areas";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { useAssistantPanel } from "../lib/panel-store";
 import { assistantStream } from "../lib/stream-store";
 
 export function useAssistantStatus() {
@@ -70,7 +71,9 @@ export function useSendMessage(onStarted: (conversation: IAssistantConversation)
 
 export function useConfirmCall(conversationId: string) {
   return useMutation({
-    mutationFn: ({ callId, approve }: { callId: string; approve: boolean }) => api.assistant.confirm(conversationId, callId, approve),
+    // The rest of the run follows the auto mode switch
+    mutationFn: ({ callId, approve }: { callId: string; approve: boolean }) =>
+      api.assistant.confirm(conversationId, callId, approve, useAssistantPanel.getState().autoApprove),
     onSuccess: () => assistantStream.setRunning(conversationId, true),
   });
 }

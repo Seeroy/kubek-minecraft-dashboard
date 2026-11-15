@@ -29,6 +29,8 @@ export function useSaveAuditRetention() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (retention: AuditRetention) => api.auditLog.setRetention(retention),
+    // The caller toasts the error with its own title
+    meta: { silent: true },
     // Saving prunes right away, the list and the totals change with it
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.auditLog.all }),
   });

@@ -54,6 +54,8 @@ export function useInstallCompanionMutation(serverId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => api.companion.install(serverId),
+    // The caller toasts the error with its own title
+    meta: { silent: true },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: qk.companion.overview(serverId) });
       void queryClient.invalidateQueries({ queryKey: qk.plugins.installed(serverId) });
@@ -65,6 +67,8 @@ export function useCompanionSettingsMutation(serverId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (patch: Partial<CompanionSettings>) => api.companion.updateSettings(serverId, patch),
+    // The caller toasts the error with its own title
+    meta: { silent: true },
     onSuccess: (settings) =>
       queryClient.setQueryData<CompanionOverview>(qk.companion.overview(serverId), (old) => (old ? { ...old, settings } : old)),
   });
@@ -74,15 +78,17 @@ export function useCompanionMaintenanceMutation(serverId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CompanionMaintenanceRequest) => api.companion.setMaintenance(serverId, data),
+    // The caller toasts the error with its own title
+    meta: { silent: true },
     onSuccess: (maintenance) =>
       queryClient.setQueryData<CompanionOverview>(qk.companion.overview(serverId), (old) => (old ? { ...old, maintenance } : old)),
   });
 }
 
 export function useBroadcastMutation(serverId: string) {
-  return useMutation({ mutationFn: (message: string) => api.companion.broadcast(serverId, message) });
+  return useMutation({ mutationFn: (message: string) => api.companion.broadcast(serverId, message), meta: { silent: true } });
 }
 
 export function useTitleMutation(serverId: string) {
-  return useMutation({ mutationFn: (data: CompanionTitleRequest) => api.companion.title(serverId, data) });
+  return useMutation({ mutationFn: (data: CompanionTitleRequest) => api.companion.title(serverId, data), meta: { silent: true } });
 }

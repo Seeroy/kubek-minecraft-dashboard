@@ -36,6 +36,7 @@ import {
 } from "./dto/assistant-settings.dto";
 import { ASSISTANT_PRESETS } from "./llm/presets";
 import { AssistantProviderService } from "./settings/assistant-provider.service";
+import { ExchangeRateService } from "./settings/exchange-rate.service";
 import { AssistantSettingsService } from "./settings/assistant-settings.service";
 
 @ApiTags("Assistant")
@@ -46,6 +47,7 @@ export class AssistantSettingsController {
   constructor(
     private readonly settings: AssistantSettingsService,
     private readonly provider: AssistantProviderService,
+    private readonly rates: ExchangeRateService,
   ) {}
 
   @Get("status")
@@ -53,8 +55,8 @@ export class AssistantSettingsController {
   @ApiOkResponse({ type: AssistantStatusDto })
   @ApiErrorResponses([401, 403])
   @RequireAccess(AccessArea.ASSISTANT, "read")
-  status(): AssistantStatusDto {
-    return this.settings.status();
+  async status(): Promise<AssistantStatusDto> {
+    return { ...this.settings.status(), usdRub: await this.rates.usdRub() };
   }
 
   @Get("settings")

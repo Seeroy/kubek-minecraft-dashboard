@@ -65,15 +65,21 @@ function RemovePluginModalComponent({ isOpen, onClose, kind, serverId, item, ins
   const pending = removeRecord.isPending || removeFile.isPending;
 
   const remove = async () => {
-    if (manual) await removeFile.mutateAsync();
-    else await removeRecord.mutateAsync({ recordId: item.id, payload: { removeDependants: withDependants } });
+    // Modrinth records report through the task notification, a plain file has no task
+    if (!manual) {
+      removeRecord.mutate({ recordId: item.id, payload: { removeDependants: withDependants } });
+      onClose();
+      return;
+    }
+    await removeFile.mutateAsync();
     notify({ type: "success", title: t("remove.removed", file) });
     onClose();
   };
 
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && !pending && onClose()}>
-      <AlertDialogContent>
+      {/* minmax(0) so a long file name truncates instead of widening the dialog */}
+      <AlertDialogContent className="grid-cols-[minmax(0,1fr)]">
         <AlertDialogHeader>
           <AlertDialogMedia className="tone-red">
             <Trash2 />
@@ -84,9 +90,9 @@ function RemovePluginModalComponent({ isOpen, onClose, kind, serverId, item, ins
 
         <div className="flex items-center gap-3 rounded-md border border-border bg-subtle p-3">
           <ProjectIcon title={name} iconUrl={item.metadata?.iconUrl} category={primaryCategory(item.metadata?.categories)} />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <b className="block truncate font-semibold">{name}</b>
-            <span className="block truncate font-mono text-xs text-muted-foreground">{tc("version", item.version?.versionNumber ?? "—", file)}</span>
+            <span className="block truncate font-mono text-xs text-muted-foreground" title={file}>{tc("version", item.version?.versionNumber ?? "—", file)}</span>
           </div>
         </div>
 

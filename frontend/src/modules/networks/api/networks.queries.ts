@@ -62,6 +62,8 @@ export function useNetworkChangeMutation(networkId: string) {
       }
     },
     onSettled: () => qc.invalidateQueries({ queryKey: qk.networks.all }),
+    // The caller toasts the error with its own title
+    meta: { silent: true },
   });
 }
 
@@ -76,5 +78,7 @@ export function useAddNetworkMemberMutation(networkId: string) {
       return task.result as NetworkChangeResult;
     },
     onSettled: () => qc.invalidateQueries({ queryKey: qk.networks.all }),
+    // The caller toasts the error with its own title
+    meta: { silent: true },
   });
 }

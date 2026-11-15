@@ -2,7 +2,6 @@
 
 import type { ContentKind } from "@/api";
 import type { Server } from "@/modules/server";
-import { useNotifications } from "@/modules/notifications";
 import { useModal } from "@/shared/hooks/useModalsManager";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAccess } from "@/shared/lib/access";
@@ -46,7 +45,6 @@ export function InstalledView({ kind, server, items = [], onOpenCatalog }: Insta
   const { t } = useTranslation(config.i18nNs);
   const { t: tc } = useTranslation("modules.content.installed");
   const { openModal } = useModal();
-  const { notify } = useNotifications();
   const updateMutation = useUpdateContentMutation(kind, server.id);
   const [query, setQuery] = useState("");
   const canUpdate = useAccess([AccessArea.CONTENT, "write"], server.id);
@@ -74,14 +72,11 @@ export function InstalledView({ kind, server, items = [], onOpenCatalog }: Insta
   const openRemove = (item: InstalledPluginView) =>
     openModal(REMOVE_PLUGIN_MODAL_ID, { kind, serverId: server.id, item, installed: items });
 
-  const updateAll = async () => {
-    const results = await Promise.allSettled(
-      updates.map((item) =>
-        updateMutation.mutateAsync({ recordId: item.id, payload: { versionId: item.latestVersion!.id, dependencies: [], reinstall: true } })
-      )
-    );
-    const scheduled = results.filter((result) => result.status === "fulfilled").length;
-    if (scheduled) notify({ type: "success", title: t("install.updatesScheduled", scheduled) });
+  // Each update reports through its own task notification
+  const updateAll = () => {
+    for (const item of updates) {
+      updateMutation.mutate({ recordId: item.id, payload: { versionId: item.latestVersion!.id, dependencies: [], reinstall: true } });
+    }
   };
 
   if (items.length === 0) {
@@ -117,7 +112,7 @@ export function InstalledView({ kind, server, items = [], onOpenCatalog }: Insta
             <span className="text-muted-foreground"> · {updates.map(displayName).join(", ")}</span>
           </span>
           {canUpdate && (
-            <Button size="sm" variant="outline" disabled={updateMutation.isPending} onClick={() => void updateAll()}>
+            <Button size="sm" variant="outline" disabled={updateMutation.isPending} onClick={updateAll}>
               <Download />
               {tc("updateAll")}
             </Button>

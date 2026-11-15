@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { once } from "events";
 import { createWriteStream, promises as fs } from "fs";
 import { basename, dirname } from "path";
 
@@ -153,12 +154,8 @@ export async function download(
           );
         }
         for (const [, hasher] of hashers) hasher.update(value);
-        if (!stream.write(value)) {
-          await new Promise<void>((resolve, reject) => {
-            stream.once("drain", resolve);
-            stream.once("error", reject);
-          });
-        }
+        // events.once drops both listeners, a bare once("error") piled up one per drain
+        if (!stream.write(value)) await once(stream, "drain");
         if (failed.error) throw failed.error;
         onBytes?.(value.byteLength);
         reported += value.byteLength;

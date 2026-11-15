@@ -38,10 +38,18 @@ export interface StreamedToolCall {
   arguments: string;
 }
 
+/** Tokens the provider reported, only OpenRouter adds the cost */
+export interface CompletionUsage {
+  promptTokens: number;
+  completionTokens: number;
+  costUsd: number | null;
+}
+
 export interface ChatCompletion {
   content: string;
   toolCalls: StreamedToolCall[];
   finishReason: string | null;
+  usage: CompletionUsage | null;
 }
 
 export interface LlmConnection {

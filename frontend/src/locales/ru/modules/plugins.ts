@@ -22,9 +22,6 @@ export const pluginsTranslations: TranslationDictionary = {
   install: {
     title: "Установить плагин",
     update: "Обновить плагин",
-    scheduled: "Установка плагина запланирована",
-    updateScheduled: "Обновление плагина запланировано",
-    updatesScheduled: (n: number) => `Запланировано обновление: ${plugins(n)}`,
   },
   remove: {
     title: "Удалить плагин",

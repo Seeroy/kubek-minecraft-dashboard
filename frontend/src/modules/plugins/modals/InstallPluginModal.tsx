@@ -1,7 +1,6 @@
 "use client";
 
 import type { ContentKind } from "@/api";
-import { useNotifications } from "@/modules/notifications";
 import type { Server } from "@/modules/server";
 import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
 import { useThisModal } from "@/shared/hooks/useThisModal";
@@ -12,7 +11,6 @@ import {
   useContentProject,
   useContentProjects,
   useContentVersions,
-  useInstallContentMutation,
   useInstalledContent,
   useUpdateContentMutation,
 } from "@/shared/queries";
@@ -23,7 +21,6 @@ import { DataReveal } from "@/shared/ui/data-reveal";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Plate } from "@/shared/ui/plate";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
 import { AccessArea } from "@shared/access/areas";
 import type { InstalledPluginView, ModrinthVersion } from "@shared/types/plugins";
@@ -31,8 +28,10 @@ import { AlertTriangle, Check, Download, ExternalLink } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { getContentKind } from "../content-kind";
 import { SAMPLE_PROJECT_ICON, SAMPLE_VERSIONS } from "../data/samples";
+import { useQuickInstall } from "../hooks/useQuickInstall";
 import { primaryCategory } from "../lib/installed";
 import { ProjectIcon } from "../ui/ProjectIcon";
+import { pickVersion } from "../utils/pickVersion";
 import { getInstallableDependencies, getMissingDependencies } from "../utils/resolveDependencies";
 
 const VISIBLE_VERSIONS = 5;
@@ -64,16 +63,10 @@ function Section({ title, children }: { title: ReactNode; children: ReactNode })
   );
 }
 
-function pickVersion(versions: ModrinthVersion[], initial: string | undefined, gameVersion: string | undefined) {
-  if (initial && versions.some((v) => v.id === initial)) return initial;
-  return (versions.find((v) => gameVersion && v.game_versions.includes(gameVersion)) ?? versions[0])?.id;
-}
-
 function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId, initialVersionId, record }: InstallPluginModalProps) {
   const config = getContentKind(kind);
   const { t } = useTranslation("modules.content.install");
   const { t: tk } = useTranslation(config.i18nNs);
-  const { notify } = useNotifications();
   const blueprint = useBlueprint(server.blueprintId);
   const gameVersion = server.variables?.GAME_VERSION != null ? String(server.variables.GAME_VERSION) : undefined;
 
@@ -96,29 +89,27 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
   );
   const installedIds = new Set(installed?.map((item) => item.projectId));
 
-  const install = useInstallContentMutation(kind, server.id);
+  const quick = useQuickInstall(kind, server);
   const update = useUpdateContentMutation(kind, server.id);
-  const pending = install.isPending || update.isPending;
   const canInstall = useAccess([AccessArea.CONTENT, "write"], server.id);
 
-  const submit = async () => {
+  // Progress lives in the task notification, no need to keep the dialog open
+  const submit = () => {
     if (!selectedId) return;
     const payload = withDependencies ? dependencies : [];
     if (record) {
-      await update.mutateAsync({
+      update.mutate({
         recordId: record.id,
         payload: { versionId: selectedId, dependencies: payload, reinstall: withDependencies },
       });
-      notify({ type: "success", title: tk("install.updateScheduled") });
     } else {
-      await install.mutateAsync({
+      quick.installOne(projectId, {
         serverId: server.id,
         projectId,
         versionId: selectedId,
         dependencies: payload,
         installDependencies: withDependencies,
       });
-      notify({ type: "success", title: tk("install.scheduled") });
     }
     onClose();
   };
@@ -133,7 +124,7 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
   const data = project.data;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && !pending && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[720px]">
         <DialogHeader className="flex-row items-center gap-3">
           <DataReveal
@@ -186,6 +177,10 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
                                     MC {version.game_versions.at(-1)}
                                   </Badge>
                                 )}
+                                {/* Builds under one number differ by platform, the name and loaders tell them apart */}
+                                <span className="min-w-0 truncate text-xs text-muted-foreground" title={version.files.find((f) => f.primary)?.filename ?? version.files[0]?.filename}>
+                                  {[version.name !== version.version_number && version.name, version.loaders.join(", ")].filter(Boolean).join(" · ")}
+                                </span>
                               </span>
                               <span className="text-xs text-muted-foreground tabular-nums sm:ml-auto sm:shrink-0">
                                 {dateFormat.format(new Date(version.date_published))} · {t("versionDownloads", version.downloads)}
@@ -220,7 +215,7 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
                   {dependencies.length > 0 ? (
                     <>
                       <label className="flex cursor-pointer items-center gap-2.5">
-                        <Switch checked={withDependencies} onCheckedChange={setWithDependencies} disabled={pending} />
+                        <Switch checked={withDependencies} onCheckedChange={setWithDependencies} />
                         {t("installDependencies", dependencies.length)}
                       </label>
                       <div className="flex flex-wrap gap-1.5 pl-11 max-sm:pl-0">
@@ -270,13 +265,13 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
             <span />
           )}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} disabled={pending}>
+            <Button variant="outline" onClick={onClose}>
               {t("cancel")}
             </Button>
             {canInstall && (
-              <Button onClick={() => void submit()} disabled={pending || !selected}>
-                {pending ? <Spinner /> : <Download />}
-                {pending ? (record ? t("updating") : t("installing")) : record ? tk("install.update") : tk("install.title")}
+              <Button onClick={submit} disabled={!selected}>
+                <Download />
+                {record ? tk("install.update") : tk("install.title")}
               </Button>
             )}
           </div>

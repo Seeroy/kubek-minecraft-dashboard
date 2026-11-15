@@ -95,7 +95,7 @@ export class AssistantController {
     @Param("id") id: string,
     @Body() dto: ConfirmToolCallDto,
   ): void {
-    this.conversations.confirm(user, id, dto.callId, dto.approve);
+    this.conversations.confirm(user, id, dto.callId, dto.approve, dto.autoApprove);
   }
 
   @Post(":id/stop")

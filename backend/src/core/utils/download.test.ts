@@ -60,6 +60,33 @@ describe("download", () => {
     expect(progress.at(-1)).toBe(100);
   });
 
+  test("waiting for drain does not pile up error listeners", async () => {
+    const warnings: string[] = [];
+    const onWarning = (warning: Error) => warnings.push(warning.name);
+    process.on("warning", onWarning);
+    // Chunks far above the write buffer force a drain wait on every write
+    const chunk = new Uint8Array(256 * 1024);
+    const chunks = 40;
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (let i = 0; i < chunks; i++) controller.enqueue(chunk);
+        controller.close();
+      },
+    });
+    try {
+      const result = await download({
+        url: "http://x/big.bin",
+        dest: join(dir, "big.bin"),
+        fetchImpl: serve(() => new Response(stream)),
+      });
+      expect(result.bytes).toBe(chunk.byteLength * chunks);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(warnings).not.toContain("MaxListenersExceededWarning");
+    } finally {
+      process.off("warning", onWarning);
+    }
+  });
+
   test("hash mismatch leaves neither dest nor part behind", async () => {
     const dest = join(dir, "bad", "a.jar");
     let bytes = 0;

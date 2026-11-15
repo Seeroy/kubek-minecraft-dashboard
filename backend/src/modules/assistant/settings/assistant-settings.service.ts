@@ -1,3 +1,5 @@
+import type { CompletionUsage } from "../llm/llm.types";
+import { ASSISTANT_STEPS } from "@shared/types/assistant.types";
 import { resolveSecret, secretHint } from "@/core/utils/secrets";
 import { ConfigService } from "@/modules/config/config.service";
 import { Injectable } from "@nestjs/common";
@@ -21,7 +23,9 @@ const DEFAULTS: AssistantSettings = {
   baseUrl: findPreset("ollama").baseUrl,
   model: "",
   temperature: 0.3,
-  maxSteps: 8,
+  maxSteps: ASSISTANT_STEPS.default,
+  priceInput: 0,
+  priceOutput: 0,
 };
 
 /** Panel wide provider settings, kept in config_kv under "assistant" */
@@ -30,9 +34,17 @@ export class AssistantSettingsService {
   constructor(private readonly config: ConfigService) {}
 
   get(): AssistantSettings {
-    const { enabled, preset, baseUrl, model, temperature, maxSteps } =
-      this.stored();
-    return { enabled, preset, baseUrl, model, temperature, maxSteps };
+    const s = this.stored();
+    return {
+      enabled: s.enabled,
+      preset: s.preset,
+      baseUrl: s.baseUrl,
+      model: s.model,
+      temperature: s.temperature,
+      maxSteps: s.maxSteps,
+      priceInput: s.priceInput,
+      priceOutput: s.priceOutput,
+    };
   }
 
   view(): AssistantSettingsView {
@@ -40,15 +52,33 @@ export class AssistantSettingsService {
     return { ...this.get(), apiKey: secretHint(stored.apiKey) };
   }
 
-  status(): AssistantStatus {
+  /** The rate is added by the controller, it needs a network call */
+  status(): Omit<AssistantStatus, "usdRub"> {
     const settings = this.get();
     const configured = this.isConfigured();
+    const priced = settings.priceInput > 0 || settings.priceOutput > 0;
     return {
       enabled: settings.enabled,
       configured,
       model: configured ? settings.model : null,
       provider: configured ? findPreset(settings.preset).label : null,
+      local: findPreset(settings.preset).local,
+      pricing: priced
+        ? { input: settings.priceInput, output: settings.priceOutput }
+        : null,
     };
+  }
+
+  /** Cost of one request, the provider's own figure wins over the configured prices */
+  costOf(usage: CompletionUsage): number | null {
+    if (usage.costUsd !== null) return usage.costUsd;
+    const { preset, priceInput, priceOutput } = this.get();
+    if (findPreset(preset).local) return 0;
+    if (!priceInput && !priceOutput) return null;
+    return (
+      (usage.promptTokens * priceInput + usage.completionTokens * priceOutput) /
+      1_000_000
+    );
   }
 
   isConfigured(): boolean {

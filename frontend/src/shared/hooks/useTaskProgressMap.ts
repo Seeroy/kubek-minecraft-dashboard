@@ -1,4 +1,5 @@
 "use client";
+import { api } from "@/api";
 import { useSocketApi } from "@/shared/context/socket-context";
 import { isTaskActive } from "@/shared/lib/task-status";
 import type { ITask, TaskMeta, TaskType } from "@shared/types/task.types";
@@ -45,6 +46,23 @@ export function useTaskProgressMap<T>(
     });
     onTask?.(task, { active, first });
   });
+
+  // Tasks that started before the page opened only show up on their next tick otherwise
+  useEffect(() => {
+    let cancelled = false;
+    api.tasks
+      .getAll()
+      .then((tasks) => {
+        if (cancelled) return;
+        for (const task of tasks as unknown as ITask[]) if (isTaskActive(task)) handle(task);
+      })
+      .catch(() => {
+        // the socket fills it in on the next tick
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const listener = (task: ITask) => handle(task);

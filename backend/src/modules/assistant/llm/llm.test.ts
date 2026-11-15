@@ -83,6 +83,7 @@ describe("CompletionAccumulator", () => {
       content: "Hi",
       toolCalls: [{ id: "a", name: "read_file", arguments: '{"path":"x"}' }],
       finishReason: "tool_calls",
+      usage: null,
     });
   });
 
@@ -103,6 +104,20 @@ describe("CompletionAccumulator", () => {
       "list_servers",
       "get_server",
     ]);
+  });
+
+  it("reads usage from the last chunk", () => {
+    const acc = new CompletionAccumulator();
+    acc.push({ choices: [{ delta: { content: "x" } }] });
+    acc.push({
+      choices: [],
+      usage: { prompt_tokens: 120, completion_tokens: 8, cost: 0.0004 },
+    });
+    expect(acc.result().usage).toEqual({
+      promptTokens: 120,
+      completionTokens: 8,
+      costUsd: 0.0004,
+    });
   });
 
   it("does not double a repeated name", () => {
@@ -155,6 +170,23 @@ describe("LlmClient", () => {
       "Bearer k",
     );
     expect(JSON.parse(seen!.body as string).stream).toBe(true);
+  });
+
+  it("retries without usage options when the server rejects them", async () => {
+    const bodies: Record<string, unknown>[] = [];
+    const client = new LlmClient({ baseUrl: "http://llm" }, (_url, init) => {
+      bodies.push(JSON.parse(init.body as string) as Record<string, unknown>);
+      return Promise.resolve(
+        bodies.length === 1
+          ? new Response("unknown field stream_options", { status: 400 })
+          : sse({ choices: [{ delta: { content: "ok" } }] }, "[DONE]"),
+      );
+    });
+    const result = await client.stream({ model: "m", messages: [] });
+    expect(result.content).toBe("ok");
+    expect(bodies[0].stream_options).toEqual({ include_usage: true });
+    expect(bodies[0].usage).toBeUndefined();
+    expect(bodies[1].stream_options).toBeUndefined();
   });
 
   it("reports provider errors with their message", async () => {

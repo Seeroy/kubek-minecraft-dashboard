@@ -19,6 +19,7 @@ import { ftpCredentials } from "./018-ftp-credentials";
 import { accessLevels } from "./019-access-levels";
 import { companion } from "./020-companion";
 import { companionFeed } from "./021-companion-feed";
+import { assistantUsage } from "./022-assistant-usage";
 import type { Migration } from "./migration.types";
 
 // Only add new steps at the end, never edit released ones
@@ -156,5 +157,11 @@ export const MIGRATIONS: Migration[] = [
     name: "companion-feed",
     up: companionFeed,
     touches: ["companion_settings", "companion_events"],
+  },
+  {
+    version: 22,
+    name: "assistant-usage",
+    up: assistantUsage,
+    touches: ["assistant_messages"],
   },
 ];

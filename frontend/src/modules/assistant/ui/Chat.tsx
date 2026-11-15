@@ -6,13 +6,16 @@ import { LoadReveal } from "@/shared/ui/data-reveal";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { IAssistantConversation, IAssistantMessage } from "@shared/types/assistant.types";
 import { CircleAlert } from "lucide-react";
-import { useCallback, useLayoutEffect, useRef, type RefObject } from "react";
-import { useConversationQuery } from "../api/assistant.queries";
+import { useCallback, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
+import { useAssistantStatus, useConversationQuery } from "../api/assistant.queries";
+import { useUsageFormat } from "../hooks/useUsageFormat";
+import { estimateNext, totalUsage } from "../lib/usage";
 import { useAssistantPanel } from "../lib/panel-store";
+import { toSegments } from "../lib/segments";
 import { useLiveConversation } from "../lib/stream-store";
 import { Composer } from "./Composer";
 import { Welcome } from "./Welcome";
-import { MessageItem, StreamingText } from "./MessageItem";
+import { SegmentView, StreamingText } from "./MessageItem";
 
 const PINNED_GAP = 80;
 
@@ -60,6 +63,28 @@ function LiveTail({
   );
 }
 
+function UsageFooter({ messages }: { messages: IAssistantMessage[] }) {
+  const { t } = useTranslation("modules.assistant.usage");
+  const pricing = useAssistantStatus().data?.pricing ?? null;
+  const format = useUsageFormat();
+  const total = totalUsage(messages);
+  if (!total) return null;
+  const next = estimateNext(messages, pricing);
+
+  return (
+    <div className="-mt-2 flex flex-wrap justify-center gap-x-1.5 px-4 pb-2 text-[11px] text-muted-foreground tabular-nums">
+      <span title={format.details(total)}>
+        {t("total")}: {format.label(total)}
+      </span>
+      {next && (
+        <span title={t("nextHint")}>
+          · {t("next")} ≈ {format.label(next)}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function Chat({ conversationId }: { conversationId: string | null }) {
   const { t } = useTranslation("modules.assistant.chat");
   const showConversation = useAssistantPanel((s) => s.showConversation);
@@ -68,7 +93,8 @@ export function Chat({ conversationId }: { conversationId: string | null }) {
   const { servers } = useServerStore();
   const detail = useConversationQuery(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const messages = detail.data?.messages ?? [];
+  const messages = useMemo(() => detail.data?.messages ?? [], [detail.data]);
+  const segments = useMemo(() => toSegments(messages), [messages]);
   const onScroll = useStickToBottom(scrollRef, messages);
   const waiting = !!messages.at(-1)?.toolCalls.some((call) => call.status === "pending");
   const serverName = useCallback((id: string | null) => servers.find((s) => s.id === id)?.name, [servers]);
@@ -97,8 +123,8 @@ export function Chat({ conversationId }: { conversationId: string | null }) {
             </div>
           }
         >
-          {messages.map((message) => (
-            <MessageItem key={message.id} message={message} serverName={serverName} />
+          {segments.map((segment) => (
+            <SegmentView key={segment.key} segment={segment} serverName={serverName} />
           ))}
         </LoadReveal>
         <LiveTail conversationId={conversationId} saved={messages} scrollRef={scrollRef} />
@@ -112,6 +138,7 @@ export function Chat({ conversationId }: { conversationId: string | null }) {
         initialText={conversationId ? "" : (prefill ?? "")}
         onStarted={onStarted}
       />
+      <UsageFooter messages={messages} />
     </div>
   );
 }

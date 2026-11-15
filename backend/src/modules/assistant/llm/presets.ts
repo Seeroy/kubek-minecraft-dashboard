@@ -54,6 +54,14 @@ export const ASSISTANT_PRESETS: AssistantPreset[] = [
     local: false,
   },
   {
+    id: "deepseek",
+    label: "DeepSeek",
+    baseUrl: "https://api.deepseek.com",
+    requiresKey: true,
+    modelHint: "deepseek-chat",
+    local: false,
+  },
+  {
     id: "openai",
     label: "OpenAI",
     baseUrl: "https://api.openai.com/v1",

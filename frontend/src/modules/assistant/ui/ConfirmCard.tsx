@@ -1,7 +1,5 @@
 "use client";
-import { useNotifications } from "@/modules/notifications";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { Button } from "@/shared/ui/button";
 import { Plate } from "@/shared/ui/plate";
 import type { AssistantToolCall } from "@shared/types/assistant.types";
@@ -14,11 +12,10 @@ import { ToolPreview } from "./ToolPreview";
 export function ConfirmCard({ conversationId, call, serverName }: { conversationId: string; call: AssistantToolCall; serverName?: string }) {
   const { t } = useTranslation("modules.assistant.confirm");
   const label = useToolLabel();
-  const { notify } = useNotifications();
   const confirm = useConfirmCall(conversationId);
 
-  const decide = (approve: boolean) =>
-    confirm.mutate({ callId: call.id, approve }, { onError: (error) => notify({ type: "error", title: getApiErrorMessage(error) }) });
+  // Errors are toasted by the query client already
+  const decide = (approve: boolean) => confirm.mutate({ callId: call.id, approve });
 
   return (
     <div className="grid animate-pop-in gap-3 rounded-xl border border-tone/30 bg-tone/8 p-3 tone-amber">

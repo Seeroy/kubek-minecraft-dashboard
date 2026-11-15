@@ -333,4 +333,45 @@ describe("pack", () => {
     });
     expect(names).toEqual(["dir/renamed.txt"]);
   });
+
+  test("zips live files whole even if they grew after listing", async () => {
+    const log = join(root, "latest.log");
+    writeFileSync(log, "start\n");
+    const listed = 6;
+    // A running server keeps writing between the file scan and the archive
+    writeFileSync(log, "start\nmore\n");
+    const out = join(root, "live.zip");
+    let read = 0;
+    await pack(
+      [{ path: log, relativePath: "logs/latest.log", file: true }],
+      out,
+      {
+        totalBytes: listed,
+        onProgress: (bytes) => (read = bytes),
+      },
+    );
+    expect(read).toBe(11);
+    const target = join(root, "live");
+    await unpack(out, target);
+    expect(readFileSync(join(target, "logs", "latest.log"), "utf8")).toBe(
+      "start\nmore\n",
+    );
+  });
+
+  test("puts a live file that vanished in empty", async () => {
+    const out = join(root, "gone.zip");
+    await pack(
+      [
+        {
+          path: join(root, "missing.tmp"),
+          relativePath: "missing.tmp",
+          file: true,
+        },
+      ],
+      out,
+    );
+    const target = join(root, "gone");
+    await unpack(out, target);
+    expect(readFileSync(join(target, "missing.tmp"), "utf8")).toBe("");
+  });
 });
