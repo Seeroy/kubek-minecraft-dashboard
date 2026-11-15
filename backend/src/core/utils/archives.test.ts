@@ -358,6 +358,25 @@ describe("pack", () => {
     );
   });
 
+  test("zips many live files without closing the archive early", async () => {
+    const dir = join(root, "many");
+    mkdirSync(dir);
+    const sources = Array.from({ length: 300 }, (_, i) => {
+      writeFileSync(join(dir, `${i}.txt`), String(i));
+      return {
+        path: join(dir, `${i}.txt`),
+        relativePath: `${i}.txt`,
+        file: true,
+      };
+    });
+    const out = join(root, "many.zip");
+    await pack(sources, out);
+    const target = join(root, "many-out");
+    await unpack(out, target);
+    expect(readdirSync(target)).toHaveLength(300);
+    expect(readFileSync(join(target, "299.txt"), "utf8")).toBe("299");
+  });
+
   test("puts a live file that vanished in empty", async () => {
     const out = join(root, "gone.zip");
     await pack(

@@ -243,9 +243,18 @@ export async function pack(
     opts.onProgress?.(read, totalBytes);
   };
 
-  for (const source of sources) {
+  // compressing ends the archive on the first idle tick, so entries go in back to back
+  // with no await in between, stats are gathered up front
+  const stats = await Promise.all(
+    sources.map((source) =>
+      zip && source.file
+        ? fs.promises.stat(source.path).catch(() => null)
+        : null,
+    ),
+  );
+  for (const [i, source] of sources.entries()) {
     if (zip && source.file) {
-      const stat = await fs.promises.stat(source.path).catch(() => null);
+      const stat = stats[i];
       // compressing types only know fs streams, any readable works
       stream.addEntry(liveFile(source.path, onRead) as fs.ReadStream, {
         relativePath: source.relativePath ?? basename(source.path),

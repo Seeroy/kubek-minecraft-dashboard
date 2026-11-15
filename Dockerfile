@@ -40,6 +40,8 @@ WORKDIR /data
 VOLUME ["/data"]
 
 ENV PORT=8000
+# The slim image has no locale, Java would print non ASCII console text as "?"
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 EXPOSE 8000
 
 # The panel stops native servers on SIGTERM, give it time with stop_grace_period

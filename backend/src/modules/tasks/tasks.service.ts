@@ -63,6 +63,8 @@ export class TasksService {
   updateTask(id: string, data: Partial<ITask>): ITask | null {
     const task = this.tasks.get(id);
     if (!task) return null;
+    // Late progress from work that kept going after a failure would announce the end again
+    if (FINISHED.includes(task.status)) return task;
 
     const updated: ITask = { ...task, ...data, updatedAt: Date.now() };
     this.tasks.set(id, updated);

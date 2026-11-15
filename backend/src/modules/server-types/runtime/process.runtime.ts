@@ -1,6 +1,7 @@
 import { killPromise } from "@/core/utils/promiseKill";
 import { ChildProcess, spawn } from "node:child_process";
 import type { LaunchSpec } from "../server-types.types";
+import { withUtf8Locale } from "./locale-env";
 import type { IServerRuntime, StopMethod } from "./runtime.interface";
 
 /**
@@ -68,7 +69,7 @@ export class ProcessRuntime implements IServerRuntime {
     try {
       const proc = Bun.spawn(this.shellArgv(spec.command), {
         cwd: spec.cwd,
-        env: { ...process.env, ...spec.env },
+        env: withUtf8Locale({ ...process.env, ...spec.env }),
         // Keep the cmd.exe command line verbatim so the pre-quoted java path is
         // not re-escaped
         windowsVerbatimArguments: process.platform === "win32",
@@ -109,7 +110,7 @@ export class ProcessRuntime implements IServerRuntime {
     this.child = spawn(spec.command, {
       shell: true,
       cwd: spec.cwd,
-      env: { ...process.env, ...spec.env },
+      env: withUtf8Locale({ ...process.env, ...spec.env }),
     });
     this.child.unref();
     this.child.stdout?.on("data", (chunk: Buffer) =>
