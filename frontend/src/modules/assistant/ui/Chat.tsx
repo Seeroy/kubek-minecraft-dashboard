@@ -72,13 +72,13 @@ function UsageFooter({ messages }: { messages: IAssistantMessage[] }) {
   const next = estimateNext(messages, pricing);
 
   return (
-    <div className="-mt-2 flex flex-wrap justify-center gap-x-1.5 px-4 pb-2 text-[11px] text-muted-foreground tabular-nums">
-      <span title={format.details(total)}>
-        {t("total")}: {format.label(total)}
+    <div className="-mt-2 flex items-center justify-between gap-3 px-4 pb-2 text-[11px] whitespace-nowrap text-muted-foreground tabular-nums">
+      <span className="min-w-0 truncate" title={format.details(total)}>
+        {t("total")} {format.label(total)}
       </span>
       {next && (
-        <span title={t("nextHint")}>
-          · {t("next")} ≈ {format.label(next)}
+        <span className="shrink-0" title={`${t("nextHint")}\n${format.label(next)}`}>
+          {t("next")} ≈ {format.short(next)}
         </span>
       )}
     </div>

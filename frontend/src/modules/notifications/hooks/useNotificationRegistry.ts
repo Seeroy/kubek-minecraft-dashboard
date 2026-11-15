@@ -4,6 +4,9 @@ export interface NotificationRegistry {
   getId: (taskId: string) => string | undefined;
   setId: (taskId: string, notifId: string) => void;
   deleteId: (taskId: string) => void;
+  /** Tasks whose end was already shown, a repeated final event is dropped */
+  markDone: (taskId: string) => void;
+  isDone: (taskId: string) => boolean;
 }
 
 /**
@@ -13,6 +16,7 @@ export interface NotificationRegistry {
  */
 export function useNotificationRegistry(): NotificationRegistry {
   const notificationIds = useRef<Map<string, string>>(new Map());
+  const done = useRef<Set<string>>(new Set());
 
   const getId = useCallback(
     (taskId: string) => notificationIds.current.get(taskId),
@@ -27,5 +31,11 @@ export function useNotificationRegistry(): NotificationRegistry {
     notificationIds.current.delete(taskId);
   }, []);
 
-  return { getId, setId, deleteId };
+  const markDone = useCallback((taskId: string) => {
+    done.current.add(taskId);
+  }, []);
+
+  const isDone = useCallback((taskId: string) => done.current.has(taskId), []);
+
+  return { getId, setId, deleteId, markDone, isDone };
 }

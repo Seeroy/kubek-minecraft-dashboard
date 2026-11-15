@@ -52,7 +52,7 @@ export function ConversationList() {
       className="scrollbar-thin min-h-0 flex-1 overflow-y-auto overscroll-contain"
     >
       {(conversations) => (
-        <ul className="grid content-start gap-0.5 p-2">
+        <ul className="grid grid-cols-[minmax(0,1fr)] content-start gap-0.5 p-2">
           {conversations.map((conversation) => {
             const server = servers.find((s) => s.id === conversation.serverId)?.name;
             return (
@@ -75,7 +75,7 @@ export function ConversationList() {
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  className="mr-1.5 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100"
+                  className="mr-1.5 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
                   aria-label={t("remove")}
                   title={t("remove")}
                   disabled={remove.isPending}

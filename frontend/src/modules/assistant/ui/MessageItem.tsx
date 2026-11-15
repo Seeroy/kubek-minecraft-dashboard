@@ -13,7 +13,9 @@ import { ToolCallGroup } from "./ToolCallCard";
 
 // Shows on hover, always visible where there is no hover
 const COPY_CLASS =
-  "size-6 opacity-0 transition-opacity group-hover/msg:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100";
+  "size-5 opacity-0 transition-opacity group-hover/msg:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100";
+// Sits in the gap under the block so it never adds height
+const COPY_BELOW = "absolute top-full -mt-0.5";
 
 export function UsageLine({ usage, className }: { usage: AssistantUsage | null; className?: string }) {
   const format = useUsageFormat();
@@ -36,21 +38,25 @@ export const SegmentView = memo(function SegmentView({ segment, serverName }: Se
   switch (segment.kind) {
     case "user":
       return (
-        <div className="group/msg ml-10 flex flex-col items-end gap-0.5 self-end">
+        <div className="group/msg relative ml-10 self-end">
           <div className="rounded-xl rounded-br-[5px] bg-primary/10 px-3.5 py-2 text-[13px] leading-relaxed break-words whitespace-pre-wrap">
             {segment.message.content}
           </div>
-          <CopyButton value={segment.message.content} title={t("copy")} className={COPY_CLASS} />
+          <CopyButton value={segment.message.content} title={t("copy")} className={cn(COPY_CLASS, COPY_BELOW, "right-0")} />
         </div>
       );
     case "text":
       return (
-        <div className="group/msg grid gap-1">
+        <div className="group/msg relative grid gap-1">
           <Markdown text={segment.message.content} />
-          <div className="flex min-h-6 items-center gap-1">
-            <UsageLine usage={segment.usage} />
-            <CopyButton value={segment.message.content} title={t("copy")} className={cn(COPY_CLASS, !segment.usage && "-ml-1.5")} />
-          </div>
+          {segment.usage ? (
+            <div className="flex items-center gap-1">
+              <UsageLine usage={segment.usage} />
+              <CopyButton value={segment.message.content} title={t("copy")} className={COPY_CLASS} />
+            </div>
+          ) : (
+            <CopyButton value={segment.message.content} title={t("copy")} className={cn(COPY_CLASS, COPY_BELOW, "-left-1")} />
+          )}
         </div>
       );
     case "calls":

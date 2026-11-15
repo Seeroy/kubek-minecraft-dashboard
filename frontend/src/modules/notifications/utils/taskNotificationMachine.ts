@@ -55,6 +55,12 @@ export function applyTaskNotification(
   const isFailed =
     task.status === TaskStatus.FAILED || task.status === TaskStatus.CANCELLED;
 
+  if (!isRunning) {
+    // One toast per finished task, even if the server repeats the final event
+    if (registry.isDone(task.id)) return;
+    registry.markDone(task.id);
+  }
+
   // First emit while running: create a progress notification and remember it
   if (!existingNotificationId && isRunning) {
     const id = api.notify({

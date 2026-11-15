@@ -36,7 +36,7 @@ function Series({ data, tone, max, gradientId }: AreaSeries & { max: number; gra
   if (data.length === 0) return null
   const pts = points(data, max)
   const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ")
-  const [lastX, lastY] = pts[pts.length - 1]
+  const [lastX] = pts[pts.length - 1]
 
   return (
     <g className={cn(toneClass[tone], "text-tone")}>
@@ -48,8 +48,19 @@ function Series({ data, tone, max, gradientId }: AreaSeries & { max: number; gra
       </defs>
       <path d={`${line} L${lastX} ${H} L0 ${H} Z`} fill={`url(#${gradientId})`} />
       <path d={line} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      <circle cx={lastX} cy={lastY} r={3} fill="currentColor" vectorEffect="non-scaling-stroke" />
     </g>
+  )
+}
+
+// Outside the stretched SVG, a circle in there turns into an oval
+function LastDot({ data, tone, max }: AreaSeries & { max: number }) {
+  const last = points(data, max).at(-1)
+  if (!last) return null
+  return (
+    <span
+      className={cn(toneClass[tone], "pointer-events-none absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-tone")}
+      style={{ left: `${(last[0] / W) * 100}%`, top: `${(last[1] / H) * 100}%` }}
+    />
   )
 }
 
@@ -91,6 +102,9 @@ function AreaChart({ series, max = 100, grid = false, renderTooltip, className }
           <Series key={i} {...s} max={max} gradientId={`${id}-${i}`} />
         ))}
       </svg>
+      {series.map((s, i) => (
+        <LastDot key={i} {...s} max={max} />
+      ))}
       {hover && renderTooltip && (
         <div className="contents" style={{ "--x": `${hover.x}%` } as CSSProperties}>
           <div className="pointer-events-none absolute inset-y-0 left-(--x) w-px bg-foreground/20" />

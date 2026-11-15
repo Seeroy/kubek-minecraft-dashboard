@@ -83,7 +83,7 @@ function ServerFilter({ value, onChange }: { value: string; onChange: (value: st
   const name = (id: string) => (id === ALL ? t("allServers") : (servers.find((s) => s.id === id)?.name ?? id));
   return (
     <Select<string> value={value} onValueChange={(next) => next && onChange(next)}>
-      <SelectTrigger className="w-44" aria-label={t("server")}>
+      <SelectTrigger className="w-44 max-sm:w-[calc(50%-0.25rem)]" aria-label={t("server")}>
         <SelectValue>{name}</SelectValue>
       </SelectTrigger>
       <SelectContent>
@@ -173,7 +173,7 @@ export function AuditLog() {
                 <InputGroupInput value={search} onChange={(e) => filtered(setSearch)(e.target.value)} placeholder={t("filters.search")} />
               </InputGroup>
               <Select<string> value={category} onValueChange={(value) => value && filtered(setCategory)(value)}>
-                <SelectTrigger className="w-44" aria-label={t("filters.category")}>
+                <SelectTrigger className="w-44 max-sm:w-[calc(50%-0.25rem)]" aria-label={t("filters.category")}>
                   <SelectValue>{(value: string) => (value === ALL ? t("filters.allCategories") : t(`categories.${value}`))}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -191,14 +191,15 @@ export function AuditLog() {
                 value={[result]}
                 onValueChange={(next) => next[0] && filtered(setResult)(next[0])}
                 aria-label={t("filters.result")}
+                className="max-sm:w-full"
               >
-                <Toggle variant="segmented" value={ALL}>
+                <Toggle variant="segmented" className="max-sm:flex-1 max-sm:px-1" value={ALL}>
                   {t("filters.all")}
                 </Toggle>
-                <Toggle variant="segmented" value={AuditResult.SUCCESS}>
+                <Toggle variant="segmented" className="max-sm:flex-1 max-sm:px-1" value={AuditResult.SUCCESS}>
                   {t("results.success")}
                 </Toggle>
-                <Toggle variant="segmented" value={AuditResult.FAILED}>
+                <Toggle variant="segmented" className="max-sm:flex-1 max-sm:px-1" value={AuditResult.FAILED}>
                   {t("results.failed")}
                 </Toggle>
               </ToggleGroup>
@@ -207,9 +208,10 @@ export function AuditLog() {
                 value={[period.id]}
                 onValueChange={(next) => next[0] && filtered(setPeriod)({ id: next[0] as Period, from: periodStart(next[0] as Period) })}
                 aria-label={t("filters.period")}
+                className="max-sm:w-full"
               >
                 {PERIODS.map((id) => (
-                  <Toggle key={id} variant="segmented" value={id}>
+                  <Toggle key={id} variant="segmented" className="max-sm:flex-1 max-sm:px-1" value={id}>
                     {t(`filters.periods.${id}`)}
                   </Toggle>
                 ))}

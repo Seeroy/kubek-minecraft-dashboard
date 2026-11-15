@@ -16,7 +16,6 @@ export const extensionsTranslations: TranslationDictionary = {
     installing: "Установка…",
   },
   list: {
-    title: "Установленные",
     filters: {
       all: "Все",
       active: "Активные",

@@ -112,6 +112,20 @@ function ProcessRow({ server, live, stats }: { server: Server; live?: ServerStat
           <StatusDot status={meta.status} />
           {tStatus(meta.status)}
         </span>
+        {/* Narrow tables hide the CPU and RAM columns, the numbers move under the status */}
+        {usage && (
+          <span className="flex gap-1.5 text-[11.5px] text-muted-foreground tabular-nums @2xl/table:hidden">
+            <span>
+              {t("columns.cpu")} {formatCpu(usage)}
+            </span>
+            {memory && (
+              <span className="@xl/table:hidden">
+                · {t("columns.ram")} {memory.used}
+                {t("memoryUnit")}
+              </span>
+            )}
+          </span>
+        )}
       </TableCell>
       <TableCell className="hidden @2xl/table:table-cell">
         {usage ? (

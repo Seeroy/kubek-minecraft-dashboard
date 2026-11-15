@@ -47,11 +47,15 @@ export function FilesPanel({ serverId, files, loading, currentPath, loadedPath, 
   const { t } = useTranslation("modules.files.ui");
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<Scope>("folder");
+  const [searchFocused, setSearchFocused] = useState(false);
   const search = useDebouncedValue(query.trim().toLowerCase(), 200);
   const global = scope === "all" && search.length >= 2;
   const results = useFilesSearch(serverId, search, scope === "all");
   const listRef = useRef<HTMLDivElement>(null);
   useSwapFade(listRef, loadedPath);
+  // The list keeps the old folder until the new one loads, the ".." row has to follow what is on screen
+  const [shownPath, setShownPath] = useState(currentPath);
+  if (loadedPath !== undefined && loadedPath !== shownPath) setShownPath(loadedPath);
 
   const shown = useMemo(() => {
     if (global) return results.data ?? [];
@@ -99,21 +103,36 @@ export function FilesPanel({ serverId, files, loading, currentPath, loadedPath, 
       onDrop={drop.handleDrop}
     >
       <PanelHead className="flex-wrap gap-2 py-2">
-        <InputGroup className="max-w-90 min-w-48 flex-1">
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={scope === "all" ? t("filesList.search.placeholderAll") : t("filesList.searchPlaceholder")}
-            aria-label={t("filesList.searchPlaceholder")}
-          />
-        </InputGroup>
-        <ToggleGroup variant="segmented" value={[scope]} onValueChange={(next) => next[0] && setScope(next[0] as Scope)}>
-          <Toggle variant="segmented" value="folder">{t("filesList.search.scope.folder")}</Toggle>
-          <Toggle variant="segmented" value="all">{t("filesList.search.scope.all")}</Toggle>
-        </ToggleGroup>
+        {/* The scope toggle only matters while searching, so it shows on focus or with a query */}
+        <div
+          className="contents"
+          onFocus={() => setSearchFocused(true)}
+          onBlur={(event) => !event.currentTarget.contains(event.relatedTarget) && setSearchFocused(false)}
+        >
+          <InputGroup className="max-w-90 min-w-48 flex-1">
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={scope === "all" ? t("filesList.search.placeholderAll") : t("filesList.searchPlaceholder")}
+              aria-label={t("filesList.searchPlaceholder")}
+            />
+          </InputGroup>
+          {(searchFocused || query) && (
+            <ToggleGroup
+              variant="segmented"
+              value={[scope]}
+              onValueChange={(next) => next[0] && setScope(next[0] as Scope)}
+              // Keeps focus in the input, otherwise the blur hides the toggle before the click lands
+              onPointerDown={(event) => event.preventDefault()}
+            >
+              <Toggle variant="segmented" value="folder">{t("filesList.search.scope.folder")}</Toggle>
+              <Toggle variant="segmented" value="all">{t("filesList.search.scope.all")}</Toggle>
+            </ToggleGroup>
+          )}
+        </div>
       </PanelHead>
 
       <DataReveal id="files-list" data={shown} loading={loading || (global && results.isLoading)} sample={SAMPLE_FILES}>
@@ -125,7 +144,7 @@ export function FilesPanel({ serverId, files, loading, currentPath, loadedPath, 
               selected={selection.selected}
               onToggle={selection.toggle}
               onSelectMany={selection.selectMany}
-              onGoUp={currentPath && !search ? onGoUp : undefined}
+              onGoUp={shownPath && !search ? onGoUp : undefined}
               pathHint={global ? (file) => parentDir(file.path) : undefined}
               empty={empty}
             />

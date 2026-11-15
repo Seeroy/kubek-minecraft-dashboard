@@ -32,6 +32,7 @@ import { useQuickInstall } from "../hooks/useQuickInstall";
 import { primaryCategory } from "../lib/installed";
 import { ProjectIcon } from "../ui/ProjectIcon";
 import { pickVersion } from "../utils/pickVersion";
+import { loaderName } from "../utils/loaderName";
 import { getInstallableDependencies, getMissingDependencies } from "../utils/resolveDependencies";
 
 const VISIBLE_VERSIONS = 5;
@@ -179,7 +180,7 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
                                 )}
                                 {/* Builds under one number differ by platform, the name and loaders tell them apart */}
                                 <span className="min-w-0 truncate text-xs text-muted-foreground" title={version.files.find((f) => f.primary)?.filename ?? version.files[0]?.filename}>
-                                  {[version.name !== version.version_number && version.name, version.loaders.join(", ")].filter(Boolean).join(" · ")}
+                                  {[version.name !== version.version_number && version.name, version.loaders.map(loaderName).join(", ")].filter(Boolean).join(" · ")}
                                 </span>
                               </span>
                               <span className="text-xs text-muted-foreground tabular-nums sm:ml-auto sm:shrink-0">
@@ -264,7 +265,7 @@ function InstallPluginModalComponent({ isOpen, onClose, kind, server, projectId,
           ) : (
             <span />
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 max-sm:*:flex-1">
             <Button variant="outline" onClick={onClose}>
               {t("cancel")}
             </Button>

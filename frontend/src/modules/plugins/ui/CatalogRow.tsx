@@ -42,9 +42,10 @@ export function CatalogRow({ hit, kind, installed, installing, incompatibleWith,
     <TableRow className="h-[58px] cursor-pointer" data-state={selected ? "selected" : undefined} onClick={onDetails}>
       <TableCell>
         <div className="flex min-w-0 items-center gap-3">
-          {onSelect && (
-            <span className="flex" onClick={(event) => event.stopPropagation()}>
-              <Checkbox checked={selected} onCheckedChange={onSelect} aria-label={t("catalog.select")} />
+          {/* Every row keeps the box so the column lines up, installed ones show it checked */}
+          {onInstall && (
+            <span className="flex" onClick={(event) => event.stopPropagation()} title={installed ? t("catalog.installed") : undefined}>
+              <Checkbox checked={selected || installed} disabled={!onSelect} onCheckedChange={onSelect} aria-label={t("catalog.select")} />
             </span>
           )}
           <ProjectIcon title={hit.title} iconUrl={hit.icon_url} category={primaryCategory(hit.display_categories)} />

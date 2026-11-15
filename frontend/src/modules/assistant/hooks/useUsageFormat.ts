@@ -34,7 +34,10 @@ export function useUsageFormat() {
   const label = (usage: AssistantUsage) =>
     usage.costUsd === null || status?.local ? tokens(usage) : `${tokens(usage)} · ${money(usage.costUsd)}`;
 
+  /** Money alone when it is known, tokens otherwise */
+  const short = (usage: AssistantUsage) => (usage.costUsd === null || status?.local ? tokens(usage) : money(usage.costUsd));
+
   const details = (usage: AssistantUsage) => t("details", exact.format(usage.promptTokens), exact.format(usage.completionTokens));
 
-  return { label, details };
+  return { label, short, details };
 }

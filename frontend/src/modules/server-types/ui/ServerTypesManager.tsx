@@ -99,9 +99,14 @@ export const ServerTypesManager = () => {
       )}
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <ToggleGroup variant="segmented" value={[filter]} onValueChange={(next) => next[0] && setFilter(next[0] as Filter)}>
+        <ToggleGroup
+          variant="segmented"
+          className="max-w-full scrollbar-hide overflow-x-auto"
+          value={[filter]}
+          onValueChange={(next) => next[0] && setFilter(next[0] as Filter)}
+        >
           {FILTERS.map((key) => (
-            <Toggle key={key} variant="segmented" value={key}>
+            <Toggle key={key} variant="segmented" value={key} className="shrink-0">
               {t(`filters.${key}`)}
               <span className="text-[11px] text-muted-foreground tabular-nums">{count(key)}</span>
             </Toggle>

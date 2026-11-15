@@ -11,7 +11,7 @@ import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { FileDropZone } from "@/shared/ui/file-drop-zone";
 import { PageHeader } from "@/shared/ui/page-header";
-import { Panel, PanelActions, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
+import { Panel } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
@@ -141,21 +141,22 @@ export const ExtensionsManager = () => {
         />
       )}
 
-      <Panel>
-        <PanelHead className="flex-wrap py-2">
-          <PanelTitle>{t("list.title")}</PanelTitle>
-          <PanelMeta>{all.length}</PanelMeta>
-          <PanelActions>
-            <ToggleGroup variant="segmented" value={[filter]} onValueChange={(next) => next[0] && setFilter(next[0] as Filter)}>
-              {(Object.keys(FILTERS) as Filter[]).map((key) => (
-                <Toggle key={key} variant="segmented" value={key}>
-                  {t(`list.filters.${key}`)}
-                </Toggle>
-              ))}
-            </ToggleGroup>
-          </PanelActions>
-        </PanelHead>
+      {/* Same filter bar as server types, outside the panel so it never squeezes on mobile */}
+      <ToggleGroup
+        variant="segmented"
+        className="mt-2 max-w-full scrollbar-hide overflow-x-auto"
+        value={[filter]}
+        onValueChange={(next) => next[0] && setFilter(next[0] as Filter)}
+      >
+        {(Object.keys(FILTERS) as Filter[]).map((key) => (
+          <Toggle key={key} variant="segmented" value={key} className="shrink-0">
+            {t(`list.filters.${key}`)}
+            <span className="text-[11px] text-muted-foreground tabular-nums">{all.filter(FILTERS[key]).length}</span>
+          </Toggle>
+        ))}
+      </ToggleGroup>
 
+      <Panel>
         {!extensions.isLoading && shown.length === 0 ? (
           <Empty>
             <EmptyHeader>

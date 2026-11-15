@@ -7,7 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import { Progress } from "@/shared/ui/progress";
 import { Archive, ChevronDown, FilePlus, FolderPlus, Plus, RotateCw, Trash2, Upload, X } from "lucide-react";
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import FilesHint from "./FilesHint";
 
 interface FilesBarProps {
@@ -36,17 +36,28 @@ export function FilesBar(props: FilesBarProps) {
   const { t } = useTranslation("modules.files.ui.files");
   const { open: openModal } = useModal();
   const { breadcrumbParts: parts } = props;
+  const navRef = useRef<HTMLElement>(null);
+
+  // On mobile the trail is one scrolling line, keep the current folder in view
+  useEffect(() => {
+    const nav = navRef.current;
+    if (nav) nav.scrollLeft = nav.scrollWidth;
+  }, [parts]);
 
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
-      <nav aria-label={t("breadcrumb")} className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5">
+      <nav
+        ref={navRef}
+        aria-label={t("breadcrumb")}
+        className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5 max-md:scrollbar-hide max-md:basis-full max-md:flex-nowrap max-md:overflow-x-auto"
+      >
         <button type="button" className={crumb} aria-current={parts.length === 0 ? "page" : undefined} onClick={() => props.onNavigate("")}>
           <ServerAvatar serverId={props.server.id} name={props.server.name} className="size-[18px] rounded-[4px]" />
           <span className="truncate">{props.server.name}</span>
         </button>
         {parts.map((part, index) => (
           <Fragment key={index}>
-            <span aria-hidden className="text-muted-foreground/50">/</span>
+            <span aria-hidden className="shrink-0 text-muted-foreground/50">/</span>
             <button
               type="button"
               className={crumb}

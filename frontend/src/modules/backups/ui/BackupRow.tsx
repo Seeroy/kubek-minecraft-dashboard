@@ -14,6 +14,12 @@ import { dateParts, statusBadge, typeLook } from "../lib/look";
 import { BackupLocations } from "./BackupLocations";
 import { BackupMoreMenu } from "./BackupMoreMenu";
 
+const statusText: Record<BackupStatus, string> = {
+  [BackupStatus.COMPLETED]: "text-success",
+  [BackupStatus.CREATING]: "text-c-blue",
+  [BackupStatus.FAILED]: "text-danger",
+};
+
 interface BackupRowProps {
   backup: Backup;
   live?: BackupProgress;
@@ -53,8 +59,16 @@ export function BackupRow({ backup, live, storages, actions, onOpen }: BackupRow
               <b className="truncate font-semibold">{backup.name}</b>
               <BackupLocations backup={backup} storages={storages} />
             </span>
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="hidden truncate text-xs text-muted-foreground @lg/table:block">
               {backup.description || backup.format?.toUpperCase()}
+            </span>
+            {/* Narrow tables drop the status, date and size columns, so they move under the name */}
+            <span className="block truncate text-xs text-muted-foreground tabular-nums @lg/table:hidden">
+              <span className={statusText[backup.status]}>
+                {creating ? `${Math.round(live?.progress ?? 0)}% · ${t("status.creating")}` : t(`status.${backup.status}`)}
+              </span>
+              {` · ${date} ${time}`}
+              {backup.totalSize ? ` · ${formatBytes(backup.totalSize)}` : ""}
             </span>
           </div>
         </div>
@@ -62,7 +76,7 @@ export function BackupRow({ backup, live, storages, actions, onOpen }: BackupRow
       <TableCell className="hidden @3xl/table:table-cell">
         <Badge variant="secondary">{t(`type.${backup.type}`)}</Badge>
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden @lg/table:table-cell">
         {creating ? (
           <div className="grid gap-1">
             <Meter value={live?.progress ?? 0} tone="blue" aria-label={t("status.creating")} />
@@ -106,7 +120,7 @@ export function BackupRow({ backup, live, storages, actions, onOpen }: BackupRow
             <Button
               variant="ghost"
               size="icon-sm"
-              className="text-c-amber hover:text-c-amber"
+              className="text-c-amber hover:text-c-amber @max-lg/table:hidden"
               disabled={!completed}
               title={t("actions.restore")}
               aria-label={t("actions.restore")}
@@ -120,7 +134,7 @@ export function BackupRow({ backup, live, storages, actions, onOpen }: BackupRow
             <Button
               variant="ghost"
               size="icon-sm"
-              className="hover:bg-danger/10 hover:text-danger"
+              className="hover:bg-danger/10 hover:text-danger @max-lg/table:hidden"
               disabled={creating}
               title={t("actions.delete")}
               aria-label={t("actions.delete")}

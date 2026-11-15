@@ -88,15 +88,21 @@ export function BackupsPanel({ serverId, backups, progress, onCreate }: BackupsP
           </InputGroupAddon>
           <InputGroupInput value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("filters.search")} />
         </InputGroup>
-        <ToggleGroup variant="segmented" value={[status]} onValueChange={(next) => next[0] && setStatus(next[0] as StatusFilter)}>
+        {/* Scrolls sideways on narrow screens instead of spilling out of the panel */}
+        <ToggleGroup
+          variant="segmented"
+          className="scrollbar-hide max-w-full overflow-x-auto"
+          value={[status]}
+          onValueChange={(next) => next[0] && setStatus(next[0] as StatusFilter)}
+        >
           {STATUS_FILTERS.map((key) => (
-            <Toggle key={key} variant="segmented" value={key}>
+            <Toggle key={key} variant="segmented" className="shrink-0" value={key}>
               {t(`filters.status.${key}`)}
             </Toggle>
           ))}
         </ToggleGroup>
         <Select<TypeFilter> value={type} onValueChange={(value) => value && setType(value)}>
-          <SelectTrigger className="ml-auto w-40" aria-label={t("filters.type.label")}>
+          <SelectTrigger className="w-full sm:ml-auto sm:w-40" aria-label={t("filters.type.label")}>
             <SelectValue>{(value: TypeFilter) => (value === "all" ? t("filters.type.all") : t(`type.${value}`))}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -125,11 +131,11 @@ export function BackupsPanel({ serverId, backups, progress, onCreate }: BackupsP
             <TableRow className="hover:bg-transparent">
               <TableHead>{t("headers.name")}</TableHead>
               <TableHead className="hidden w-28 @3xl/table:table-cell">{t("headers.type")}</TableHead>
-              <TableHead className="w-40">{t("headers.status")}</TableHead>
+              <TableHead className="hidden w-40 @lg/table:table-cell">{t("headers.status")}</TableHead>
               <TableHead className="hidden w-32 @3xl/table:table-cell">{t("headers.created")}</TableHead>
               <TableHead className="hidden w-24 text-right @2xl/table:table-cell">{t("headers.size")}</TableHead>
               <TableHead className="hidden w-20 text-right @4xl/table:table-cell">{t("headers.files")}</TableHead>
-              <TableHead className="w-36" />
+              <TableHead className="w-20 @lg/table:w-36" />
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -59,7 +59,15 @@ export function CatalogCard({ hit, kind, installed, installing, incompatibleWith
             {hit.author}
           </span>
         </div>
-        {onSelect && <Checkbox checked={selected} onCheckedChange={onSelect} aria-label={t("catalog.select")} title={t("catalog.select")} />}
+        {onInstall && (
+          <Checkbox
+            checked={selected || installed}
+            disabled={!onSelect}
+            onCheckedChange={onSelect}
+            aria-label={t("catalog.select")}
+            title={installed ? t("catalog.installed") : t("catalog.select")}
+          />
+        )}
       </div>
 
       <p className="line-clamp-2 min-h-[37px] text-[12.5px] leading-normal text-muted-foreground">{hit.description}</p>

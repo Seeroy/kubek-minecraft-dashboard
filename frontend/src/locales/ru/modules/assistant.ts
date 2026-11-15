@@ -50,7 +50,7 @@ export const assistantTranslations: TranslationDictionary = {
     tokens: (n: number, value: string) => `${value} ${plural(n, ["токен", "токена", "токенов"])}`,
     details: (input: string, output: string) => `Вход ${input}, выход ${output} токенов`,
     total: "Всего",
-    next: "следующий запрос",
+    next: "след. запрос",
     nextHint: "Примерно: контекст вырастет на последний ответ, а сам ответ будет как в среднем по чату",
   },
   call: {

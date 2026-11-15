@@ -32,8 +32,8 @@ export function CompanionInstalledRow({ item, canUpdate, removeLabel, onRemove }
     <TableRow className="h-[58px]">
       <TableCell>
         <div className="flex min-w-0 items-center gap-3">
-          <Plate tone="primary" size="lg">
-            <LogoMark size={20} />
+          <Plate tone="primary">
+            <LogoMark size={16} />
           </Plate>
           <div className="min-w-0">
             <b className="block truncate font-semibold">{t("name")}</b>

@@ -151,6 +151,12 @@ export function AuditTable({ items, total, page, pageSize, onPage }: AuditTableP
                       </Plate>
                       <span className="grid min-w-0 leading-tight">
                         <span className="truncate font-medium">{label(entry.action)}</span>
+                        {/* The time and user columns are hidden on narrow tables */}
+                        <span className="truncate text-[11.5px] text-muted-foreground tabular-nums @2xl/table:hidden">
+                          {entry.source === "system" ? t("sources.system") : entry.username}
+                          {" · "}
+                          {formatEntryTime(entry.createdAt, (time) => t("table.today", time))}
+                        </span>
                         {/* The object column is hidden on narrow tables */}
                         <AuditTarget entry={entry} inline className="text-[11.5px] text-muted-foreground @4xl/table:hidden" />
                       </span>

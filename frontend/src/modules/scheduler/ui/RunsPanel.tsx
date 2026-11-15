@@ -44,15 +44,21 @@ export function RunsPanel({ serverId, tasks }: { serverId: string; tasks: ISched
   return (
     <Panel>
       <PanelHead className="flex-wrap gap-2 py-2">
-        <ToggleGroup variant="segmented" value={[status]} onValueChange={(next) => next[0] && setStatus(next[0] as StatusFilter)}>
+        {/* Scrolls sideways on narrow screens instead of spilling out of the panel */}
+        <ToggleGroup
+          variant="segmented"
+          className="scrollbar-hide max-w-full overflow-x-auto"
+          value={[status]}
+          onValueChange={(next) => next[0] && setStatus(next[0] as StatusFilter)}
+        >
           {STATUS_FILTERS.map((key) => (
-            <Toggle key={key} variant="segmented" value={key}>
+            <Toggle key={key} variant="segmented" className="shrink-0" value={key}>
               {key === ALL ? t("runs.allStatuses") : t(`status.${key}`)}
             </Toggle>
           ))}
         </ToggleGroup>
         <Select<string> value={taskId} onValueChange={(value) => value && setTaskId(value)}>
-          <SelectTrigger className="ml-auto w-56" aria-label={t("runs.taskFilter")}>
+          <SelectTrigger className="w-full sm:ml-auto sm:w-56" aria-label={t("runs.taskFilter")}>
             <SelectValue>{(value: string) => (value === ALL ? t("runs.allTasks") : (taskById.get(value)?.name ?? value))}</SelectValue>
           </SelectTrigger>
           <SelectContent>
