@@ -26,6 +26,8 @@ const DEFAULTS: AssistantSettings = {
   maxSteps: ASSISTANT_STEPS.default,
   priceInput: 0,
   priceOutput: 0,
+  priceCache: 0,
+  vision: "auto",
 };
 
 /** Panel wide provider settings, kept in config_kv under "assistant" */
@@ -44,6 +46,8 @@ export class AssistantSettingsService {
       maxSteps: s.maxSteps,
       priceInput: s.priceInput,
       priceOutput: s.priceOutput,
+      priceCache: s.priceCache,
+      vision: s.vision,
     };
   }
 
@@ -53,7 +57,7 @@ export class AssistantSettingsService {
   }
 
   /** The rate is added by the controller, it needs a network call */
-  status(): Omit<AssistantStatus, "usdRub"> {
+  status(): Omit<AssistantStatus, "usdRub" | "capabilities"> {
     const settings = this.get();
     const configured = this.isConfigured();
     const priced = settings.priceInput > 0 || settings.priceOutput > 0;
@@ -64,7 +68,11 @@ export class AssistantSettingsService {
       provider: configured ? findPreset(settings.preset).label : null,
       local: findPreset(settings.preset).local,
       pricing: priced
-        ? { input: settings.priceInput, output: settings.priceOutput }
+        ? {
+            input: settings.priceInput,
+            output: settings.priceOutput,
+            cache: settings.priceCache,
+          }
         : null,
     };
   }
@@ -72,11 +80,14 @@ export class AssistantSettingsService {
   /** Cost of one request, the provider's own figure wins over the configured prices */
   costOf(usage: CompletionUsage): number | null {
     if (usage.costUsd !== null) return usage.costUsd;
-    const { preset, priceInput, priceOutput } = this.get();
+    const { preset, priceInput, priceOutput, priceCache } = this.get();
     if (findPreset(preset).local) return 0;
     if (!priceInput && !priceOutput) return null;
+    const cached = Math.min(usage.cachedTokens, usage.promptTokens);
     return (
-      (usage.promptTokens * priceInput + usage.completionTokens * priceOutput) /
+      ((usage.promptTokens - cached) * priceInput +
+        cached * (priceCache || priceInput) +
+        usage.completionTokens * priceOutput) /
       1_000_000
     );
   }

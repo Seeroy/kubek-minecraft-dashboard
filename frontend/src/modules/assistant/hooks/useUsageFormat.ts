@@ -37,7 +37,10 @@ export function useUsageFormat() {
   /** Money alone when it is known, tokens otherwise */
   const short = (usage: AssistantUsage) => (usage.costUsd === null || status?.local ? tokens(usage) : money(usage.costUsd));
 
-  const details = (usage: AssistantUsage) => t("details", exact.format(usage.promptTokens), exact.format(usage.completionTokens));
+  const details = (usage: AssistantUsage) => {
+    const base = t("details", exact.format(usage.promptTokens), exact.format(usage.completionTokens));
+    return usage.cachedTokens ? `${base}\n${t("cached", exact.format(usage.cachedTokens))}` : base;
+  };
 
   return { label, short, details };
 }

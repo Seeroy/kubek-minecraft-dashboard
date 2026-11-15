@@ -12,6 +12,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  StreamableFile,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -95,7 +96,24 @@ export class AssistantController {
     @Param("id") id: string,
     @Body() dto: ConfirmToolCallDto,
   ): void {
-    this.conversations.confirm(user, id, dto.callId, dto.approve, dto.autoApprove);
+    const { callId, approve, ...options } = dto;
+    this.conversations.confirm(user, id, callId, approve, options);
+  }
+
+  @Get(":id/attachments/:attachmentId")
+  @ApiOperation({ summary: "File the user attached to a message" })
+  @ApiOkResponse({ description: "Raw file with its own content type" })
+  @ApiErrorResponses([401, 403, 404])
+  attachment(
+    @CurrentUser() user: IUser,
+    @Param("id") id: string,
+    @Param("attachmentId") attachmentId: string,
+  ): StreamableFile {
+    const file = this.conversations.attachment(user, id, attachmentId);
+    return new StreamableFile(file.data, {
+      type: file.mime,
+      length: file.data.length,
+    });
   }
 
   @Post(":id/stop")

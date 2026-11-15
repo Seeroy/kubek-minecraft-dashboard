@@ -20,6 +20,8 @@ import { accessLevels } from "./019-access-levels";
 import { companion } from "./020-companion";
 import { companionFeed } from "./021-companion-feed";
 import { assistantUsage } from "./022-assistant-usage";
+import { assistantAttachments } from "./023-assistant-attachments";
+import { assistantCachedTokens } from "./024-assistant-cached-tokens";
 import type { Migration } from "./migration.types";
 
 // Only add new steps at the end, never edit released ones
@@ -162,6 +164,18 @@ export const MIGRATIONS: Migration[] = [
     version: 22,
     name: "assistant-usage",
     up: assistantUsage,
+    touches: ["assistant_messages"],
+  },
+  {
+    version: 23,
+    name: "assistant-attachments",
+    up: assistantAttachments,
+    touches: ["assistant_messages", "assistant_attachments"],
+  },
+  {
+    version: 24,
+    name: "assistant-cached-tokens",
+    up: assistantCachedTokens,
     touches: ["assistant_messages"],
   },
 ];

@@ -21,7 +21,8 @@ export function useAssistantLive(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) return;
-    const onDelta = ({ conversationId, messageId, text }: WsAssistantDelta) => assistantStream.append(conversationId, messageId, text);
+    const onDelta = ({ conversationId, messageId, text, channel }: WsAssistantDelta) =>
+      assistantStream.append(conversationId, messageId, text, channel);
     const onMessage = ({ conversationId, message }: WsAssistantMessage) => {
       patchConversation(queryClient, conversationId, (detail) => upsertMessage(detail, message));
       assistantStream.settle(conversationId, message.id);

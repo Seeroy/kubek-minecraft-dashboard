@@ -2,6 +2,7 @@ import { api } from "@/api";
 import { qk } from "@/shared/queries/query-keys";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import type {
+  AssistantAttachmentInput,
   AssistantConversationDetail,
   AssistantMessageContext,
   AssistantToolCall,
@@ -10,7 +11,7 @@ import type {
 } from "@shared/types/assistant.types";
 import { AccessArea } from "@shared/access/areas";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { useAssistantPanel } from "../lib/panel-store";
+import { runOptions } from "../lib/panel-store";
 import { assistantStream } from "../lib/stream-store";
 
 export function useAssistantStatus() {
@@ -56,8 +57,17 @@ export const upsertCall = (detail: AssistantConversationDetail, messageId: strin
 export function useSendMessage(onStarted: (conversation: IAssistantConversation) => void) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, content, context }: { id: string | null; content: string; context: AssistantMessageContext }) =>
-      api.assistant.send(id, content, context),
+    mutationFn: ({
+      id,
+      content,
+      context,
+      attachments,
+    }: {
+      id: string | null;
+      content: string;
+      context: AssistantMessageContext;
+      attachments?: AssistantAttachmentInput[];
+    }) => api.assistant.send(id, content, { ...context, ...runOptions() }, attachments),
     onSuccess: ({ conversation, message }, { id }) => {
       assistantStream.setRunning(conversation.id, true);
       if (id) patchConversation(queryClient, id, (detail) => upsertMessage({ ...detail, conversation }, message));
@@ -71,9 +81,9 @@ export function useSendMessage(onStarted: (conversation: IAssistantConversation)
 
 export function useConfirmCall(conversationId: string) {
   return useMutation({
-    // The rest of the run follows the auto mode switch
+    // The rest of the run follows the composer switches
     mutationFn: ({ callId, approve }: { callId: string; approve: boolean }) =>
-      api.assistant.confirm(conversationId, callId, approve, useAssistantPanel.getState().autoApprove),
+      api.assistant.confirm(conversationId, callId, approve, runOptions()),
     onSuccess: () => assistantStream.setRunning(conversationId, true),
   });
 }
@@ -91,4 +101,15 @@ export function useDeleteConversation() {
       queryClient.removeQueries({ queryKey: qk.assistant.conversation(id) });
     },
   });
+}
+
+/** Object URL of an attached file, img tags cannot send the session token themselves */
+export function useAttachmentUrl(conversationId: string, attachmentId: string) {
+  return useQuery({
+    queryKey: [...qk.assistant.conversation(conversationId), "attachment", attachmentId],
+    queryFn: async () => URL.createObjectURL(await api.assistant.attachment(conversationId, attachmentId)),
+    // Kept for the session, so the URL is made once and never revoked while shown
+    staleTime: Infinity,
+    gcTime: Infinity,
+  }).data;
 }

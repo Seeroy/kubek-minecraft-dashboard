@@ -1,11 +1,22 @@
 import { SqliteProvider } from "@/modules/database/sqlite.provider";
 import { Injectable } from "@nestjs/common";
 import type {
+  AssistantAttachmentKind,
   AssistantMessageRole,
+  AssistantSource,
   AssistantUsage,
   AssistantToolCallStatus,
   AssistantToolPreview,
 } from "@shared/types/assistant.types";
+import type { ReasoningReplay } from "../llm/llm.types";
+
+export interface StoredAttachment {
+  id: string;
+  kind: AssistantAttachmentKind;
+  name: string;
+  mime: string;
+  data: Buffer;
+}
 
 export interface StoredToolCall {
   id: string;
@@ -26,6 +37,12 @@ export interface StoredMessage {
   createdAt: number;
   toolCalls: StoredToolCall[];
   usage?: AssistantUsage | null;
+  attachments?: StoredAttachment[];
+  reasoning?: string | null;
+  reasoningMs?: number | null;
+  /** Provider reasoning fields sent back with this message on later requests */
+  replay?: ReasoningReplay | null;
+  sources?: AssistantSource[];
 }
 
 export type ToolCallPatch = Partial<
@@ -40,7 +57,20 @@ export abstract class IMessagesRepository {
     callId: string,
   ): StoredToolCall | null;
   abstract updateToolCall(id: string, patch: ToolCallPatch): void;
+  abstract findAttachment(
+    conversationId: string,
+    id: string,
+  ): StoredAttachment | null;
 }
+
+const parseJson = <T>(value: unknown, fallback: T): T => {
+  if (typeof value !== "string" || !value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+};
 
 @Injectable()
 export class MessagesRepository implements IMessagesRepository {
@@ -61,6 +91,13 @@ export class MessagesRepository implements IMessagesRepository {
       )
       .all(conversationId)
       .map((row) => this.deserializeCall(row));
+    const attachments = db
+      .query(
+        `SELECT a.* FROM assistant_attachments a
+        JOIN assistant_messages m ON m.id = a.messageId
+        WHERE m.conversationId = ? ORDER BY m.seq, a.position`,
+      )
+      .all(conversationId) as any[];
     return messages.map((row: any) => ({
       id: String(row.id),
       conversationId: String(row.conversationId),
@@ -75,8 +112,16 @@ export class MessagesRepository implements IMessagesRepository {
           : {
               promptTokens: Number(row.promptTokens),
               completionTokens: Number(row.completionTokens ?? 0),
+              cachedTokens: Number(row.cachedTokens ?? 0),
               costUsd: row.costUsd == null ? null : Number(row.costUsd),
             },
+      attachments: attachments
+        .filter((item) => item.messageId === row.id)
+        .map((item) => this.deserializeAttachment(item)),
+      reasoning: row.reasoning ?? null,
+      reasoningMs: row.reasoningMs == null ? null : Number(row.reasoningMs),
+      replay: parseJson<ReasoningReplay | null>(row.replay, null),
+      sources: parseJson(row.sources, []),
     }));
   }
 
@@ -84,8 +129,8 @@ export class MessagesRepository implements IMessagesRepository {
     const db = this.sqlite.connection;
     db.transaction(() => {
       db.prepare(
-        `INSERT INTO assistant_messages (id, conversationId, seq, role, content, error, createdAt, promptTokens, completionTokens, costUsd)
-        VALUES (?, ?, (SELECT COALESCE(MAX(seq), 0) + 1 FROM assistant_messages WHERE conversationId = ?), ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO assistant_messages (id, conversationId, seq, role, content, error, createdAt, promptTokens, completionTokens, cachedTokens, costUsd, reasoning, reasoningMs, replay, sources)
+        VALUES (?, ?, (SELECT COALESCE(MAX(seq), 0) + 1 FROM assistant_messages WHERE conversationId = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
         message.id,
         message.conversationId,
@@ -96,7 +141,27 @@ export class MessagesRepository implements IMessagesRepository {
         message.createdAt,
         message.usage?.promptTokens ?? null,
         message.usage?.completionTokens ?? null,
+        message.usage?.cachedTokens ?? null,
         message.usage?.costUsd ?? null,
+        message.reasoning || null,
+        message.reasoningMs ?? null,
+        message.replay ? JSON.stringify(message.replay) : null,
+        message.sources?.length ? JSON.stringify(message.sources) : null,
+      );
+      const insertAttachment = db.prepare(
+        `INSERT INTO assistant_attachments (id, messageId, position, kind, name, mime, data)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      );
+      (message.attachments ?? []).forEach((file, position) =>
+        insertAttachment.run(
+          file.id,
+          message.id,
+          position,
+          file.kind,
+          file.name,
+          file.mime,
+          file.data,
+        ),
       );
       const insertCall = db.prepare(
         `INSERT INTO assistant_tool_calls (id, messageId, position, name, args, status, result, preview)
@@ -128,6 +193,17 @@ export class MessagesRepository implements IMessagesRepository {
     return row ? this.deserializeCall(row) : null;
   }
 
+  findAttachment(conversationId: string, id: string): StoredAttachment | null {
+    const row = this.sqlite.connection
+      .query(
+        `SELECT a.* FROM assistant_attachments a
+        JOIN assistant_messages m ON m.id = a.messageId
+        WHERE m.conversationId = ? AND a.id = ?`,
+      )
+      .get(conversationId, id);
+    return row ? this.deserializeAttachment(row) : null;
+  }
+
   updateToolCall(id: string, patch: ToolCallPatch): void {
     const sets: string[] = [];
     const values: (string | null)[] = [];
@@ -149,6 +225,16 @@ export class MessagesRepository implements IMessagesRepository {
         `UPDATE assistant_tool_calls SET ${sets.join(", ")} WHERE id = ?`,
       )
       .run(...values, id);
+  }
+
+  private deserializeAttachment(row: any): StoredAttachment {
+    return {
+      id: String(row.id),
+      kind: row.kind as AssistantAttachmentKind,
+      name: String(row.name),
+      mime: String(row.mime),
+      data: Buffer.from(row.data as Uint8Array),
+    };
   }
 
   private deserializeCall(row: any): StoredToolCall {

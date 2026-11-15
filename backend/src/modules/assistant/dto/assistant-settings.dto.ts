@@ -10,6 +10,7 @@ import type {
   AssistantConnectionDraft,
   AssistantPresetId,
   AssistantSettingsUpdate,
+  AssistantVisionMode,
 } from "@shared/types/assistant.types";
 import {
   IsBoolean,
@@ -26,6 +27,8 @@ import {
 } from "class-validator";
 import { ASSISTANT_STEPS } from "@shared/types/assistant.types";
 import { PRESET_IDS } from "../llm/presets";
+
+const VISION_MODES: AssistantVisionMode[] = ["auto", "on", "off"];
 
 // Local providers live on plain http hosts without a TLD
 const URL_RULES = {
@@ -116,6 +119,21 @@ export class UpdateAssistantSettingsDto implements AssistantSettingsUpdate {
   @Min(0)
   @Max(10_000)
   priceOutput?: number;
+
+  @ApiPropertyOptional({ minimum: 0, description: "USD per million cached prompt tokens, 0 bills them as input" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(10_000)
+  priceCache?: number;
+
+  @ApiPropertyOptional({
+    enum: VISION_MODES,
+    description: "Whether the model reads images, auto trusts the model list",
+  })
+  @IsOptional()
+  @IsIn(VISION_MODES)
+  vision?: AssistantVisionMode;
 }
 
 export class AssistantPresetDto implements AssistantPreset {
@@ -136,6 +154,8 @@ export class AssistantSettingsViewDto implements AssistantSettingsView {
   @ApiProperty() maxSteps!: number;
   @ApiProperty() priceInput!: number;
   @ApiProperty() priceOutput!: number;
+  @ApiProperty() priceCache!: number;
+  @ApiProperty({ enum: VISION_MODES }) vision!: AssistantVisionMode;
   @ApiProperty({ type: SecretHintDto }) apiKey!: SecretHintDto;
 }
 
@@ -147,8 +167,14 @@ export class AssistantSettingsResponseDto {
   presets!: AssistantPresetDto[];
 }
 
+export class AssistantModelInfoDto {
+  @ApiProperty() id!: string;
+  @ApiProperty({ type: String, nullable: true }) name!: string | null;
+}
+
 export class AssistantModelsDto {
-  @ApiProperty({ type: [String] }) models!: string[];
+  @ApiProperty({ type: [AssistantModelInfoDto] })
+  models!: AssistantModelInfoDto[];
 }
 
 export class AssistantTestResultDto implements AssistantTestResult {
@@ -160,6 +186,13 @@ export class AssistantTestResultDto implements AssistantTestResult {
 export class AssistantPricingDto {
   @ApiProperty() input!: number;
   @ApiProperty() output!: number;
+  @ApiProperty() cache!: number;
+}
+
+export class AssistantCapabilitiesDto {
+  @ApiProperty({ type: Boolean, nullable: true }) vision!: boolean | null;
+  @ApiProperty({ type: Boolean, nullable: true }) reasoning!: boolean | null;
+  @ApiProperty() webSearch!: boolean;
 }
 
 export class AssistantStatusDto implements AssistantStatus {
@@ -171,4 +204,6 @@ export class AssistantStatusDto implements AssistantStatus {
   @ApiProperty({ type: AssistantPricingDto, nullable: true })
   pricing!: AssistantPricingDto | null;
   @ApiProperty({ type: Number, nullable: true }) usdRub!: number | null;
+  @ApiProperty({ type: AssistantCapabilitiesDto })
+  capabilities!: AssistantCapabilitiesDto;
 }

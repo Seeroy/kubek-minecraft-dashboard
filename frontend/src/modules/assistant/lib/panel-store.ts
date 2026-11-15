@@ -1,3 +1,4 @@
+import { ASSISTANT_REASONING_LEVELS, type AssistantReasoningLevel } from "@shared/types/assistant.types";
 import { create } from "zustand";
 
 interface PanelState {
@@ -15,6 +16,11 @@ interface PanelState {
   /** Write tools run without asking, remembered across visits */
   autoApprove: boolean;
   setAutoApprove: (on: boolean) => void;
+  /** Composer switches, remembered across visits */
+  reasoning: AssistantReasoningLevel;
+  setReasoning: (level: AssistantReasoningLevel) => void;
+  webSearch: boolean;
+  setWebSearch: (on: boolean) => void;
   setOpen: (open: boolean) => void;
   showConversation: (id: string | null) => void;
   showList: () => void;
@@ -22,6 +28,8 @@ interface PanelState {
 
 const WIDTH_KEY = "assistant_panel_width";
 const AUTO_KEY = "assistant_auto_approve";
+const REASONING_KEY = "assistant_reasoning";
+const WEB_KEY = "assistant_web_search";
 
 const read = (key: string) => {
   try {
@@ -46,6 +54,11 @@ export const clampPanelWidth = (width: number) => {
   return Math.round(Math.max(PANEL_WIDTH.min, Math.min(max, width)));
 };
 
+const storedReasoning = (): AssistantReasoningLevel => {
+  const value = read(REASONING_KEY) as AssistantReasoningLevel | null;
+  return value && ASSISTANT_REASONING_LEVELS.includes(value) ? value : "auto";
+};
+
 const storedWidth = () => {
   const value = Number(read(WIDTH_KEY));
   return value ? clampPanelWidth(value) : PANEL_WIDTH.initial;
@@ -63,6 +76,16 @@ export const useAssistantPanel = create<PanelState>((set) => ({
     set({ autoApprove });
     write(AUTO_KEY, autoApprove ? "1" : "0");
   },
+  reasoning: typeof window === "undefined" ? "auto" : storedReasoning(),
+  setReasoning: (reasoning) => {
+    set({ reasoning });
+    write(REASONING_KEY, reasoning);
+  },
+  webSearch: typeof window !== "undefined" && read(WEB_KEY) === "1",
+  setWebSearch: (webSearch) => {
+    set({ webSearch });
+    write(WEB_KEY, webSearch ? "1" : "0");
+  },
   open: false,
   conversationId: null,
   view: "chat",
@@ -76,4 +99,10 @@ export const useAssistantPanel = create<PanelState>((set) => ({
 /** Opens a fresh chat with a ready prompt, the user still sends it */
 export function openAssistantWith(prompt: string) {
   useAssistantPanel.setState((state) => ({ open: true, view: "chat", conversationId: null, prefill: prompt, prefillKey: state.prefillKey + 1 }));
+}
+
+/** Run switches sent with a message and with every decision that resumes the run */
+export function runOptions() {
+  const { autoApprove, reasoning, webSearch } = useAssistantPanel.getState();
+  return { autoApprove, reasoning, webSearch };
 }

@@ -5,6 +5,7 @@ type Billed = { usage: AssistantUsage | null };
 
 export type ChatSegment =
   | { kind: "user"; key: string; message: IAssistantMessage }
+  | { kind: "reasoning"; key: string; text: string; ms: number | null }
   | ({ kind: "text"; key: string; message: IAssistantMessage } & Billed)
   | ({ kind: "calls"; key: string; calls: AssistantToolCall[] } & Billed)
   | { kind: "confirm"; key: string; message: IAssistantMessage; call: AssistantToolCall }
@@ -20,6 +21,7 @@ export function toSegments(messages: IAssistantMessage[]): ChatSegment[] {
     }
     // The request's cost goes under the last block this message produced
     let billed: Billed | null = null;
+    if (message.reasoning) out.push({ kind: "reasoning", key: `${message.id}:reasoning`, text: message.reasoning, ms: message.reasoningMs });
     if (message.content) {
       const text: ChatSegment = { kind: "text", key: message.id, message, usage: null };
       out.push(text);

@@ -27,6 +27,15 @@ function setup(blockFirstRun = true) {
     } as never,
     { findById: () => null } as never,
     { emitToRoom: () => {} } as never,
+    {
+      resolve: async () => ({
+        kind: "generic",
+        vision: null,
+        reasoning: null,
+        reasoningMandatory: false,
+        webSearch: false,
+      }),
+    } as never,
   );
   let runs = 0;
   // Only the loop is faked, the queueing around it is what is tested
@@ -46,9 +55,10 @@ function setup(blockFirstRun = true) {
 describe("AgentRunnerService", () => {
   it("queues a decision behind the run still in flight", async () => {
     const { runner, log, release } = setup();
-    runner.start(user, conversation, false);
-    runner.decide(user, conversation, call("a"), true, false);
-    runner.decide(user, conversation, call("b"), false, false);
+    runner.start(user, conversation, {});
+    await tick();
+    runner.decide(user, conversation, call("a"), true, {});
+    runner.decide(user, conversation, call("b"), false, {});
 
     expect(runner.isRunning("c")).toBe(true);
     expect(runner.isDecided("a")).toBe(true);
@@ -69,7 +79,7 @@ describe("AgentRunnerService", () => {
 
   it("decides right away when nothing runs", async () => {
     const { runner, log } = setup(false);
-    runner.decide(user, conversation, call("a"), true, false);
+    runner.decide(user, conversation, call("a"), true, {});
     await tick();
     expect(log).toEqual(["decide:a:true", "run"]);
   });

@@ -9,6 +9,7 @@ import { useUsageFormat } from "../hooks/useUsageFormat";
 import type { ChatSegment } from "../lib/segments";
 import { ConfirmCard } from "./ConfirmCard";
 import { Markdown } from "./Markdown";
+import { MessageAttachments, ReasoningBlock, SourcesList } from "./MessageExtras";
 import { ToolCallGroup } from "./ToolCallCard";
 
 // Shows on hover, always visible where there is no hover
@@ -38,17 +39,25 @@ export const SegmentView = memo(function SegmentView({ segment, serverName }: Se
   switch (segment.kind) {
     case "user":
       return (
-        <div className="group/msg relative ml-10 self-end">
-          <div className="rounded-xl rounded-br-[5px] bg-primary/10 px-3.5 py-2 text-[13px] leading-relaxed break-words whitespace-pre-wrap">
-            {segment.message.content}
-          </div>
-          <CopyButton value={segment.message.content} title={t("copy")} className={cn(COPY_CLASS, COPY_BELOW, "right-0")} />
+        <div className="ml-10 grid min-w-0 grid-cols-[minmax(0,1fr)] justify-items-end gap-1.5 self-end">
+          <MessageAttachments conversationId={segment.message.conversationId} files={segment.message.attachments} />
+          {segment.message.content && (
+            <div className="group/msg relative">
+              <div className="rounded-xl rounded-br-[5px] bg-primary/10 px-3.5 py-2 text-[13px] leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
+                {segment.message.content}
+              </div>
+              <CopyButton value={segment.message.content} title={t("copy")} className={cn(COPY_CLASS, COPY_BELOW, "right-0")} />
+            </div>
+          )}
         </div>
       );
+    case "reasoning":
+      return <ReasoningBlock text={segment.text} ms={segment.ms} />;
     case "text":
       return (
-        <div className="group/msg relative grid gap-1">
+        <div className="group/msg relative grid grid-cols-[minmax(0,1fr)] gap-1">
           <Markdown text={segment.message.content} />
+          <SourcesList sources={segment.message.sources} />
           {segment.usage ? (
             <div className="flex items-center gap-1">
               <UsageLine usage={segment.usage} />
@@ -63,7 +72,6 @@ export const SegmentView = memo(function SegmentView({ segment, serverName }: Se
       return (
         <div className="grid gap-1">
           <ToolCallGroup calls={segment.calls} />
-          <UsageLine usage={segment.usage} className="pl-1" />
         </div>
       );
     case "confirm":

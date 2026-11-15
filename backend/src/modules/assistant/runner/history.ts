@@ -1,10 +1,19 @@
-import type { ChatMessage } from "../llm/llm.types";
+import type { ChatContentPart, ChatMessage } from "../llm/llm.types";
 import type {
   StoredMessage,
   StoredToolCall,
 } from "../conversations/messages.repository";
+import { redactSecrets } from "./redact";
 
 export const DECLINED = "The user declined this action";
+
+// Images are the priciest input, older ones are left out after this many messages
+const IMAGE_MESSAGES = 2;
+
+export interface HistoryOptions {
+  /** The model reads images, otherwise they become a note */
+  vision: boolean;
+}
 
 /** What the model reads back as the result of a call */
 export function toolResultText(call: StoredToolCall): string {
@@ -21,16 +30,24 @@ export function toolResultText(call: StoredToolCall): string {
 }
 
 /** Provider messages rebuilt from the stored conversation */
-export function buildHistory(messages: StoredMessage[]): ChatMessage[] {
+export function buildHistory(
+  messages: StoredMessage[],
+  options: HistoryOptions = { vision: false },
+): ChatMessage[] {
+  const withImages = messages.filter((message) =>
+    message.attachments?.some((file) => file.kind === "image"),
+  );
+  const showImages = new Set(withImages.slice(-IMAGE_MESSAGES));
   const out: ChatMessage[] = [];
   for (const message of messages) {
     if (message.role === "user") {
-      out.push({ role: "user", content: message.content });
+      out.push(userMessage(message, options.vision && showImages.has(message)));
       continue;
     }
     if (!message.content && !message.toolCalls.length) continue;
     out.push({
       role: "assistant",
+      ...message.replay,
       content: message.content || null,
       tool_calls: message.toolCalls.length
         ? message.toolCalls.map((call) => ({
@@ -49,6 +66,28 @@ export function buildHistory(messages: StoredMessage[]): ChatMessage[] {
     }
   }
   return out;
+}
+
+// Text files go inline, images as parts when the model gets to see them
+function userMessage(message: StoredMessage, images: boolean): ChatMessage {
+  const files = message.attachments ?? [];
+  let text = message.content;
+  const parts: ChatContentPart[] = [];
+  for (const file of files) {
+    if (file.kind === "text") {
+      const body = redactSecrets(file.data.toString("utf8"));
+      text += `\n\n<file name="${file.name}">\n${body}\n</file>`;
+    } else if (images) {
+      parts.push({
+        type: "image_url",
+        image_url: { url: `data:${file.mime};base64,${file.data.toString("base64")}` },
+      });
+    } else {
+      text += `\n\n[Image ${file.name} is attached but not shown to the model]`;
+    }
+  }
+  if (!parts.length) return { role: "user", content: text };
+  return { role: "user", content: [{ type: "text", text }, ...parts] };
 }
 
 /** Model turns since the user last wrote */

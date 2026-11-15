@@ -1,4 +1,5 @@
 import { getErrorMessage } from "@/core/utils/error";
+import type { AssistantModelInfo } from "@shared/types/assistant.types";
 import { CompletionAccumulator } from "./completion-accumulator";
 import type { ChatCompletion, ChatRequest, LlmConnection } from "./llm.types";
 import { readSseData } from "./sse";
@@ -29,30 +30,50 @@ export class LlmClient {
     private readonly fetchImpl: FetchLike = fetch,
   ) {}
 
-  async listModels(): Promise<string[]> {
+  async listModels(): Promise<AssistantModelInfo[]> {
+    const models = new Map<string, AssistantModelInfo>();
+    for (const entry of await this.listModelEntries()) {
+      if (typeof entry.id !== "string" || models.has(entry.id)) continue;
+      models.set(entry.id, { id: entry.id, name: displayName(entry) });
+    }
+    return [...models.values()].sort((a, b) =>
+      (a.name ?? a.id).localeCompare(b.name ?? b.id),
+    );
+  }
+
+  /** Raw model objects, their capability fields differ from provider to provider */
+  async listModelEntries(): Promise<Record<string, unknown>[]> {
     const res = await this.request("models", {
       method: "GET",
       signal: AbortSignal.timeout(MODELS_TIMEOUT_MS),
     });
-    const body = (await res.json()) as { data?: { id?: unknown }[] };
-    const ids = (body.data ?? [])
-      .map((model) => model.id)
-      .filter((id): id is string => typeof id === "string");
-    return [...new Set(ids)].sort((a, b) => a.localeCompare(b));
+    const body = (await res.json()) as { data?: unknown };
+    return Array.isArray(body.data)
+      ? body.data.filter(
+          (model): model is Record<string, unknown> =>
+            !!model && typeof model === "object",
+        )
+      : [];
   }
 
-  /** Streams one completion, onText gets every content delta as it arrives */
+  /** Streams one completion, the callbacks get answer and thinking deltas as they arrive */
   async stream(
     req: ChatRequest,
-    opts: { signal?: AbortSignal; onText?: (text: string) => void } = {},
+    opts: {
+      signal?: AbortSignal;
+      onText?: (text: string) => void;
+      onReasoning?: (text: string) => void;
+    } = {},
   ): Promise<ChatCompletion> {
     const timeout = AbortSignal.timeout(COMPLETION_TIMEOUT_MS);
     const signal = opts.signal
       ? AbortSignal.any([opts.signal, timeout])
       : timeout;
+    const { serverTools, options, ...rest } = req;
+    const tools = [...(req.tools ?? []), ...(serverTools ?? [])];
     const body = {
-      ...req,
-      tools: req.tools?.length ? req.tools : undefined,
+      ...rest,
+      tools: tools.length ? tools : undefined,
       stream: true,
     };
     const post = (extra: Record<string, unknown>) =>
@@ -61,15 +82,14 @@ export class LlmClient {
         body: JSON.stringify({ ...body, ...extra }),
         signal,
       });
+    const usage = /openrouter\.ai/i.test(this.connection.baseUrl)
+      ? OPENROUTER_USAGE
+      : STREAM_USAGE;
     let res: Response;
     try {
-      res = await post(
-        /openrouter\.ai/i.test(this.connection.baseUrl)
-          ? OPENROUTER_USAGE
-          : STREAM_USAGE,
-      );
+      res = await post({ ...usage, ...options });
     } catch (err) {
-      // Strict servers reject unknown fields, usage is a nice to have
+      // Strict servers reject unknown fields, usage and tuning are nice to have
       if (!(err instanceof LlmError) || !REJECTED.has(err.status ?? 0))
         throw err;
       res = await post({});
@@ -79,9 +99,9 @@ export class LlmClient {
     const acc = new CompletionAccumulator();
     for await (const data of readSseData(res.body)) {
       if (data === "[DONE]") break;
-      const chunk = parseChunk(data);
-      const text = acc.push(chunk);
-      if (text) opts.onText?.(text);
+      const added = acc.push(parseChunk(data));
+      if (added.reasoning) opts.onReasoning?.(added.reasoning);
+      if (added.text) opts.onText?.(added.text);
     }
     return acc.result();
   }
@@ -108,6 +128,16 @@ export class LlmClient {
     }
     return res;
   }
+}
+
+// Providers call it name, display_name or title, an echo of the id says nothing
+function displayName(entry: Record<string, unknown>): string | null {
+  for (const key of ["display_name", "name", "title"]) {
+    const value = entry[key];
+    if (typeof value === "string" && value.trim() && value !== entry.id)
+      return value.trim();
+  }
+  return null;
 }
 
 function parseChunk(data: string): unknown {

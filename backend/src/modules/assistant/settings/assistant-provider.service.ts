@@ -2,6 +2,7 @@ import { getErrorMessage } from "@/core/utils/error";
 import { BadGatewayException, Injectable } from "@nestjs/common";
 import type {
   AssistantConnectionDraft,
+  AssistantModelInfo,
   AssistantTestResult,
 } from "@shared/types/assistant.types";
 import { LlmClient } from "../llm/llm-client";
@@ -12,7 +13,7 @@ import { AssistantSettingsService } from "./assistant-settings.service";
 export class AssistantProviderService {
   constructor(private readonly settings: AssistantSettingsService) {}
 
-  async models(draft?: AssistantConnectionDraft): Promise<string[]> {
+  async models(draft?: AssistantConnectionDraft): Promise<AssistantModelInfo[]> {
     try {
       return await this.client(draft).listModels();
     } catch (err) {

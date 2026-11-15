@@ -8,17 +8,25 @@ import { Button } from "@/shared/ui/button";
 import { DataReveal } from "@/shared/ui/data-reveal";
 import { queryLoadError } from "@/shared/ui/load-error";
 import { Input } from "@/shared/ui/input";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/shared/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { SecretInput } from "@/shared/ui/secret-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
-import { ASSISTANT_STEPS, type AssistantPresetId, type AssistantSettings as Settings } from "@shared/types/assistant.types";
-import { Boxes, Coins, Footprints, Globe, KeyRound, ListRestart, Plug, Power, Sparkles, Thermometer } from "lucide-react";
+import {
+  ASSISTANT_STEPS,
+  type AssistantPresetId,
+  type AssistantSettings as Settings,
+  type AssistantVisionMode,
+} from "@shared/types/assistant.types";
+import { Boxes, Coins, Eye, Footprints, Globe, KeyRound, ListRestart, Plug, Power, Sparkles, Thermometer } from "lucide-react";
 import { useState } from "react";
 import { useAssistantModels, useAssistantSettingsQuery, useSaveAssistantSettings, useTestAssistant } from "../api/assistant.queries";
 import { SAMPLE_ASSISTANT_SETTINGS } from "../data/samples";
+import { ModelPicker } from "./ModelPicker";
+
+const VISION_MODES: AssistantVisionMode[] = ["auto", "on", "off"];
 
 type Draft = Settings & { apiKey: string };
 
@@ -33,10 +41,12 @@ const toDraft = ({ settings }: AssistantSettingsResponse): Draft => ({
   maxSteps: settings.maxSteps,
   priceInput: settings.priceInput,
   priceOutput: settings.priceOutput,
+  priceCache: settings.priceCache,
+  vision: settings.vision,
   apiKey: "",
 });
 
-const FIELDS = ["enabled", "preset", "baseUrl", "model", "temperature", "maxSteps", "priceInput", "priceOutput", "apiKey"] as const;
+const FIELDS = ["enabled", "preset", "baseUrl", "model", "vision", "temperature", "maxSteps", "priceInput", "priceOutput", "priceCache", "apiKey"] as const;
 const MAX_PRICE = 10_000;
 
 function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
@@ -77,6 +87,7 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
         maxSteps: Math.round(clamp(draft.maxSteps, ASSISTANT_STEPS.min, ASSISTANT_STEPS.max)),
         priceInput: clamp(draft.priceInput, 0, MAX_PRICE),
         priceOutput: clamp(draft.priceOutput, 0, MAX_PRICE),
+        priceCache: clamp(draft.priceCache, 0, MAX_PRICE),
         apiKey: draft.apiKey || undefined,
       },
       {
@@ -136,28 +147,37 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
       </SettingsField>
 
       <SettingsField label={t("model")} icon={Boxes} hint={t("modelHint")} changed={changed("model")} htmlFor="assistant-model">
-        <InputGroup>
-          <InputGroupInput
-            id="assistant-model"
-            className="font-mono"
-            list="assistant-models"
-            value={draft.model}
-            placeholder={preset?.modelHint || t("modelPlaceholder")}
-            onChange={(e) => set("model", e.target.value)}
-          />
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton size="xs" disabled={!draft.baseUrl || models.isPending} onClick={loadModels}>
-              {models.isPending ? <Spinner /> : <ListRestart />}
-              {t("loadModels")}
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-        <datalist id="assistant-models">
-          {models.data?.map((id) => (
-            <option key={id} value={id} />
-          ))}
-        </datalist>
+        <div className="flex gap-2">
+          <div className="min-w-0 flex-1">
+            <ModelPicker
+              id="assistant-model"
+              value={draft.model}
+              models={models.data}
+              placeholder={preset?.modelHint || t("modelPlaceholder")}
+              onChange={(model) => set("model", model)}
+            />
+          </div>
+          <Button variant="outline" className="shrink-0" disabled={!draft.baseUrl || models.isPending} onClick={loadModels}>
+            {models.isPending ? <Spinner /> : <ListRestart />}
+            {t("loadModels")}
+          </Button>
+        </div>
         {models.data && <p className="text-[12.5px] text-muted-foreground">{t("modelsFound", models.data.length)}</p>}
+      </SettingsField>
+
+      <SettingsField label={t("vision")} icon={Eye} hint={t("visionHint")} changed={changed("vision")}>
+        <Select<AssistantVisionMode> value={draft.vision} onValueChange={(value) => value && set("vision", value)}>
+          <SelectTrigger aria-label={t("vision")}>
+            <SelectValue>{(value: AssistantVisionMode) => t(`visionModes.${value}`)}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {VISION_MODES.map((mode) => (
+              <SelectItem key={mode} value={mode}>
+                {t(`visionModes.${mode}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </SettingsField>
 
       <SettingsField label={t("temperature")} icon={Thermometer} hint={t("temperatureHint")} changed={changed("temperature")} htmlFor="assistant-temp">
@@ -193,9 +213,9 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
       </SettingsField>
 
       {!preset?.local && (
-        <SettingsField label={t("price")} icon={Coins} hint={t("priceHint")} changed={changed("priceInput") || changed("priceOutput")}>
-          <div className="grid grid-cols-2 gap-2">
-            {(["priceInput", "priceOutput"] as const).map((key) => (
+        <SettingsField label={t("price")} icon={Coins} hint={t("priceHint")} changed={changed("priceInput") || changed("priceOutput") || changed("priceCache")}>
+          <div className="grid grid-cols-3 gap-2 max-sm:grid-cols-1">
+            {(["priceInput", "priceCache", "priceOutput"] as const).map((key) => (
               <InputGroup key={key}>
                 <InputGroupAddon>$</InputGroupAddon>
                 <InputGroupInput

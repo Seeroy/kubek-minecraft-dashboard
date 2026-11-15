@@ -38,5 +38,15 @@ export function presentMessage(
     toolCalls: message.toolCalls.map((call) => presentToolCall(call, kindOf)),
     createdAt: message.createdAt,
     usage: message.usage ?? null,
+    attachments: (message.attachments ?? []).map((file) => ({
+      id: file.id,
+      kind: file.kind,
+      name: file.name,
+      mime: file.mime,
+      size: file.data.length,
+    })),
+    reasoning: message.reasoning || null,
+    reasoningMs: message.reasoningMs ?? null,
+    sources: message.sources ?? [],
   };
 }

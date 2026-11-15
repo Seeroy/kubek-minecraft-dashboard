@@ -18055,6 +18055,77 @@
         }
       }
     },
+    "/api/assistant/conversations/{id}/attachments/{attachmentId}": {
+      "get": {
+        "operationId": "AssistantController_attachment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Raw file with its own content type"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "File the user attached to a message",
+        "tags": [
+          "Assistant"
+        ],
+        "x-access": {
+          "area": "assistant",
+          "level": "read"
+        }
+      }
+    },
     "/api/assistant/conversations/{id}/stop": {
       "post": {
         "operationId": "AssistantController_stop",
@@ -26197,11 +26268,36 @@
           },
           "output": {
             "type": "number"
+          },
+          "cache": {
+            "type": "number"
           }
         },
         "required": [
           "input",
-          "output"
+          "output",
+          "cache"
+        ]
+      },
+      "AssistantCapabilitiesDto": {
+        "type": "object",
+        "properties": {
+          "vision": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "reasoning": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "webSearch": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "vision",
+          "reasoning",
+          "webSearch"
         ]
       },
       "AssistantStatusDto": {
@@ -26236,6 +26332,9 @@
           "usdRub": {
             "type": "number",
             "nullable": true
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/AssistantCapabilitiesDto"
           }
         },
         "required": [
@@ -26245,7 +26344,8 @@
           "provider",
           "local",
           "pricing",
-          "usdRub"
+          "usdRub",
+          "capabilities"
         ]
       },
       "AssistantSettingsViewDto": {
@@ -26286,6 +26386,17 @@
           "priceOutput": {
             "type": "number"
           },
+          "priceCache": {
+            "type": "number"
+          },
+          "vision": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "on",
+              "off"
+            ]
+          },
           "apiKey": {
             "$ref": "#/components/schemas/SecretHintDto"
           }
@@ -26299,6 +26410,8 @@
           "maxSteps",
           "priceInput",
           "priceOutput",
+          "priceCache",
+          "vision",
           "apiKey"
         ]
       },
@@ -26412,6 +26525,20 @@
             "type": "number",
             "minimum": 0,
             "description": "USD per million completion tokens, 0 when unknown"
+          },
+          "priceCache": {
+            "type": "number",
+            "minimum": 0,
+            "description": "USD per million cached prompt tokens, 0 bills them as input"
+          },
+          "vision": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "on",
+              "off"
+            ],
+            "description": "Whether the model reads images, auto trusts the model list"
           }
         }
       },
@@ -26434,13 +26561,29 @@
           "baseUrl"
         ]
       },
+      "AssistantModelInfoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
       "AssistantModelsDto": {
         "type": "object",
         "properties": {
           "models": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/AssistantModelInfoDto"
             }
           }
         },
@@ -26496,20 +26639,71 @@
           "updatedAt"
         ]
       },
+      "AttachmentInputDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "image",
+              "text"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "mime": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "data": {
+            "type": "string",
+            "description": "Base64 for images, plain text for text files"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "mime",
+          "data"
+        ]
+      },
       "SendMessageDto": {
         "type": "object",
         "properties": {
+          "autoApprove": {
+            "type": "boolean",
+            "description": "Run write tools without asking the user"
+          },
+          "reasoning": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "off",
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "webSearch": {
+            "type": "boolean",
+            "description": "Let the model search the web"
+          },
           "content": {
             "type": "string",
-            "maxLength": 8000
+            "maxLength": 8000,
+            "description": "May be empty with attachments"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentInputDto"
+            }
           },
           "serverId": {
             "type": "string",
             "description": "Server the user is looking at"
-          },
-          "autoApprove": {
-            "type": "boolean",
-            "description": "Run write tools without asking the user"
           }
         },
         "required": [
@@ -26579,6 +26773,9 @@
           "completionTokens": {
             "type": "number"
           },
+          "cachedTokens": {
+            "type": "number"
+          },
           "costUsd": {
             "type": "number",
             "nullable": true
@@ -26588,6 +26785,53 @@
           "promptTokens",
           "completionTokens",
           "costUsd"
+        ]
+      },
+      "AttachmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "image",
+              "text"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "mime": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "mime",
+          "size"
+        ]
+      },
+      "SourceDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "url",
+          "title"
         ]
       },
       "MessageDto": {
@@ -26637,6 +26881,26 @@
                 "$ref": "#/components/schemas/UsageDto"
               }
             ]
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          },
+          "reasoning": {
+            "type": "string",
+            "nullable": true
+          },
+          "reasoningMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceDto"
+            }
           }
         },
         "required": [
@@ -26648,7 +26912,11 @@
           "error",
           "toolCalls",
           "createdAt",
-          "usage"
+          "usage",
+          "attachments",
+          "reasoning",
+          "reasoningMs",
+          "sources"
         ]
       },
       "SendResultDto": {
@@ -26691,15 +26959,29 @@
       "ConfirmToolCallDto": {
         "type": "object",
         "properties": {
+          "autoApprove": {
+            "type": "boolean",
+            "description": "Run write tools without asking the user"
+          },
+          "reasoning": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "off",
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "webSearch": {
+            "type": "boolean",
+            "description": "Let the model search the web"
+          },
           "callId": {
             "type": "string"
           },
           "approve": {
             "type": "boolean"
-          },
-          "autoApprove": {
-            "type": "boolean",
-            "description": "Run write tools without asking the user"
           }
         },
         "required": [

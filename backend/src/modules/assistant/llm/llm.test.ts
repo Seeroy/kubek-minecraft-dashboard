@@ -48,7 +48,7 @@ describe("readSseData", () => {
 describe("CompletionAccumulator", () => {
   it("joins content and indexed tool call fragments", () => {
     const acc = new CompletionAccumulator();
-    expect(acc.push({ choices: [{ delta: { content: "Hi" } }] })).toBe("Hi");
+    expect(acc.push({ choices: [{ delta: { content: "Hi" } }] }).text).toBe("Hi");
     acc.push({
       choices: [
         {
@@ -84,6 +84,10 @@ describe("CompletionAccumulator", () => {
       toolCalls: [{ id: "a", name: "read_file", arguments: '{"path":"x"}' }],
       finishReason: "tool_calls",
       usage: null,
+      reasoning: "",
+      reasoningMs: null,
+      replay: null,
+      sources: [],
     });
   });
 
@@ -116,8 +120,19 @@ describe("CompletionAccumulator", () => {
     expect(acc.result().usage).toEqual({
       promptTokens: 120,
       completionTokens: 8,
+      cachedTokens: 0,
       costUsd: 0.0004,
     });
+  });
+
+  it("reads cached prompt tokens in both spellings", () => {
+    const read = (usage: Record<string, unknown>) => {
+      const acc = new CompletionAccumulator();
+      acc.push({ choices: [], usage: { prompt_tokens: 100, completion_tokens: 1, ...usage } });
+      return acc.result().usage?.cachedTokens;
+    };
+    expect(read({ prompt_cache_hit_tokens: 80 })).toBe(80);
+    expect(read({ prompt_tokens_details: { cached_tokens: 60 } })).toBe(60);
   });
 
   it("does not double a repeated name", () => {
@@ -202,14 +217,25 @@ describe("LlmClient", () => {
     expect(err.message).toBe("Provider responded 401: bad key");
   });
 
-  it("lists unique sorted model ids", async () => {
+  it("lists unique models sorted by what the user sees", async () => {
     const client = new LlmClient({ baseUrl: "http://llm" }, () =>
       Promise.resolve(
         new Response(
-          JSON.stringify({ data: [{ id: "b" }, { id: "a" }, { id: "b" }] }),
+          JSON.stringify({
+            data: [
+              { id: "b" },
+              { id: "z/x", name: "Alpha" },
+              { id: "a", name: "a" },
+              { id: "b" },
+            ],
+          }),
         ),
       ),
     );
-    expect(await client.listModels()).toEqual(["a", "b"]);
+    expect(await client.listModels()).toEqual([
+      { id: "a", name: null },
+      { id: "z/x", name: "Alpha" },
+      { id: "b", name: null },
+    ]);
   });
 });

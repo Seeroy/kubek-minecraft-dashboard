@@ -38,6 +38,8 @@ export interface AssistantTool<A = any> {
   access: ToolAccess;
   /** Args carry a serverId the caller must have access to */
   serverScoped: boolean;
+  /** Offered only when the run turns this feature on */
+  feature?: "webSearch";
   run(ctx: ToolContext, args: A): Promise<ToolResult>;
   preview?(ctx: ToolContext, args: A): Promise<AssistantToolPreview>;
   /** Audit entry for a write call, a generic one is used when missing */

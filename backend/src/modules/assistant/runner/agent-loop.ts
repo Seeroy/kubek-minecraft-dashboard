@@ -29,7 +29,8 @@ import type {
 import { DECLINED, buildHistory, hasPending, stepsSinceUser } from "./history";
 
 export interface ToolPort {
-  specs(user: IUser): ChatToolSpec[];
+  /** Tools tied to a feature are offered only while it is on */
+  specs(user: IUser, features?: ReadonlySet<string>): ChatToolSpec[];
   get(name: string): AssistantTool | undefined;
   denyReason(user: IUser, tool: AssistantTool, args: unknown): string | null;
   preview(
@@ -46,7 +47,7 @@ export interface ToolPort {
 
 /** Events of one conversation, the transport decides where they go */
 export interface LoopEvents {
-  delta(messageId: string, text: string): void;
+  delta(messageId: string, text: string, channel?: "reasoning"): void;
   message(message: IAssistantMessage): void;
   tool(messageId: string, call: AssistantToolCall): void;
   confirm(messageId: string, call: AssistantToolCall): void;
@@ -59,6 +60,7 @@ export interface LoopPorts {
     req: ChatRequest,
     signal: AbortSignal,
     onText: (text: string) => void,
+    onReasoning: (text: string) => void,
   ): Promise<ChatCompletion>;
   messages: Pick<IMessagesRepository, "list" | "insert" | "updateToolCall">;
   tools: ToolPort;
@@ -77,6 +79,12 @@ export interface LoopRun {
   maxSteps: number;
   /** Write calls run right away instead of waiting for the user */
   autoApprove?: boolean;
+  /** Images go to the model as images */
+  vision?: boolean;
+  /** Provider fields like the reasoning switch */
+  options?: Record<string, unknown>;
+  serverTools?: Record<string, unknown>[];
+  features?: ReadonlySet<string>;
   signal: AbortSignal;
   events: LoopEvents;
 }
@@ -137,6 +145,7 @@ export class AgentLoop {
   ): Promise<"stop" | "paused" | "answered" | "continue"> {
     const messageId = this.ports.newId();
     let streamed = "";
+    let thought = "";
     let completion: ChatCompletion;
     try {
       completion = await this.ports.complete(
@@ -145,20 +154,28 @@ export class AgentLoop {
           temperature: run.temperature,
           messages: [
             { role: "system", content: run.systemPrompt },
-            ...buildHistory(history),
+            ...buildHistory(history, { vision: run.vision ?? false }),
           ],
-          tools: this.ports.tools.specs(run.user),
+          tools: this.ports.tools.specs(run.user, run.features),
+          serverTools: run.serverTools,
+          options: run.options,
         },
         run.signal,
         (text) => {
           streamed += text;
           run.events.delta(messageId, text);
         },
+        (text) => {
+          thought += text;
+          run.events.delta(messageId, text, "reasoning");
+        },
       );
     } catch (err) {
       const stopped = run.signal.aborted;
       const error = stopped ? STOPPED : getErrorMessage(err);
-      this.save(run, streamed, error, [], messageId);
+      this.save(run, streamed, error, [], messageId, null, {
+        reasoning: thought,
+      });
       if (stopped) run.events.done(true);
       else run.events.error(error);
       return "stop";
@@ -179,7 +196,14 @@ export class AgentLoop {
       completion.usage && {
         promptTokens: completion.usage.promptTokens,
         completionTokens: completion.usage.completionTokens,
+        cachedTokens: completion.usage.cachedTokens,
         costUsd: this.ports.costOf?.(completion.usage) ?? null,
+      },
+      {
+        reasoning: completion.reasoning,
+        reasoningMs: completion.reasoningMs,
+        replay: completion.replay,
+        sources: completion.sources,
       },
     );
     if (!planned.length) return "answered";
@@ -275,6 +299,10 @@ export class AgentLoop {
     toolCalls: StoredToolCall[],
     id = this.ports.newId(),
     usage: AssistantUsage | null = null,
+    extra: Pick<
+      StoredMessage,
+      "reasoning" | "reasoningMs" | "replay" | "sources"
+    > = {},
   ): void {
     const message: StoredMessage = {
       id,
@@ -285,6 +313,7 @@ export class AgentLoop {
       createdAt: this.ports.now(),
       toolCalls,
       usage,
+      ...extra,
     };
     this.ports.messages.insert(message);
     run.events.message(presentMessage(message, this.kindOf));

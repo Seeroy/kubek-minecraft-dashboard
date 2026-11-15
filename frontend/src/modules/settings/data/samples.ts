@@ -66,6 +66,8 @@ export const SAMPLE_ASSISTANT_SETTINGS: AssistantSettingsResponse = {
     maxSteps: 8,
     priceInput: 0,
     priceOutput: 0,
+    priceCache: 0,
+    vision: "auto",
     apiKey: { set: true, hint: null },
   },
   presets: [

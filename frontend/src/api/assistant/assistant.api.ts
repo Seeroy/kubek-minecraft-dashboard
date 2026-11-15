@@ -1,8 +1,11 @@
 import { authHttp, type AuthHttpClient } from "@/shared/lib/http";
 import type {
+  AssistantAttachmentInput,
   AssistantConnectionDraft,
   AssistantConversationDetail,
   AssistantMessageContext,
+  AssistantModelInfo,
+  AssistantRunOptions,
   AssistantPreset,
   AssistantSendResult,
   AssistantSettingsUpdate,
@@ -29,8 +32,8 @@ export class AssistantApi {
 
   revealKey = async (): Promise<string | null> => (await this.authHttp.get<{ value: string | null }>("assistant/settings/api-key")).value;
 
-  models = async (draft: AssistantConnectionDraft): Promise<string[]> =>
-    (await this.authHttp.post<{ models: string[] }>("assistant/settings/models", { json: draft })).models;
+  models = async (draft: AssistantConnectionDraft): Promise<AssistantModelInfo[]> =>
+    (await this.authHttp.post<{ models: AssistantModelInfo[] }>("assistant/settings/models", { json: draft })).models;
 
   test = (draft: AssistantConnectionDraft): Promise<AssistantTestResult> => this.authHttp.post<AssistantTestResult>("assistant/settings/test", { json: draft });
 
@@ -39,14 +42,22 @@ export class AssistantApi {
   conversation = (id: string): Promise<AssistantConversationDetail> => this.authHttp.get<AssistantConversationDetail>(`assistant/conversations/${id}`);
 
   /** Starts a new conversation when id is missing */
-  send = (id: string | null, content: string, context: AssistantMessageContext): Promise<AssistantSendResult> =>
+  send = (
+    id: string | null,
+    content: string,
+    context: AssistantMessageContext & AssistantRunOptions,
+    attachments: AssistantAttachmentInput[] = []
+  ): Promise<AssistantSendResult> =>
     this.authHttp.post<AssistantSendResult>(id ? `assistant/conversations/${id}/messages` : "assistant/conversations", {
-      json: { content, ...context },
+      json: { content, ...context, attachments },
     });
 
-  confirm = async (id: string, callId: string, approve: boolean, autoApprove = false): Promise<void> => {
-    await this.authHttp.post<void>(`assistant/conversations/${id}/confirm`, { json: { callId, approve, autoApprove } });
+  confirm = async (id: string, callId: string, approve: boolean, options: AssistantRunOptions = {}): Promise<void> => {
+    await this.authHttp.post<void>(`assistant/conversations/${id}/confirm`, { json: { callId, approve, ...options } });
   };
+
+  attachment = (id: string, attachmentId: string): Promise<Blob> =>
+    this.authHttp.raw.get(`assistant/conversations/${id}/attachments/${attachmentId}`).blob();
 
   stop = async (id: string): Promise<void> => {
     await this.authHttp.post<void>(`assistant/conversations/${id}/stop`);

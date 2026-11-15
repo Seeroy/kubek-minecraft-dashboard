@@ -37,6 +37,7 @@ import {
 import { ASSISTANT_PRESETS } from "./llm/presets";
 import { AssistantProviderService } from "./settings/assistant-provider.service";
 import { ExchangeRateService } from "./settings/exchange-rate.service";
+import { ModelCapabilitiesService } from "./settings/model-capabilities.service";
 import { AssistantSettingsService } from "./settings/assistant-settings.service";
 
 @ApiTags("Assistant")
@@ -48,6 +49,7 @@ export class AssistantSettingsController {
     private readonly settings: AssistantSettingsService,
     private readonly provider: AssistantProviderService,
     private readonly rates: ExchangeRateService,
+    private readonly capabilities: ModelCapabilitiesService,
   ) {}
 
   @Get("status")
@@ -56,7 +58,16 @@ export class AssistantSettingsController {
   @ApiErrorResponses([401, 403])
   @RequireAccess(AccessArea.ASSISTANT, "read")
   async status(): Promise<AssistantStatusDto> {
-    return { ...this.settings.status(), usdRub: await this.rates.usdRub() };
+    const [usdRub, caps] = await Promise.all([
+      this.rates.usdRub(),
+      this.capabilities.resolve(),
+    ]);
+    const { vision, reasoning, webSearch } = caps;
+    return {
+      ...this.settings.status(),
+      usdRub,
+      capabilities: { vision, reasoning, webSearch },
+    };
   }
 
   @Get("settings")

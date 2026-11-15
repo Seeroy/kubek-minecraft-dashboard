@@ -2,14 +2,18 @@ import { ApiErrorCode } from "@/core/errors/error-codes";
 import { RateLimitService } from "@/modules/rate-limit/rate-limit.service";
 import { ServersService } from "@/modules/servers/servers.service";
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import type {
-  AssistantConversationDetail,
-  AssistantSendResult,
-  IAssistantConversation,
+import {
+  ASSISTANT_ATTACHMENT_LIMITS,
+  type AssistantAttachmentInput,
+  type AssistantConversationDetail,
+  type AssistantRunOptions,
+  type AssistantSendResult,
+  type IAssistantConversation,
 } from "@shared/types/assistant.types";
 import { canSeeServer } from "@shared/access/can";
 import type { IUser } from "@shared/types/user.types";
@@ -20,10 +24,17 @@ import { hasPending } from "../runner/history";
 import { AssistantSettingsService } from "../settings/assistant-settings.service";
 import { ToolRegistryService } from "../tools/tool-registry.service";
 import { ConversationsRepository } from "./conversations.repository";
-import { MessagesRepository, type StoredMessage } from "./messages.repository";
+import {
+  MessagesRepository,
+  type StoredAttachment,
+  type StoredMessage,
+} from "./messages.repository";
 import { presentMessage } from "./message-view";
 
 const MAX_CONVERSATIONS = 50;
+
+// What providers accept as image input
+const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 
 const busy = (message: string) =>
   new ConflictException({ code: ApiErrorCode.ASSISTANT_BUSY, message });
@@ -58,13 +69,17 @@ export class ConversationsService {
   /** Stores the user message and starts the model in the background */
   send(
     user: IUser,
-    input: {
+    input: AssistantRunOptions & {
       conversationId?: string;
       content: string;
       serverId?: string;
-      autoApprove?: boolean;
+      attachments?: AssistantAttachmentInput[];
     },
   ): AssistantSendResult {
+    const attachments = toAttachments(input.attachments ?? []);
+    const content = input.content.trim();
+    if (!content && !attachments.length)
+      throw new BadRequestException("The message is empty");
     if (!this.settings.isConfigured()) {
       throw new ConflictException({
         code: ApiErrorCode.ASSISTANT_NOT_CONFIGURED,
@@ -77,21 +92,23 @@ export class ConversationsService {
     this.rateLimit.hit("assistant", user.id);
     const conversation = input.conversationId
       ? this.require(user, input.conversationId)
-      : this.open(user, input.content, serverId);
+      : this.open(user, content || attachments[0].name, serverId);
 
     const message: StoredMessage = {
       id: randomUUID(),
       conversationId: conversation.id,
       role: "user",
-      content: input.content.trim(),
+      content,
       error: null,
       createdAt: Date.now(),
       toolCalls: [],
+      attachments,
     };
     this.messages.insert(message);
     this.conversations.touch(conversation.id, serverId);
     const current = this.require(user, conversation.id);
-    this.runner.start(user, current, input.autoApprove ?? false);
+    const { autoApprove, reasoning, webSearch } = input;
+    this.runner.start(user, current, { autoApprove, reasoning, webSearch });
     return {
       conversation: current,
       message: presentMessage(message, this.kindOf),
@@ -103,7 +120,7 @@ export class ConversationsService {
     id: string,
     callId: string,
     approve: boolean,
-    autoApprove = false,
+    options: AssistantRunOptions = {},
   ): void {
     const conversation = this.require(user, id);
     // A run still in flight is fine, the runner queues the decision behind it
@@ -111,7 +128,14 @@ export class ConversationsService {
     if (!call) throw new NotFoundException("Tool call not found");
     if (call.status !== "pending" || this.runner.isDecided(callId))
       throw busy("This call was already decided");
-    this.runner.decide(user, conversation, call, approve, autoApprove);
+    this.runner.decide(user, conversation, call, approve, options);
+  }
+
+  attachment(user: IUser, id: string, attachmentId: string): StoredAttachment {
+    this.require(user, id);
+    const file = this.messages.findAttachment(id, attachmentId);
+    if (!file) throw new NotFoundException("Attachment not found");
+    return file;
   }
 
   stop(user: IUser, id: string): void {
@@ -159,4 +183,24 @@ export class ConversationsService {
 
   private readonly kindOf = (name: string) =>
     this.tools.get(name)?.kind ?? "read";
+}
+
+// The DTO caps sizes, this checks what only the content can tell
+function toAttachments(inputs: AssistantAttachmentInput[]): StoredAttachment[] {
+  const limits = ASSISTANT_ATTACHMENT_LIMITS;
+  if (inputs.filter((file) => file.kind === "image").length > limits.images)
+    throw new BadRequestException(`At most ${limits.images} images per message`);
+  return inputs.map((file) => {
+    // The name goes into a tag the model reads, keep it on one line and unquoted
+    const name = file.name.replace(/["\r\n<>]/g, "").trim() || "file";
+    if (file.kind === "text") {
+      if (file.data.length > limits.textChars)
+        throw new BadRequestException(`${name} is too large`);
+      return { id: randomUUID(), kind: "text", name, mime: "text/plain", data: Buffer.from(file.data, "utf8") };
+    }
+    const data = Buffer.from(file.data, "base64");
+    if (!IMAGE_TYPES.has(file.mime) || !data.length)
+      throw new BadRequestException(`${name} is not a PNG, JPEG, WebP or GIF image`);
+    return { id: randomUUID(), kind: "image", name, mime: file.mime, data };
+  });
 }

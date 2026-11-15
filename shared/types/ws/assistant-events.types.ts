@@ -13,6 +13,8 @@ export interface WsAssistantDelta {
   conversationId: string;
   messageId: string;
   text: string;
+  /** Thinking goes to its own block, missing means answer text */
+  channel?: "reasoning";
 }
 
 export interface WsAssistantMessage {

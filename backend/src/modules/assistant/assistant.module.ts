@@ -20,6 +20,7 @@ import { AgentRunnerService } from "./runner/agent-runner.service";
 import { AssistantProviderService } from "./settings/assistant-provider.service";
 import { ExchangeRateService } from "./settings/exchange-rate.service";
 import { AssistantSettingsService } from "./settings/assistant-settings.service";
+import { ModelCapabilitiesService } from "./settings/model-capabilities.service";
 import { BackupsTools } from "./tools/backups.tools";
 import { ConsoleTools } from "./tools/console.tools";
 import { ContentTools } from "./tools/content.tools";
@@ -29,6 +30,7 @@ import { PlayersTools } from "./tools/players.tools";
 import { PropertiesTools } from "./tools/properties.tools";
 import { SchedulerTools } from "./tools/scheduler.tools";
 import { ServersTools } from "./tools/servers.tools";
+import { WebTools } from "./tools/web.tools";
 import {
   TOOL_GROUPS,
   ToolRegistryService,
@@ -45,6 +47,7 @@ const GROUPS = [
   SchedulerTools,
   PlayersTools,
   CompanionTools,
+  WebTools,
 ];
 
 @Module({
@@ -74,6 +77,7 @@ const GROUPS = [
     AssistantSettingsService,
     AssistantProviderService,
     ExchangeRateService,
+    ModelCapabilitiesService,
     ConversationsRepository,
     MessagesRepository,
     AgentRunnerService,

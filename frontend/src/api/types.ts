@@ -3340,6 +3340,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assistant/conversations/{id}/attachments/{attachmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** File the user attached to a message */
+        get: operations["AssistantController_attachment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/assistant/conversations/{id}/stop": {
         parameters: {
             query?: never;
@@ -6802,6 +6819,12 @@ export interface components {
         AssistantPricingDto: {
             input: number;
             output: number;
+            cache: number;
+        };
+        AssistantCapabilitiesDto: {
+            vision: boolean | null;
+            reasoning: boolean | null;
+            webSearch: boolean;
         };
         AssistantStatusDto: {
             enabled: boolean;
@@ -6811,6 +6834,7 @@ export interface components {
             local: boolean;
             pricing: components["schemas"]["AssistantPricingDto"] | null;
             usdRub: number | null;
+            capabilities: components["schemas"]["AssistantCapabilitiesDto"];
         };
         AssistantSettingsViewDto: {
             enabled: boolean;
@@ -6822,6 +6846,9 @@ export interface components {
             maxSteps: number;
             priceInput: number;
             priceOutput: number;
+            priceCache: number;
+            /** @enum {string} */
+            vision: "auto" | "on" | "off";
             apiKey: components["schemas"]["SecretHintDto"];
         };
         AssistantPresetDto: {
@@ -6851,6 +6878,13 @@ export interface components {
             priceInput?: number;
             /** @description USD per million completion tokens, 0 when unknown */
             priceOutput?: number;
+            /** @description USD per million cached prompt tokens, 0 bills them as input */
+            priceCache?: number;
+            /**
+             * @description Whether the model reads images, auto trusts the model list
+             * @enum {string}
+             */
+            vision?: "auto" | "on" | "off";
         };
         AssistantConnectionDraftDto: {
             /** @example http://localhost:11434/v1 */
@@ -6859,8 +6893,12 @@ export interface components {
             apiKey?: string;
             model?: string;
         };
+        AssistantModelInfoDto: {
+            id: string;
+            name: string | null;
+        };
         AssistantModelsDto: {
-            models: string[];
+            models: components["schemas"]["AssistantModelInfoDto"][];
         };
         AssistantTestResultDto: {
             ok: boolean;
@@ -6874,12 +6912,26 @@ export interface components {
             createdAt: number;
             updatedAt: number;
         };
+        AttachmentInputDto: {
+            /** @enum {string} */
+            kind: "image" | "text";
+            name: string;
+            mime: string;
+            /** @description Base64 for images, plain text for text files */
+            data: string;
+        };
         SendMessageDto: {
-            content: string;
-            /** @description Server the user is looking at */
-            serverId?: string;
             /** @description Run write tools without asking the user */
             autoApprove?: boolean;
+            /** @enum {string} */
+            reasoning?: "auto" | "off" | "low" | "medium" | "high";
+            /** @description Let the model search the web */
+            webSearch?: boolean;
+            /** @description May be empty with attachments */
+            content: string;
+            attachments?: components["schemas"]["AttachmentInputDto"][];
+            /** @description Server the user is looking at */
+            serverId?: string;
         };
         ToolCallDto: {
             id: string;
@@ -6897,7 +6949,20 @@ export interface components {
         UsageDto: {
             promptTokens: number;
             completionTokens: number;
+            cachedTokens?: number;
             costUsd: number | null;
+        };
+        AttachmentDto: {
+            id: string;
+            /** @enum {string} */
+            kind: "image" | "text";
+            name: string;
+            mime: string;
+            size: number;
+        };
+        SourceDto: {
+            url: string;
+            title: string | null;
         };
         MessageDto: {
             id: string;
@@ -6911,6 +6976,10 @@ export interface components {
             toolCalls: components["schemas"]["ToolCallDto"][];
             createdAt: number;
             usage: components["schemas"]["UsageDto"] | null;
+            attachments: components["schemas"]["AttachmentDto"][];
+            reasoning: string | null;
+            reasoningMs: number | null;
+            sources: components["schemas"]["SourceDto"][];
         };
         SendResultDto: {
             conversation: components["schemas"]["ConversationDto"];
@@ -6922,10 +6991,14 @@ export interface components {
             running: boolean;
         };
         ConfirmToolCallDto: {
-            callId: string;
-            approve: boolean;
             /** @description Run write tools without asking the user */
             autoApprove?: boolean;
+            /** @enum {string} */
+            reasoning?: "auto" | "off" | "low" | "medium" | "high";
+            /** @description Let the model search the web */
+            webSearch?: boolean;
+            callId: string;
+            approve: boolean;
         };
     };
     responses: never;
@@ -19131,6 +19204,51 @@ export interface operations {
                 };
             };
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AssistantController_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                attachmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Raw file with its own content type */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

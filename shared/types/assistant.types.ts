@@ -24,6 +24,9 @@ export interface AssistantPreset {
   local: boolean;
 }
 
+/** Whether the model reads images, auto trusts the provider's model list */
+export type AssistantVisionMode = "auto" | "on" | "off";
+
 export interface AssistantSettings {
   enabled: boolean;
   preset: AssistantPresetId;
@@ -35,7 +38,39 @@ export interface AssistantSettings {
   priceInput: number;
   /** USD per million completion tokens, 0 when unknown */
   priceOutput: number;
+  /** USD per million prompt tokens served from the provider cache, 0 bills them as input */
+  priceCache: number;
+  vision: AssistantVisionMode;
 }
+
+/** Reasoning asked of the model, auto sends nothing and keeps the provider default */
+export type AssistantReasoningLevel = "auto" | "off" | "low" | "medium" | "high";
+
+export const ASSISTANT_REASONING_LEVELS: readonly AssistantReasoningLevel[] = [
+  "auto",
+  "off",
+  "low",
+  "medium",
+  "high",
+];
+
+/** What the configured model can do, null when the provider does not say */
+export interface AssistantCapabilities {
+  vision: boolean | null;
+  reasoning: boolean | null;
+  /** The provider has a web search the panel knows how to drive */
+  webSearch: boolean;
+}
+
+/** Limits the composer checks before sending, the server checks them again */
+export const ASSISTANT_ATTACHMENT_LIMITS = {
+  count: 6,
+  images: 4,
+  /** Base64 length of one image */
+  imageChars: 3_000_000,
+  /** Characters of one text file */
+  textChars: 200_000,
+} as const;
 
 /** Fixed message errors the run writes, the UI translates them */
 export const ASSISTANT_RUN_ERRORS = {
@@ -62,6 +97,12 @@ export interface AssistantConnectionDraft {
   model?: string;
 }
 
+/** A model the provider serves, name only when the provider gives a readable one */
+export interface AssistantModelInfo {
+  id: string;
+  name: string | null;
+}
+
 export interface AssistantTestResult {
   ok: boolean;
   latencyMs: number;
@@ -77,15 +118,18 @@ export interface AssistantStatus {
   /** Runs on the panel host or the local network, so it costs nothing */
   local: boolean;
   /** Configured prices, null when not set */
-  pricing: { input: number; output: number } | null;
+  pricing: { input: number; output: number; cache: number } | null;
   /** Rubles per dollar from the Central Bank, null when it could not be fetched */
   usdRub: number | null;
+  capabilities: AssistantCapabilities;
 }
 
 /** Tokens of one model request and what it cost */
 export interface AssistantUsage {
   promptTokens: number;
   completionTokens: number;
+  /** Part of the prompt the provider took from its cache, missing when it did not say */
+  cachedTokens?: number;
   /** Exact cost from the provider or one from the configured prices, null when unknown */
   costUsd: number | null;
 }
@@ -138,6 +182,31 @@ export interface AssistantToolCall {
   preview: AssistantToolPreview | null;
 }
 
+export type AssistantAttachmentKind = "image" | "text";
+
+export interface AssistantAttachment {
+  id: string;
+  kind: AssistantAttachmentKind;
+  name: string;
+  mime: string;
+  /** Bytes of the stored file */
+  size: number;
+}
+
+/** A file sent with a message, images as base64 without the data: prefix */
+export interface AssistantAttachmentInput {
+  kind: AssistantAttachmentKind;
+  name: string;
+  mime: string;
+  data: string;
+}
+
+/** Web page the answer is based on */
+export interface AssistantSource {
+  url: string;
+  title: string | null;
+}
+
 export interface IAssistantMessage {
   id: string;
   conversationId: string;
@@ -149,6 +218,11 @@ export interface IAssistantMessage {
   createdAt: number;
   /** Set on assistant messages when the provider reported usage */
   usage: AssistantUsage | null;
+  attachments: AssistantAttachment[];
+  /** Thinking the model showed before answering */
+  reasoning: string | null;
+  reasoningMs: number | null;
+  sources: AssistantSource[];
 }
 
 export interface AssistantConversationDetail {
@@ -162,6 +236,13 @@ export interface AssistantMessageContext {
   serverId?: string;
   /** Run write tools without asking */
   autoApprove?: boolean;
+}
+
+/** Per run choices from the composer, they also apply when a confirmed call resumes the run */
+export interface AssistantRunOptions {
+  autoApprove?: boolean;
+  reasoning?: AssistantReasoningLevel;
+  webSearch?: boolean;
 }
 
 export interface AssistantSendResult {

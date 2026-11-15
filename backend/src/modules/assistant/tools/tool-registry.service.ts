@@ -54,8 +54,10 @@ export class ToolRegistryService implements OnModuleInit {
     return [...this.tools.values()].filter((tool) => hasToolAccess(user, tool));
   }
 
-  specs(user: IUser): ChatToolSpec[] {
-    return this.available(user).map(toToolSpec);
+  specs(user: IUser, features?: ReadonlySet<string>): ChatToolSpec[] {
+    return this.available(user)
+      .filter((tool) => !tool.feature || features?.has(tool.feature))
+      .map(toToolSpec);
   }
 
   denyReason(user: IUser, tool: AssistantTool, args: unknown): string | null {

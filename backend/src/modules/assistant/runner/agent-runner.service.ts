@@ -2,7 +2,10 @@ import { getErrorMessage } from "@/core/utils/error";
 import { ServersService } from "@/modules/servers/servers.service";
 import { ServerBroadcastService } from "@/ws/services/server-broadcast.service";
 import { Injectable, Logger } from "@nestjs/common";
-import type { IAssistantConversation } from "@shared/types/assistant.types";
+import type {
+  AssistantRunOptions,
+  IAssistantConversation,
+} from "@shared/types/assistant.types";
 import type { IUser } from "@shared/types/user.types";
 import { WsAssistantEventTypes } from "@shared/types/ws/assistant-events.types";
 import { randomUUID } from "crypto";
@@ -11,9 +14,14 @@ import {
   type StoredToolCall,
 } from "../conversations/messages.repository";
 import { LlmClient } from "../llm/llm-client";
+import {
+  reasoningOptions,
+  webSearchServerTools,
+} from "../llm/provider-features";
 import { AssistantSettingsService } from "../settings/assistant-settings.service";
+import { ModelCapabilitiesService } from "../settings/model-capabilities.service";
 import { ToolRegistryService } from "../tools/tool-registry.service";
-import { AgentLoop, type LoopEvents } from "./agent-loop";
+import { AgentLoop, type LoopEvents, type LoopRun } from "./agent-loop";
 import { buildSystemPrompt } from "./context-builder";
 
 /** Runs conversations in the background and streams them to the owner's sockets */
@@ -33,12 +41,14 @@ export class AgentRunnerService {
     private readonly settings: AssistantSettingsService,
     private readonly servers: ServersService,
     private readonly broadcast: ServerBroadcastService,
+    private readonly capabilities: ModelCapabilitiesService,
   ) {
     this.loop = new AgentLoop({
-      complete: (req, signal, onText) =>
+      complete: (req, signal, onText, onReasoning) =>
         new LlmClient(this.settings.connection()).stream(req, {
           signal,
           onText,
+          onReasoning,
         }),
       messages,
       tools,
@@ -59,11 +69,11 @@ export class AgentRunnerService {
   start(
     user: IUser,
     conversation: IAssistantConversation,
-    autoApprove: boolean,
+    options: AssistantRunOptions,
   ): void {
-    this.background(user, conversation.id, (signal, events) =>
+    this.background(user, conversation.id, async (signal, events) =>
       this.loop.run(
-        this.runOf(user, conversation, signal, events, autoApprove),
+        await this.runOf(user, conversation, signal, events, options),
       ),
     );
   }
@@ -74,19 +84,19 @@ export class AgentRunnerService {
     conversation: IAssistantConversation,
     call: StoredToolCall,
     approve: boolean,
-    autoApprove: boolean,
+    options: AssistantRunOptions,
   ): void {
     const current = this.runs.get(conversation.id);
     if (current) {
       this.queued.add(call.id);
       void current.then(() => {
         this.queued.delete(call.id);
-        this.decide(user, conversation, call, approve, autoApprove);
+        this.decide(user, conversation, call, approve, options);
       });
       return;
     }
     this.background(user, conversation.id, async (signal, events) => {
-      const run = this.runOf(user, conversation, signal, events, autoApprove);
+      const run = await this.runOf(user, conversation, signal, events, options);
       await this.loop.decide(run, call, approve);
       await this.loop.run(run);
     });
@@ -118,14 +128,17 @@ export class AgentRunnerService {
     this.runs.set(conversationId, done);
   }
 
-  private runOf(
+  private async runOf(
     user: IUser,
     conversation: IAssistantConversation,
     signal: AbortSignal,
     events: LoopEvents,
-    autoApprove: boolean,
-  ) {
+    options: AssistantRunOptions,
+  ): Promise<LoopRun> {
     const settings = this.settings.get();
+    const caps = await this.capabilities.resolve();
+    // OpenRouter searches on its side, DeepSeek search runs as panel tools
+    const webSearch = !!options.webSearch && caps.webSearch;
     const server = conversation.serverId
       ? this.servers.findById(conversation.serverId)
       : null;
@@ -136,7 +149,17 @@ export class AgentRunnerService {
       model: settings.model,
       temperature: settings.temperature,
       maxSteps: settings.maxSteps,
-      autoApprove,
+      autoApprove: options.autoApprove ?? false,
+      vision: caps.vision === true,
+      options: reasoningOptions(
+        caps.kind,
+        options.reasoning ?? "auto",
+        caps.reasoningMandatory,
+      ),
+      serverTools: webSearch ? webSearchServerTools(caps.kind) : undefined,
+      features: new Set(
+        webSearch && caps.kind === "deepseek" ? ["webSearch"] : [],
+      ),
       signal,
       events,
     };
@@ -146,11 +169,12 @@ export class AgentRunnerService {
     const room = `user:${userId}`;
     const ws = this.broadcast;
     return {
-      delta: (messageId, text) =>
+      delta: (messageId, text, channel) =>
         ws.emitToRoom(room, WsAssistantEventTypes.DELTA, {
           conversationId,
           messageId,
           text,
+          ...(channel ? { channel } : {}),
         }),
       message: (message) =>
         ws.emitToRoom(room, WsAssistantEventTypes.MESSAGE, {

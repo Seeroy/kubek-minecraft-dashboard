@@ -6,6 +6,7 @@ import { Startup } from "@/core/utils/startup";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
+import { json, type NextFunction, type Request, type Response } from "express";
 import { AppModule } from "./app.module";
 
 // Handle all exceptions and rejections (globally)
@@ -34,6 +35,13 @@ async function bootstrap() {
 
   app.useGlobalFilters(new BadResponseFilter());
   app.useGlobalPipes(validationPipe);
+
+  // Messages carry images as base64, too big for the default 100 KB body limit
+  // Wrapped so Nest does not take it for its own jsonParser and skip the global one
+  const largeJson = json({ limit: "16mb" });
+  app.use("/api/assistant/conversations", (req: Request, res: Response, next: NextFunction) =>
+    largeJson(req, res, next),
+  );
 
   if (process.env.NODE_ENV === "development") {
     const docConfig = new DocumentBuilder()

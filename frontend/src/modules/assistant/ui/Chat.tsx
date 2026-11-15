@@ -6,7 +6,7 @@ import { LoadReveal } from "@/shared/ui/data-reveal";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { IAssistantConversation, IAssistantMessage } from "@shared/types/assistant.types";
 import { CircleAlert } from "lucide-react";
-import { useCallback, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
+import { Fragment, useCallback, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import { useAssistantStatus, useConversationQuery } from "../api/assistant.queries";
 import { useUsageFormat } from "../hooks/useUsageFormat";
 import { estimateNext, totalUsage } from "../lib/usage";
@@ -15,6 +15,7 @@ import { toSegments } from "../lib/segments";
 import { useLiveConversation } from "../lib/stream-store";
 import { Composer } from "./Composer";
 import { Welcome } from "./Welcome";
+import { ReasoningBlock } from "./MessageExtras";
 import { SegmentView, StreamingText } from "./MessageItem";
 
 const PINNED_GAP = 80;
@@ -45,12 +46,15 @@ function LiveTail({
   const live = useLiveConversation(conversationId);
   const drafts = Object.entries(live.drafts).filter(([id]) => !saved.some((m) => m.id === id));
   const thinking = live.running && drafts.length === 0;
-  useStickToBottom(scrollRef, drafts.map(([, text]) => text.length).join() + String(thinking));
+  useStickToBottom(scrollRef, drafts.map(([id, text]) => text.length + (live.thoughts[id]?.length ?? 0)).join() + String(thinking));
 
   return (
     <>
       {drafts.map(([id, text]) => (
-        <StreamingText key={id} text={text} />
+        <Fragment key={id}>
+          {live.thoughts[id] && <ReasoningBlock text={live.thoughts[id]} ms={null} live={!text} />}
+          {(text || !live.thoughts[id]) && <StreamingText text={text} />}
+        </Fragment>
       ))}
       {thinking && <StreamingText text="" />}
       {live.error && !live.running && (

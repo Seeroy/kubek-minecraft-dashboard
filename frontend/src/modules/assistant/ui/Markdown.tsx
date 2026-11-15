@@ -71,7 +71,8 @@ const components: Components = {
 /** Assistant answer, raw HTML in the text is dropped */
 export const Markdown = memo(function Markdown({ text }: { text: string }) {
   return (
-    <div className="text-[13px] leading-relaxed break-words">
+    // anywhere, unlike break-word, also shrinks min width, so a long URL wraps instead of widening the chat
+    <div className="min-w-0 text-[13px] leading-relaxed [overflow-wrap:anywhere]">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} skipHtml>
         {text}
       </ReactMarkdown>

@@ -50,11 +50,14 @@ const TOOLS: Record<string, AssistantTool> = { echo, write };
 
 type Reply = ChatCompletion | Error;
 
+const NO_EXTRAS = { reasoning: "", reasoningMs: null, replay: null, sources: [] };
+
 const answer = (content: string): ChatCompletion => ({
   content,
   toolCalls: [],
   finishReason: "stop",
   usage: null,
+  ...NO_EXTRAS,
 });
 const callTool = (name: string, args: unknown): ChatCompletion => ({
   content: "",
@@ -67,6 +70,7 @@ const callTool = (name: string, args: unknown): ChatCompletion => ({
   ],
   finishReason: "tool_calls",
   usage: null,
+  ...NO_EXTRAS,
 });
 
 function harness(replies: Reply[], maxSteps = 8, costOf?: LoopPorts["costOf"]) {
@@ -210,7 +214,12 @@ describe("AgentLoop", () => {
       [
         {
           ...answer("Hi"),
-          usage: { promptTokens: 1000, completionTokens: 50, costUsd: null },
+          usage: {
+            promptTokens: 1000,
+            completionTokens: 50,
+            cachedTokens: 0,
+            costUsd: null,
+          },
         },
       ],
       8,
@@ -220,6 +229,7 @@ describe("AgentLoop", () => {
     expect(h.store[1].usage).toEqual({
       promptTokens: 1000,
       completionTokens: 50,
+      cachedTokens: 0,
       costUsd: 0.001,
     });
   });

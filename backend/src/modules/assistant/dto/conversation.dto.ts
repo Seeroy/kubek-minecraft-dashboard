@@ -1,35 +1,79 @@
-import type { IAssistantConversation } from "@shared/types/assistant.types";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
+  ASSISTANT_ATTACHMENT_LIMITS,
+  ASSISTANT_REASONING_LEVELS,
+  type AssistantAttachmentInput,
+  type AssistantAttachmentKind,
+  type AssistantReasoningLevel,
+  type IAssistantConversation,
+} from "@shared/types/assistant.types";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
+  IsIn,
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
+  ValidateNested,
 } from "class-validator";
 
-export class SendMessageDto {
-  @ApiProperty({ maxLength: 8000 })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(8000)
-  content!: string;
+const KINDS: AssistantAttachmentKind[] = ["image", "text"];
 
-  @ApiPropertyOptional({ description: "Server the user is looking at" })
-  @IsOptional()
-  @IsString()
-  @MaxLength(64)
-  serverId?: string;
+export class AttachmentInputDto implements AssistantAttachmentInput {
+  @ApiProperty({ enum: KINDS }) @IsIn(KINDS) kind!: AssistantAttachmentKind;
+  @ApiProperty({ maxLength: 200 }) @IsString() @MaxLength(200) name!: string;
+  @ApiProperty({ maxLength: 100 }) @IsString() @MaxLength(100) mime!: string;
 
+  @ApiProperty({ description: "Base64 for images, plain text for text files" })
+  @IsString()
+  @MaxLength(ASSISTANT_ATTACHMENT_LIMITS.imageChars)
+  data!: string;
+}
+
+/** Composer switches, they also apply when a confirmed call resumes the run */
+export class RunOptionsDto {
   @ApiPropertyOptional({
     description: "Run write tools without asking the user",
   })
   @IsOptional()
   @IsBoolean()
   autoApprove?: boolean;
+
+  @ApiPropertyOptional({ enum: ASSISTANT_REASONING_LEVELS })
+  @IsOptional()
+  @IsIn(ASSISTANT_REASONING_LEVELS)
+  reasoning?: AssistantReasoningLevel;
+
+  @ApiPropertyOptional({ description: "Let the model search the web" })
+  @IsOptional()
+  @IsBoolean()
+  webSearch?: boolean;
 }
 
-export class ConfirmToolCallDto {
+export class SendMessageDto extends RunOptionsDto {
+  @ApiProperty({ maxLength: 8000, description: "May be empty with attachments" })
+  @IsString()
+  @MaxLength(8000)
+  content!: string;
+
+  @ApiPropertyOptional({ type: [AttachmentInputDto] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(ASSISTANT_ATTACHMENT_LIMITS.count)
+  @ValidateNested({ each: true })
+  @Type(() => AttachmentInputDto)
+  attachments?: AttachmentInputDto[];
+
+  @ApiPropertyOptional({ description: "Server the user is looking at" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  serverId?: string;
+}
+
+export class ConfirmToolCallDto extends RunOptionsDto {
   @ApiProperty()
   @IsString()
   @MaxLength(64)
@@ -38,13 +82,6 @@ export class ConfirmToolCallDto {
   @ApiProperty()
   @IsBoolean()
   approve!: boolean;
-
-  @ApiPropertyOptional({
-    description: "Run write tools without asking the user",
-  })
-  @IsOptional()
-  @IsBoolean()
-  autoApprove?: boolean;
 }
 
 export class ConversationDto implements IAssistantConversation {
@@ -75,7 +112,21 @@ export class ToolCallDto {
 export class UsageDto {
   @ApiProperty() promptTokens!: number;
   @ApiProperty() completionTokens!: number;
+  @ApiPropertyOptional() cachedTokens?: number;
   @ApiProperty({ type: Number, nullable: true }) costUsd!: number | null;
+}
+
+export class AttachmentDto {
+  @ApiProperty() id!: string;
+  @ApiProperty({ enum: KINDS }) kind!: string;
+  @ApiProperty() name!: string;
+  @ApiProperty() mime!: string;
+  @ApiProperty() size!: number;
+}
+
+export class SourceDto {
+  @ApiProperty() url!: string;
+  @ApiProperty({ type: String, nullable: true }) title!: string | null;
 }
 
 export class MessageDto {
@@ -88,6 +139,10 @@ export class MessageDto {
   @ApiProperty({ type: [ToolCallDto] }) toolCalls!: ToolCallDto[];
   @ApiProperty() createdAt!: number;
   @ApiProperty({ type: UsageDto, nullable: true }) usage!: UsageDto | null;
+  @ApiProperty({ type: [AttachmentDto] }) attachments!: AttachmentDto[];
+  @ApiProperty({ type: String, nullable: true }) reasoning!: string | null;
+  @ApiProperty({ type: Number, nullable: true }) reasoningMs!: number | null;
+  @ApiProperty({ type: [SourceDto] }) sources!: SourceDto[];
 }
 
 export class ConversationDetailDto {
