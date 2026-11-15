@@ -81,6 +81,8 @@ export interface LoopRun {
   autoApprove?: boolean;
   /** Images go to the model as images */
   vision?: boolean;
+  /** Every earlier answer must carry reasoning_content */
+  requireReasoning?: boolean;
   /** Provider fields like the reasoning switch */
   options?: Record<string, unknown>;
   serverTools?: Record<string, unknown>[];
@@ -154,7 +156,10 @@ export class AgentLoop {
           temperature: run.temperature,
           messages: [
             { role: "system", content: run.systemPrompt },
-            ...buildHistory(history, { vision: run.vision ?? false }),
+            ...buildHistory(history, {
+              vision: run.vision ?? false,
+              requireReasoning: run.requireReasoning ?? false,
+            }),
           ],
           tools: this.ports.tools.specs(run.user, run.features),
           serverTools: run.serverTools,

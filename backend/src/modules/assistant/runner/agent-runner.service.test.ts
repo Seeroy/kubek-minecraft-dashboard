@@ -28,14 +28,16 @@ function setup(blockFirstRun = true) {
     { findById: () => null } as never,
     { emitToRoom: () => {} } as never,
     {
-      resolve: async () => ({
-        kind: "generic",
-        vision: null,
-        reasoning: null,
-        reasoningMandatory: false,
-        webSearch: false,
-      }),
+      resolve: () =>
+        Promise.resolve({
+          kind: "generic",
+          vision: null,
+          reasoning: null,
+          reasoningMandatory: false,
+          webSearch: false,
+        }),
     } as never,
+    { emit: () => {} } as never,
   );
   let runs = 0;
   // Only the loop is faked, the queueing around it is what is tested

@@ -20,6 +20,7 @@ import { BotAddressService } from "./bot-address.service";
 import { escapeHtml, renderServerStatus } from "./bot-format";
 import {
   statusKeyboard,
+  nameReply,
   wizardBlueprintKeyboard,
   wizardConfirmKeyboard,
   wizardVersionKeyboard,
@@ -35,6 +36,9 @@ const PROGRESS_TIMEOUT_MS = 3 * 60 * 1000;
 /**
  * Conversational "create server" flow driven by the Grammy session
  */
+// The party popper effect from the default message effects set
+const CONFETTI_EFFECT = "5046509860389126442";
+
 @Injectable()
 export class CreateServerWizard {
   constructor(
@@ -61,7 +65,10 @@ export class CreateServerWizard {
       return;
     }
     ctx.session.wizard = { step: "name" };
-    await ctx.reply(t(lang, "wizard.enterName"), { parse_mode: "HTML" });
+    await ctx.reply(t(lang, "wizard.enterName"), {
+      parse_mode: "HTML",
+      reply_markup: nameReply(lang),
+    });
   }
 
   /** Handle a text message while the name step is active. Returns true if consumed */
@@ -75,7 +82,9 @@ export class CreateServerWizard {
 
     const name = text.trim();
     if (!name) {
-      await ctx.reply(t(lang, "wizard.nameEmpty"));
+      await ctx.reply(t(lang, "wizard.nameEmpty"), {
+        reply_markup: nameReply(lang),
+      });
       return true;
     }
     if (
@@ -83,7 +92,9 @@ export class CreateServerWizard {
         .findAll()
         .some((s) => s.name.toLowerCase() === name.toLowerCase())
     ) {
-      await ctx.reply(t(lang, "wizard.nameTaken"));
+      await ctx.reply(t(lang, "wizard.nameTaken"), {
+        reply_markup: nameReply(lang),
+      });
       return true;
     }
 
@@ -277,11 +288,12 @@ export class CreateServerWizard {
       if (!task) break;
       if (task.status === TaskStatus.SUCCESS) {
         const fresh = this.servers.findById(server.id) ?? server;
+        await this.celebrate(ctx, lang, chatId, fresh.name, sent.chat.type);
         await editTo(
           renderServerStatus(lang, fresh),
           statusKeyboard(
             lang,
-            fresh.id,
+            fresh,
             this.access.canControl(userId, fresh.id),
             await this.address.resolve(fresh),
           ),
@@ -308,6 +320,26 @@ export class CreateServerWizard {
         }),
       );
       await asyncTimeout(PROGRESS_POLL_MS);
+    }
+  }
+
+  // Effects are sent with a new message only and work in private chats only
+  private async celebrate(
+    ctx: MyContext,
+    lang: TelegramLang,
+    chatId: number,
+    name: string,
+    chatType: string,
+  ): Promise<void> {
+    // Plain text, no parse mode, so the name needs no escaping
+    const text = t(lang, "wizard.created", { name });
+    const effect =
+      chatType === "private" ? { message_effect_id: CONFETTI_EFFECT } : {};
+    try {
+      await ctx.api.sendMessage(chatId, text, effect);
+    } catch {
+      // An effect Telegram no longer knows must not cost the message itself
+      await ctx.api.sendMessage(chatId, text).catch(() => undefined);
     }
   }
 

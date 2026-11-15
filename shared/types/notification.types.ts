@@ -22,10 +22,12 @@ export interface NotificationParamsMap {
   "server.crashed": { serverId: string; serverName: string };
   "server.error": { serverId: string; serverName: string; errorType: string };
   "server.low_tps": { serverId: string; serverName: string; tps: number };
-  "auth.login": { username: string; ip: string | null };
+  "auth.login": { userId: string; username: string; ip: string | null };
   "backup.failed": {
     serverId: string;
     serverName: string;
+    /** Lets the Telegram alert offer a retry, null when the journal had none */
+    backupId: string | null;
     backupName: string;
     op: string;
     error: string | null;

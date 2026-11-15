@@ -17,6 +17,7 @@ import { ConversationsRepository } from "./conversations/conversations.repositor
 import { ConversationsService } from "./conversations/conversations.service";
 import { MessagesRepository } from "./conversations/messages.repository";
 import { AgentRunnerService } from "./runner/agent-runner.service";
+import { AssistantEventsService } from "./runner/assistant-events.service";
 import { AssistantProviderService } from "./settings/assistant-provider.service";
 import { ExchangeRateService } from "./settings/exchange-rate.service";
 import { AssistantSettingsService } from "./settings/assistant-settings.service";
@@ -81,9 +82,15 @@ const GROUPS = [
     ConversationsRepository,
     MessagesRepository,
     AgentRunnerService,
+    AssistantEventsService,
     ConversationsService,
   ],
   // The registry is transport agnostic, an MCP endpoint can reuse it later
-  exports: [ToolRegistryService],
+  exports: [
+    ToolRegistryService,
+    ConversationsService,
+    AssistantEventsService,
+    AssistantSettingsService,
+  ],
 })
 export class AssistantModule {}

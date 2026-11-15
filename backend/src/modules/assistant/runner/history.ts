@@ -13,6 +13,11 @@ const IMAGE_MESSAGES = 2;
 export interface HistoryOptions {
   /** The model reads images, otherwise they become a note */
   vision: boolean;
+  /**
+   * DeepSeek rejects a request with tools unless every earlier answer carries
+   * reasoning_content, even answers saved without one
+   */
+  requireReasoning?: boolean;
 }
 
 /** What the model reads back as the result of a call */
@@ -45,9 +50,13 @@ export function buildHistory(
       continue;
     }
     if (!message.content && !message.toolCalls.length) continue;
+    const replay =
+      options.requireReasoning && !(message.replay && "reasoning_content" in message.replay)
+        ? { ...message.replay, reasoning_content: message.reasoning ?? "" }
+        : message.replay;
     out.push({
       role: "assistant",
-      ...message.replay,
+      ...replay,
       content: message.content || null,
       tool_calls: message.toolCalls.length
         ? message.toolCalls.map((call) => ({

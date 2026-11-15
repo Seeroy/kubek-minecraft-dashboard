@@ -10,8 +10,18 @@ import type {
   NotificationParamsMap,
 } from "@shared/types/notification.types";
 import { ServerStatus } from "@shared/types/server/server.types";
-import { Bot } from "grammy";
-import { escapeHtml, renderTaskNotification, statusLabel } from "./bot-format";
+import { Bot, type InlineKeyboard } from "grammy";
+import {
+  escapeHtml,
+  renderTaskNotification,
+  statusLabel,
+  tgTime,
+} from "./bot-format";
+import {
+  backupRetryKeyboard,
+  crashKeyboard,
+  loginAlertKeyboard,
+} from "./bot-keyboards";
 import { isUnreachable, sendRich, type RichView } from "./bot-reply";
 import { detectLang, t } from "./i18n";
 
@@ -83,6 +93,22 @@ const RENDERERS: { [K in NotificationKind]?: Renderer<K> } = {
     }),
 };
 
+// Actions offered right under an alert, each callback checks access again
+const KEYBOARDS: {
+  [K in NotificationKind]?: (
+    lang: TelegramLang,
+    params: NotificationParamsMap[K],
+  ) => InlineKeyboard | undefined;
+} = {
+  "server.crashed": (lang, p) => crashKeyboard(lang, p.serverId),
+  "auth.login": (lang, p) => loginAlertKeyboard(lang, p.userId),
+  // Restore and upload retries need more context than an alert has, create is safe to repeat
+  "backup.failed": (lang, p) =>
+    p.op === "create" && p.backupId
+      ? backupRetryKeyboard(lang, p.backupId)
+      : undefined,
+};
+
 /** Delivers notifications to the Telegram chat linked to a panel user */
 @Injectable()
 export class TelegramNotifier {
@@ -103,11 +129,16 @@ export class TelegramNotifier {
     const render = RENDERERS[kind];
     const tgUser = render && this.linkedUser(userId);
     if (!render || !tgUser) return;
-    const view = render(detectLang(tgUser.language), params);
+    const lang = detectLang(tgUser.language);
+    const view = render(lang, params);
+    const keyboard = KEYBOARDS[kind]?.(lang, params);
     await this.deliver(tgUser, (api) =>
       typeof view === "string"
-        ? api.sendMessage(tgUser.id, view, { parse_mode: "HTML" })
-        : sendRich(api, tgUser.id, view),
+        ? api.sendMessage(tgUser.id, withTime(view), {
+            parse_mode: "HTML",
+            reply_markup: keyboard,
+          })
+        : sendRich(api, tgUser.id, view, keyboard),
     );
   }
 
@@ -135,6 +166,11 @@ export class TelegramNotifier {
       );
     }
   }
+}
+
+// Read later the alert still says when it happened, Telegram keeps "5 min ago" current
+function withTime(text: string): string {
+  return `${text}\n<i>${tgTime(Date.now(), "r")}</i>`;
 }
 
 function formatDuration(ms: number, lang: TelegramLang): string {

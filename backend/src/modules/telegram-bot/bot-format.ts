@@ -40,11 +40,14 @@ export function statusLabel(lang: TelegramLang, status: string): string {
   return t(lang, `statusValues.${key}`);
 }
 
-/** Date in the reader's timezone, UTC text for old clients */
-function tgTime(at: number): string {
+/**
+ * Time Telegram renders in the reader's timezone and language. "r" is relative
+ * and keeps updating ("5 minutes ago"), old clients see the UTC text inside
+ */
+export function tgTime(at: number, format: "r" | "wDT" | "t" = "wDT"): string {
   const unix = Math.floor(at / 1000);
   const fallback = new Date(at).toISOString().slice(0, 16).replace("T", " ");
-  return `<tg-time unix="${unix}" format="wDT">${fallback} UTC</tg-time>`;
+  return `<tg-time unix="${unix}" format="${format}">${fallback} UTC</tg-time>`;
 }
 
 /** Two-column key/value table */
@@ -96,6 +99,7 @@ export function renderServersList(
 export function renderServerStatus(
   lang: TelegramLang,
   server: IServer,
+  startedAt?: number | null,
 ): string {
   const l = (k: string) => t(lang, `status.labels.${k}`);
   let message = `<b>${escapeHtml(server.name)}</b>\n\n`;
@@ -103,6 +107,7 @@ export function renderServerStatus(
   message += `${l("type")}: ${escapeHtml(blueprintLabel(server))}\n`;
   const version = gameVersion(server);
   if (version) message += `${l("version")}: ${escapeHtml(version)}\n`;
+  if (startedAt) message += `${l("started")}: ${tgTime(startedAt, "r")}\n`;
   return message;
 }
 

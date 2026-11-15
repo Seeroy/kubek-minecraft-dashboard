@@ -1,6 +1,7 @@
 import { getErrorMessage } from "@/core/utils/error";
 import { AccountsService } from "@/modules/accounts/accounts.service";
 import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { ProcessStatsService } from "@/modules/metrics-history/services/process-stats.service";
 import { ServersService } from "@/modules/servers/servers.service";
 import { Injectable, Logger } from "@nestjs/common";
 import type { IServer } from "@shared/types/server/server.types";
@@ -50,6 +51,7 @@ export class BotViewsService {
     private readonly auditLog: AuditLogService,
     private readonly users: BotUsersService,
     private readonly address: BotAddressService,
+    private readonly stats: ProcessStatsService,
   ) {}
 
   async sendMainMenu(
@@ -126,10 +128,10 @@ export class BotViewsService {
       await replyOrEdit(
         ctx,
         edit,
-        renderServerStatus(lang, server),
+        renderServerStatus(lang, server, await this.startedAt(serverId)),
         statusKeyboard(
           lang,
-          serverId,
+          server,
           this.access.canControl(userId, serverId),
           await this.address.resolve(server),
         ),
@@ -137,6 +139,19 @@ export class BotViewsService {
     } catch (error) {
       this.logger.error(`Error fetching status: ${getErrorMessage(error)}`);
       await replyOrEdit(ctx, edit, t(lang, "status.fetchError"));
+    }
+  }
+
+  // Only known while process stats are on, the line is just left out otherwise
+  private async startedAt(serverId: string): Promise<number | null> {
+    try {
+      const stats = (await this.stats.collect()).find(
+        (item) => item.serverId === serverId,
+      );
+      const at = stats?.startedAt ? Date.parse(stats.startedAt) : NaN;
+      return Number.isFinite(at) ? at : null;
+    } catch {
+      return null;
     }
   }
 

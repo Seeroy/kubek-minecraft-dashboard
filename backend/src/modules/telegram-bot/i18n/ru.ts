@@ -21,12 +21,15 @@ export const ru: typeof en = {
       "🖥️ /servers - список ваших серверов\n" +
       "📊 /status &lt;id&gt; - статус сервера и управление\n" +
       "🌐 /language - сменить язык\n" +
-      "🔗 /unlink - отвязать Telegram",
+      "🆕 /new - новый чат с ИИ-ассистентом\n" +
+      "🔗 /unlink - отвязать Telegram\n\n" +
+      "💬 Любое другое сообщение уходит ИИ-ассистенту, если он включён в панели. Можно присылать фото и текстовые файлы вроде конфигов и логов",
   },
   menu: {
     text: "🎮 <b>Бот Kubek</b>\n\nВыберите действие ниже 👇",
   },
   commands: {
+    new: "Новый чат с ИИ-ассистентом",
     start: "Привязать или проверить аккаунт",
     help: "Показать команды",
     servers: "Список серверов",
@@ -46,7 +49,13 @@ export const ru: typeof en = {
     notFound: "🔍 Сервер не найден.",
     noPermissionView: "🚫 У вас нет прав на просмотр этого сервера.",
     fetchError: "❌ Не удалось получить статус сервера. Попробуйте позже.",
-    labels: { status: "Статус", type: "Тип", core: "Ядро", version: "Версия" },
+    labels: {
+      status: "Статус",
+      type: "Тип",
+      core: "Ядро",
+      version: "Версия",
+      started: "Запущен",
+    },
   },
   actions: {
     noPermissionManage: "🚫 У вас нет прав на управление этим сервером.",
@@ -88,6 +97,23 @@ export const ru: typeof en = {
     open: "Открыть",
     copyAddress: "📋 Адрес",
     copyId: "🆔 ID",
+    openStatus: "📊 Статус",
+    retry: "🔁 Повторить",
+  },
+  security: {
+    notMe: "🚫 Это не я",
+    confirm:
+      "⚠️ Завершить все сессии этого аккаунта? Тот, кто вошёл, будет выкинут, вы тоже. Потом смените пароль в панели",
+    confirmRevoke: "🚫 Выйти везде",
+    revoked: "✅ Все сессии завершены. Смените пароль в панели",
+    kept: "Ничего не изменилось",
+    notOwner: "Это может сделать только владелец аккаунта",
+  },
+  backupRetry: {
+    started: (p) => `🔁 Бэкап "${p.name}" запущен заново`,
+    noPermission: "🚫 У вас нет прав создавать бэкапы на этом сервере",
+    notFound: "Бэкапа уже нет, создайте новый в панели",
+    failed: (p) => `❌ Не удалось повторить: ${p.error}`,
   },
   twofa: {
     request: (p) =>
@@ -119,6 +145,7 @@ export const ru: typeof en = {
     enterName: "🆕 <b>Новый сервер</b>\n\nОтправьте имя нового сервера:",
     nameEmpty: "❌ Имя не может быть пустым. Отправьте другое:",
     nameTaken: "❌ Сервер с таким именем уже существует. Отправьте другое:",
+    namePlaceholder: "Имя сервера",
     chooseBlueprint: "⚙️ Выберите тип сервера:",
     loadingVersions: "⏳ Загрузка версий…",
     noVersions: "❌ Для этого типа сервера сейчас нет доступных версий.",
@@ -171,5 +198,54 @@ export const ru: typeof en = {
       finishedAt: "🕒 Завершена",
     },
     units: { ms: "мс", sec: "с", min: "м", hour: "ч" },
+  },
+  assistant: {
+    unavailable: "🤖 ИИ-ассистент выключен в настройках панели.",
+    busy: "⏳ Ассистент ещё отвечает. Дождитесь ответа или нажмите \"Остановить\".",
+    pending: "☝️ Сначала подтвердите или отмените действие выше.",
+    newChat: "🆕 Новый чат. Просто напишите, что нужно.",
+    stopped: "⏹ Остановлено",
+    stepLimit: "⚠️ Достигнут лимит шагов, напишите сообщение, чтобы продолжить.",
+    failed: (p: { error: string }) => `❌ ${p.error}`,
+    stop: "⏹ Остановить",
+    toolsTitle: "🛠 Действия",
+    confirmTitle: "✋ <b>Нужно ваше подтверждение</b>",
+    onServer: (p: { name: string }) => `На сервере <b>${p.name}</b>`,
+    approve: "✅ Выполнить",
+    deny: "✖️ Отмена",
+    approved: "✅ Подтверждено",
+    denied: "✖️ Отменено",
+    alreadyDecided: "Это действие уже решено",
+    newFile: "новый файл",
+    unset: "не задано",
+    fileTooLarge: (p: { name: string }) => `❌ ${p.name}: файл слишком большой`,
+    fileUnsupported: (p: { name: string }) =>
+      `❌ ${p.name}: прикрепить можно картинки и текстовые файлы вроде конфигов и логов`,
+    tools: {
+      list_servers: "Список серверов",
+      get_server: "Сведения о сервере",
+      get_metrics: "Нагрузка",
+      power: "Запуск, остановка, перезапуск",
+      read_console: "Чтение консоли",
+      search_logs: "Поиск по логам",
+      get_diagnostics: "Диагностика",
+      send_command: "Команда в консоль",
+      list_files: "Список файлов",
+      read_file: "Чтение файла",
+      write_file: "Изменение файла",
+      get_properties: "Чтение server.properties",
+      set_properties: "Изменение server.properties",
+      list_content: "Установленные плагины и моды",
+      search_modrinth: "Поиск на Modrinth",
+      install_content: "Установка с Modrinth",
+      list_backups: "Список бэкапов",
+      create_backup: "Создание бэкапа",
+      list_scheduled_tasks: "Задачи планировщика",
+      create_scheduled_task: "Новая задача",
+      list_players: "Игроки",
+      manage_player: "Управление игроком",
+      web_search: "Поиск в интернете",
+      read_url: "Чтение страницы",
+    },
   },
 };

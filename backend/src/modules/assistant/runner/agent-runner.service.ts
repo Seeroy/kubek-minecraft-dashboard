@@ -22,6 +22,10 @@ import { AssistantSettingsService } from "../settings/assistant-settings.service
 import { ModelCapabilitiesService } from "../settings/model-capabilities.service";
 import { ToolRegistryService } from "../tools/tool-registry.service";
 import { AgentLoop, type LoopEvents, type LoopRun } from "./agent-loop";
+import {
+  AssistantEventsService,
+  type AssistantRunEvent,
+} from "./assistant-events.service";
 import { buildSystemPrompt } from "./context-builder";
 
 /** Runs conversations in the background and streams them to the owner's sockets */
@@ -42,6 +46,7 @@ export class AgentRunnerService {
     private readonly servers: ServersService,
     private readonly broadcast: ServerBroadcastService,
     private readonly capabilities: ModelCapabilitiesService,
+    private readonly bus: AssistantEventsService,
   ) {
     this.loop = new AgentLoop({
       complete: (req, signal, onText, onReasoning) =>
@@ -151,6 +156,9 @@ export class AgentRunnerService {
       maxSteps: settings.maxSteps,
       autoApprove: options.autoApprove ?? false,
       vision: caps.vision === true,
+      // Gateways pass DeepSeek models through, the rule comes with the model
+      requireReasoning:
+        caps.kind === "deepseek" || /deepseek/i.test(settings.model),
       options: reasoningOptions(
         caps.kind,
         options.reasoning ?? "auto",
@@ -168,41 +176,56 @@ export class AgentRunnerService {
   private events(userId: string, conversationId: string): LoopEvents {
     const room = `user:${userId}`;
     const ws = this.broadcast;
+    // The socket feeds the web panel, the bus other transports like the Telegram bot
+    const bus = (event: AssistantRunEvent) =>
+      this.bus.emit(conversationId, event);
     return {
-      delta: (messageId, text, channel) =>
+      delta: (messageId, text, channel) => {
         ws.emitToRoom(room, WsAssistantEventTypes.DELTA, {
           conversationId,
           messageId,
           text,
           ...(channel ? { channel } : {}),
-        }),
-      message: (message) =>
+        });
+        bus({ type: "delta", messageId, text, channel });
+      },
+      message: (message) => {
         ws.emitToRoom(room, WsAssistantEventTypes.MESSAGE, {
           conversationId,
           message,
-        }),
-      tool: (messageId, call) =>
+        });
+        bus({ type: "message", message });
+      },
+      tool: (messageId, call) => {
         ws.emitToRoom(room, WsAssistantEventTypes.TOOL, {
           conversationId,
           messageId,
           call,
-        }),
-      confirm: (messageId, call) =>
+        });
+        bus({ type: "tool", messageId, call });
+      },
+      confirm: (messageId, call) => {
         ws.emitToRoom(room, WsAssistantEventTypes.CONFIRM, {
           conversationId,
           messageId,
           call,
-        }),
-      done: (finished) =>
+        });
+        bus({ type: "confirm", messageId, call });
+      },
+      done: (finished) => {
         ws.emitToRoom(room, WsAssistantEventTypes.DONE, {
           conversationId,
           finished,
-        }),
-      error: (error) =>
+        });
+        bus({ type: "done", finished });
+      },
+      error: (error) => {
         ws.emitToRoom(room, WsAssistantEventTypes.ERROR, {
           conversationId,
           error,
-        }),
+        });
+        bus({ type: "error", error });
+      },
     };
   }
 }

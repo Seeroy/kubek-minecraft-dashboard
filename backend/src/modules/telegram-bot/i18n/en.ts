@@ -19,12 +19,15 @@ export const en = {
       "🖥️ /servers - list your servers\n" +
       "📊 /status &lt;id&gt; - server status &amp; controls\n" +
       "🌐 /language - change language\n" +
-      "🔗 /unlink - unlink your Telegram account",
+      "🆕 /new - new chat with the AI assistant\n" +
+      "🔗 /unlink - unlink your Telegram account\n\n" +
+      "💬 Any other message goes to the AI assistant, if it is on in the panel. Photos and text files like configs and logs work too",
   },
   menu: {
     text: "🎮 <b>Kubek Bot</b>\n\nChoose an action below 👇",
   },
   commands: {
+    new: "Start a new chat with the AI assistant",
     start: "Link or check your account",
     help: "Show available commands",
     servers: "List your servers",
@@ -50,6 +53,7 @@ export const en = {
       type: "Type",
       core: "Core",
       version: "Version",
+      started: "Started",
     },
   },
   actions: {
@@ -94,6 +98,23 @@ export const en = {
     open: "Open",
     copyAddress: "📋 Address",
     copyId: "🆔 ID",
+    openStatus: "📊 Status",
+    retry: "🔁 Retry",
+  },
+  security: {
+    notMe: "🚫 It wasn't me",
+    confirm:
+      "⚠️ Sign out every session of this account? Whoever signed in will be logged out, and so will you. Then change the password in the panel",
+    confirmRevoke: "🚫 Sign out everywhere",
+    revoked: "✅ All sessions are closed. Change the password in the panel",
+    kept: "Nothing changed",
+    notOwner: "Only the account owner can do this",
+  },
+  backupRetry: {
+    started: (p: { name: string }) => `🔁 Backup "${p.name}" started again`,
+    noPermission: "🚫 You cannot create backups on this server",
+    notFound: "The backup is gone, start a new one in the panel",
+    failed: (p: { error: string }) => `❌ Could not retry: ${p.error}`,
   },
   twofa: {
     request: (p: { username: string; ip: string; ua: string }) =>
@@ -125,6 +146,7 @@ export const en = {
     enterName: "🆕 <b>New server</b>\n\nSend a name for the new server:",
     nameEmpty: "❌ The name cannot be empty. Send another one:",
     nameTaken: "❌ A server with this name already exists. Send another one:",
+    namePlaceholder: "Server name",
     chooseBlueprint: "⚙️ Choose the server type:",
     loadingVersions: "⏳ Loading versions…",
     noVersions: "❌ No versions are available for this server type right now.",
@@ -182,5 +204,54 @@ export const en = {
       finishedAt: "🕒 Finished",
     },
     units: { ms: "ms", sec: "s", min: "m", hour: "h" },
+  },
+  assistant: {
+    unavailable: "🤖 The AI assistant is turned off in the panel settings.",
+    busy: "⏳ The assistant is still answering. Wait for it or press stop.",
+    pending: "☝️ Confirm or cancel the action above first.",
+    newChat: "🆕 New chat started. Just write what you need.",
+    stopped: "⏹ Stopped",
+    stepLimit: "⚠️ Step limit reached, send a message to continue.",
+    failed: (p: { error: string }) => `❌ ${p.error}`,
+    stop: "⏹ Stop",
+    toolsTitle: "🛠 Actions",
+    confirmTitle: "✋ <b>Needs your confirmation</b>",
+    onServer: (p: { name: string }) => `On <b>${p.name}</b>`,
+    approve: "✅ Run",
+    deny: "✖️ Cancel",
+    approved: "✅ Confirmed",
+    denied: "✖️ Cancelled",
+    alreadyDecided: "This action was already decided",
+    newFile: "new file",
+    unset: "not set",
+    fileTooLarge: (p: { name: string }) => `❌ ${p.name}: the file is too large`,
+    fileUnsupported: (p: { name: string }) =>
+      `❌ ${p.name}: only images and text files like configs and logs can be attached`,
+    tools: {
+      list_servers: "List servers",
+      get_server: "Server details",
+      get_metrics: "Resource usage",
+      power: "Start, stop or restart",
+      read_console: "Read console",
+      search_logs: "Search logs",
+      get_diagnostics: "Diagnostics",
+      send_command: "Console command",
+      list_files: "List files",
+      read_file: "Read file",
+      write_file: "Change file",
+      get_properties: "Read server.properties",
+      set_properties: "Change server.properties",
+      list_content: "Installed plugins and mods",
+      search_modrinth: "Search Modrinth",
+      install_content: "Install from Modrinth",
+      list_backups: "List backups",
+      create_backup: "Create backup",
+      list_scheduled_tasks: "Scheduled tasks",
+      create_scheduled_task: "Schedule a task",
+      list_players: "Players",
+      manage_player: "Manage player",
+      web_search: "Web search",
+      read_url: "Read page",
+    },
   },
 };

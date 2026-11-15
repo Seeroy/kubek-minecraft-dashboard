@@ -15,7 +15,9 @@ import type {
   TelegramLang,
 } from "@/modules/telegram-bot/telegram.types";
 import { Bot, GrammyError, session } from "grammy";
+import { BotAlertsService } from "./bot-alerts.service";
 import { languageKeyboard } from "./bot-keyboards";
+import { BotAssistantService } from "./bot-assistant.service";
 import { BotLinkingService } from "./bot-linking.service";
 import { replyOrEdit } from "./bot-reply";
 import { BotTwofaService } from "./bot-twofa.service";
@@ -92,6 +94,8 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     private readonly linking: BotLinkingService,
     private readonly twofa: BotTwofaService,
     private readonly wizard: CreateServerWizard,
+    private readonly assistant: BotAssistantService,
+    private readonly alerts: BotAlertsService,
   ) {}
 
   onModuleInit() {
@@ -114,6 +118,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     if (this.bot) {
       this.bot = null;
       this.notifier.setBot(null);
+      this.assistant.setBot(null);
       this.twofa.setBot(null);
     }
   }
@@ -160,6 +165,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.notifier.setBot(this.bot);
+    this.assistant.setBot(this.bot);
     this.twofa.setBot(this.bot);
   }
 
@@ -168,7 +174,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     if (!this.bot) return;
     const build = (lang: TelegramLang) =>
       (
-        ["start", "help", "servers", "status", "language", "unlink"] as const
+        ["start", "help", "servers", "status", "new", "language", "unlink"] as const
       ).map((command) => ({
         command,
         description: t(lang, `commands.${command}`),
@@ -234,6 +240,15 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
       );
     });
 
+    this.bot.command("new", async (ctx) => {
+      const lang = this.users.langFor(ctx);
+      const tgUser = this.users.getActiveUser(ctx);
+      if (!tgUser) return void ctx.reply(t(lang, "common.linkFirst"));
+      if (!this.assistant.userFor(tgUser))
+        return void ctx.reply(t(lang, "common.unknownCommand"));
+      await this.assistant.newChat(ctx, lang, tgUser);
+    });
+
     this.bot.command("unlink", async (ctx) => {
       const lang = this.users.langFor(ctx);
       const tgUser = this.users.getActiveUser(ctx);
@@ -272,14 +287,26 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     },
   ];
 
-  // start/stop/restart answer the query with their own result
-  private readonly controlRoutes: CallbackRoute<LinkedCallbackScope>[] = (
-    ["start", "stop", "restart"] as const
-  ).map((action: ServerControlAction) => ({
-    match: `srv:${action}:`,
-    handle: ({ ctx, lang, tgUser, rest }) =>
-      this.views.handleServerAction(ctx, lang, tgUser, rest, action),
-  }));
+  // These answer the query with their own result: power actions and alert buttons
+  private readonly controlRoutes: CallbackRoute<LinkedCallbackScope>[] = [
+    ...(["start", "stop", "restart"] as const).map(
+      (action: ServerControlAction) => ({
+        match: `srv:${action}:`,
+        handle: ({ ctx, lang, tgUser, rest }: LinkedCallbackScope) =>
+          this.views.handleServerAction(ctx, lang, tgUser, rest, action),
+      }),
+    ),
+    ...(["notme", "revoke", "keep"] as const).map((step) => ({
+      match: `sec:${step}:`,
+      handle: ({ ctx, lang, tgUser, rest }: LinkedCallbackScope) =>
+        this.alerts.handleLogin(ctx, lang, tgUser, step, rest),
+    })),
+    {
+      match: "bk:retry:",
+      handle: ({ ctx, lang, tgUser, rest }) =>
+        this.alerts.retryBackup(ctx, lang, tgUser, rest),
+    },
+  ];
 
   // Router answers with an empty ack, or an error toast if it fails
   private readonly linkedRoutes: CallbackRoute<LinkedCallbackScope>[] = [
@@ -305,14 +332,17 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     },
     {
       match: "srv:status:",
-      handle: ({ ctx, lang, tgUser, rest }) =>
-        this.views.sendServerStatus(
+      handle: ({ ctx, lang, tgUser, rest }) => {
+        // The opened server becomes what the assistant talks about
+        this.assistant.rememberServer(tgUser.id, rest.split(":")[0]);
+        return this.views.sendServerStatus(
           ctx,
           lang,
           tgUser.userId,
           rest.split(":")[0],
           true,
-        ),
+        );
+      },
     },
   ];
 
@@ -330,6 +360,10 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
       if (!tgUser) {
         return void ctx.answerCallbackQuery(t(lang, "common.linkFirst"));
       }
+
+      // Assistant buttons answer the query with their own result
+      if (data.startsWith("ai:"))
+        return this.assistant.onCallback(ctx, lang, tgUser, data.slice(3));
 
       const control = findRoute(this.controlRoutes, data);
       if (control && control.rest) {
@@ -393,7 +427,56 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
         return;
       }
 
+      // Anything else is a question for the assistant, if the user may chat with it
+      const tgUser = this.users.getActiveUser(ctx);
+      if (
+        tgUser &&
+        !text.startsWith("/") &&
+        (await this.assistant.handleMessage(ctx, lang, tgUser, {
+          text,
+          messageId: ctx.message.message_id,
+        }))
+      )
+        return;
+
       await ctx.reply(t(lang, "common.unknownCommand"));
+    });
+
+    this.bot.on(["message:photo", "message:document"], async (ctx) => {
+      const lang = this.users.langFor(ctx);
+      const tgUser = this.users.getActiveUser(ctx);
+      if (!tgUser || !this.assistant.userFor(tgUser)) return;
+      const message = ctx.message;
+      const photo = message.photo?.at(-1);
+      const document = message.document;
+      const file = photo
+        ? await this.assistant.readFile(lang, photo, `photo-${message.message_id}.jpg`, "image/jpeg")
+        : document
+          ? await this.assistant.readFile(
+              lang,
+              document,
+              document.file_name ?? `file-${message.message_id}`,
+              document.mime_type,
+            )
+          : null;
+      if (!file) return;
+      if (typeof file === "string") return void ctx.reply(file);
+      const caption = message.caption ?? "";
+      if (message.media_group_id) {
+        this.assistant.handleAlbumPart(ctx, lang, tgUser, message.media_group_id, file, caption, message.message_id);
+        return;
+      }
+      await this.assistant.handleMessage(ctx, lang, tgUser, {
+        text: caption,
+        attachments: [file],
+        messageId: message.message_id,
+      });
+    });
+
+    // The stop button Telegram shows under a streamed draft
+    this.bot.on("stopped_message_generation", (ctx) => {
+      const chatId = ctx.update.stopped_message_generation?.chat.id;
+      if (chatId) this.assistant.handleStopped(chatId);
     });
   }
 

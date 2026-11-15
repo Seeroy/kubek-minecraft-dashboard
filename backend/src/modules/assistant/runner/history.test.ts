@@ -77,4 +77,26 @@ describe("buildHistory attachments", () => {
       tool_calls: undefined,
     });
   });
+
+  it("fills reasoning_content on every answer when the provider demands it", () => {
+    const answer = (id: string, extra: Partial<StoredMessage>): StoredMessage => ({
+      ...user(id),
+      role: "assistant",
+      content: "ok",
+      ...extra,
+    });
+    const history = buildHistory(
+      [
+        answer("1", { reasoning: "thought, saved after an error" }),
+        answer("2", {}),
+        answer("3", { replay: { reasoning_content: "kept" } }),
+      ],
+      { vision: false, requireReasoning: true },
+    );
+    expect(history.map((m) => (m as { reasoning_content?: string }).reasoning_content)).toEqual([
+      "thought, saved after an error",
+      "",
+      "kept",
+    ]);
+  });
 });

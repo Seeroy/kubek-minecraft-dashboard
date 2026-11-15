@@ -143,7 +143,7 @@ export class NotificationRulesService implements OnModuleInit {
     if (!user) return;
     this.notifications.notify({
       kind: "auth.login",
-      params: { username: user.username, ip },
+      params: { userId, username: user.username, ip },
       audience: { userId },
     });
   }
@@ -173,6 +173,7 @@ export class NotificationRulesService implements OnModuleInit {
       params: {
         serverId: e.serverId,
         serverName: server?.name ?? e.serverId,
+        backupId: e.backupId,
         backupName: e.backupName ?? "",
         op: e.op,
         error: e.message,
