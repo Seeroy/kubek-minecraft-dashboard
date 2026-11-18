@@ -1,5 +1,6 @@
 import { useServerFoldersQuery } from "@/modules/server/api/server-folders.queries";
 import { useHostMetrics } from "@/modules/system-monitoring/store/host-metrics.store";
+import { needsMinecraftEula } from "@/modules/server-types/lib/blueprint";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatBytes } from "@/shared/lib/bytesToGb";
 import { cn } from "@/shared/lib/cn";
@@ -140,21 +141,23 @@ export function AdvancedStep({ form, blueprint, dockerAvailable }: AdvancedStepP
           />
         )}
         <SwitchRow icon={Play} label={t("autostart.label")} description={t("autostart.description")} checked={autostart} onChange={set("autostart")} />
-        <SwitchRow
-          icon={FileText}
-          label={t("eula.label")}
-          description={
-            <>
-              {t("eula.description")}{" "}
-              <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
-                {t("eula.link")}
-              </a>
-            </>
-          }
-          checked={eula}
-          onChange={set("eula")}
-          error={!eula && t("eula.required")}
-        />
+        {needsMinecraftEula(blueprint) && (
+          <SwitchRow
+            icon={FileText}
+            label={t("eula.label")}
+            description={
+              <>
+                {t("eula.description")}{" "}
+                <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
+                  {t("eula.link")}
+                </a>
+              </>
+            }
+            checked={eula}
+            onChange={set("eula")}
+            error={!eula && t("eula.required")}
+          />
+        )}
 
         <div className="mt-3 grid gap-x-5 gap-y-4 sm:grid-cols-2">
           <WizardField label={t("folder.label")} icon={Folder} htmlFor="server-folder">

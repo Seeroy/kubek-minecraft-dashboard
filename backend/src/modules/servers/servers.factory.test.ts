@@ -129,7 +129,7 @@ beforeEach(() => {
     fake<InstallPipeline>({
       run: (_blueprint, server) => {
         fs.mkdirSync(serverDir(server.id), { recursive: true });
-        return install(server);
+        return install(server).then(() => ({}));
       },
     }),
     config,

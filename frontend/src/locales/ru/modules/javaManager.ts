@@ -40,7 +40,7 @@ export const javaManagerTranslations: TranslationDictionary = {
     range: (from: string, to: string) => `Для ${from}-${to}`,
     newer: (from: string) => `Для ${from} и новее`,
     install: "Установить",
-    installing: (percent: number) => `Загрузка… ${percent}%`,
+    installing: (percent: number) => `Загрузка... ${percent}%`,
     installed: "Установлено",
     empty: "Доступных для установки версий нет",
   },

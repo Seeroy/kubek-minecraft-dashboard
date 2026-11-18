@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { ForbiddenException } from "@nestjs/common";
 import type { ExecutionContext } from "@nestjs/common";
-import type { HttpArgumentsHost } from "@nestjs/common/interfaces";
+import type { HttpArgumentsHost } from "@/testing/http-host";
 import { AccessArea, AREA_LEVELS } from "@shared/access/areas";
 import { fake } from "@/testing/fake";
 import { AdminGuard } from "./admin.guard";

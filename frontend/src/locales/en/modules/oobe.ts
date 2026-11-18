@@ -106,7 +106,7 @@ export const oobeTranslations: TranslationDictionary = {
       description: "Let's set up your first Minecraft server. Press the button below to open the server wizard",
       button: "Create one now",
     },
-    creating: (name: string) => `Creating "${name}"…`,
+    creating: (name: string) => `Creating "${name}"...`,
     created: "Created",
     createdHint: "The server shows up in the list once you enter the panel. Start it with the Start button in the sidebar.",
     failed: "Could not create the server",
@@ -117,7 +117,7 @@ export const oobeTranslations: TranslationDictionary = {
     title: "All set!",
     subtitle: "Setup is complete. Welcome to Kubek, enjoy!",
     cta: "Open the panel",
-    opening: "Opening the panel…",
+    opening: "Opening the panel...",
     items: {
       license: "License accepted",
       theme: "Theme configured",

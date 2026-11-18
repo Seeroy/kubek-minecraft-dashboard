@@ -104,7 +104,7 @@ function BackupInfoModal({ isOpen, onClose, backup, actions }: BackupInfoModalPr
             {backup.checksum && (
               <KeyValueItem label={t("info.checksum")}>
                 <span className="font-mono text-xs break-all" title={backup.checksum}>
-                  {backup.checksum.slice(0, 16)}…
+                  {backup.checksum.slice(0, 16)}...
                 </span>
               </KeyValueItem>
             )}

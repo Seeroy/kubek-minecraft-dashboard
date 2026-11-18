@@ -12,12 +12,19 @@ import {
 } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  NotFoundException,
+  PayloadTooLargeException,
+} from "@nestjs/common";
 import { FileType } from "@shared/types/file.types";
 import type { ExtensionEventBus } from "@/modules/extensions/extension-event-bus.service";
 import { fake } from "@/testing/fake";
 import { FileBatchService } from "./file-batch.service";
-import { FileManagerService } from "./file-manager.service";
+import {
+  FileManagerService,
+  MAX_READ_FILE_BYTES,
+} from "./file-manager.service";
 
 let cwd: string;
 let root: string;
@@ -31,6 +38,14 @@ const upload = (name: string, content = "up") =>
     originalname: name,
     buffer: Buffer.from(content),
   });
+
+// What disk storage hands over, a temp file outside the server
+function diskUpload(name: string, content: string): Express.Multer.File {
+  const temp = join(root, "upload-tmp", name.replace(/[\\/]/g, "_"));
+  mkdirSync(join(temp, ".."), { recursive: true });
+  writeFileSync(temp, content);
+  return fake<Express.Multer.File>({ originalname: name, path: temp });
+}
 
 function put(relative: string, content = "x") {
   const full = join(server, relative);
@@ -202,6 +217,51 @@ describe("readFile and writeFile", () => {
     expect([...(await files.readFile("srv", "icon.png"))]).toEqual([
       0, 255, 10, 13,
     ]);
+  });
+
+  test("a file over the read limit is refused with 413", async () => {
+    writeFileSync(
+      join(server, "latest.log"),
+      Buffer.alloc(MAX_READ_FILE_BYTES + 1, 97),
+    );
+    const error = await files
+      .readFile("srv", "latest.log")
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(PayloadTooLargeException);
+    expect((error as Error).message).toContain("download it instead");
+    expect(
+      (error as PayloadTooLargeException).getResponse() as { code: string },
+    ).toMatchObject({ code: "PAYLOAD_TOO_LARGE" });
+
+    writeFileSync(
+      join(server, "edge.log"),
+      Buffer.alloc(MAX_READ_FILE_BYTES, 97),
+    );
+    expect((await files.readFile("srv", "edge.log")).length).toBe(
+      MAX_READ_FILE_BYTES,
+    );
+  });
+
+  test("downloads stream the file with its size", async () => {
+    put("world/level.dat", "level-bytes");
+    const { stream, size } = await files.openReadStream(
+      "srv",
+      "world/level.dat",
+    );
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(chunk as Buffer);
+    expect(size).toBe(11);
+    expect(Buffer.concat(chunks).toString()).toBe("level-bytes");
+  });
+
+  test("downloads keep the path jail", async () => {
+    symlinkSync(join(root, "outside"), join(server, "escape"));
+    await expect(
+      files.openReadStream("srv", "escape/secret.txt"),
+    ).rejects.toThrow("directory traversal");
+    await expect(files.openReadStream("srv", "nope.txt")).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   test("reading a missing file or a folder is not found", async () => {
@@ -479,6 +539,29 @@ describe("uploadFile", () => {
     await expect(
       files.uploadFile("srv", "plugins", upload("x.jar", "new")),
     ).rejects.toThrow("File already exists");
+    expect(read("plugins/x.jar")).toBe("original");
+  });
+
+  test("moves a disk upload into place and drops the temp file", async () => {
+    const file = diskUpload("big.jar", "disk");
+    await files.uploadFile("srv", "plugins", file);
+    expect(read("plugins/big.jar")).toBe("disk");
+    expect(existsSync(file.path)).toBe(false);
+  });
+
+  test("a refused disk upload leaves no temp file behind", async () => {
+    put("plugins/x.jar", "original");
+    const taken = diskUpload("x.jar", "new");
+    await expect(files.uploadFile("srv", "plugins", taken)).rejects.toThrow(
+      "File already exists",
+    );
+    expect(existsSync(taken.path)).toBe(false);
+
+    const evil = diskUpload("../../outside/evil.txt", "x");
+    await expect(files.uploadFile("srv", "", evil)).rejects.toThrow(
+      "directory traversal",
+    );
+    expect(existsSync(evil.path)).toBe(false);
     expect(read("plugins/x.jar")).toBe("original");
   });
 

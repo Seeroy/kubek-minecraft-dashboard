@@ -18,8 +18,8 @@ export function useSetupTotpMutation() {
 export function useConfirmTotpMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vars: { setupToken: string; code: string }) =>
-      api.twofa.confirmTotp(vars.setupToken, vars.code),
+    mutationFn: (vars: { setupToken: string; code: string; password: string }) =>
+      api.twofa.confirmTotp(vars.setupToken, vars.code, vars.password),
     // A wrong code is shown under the field instead of a toast
     meta: { silent: true },
     onSuccess: () => {
@@ -42,7 +42,9 @@ export function useDisableTotpMutation() {
 export function useEnableTelegramMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api.twofa.enableTelegram(),
+    mutationFn: (password: string) => api.twofa.enableTelegram(password),
+    // A wrong password is shown in the dialog
+    meta: { silent: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.twofa.status() });
     },
@@ -52,7 +54,8 @@ export function useEnableTelegramMutation() {
 export function useDisableTelegramMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api.twofa.disableTelegram(),
+    mutationFn: (password: string) => api.twofa.disableTelegram(password),
+    meta: { silent: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.twofa.status() });
     },

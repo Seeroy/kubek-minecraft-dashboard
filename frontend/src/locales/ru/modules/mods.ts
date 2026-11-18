@@ -8,7 +8,7 @@ export const modsTranslations: TranslationDictionary = {
   description: "Установка и управление модами сервера",
   notAvailable: {
     title: "Моды недоступны",
-    description: (server: string) => `Моды работают на серверах с загрузчиком Fabric, а ${server} на другом ядре.`,
+    description: (server: string) => `Моды работают на серверах с загрузчиком Fabric или Quilt, а ${server} на другом ядре.`,
     switchTo: (server: string) => `Перейти на ${server}`,
   },
   count: mods,
@@ -16,7 +16,7 @@ export const modsTranslations: TranslationDictionary = {
     title: "Моды ещё не установлены",
     description: "Перейдите на вкладку \"Доступные\", чтобы найти моды и установить их одним кликом",
   },
-  searchPlaceholder: "Поиск модов Modrinth…",
+  searchPlaceholder: "Поиск модов Modrinth...",
   catalogEnd: "Больше модов для загрузки нет",
   unsupported: "Этот мод не поддерживается на стороне сервера",
   install: {
@@ -31,7 +31,7 @@ export const modsTranslations: TranslationDictionary = {
     removed: (file: string) => `Удалён ${file}`,
   },
   upload: {
-    progress: "Загрузка модов…",
+    progress: "Загрузка модов...",
     noJar: "Выберите файлы модов в формате .jar",
     done: (n: number) => `Загружено: ${mods(n)}`,
     partial: (ok: number, fail: number) => `Загружено ${ok}, не удалось ${fail}`,

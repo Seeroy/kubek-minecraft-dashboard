@@ -1,4 +1,4 @@
-import { unpackArchive } from "@/core/utils/archives";
+import { UNPACK_LIMITS, unpackArchive } from "@/core/utils/archives";
 import { getErrorMessage } from "@/core/utils/error";
 import { safeId } from "@/core/utils/safeId";
 import type { KubekBlueprintManifest } from "@kubekpanel/blueprint-sdk";
@@ -99,7 +99,12 @@ export class ServerTypesInstaller {
     fs.writeFileSync(archivePath, buffer);
 
     const extractDir = join(work, "extracted");
-    const ok = await unpackArchive(archivePath, extractDir, true);
+    const ok = await unpackArchive(
+      archivePath,
+      extractDir,
+      true,
+      UNPACK_LIMITS.package,
+    );
     if (!ok) {
       fs.rmSync(work, { recursive: true, force: true });
       throw new BadRequestException("Failed to unpack blueprint archive");

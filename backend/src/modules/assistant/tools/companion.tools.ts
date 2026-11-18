@@ -15,6 +15,9 @@ import {
 const NOT_CONNECTED =
   "Kubek Companion is not connected on this server. It runs on Paper, Spigot, Purpur and Folia and can be installed from the plugins page";
 
+const UNSUPPORTED =
+  "This server type can't run Kubek Companion, it needs a plugin core: Paper, Spigot, Purpur or Folia";
+
 const MB = 1024 * 1024;
 
 /** Live data from the Kubek Companion plugin */
@@ -42,7 +45,7 @@ export class CompanionTools implements ToolGroup {
       args: serverArgs({}),
       run: (_ctx, { serverId }) => {
         const stats = this.companion.liveStats(serverId);
-        if (!stats) return Promise.resolve(text(NOT_CONNECTED));
+        if (!stats) return Promise.resolve(this.unavailable(serverId));
         const hour = this.companion
           .metricsRange(serverId, "1h")
           .map((p) => p.tpsMin)
@@ -128,9 +131,9 @@ export class CompanionTools implements ToolGroup {
         action: AuditAction.COMPANION_BROADCAST,
         category: AuditCategory.SERVER,
       }),
-      run: (_ctx, { serverId, message }) =>
+      run: (ctx, { serverId, message }) =>
         this.call(serverId, async () => {
-          await this.companion.broadcast(serverId, message);
+          await this.companion.broadcast(serverId, message, ctx.user);
           return text("Message sent");
         }),
     });
@@ -140,11 +143,19 @@ export class CompanionTools implements ToolGroup {
     serverId: string,
     run: () => Promise<ToolResult>,
   ): Promise<ToolResult> {
-    if (!this.companion.isConnected(serverId)) return text(NOT_CONNECTED);
+    if (!this.companion.isConnected(serverId))
+      return this.unavailable(serverId);
     try {
       return await run();
     } catch (e) {
       return failure(getErrorMessage(e));
     }
+  }
+
+  // An error, so a broadcast without the plugin isn't reported or logged as sent
+  private unavailable(serverId: string): ToolResult {
+    return failure(
+      this.companion.supports(serverId) ? NOT_CONNECTED : UNSUPPORTED,
+    );
   }
 }

@@ -1,5 +1,11 @@
+import { assertServerName } from "@/modules/servers/server-name";
 import { TaskErrorCode } from "@/core/errors/error-codes";
-import { pack, unpackArchive } from "@/core/utils/archives";
+import {
+  ArchiveTooLargeError,
+  pack,
+  UNPACK_LIMITS,
+  unpack,
+} from "@/core/utils/archives";
 import { getErrorMessage } from "@/core/utils/error";
 import { getServerPath } from "@/core/utils/serverPath";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
@@ -60,8 +66,7 @@ export class ServerTransfer implements OnModuleDestroy {
     const source = this.servers.findById(sourceId);
     if (!source) throw new NotFoundException("Source server not found");
 
-    const trimmed = newName.trim();
-    if (!trimmed) throw new BadRequestException("Name is required");
+    const trimmed = assertServerName(newName);
     if (this.servers.findByName(trimmed)) {
       throw new BadRequestException("NAME_TAKEN");
     }
@@ -263,23 +268,25 @@ export class ServerTransfer implements OnModuleDestroy {
   }
 
   /**
-   * Import a previously exported zip archive as a new server
+   * Import a previously exported zip archive as a new server, takes over the archive file
    */
   async importServer(
-    file: Express.Multer.File | undefined,
+    archivePath: string | undefined,
     overrideName: string | undefined,
     ownerId: string,
   ): Promise<{ server: IServer; taskId: string }> {
-    if (!file) throw new BadRequestException("No archive provided");
+    if (!archivePath) throw new BadRequestException("No archive provided");
 
     const extractDir = fs.mkdtempSync(path.join(os.tmpdir(), "kubek-import-"));
-    const archivePath = path.join(extractDir, "upload.zip");
-    fs.writeFileSync(archivePath, file.buffer);
-
-    const ok = await unpackArchive(archivePath, extractDir, true);
-    if (!ok) {
+    try {
+      await unpack(archivePath, extractDir, UNPACK_LIMITS.backup);
+    } catch (error) {
       fs.rmSync(extractDir, { recursive: true, force: true });
+      if (error instanceof ArchiveTooLargeError) throw error;
       throw new BadRequestException("Failed to unpack archive");
+    } finally {
+      // The uploaded archive is not needed past this point
+      fs.rmSync(archivePath, { force: true });
     }
 
     const manifestPath = path.join(extractDir, EXPORT_MANIFEST_FILE);
@@ -301,14 +308,14 @@ export class ServerTransfer implements OnModuleDestroy {
       throw new BadRequestException("Unsupported manifest version");
     }
 
-    const desiredName = (
-      overrideName?.trim() ||
-      manifest.server.name ||
-      ""
-    ).trim();
-    if (!desiredName) {
+    let desiredName: string;
+    try {
+      desiredName = assertServerName(
+        overrideName?.trim() || manifest.server.name,
+      );
+    } catch (err) {
       fs.rmSync(extractDir, { recursive: true, force: true });
-      throw new BadRequestException("Server name is empty");
+      throw err;
     }
     if (this.servers.findByName(desiredName)) {
       fs.rmSync(extractDir, { recursive: true, force: true });

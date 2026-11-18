@@ -13,7 +13,7 @@ export const extensionsTranslations: TranslationDictionary = {
     title: "Загрузите пакет .kubekext",
     hint: "Перетащите файл сюда или выберите вручную",
     choose: "Выбрать файл",
-    installing: "Установка…",
+    installing: "Установка...",
   },
   list: {
     filters: {

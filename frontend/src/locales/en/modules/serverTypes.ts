@@ -13,7 +13,7 @@ export const serverTypesTranslations: TranslationDictionary = {
     title: "Upload a .kbp or .json blueprint",
     hint: "Drop the file here or pick it manually",
     choose: "Choose file",
-    installing: "Installing…",
+    installing: "Installing...",
   },
   filters: {
     all: "All",

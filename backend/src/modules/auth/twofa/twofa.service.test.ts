@@ -419,11 +419,14 @@ describe("Telegram challenge", () => {
 });
 
 describe("TOTP setup", () => {
-  test("confirming with a valid code enables TOTP", () => {
+  const confirm = (who: string, token: string, totp: string, password = "pw") =>
+    twofa.confirmTotpSetup(user(who), token, totp, password, null);
+
+  test("confirming with a valid code enables TOTP", async () => {
     setSystemTime(START);
     const { setupToken, secret } = twofa.beginTotpSetup(user("bob"));
 
-    twofa.confirmTotpSetup(user("bob"), setupToken, generateSync({ secret }));
+    await confirm("bob", setupToken, generateSync({ secret }));
 
     expect(user("bob")).toMatchObject({
       totpEnabled: true,
@@ -432,56 +435,61 @@ describe("TOTP setup", () => {
     });
   });
 
-  test("setup token of one user cannot enable TOTP on another", () => {
+  test("confirming needs the account password", async () => {
     const { setupToken, secret } = twofa.beginTotpSetup(user("bob"));
 
-    expect(() =>
-      twofa.confirmTotpSetup(
-        user("carol"),
-        setupToken,
-        generateSync({ secret }),
-      ),
-    ).toThrow(ForbiddenException);
+    await expect(
+      confirm("bob", setupToken, generateSync({ secret }), "not it"),
+    ).rejects.toThrow(BadRequestException);
+    expect(user("bob").totpEnabled).toBe(false);
+  });
+
+  test("setup token of one user cannot enable TOTP on another", async () => {
+    const { setupToken, secret } = twofa.beginTotpSetup(user("bob"));
+
+    await expect(
+      confirm("carol", setupToken, generateSync({ secret })),
+    ).rejects.toThrow(ForbiddenException);
     expect(user("carol").totpEnabled).toBe(false);
   });
 
-  test("tampered setup token is rejected", () => {
+  test("tampered setup token is rejected", async () => {
     const { setupToken, secret } = twofa.beginTotpSetup(user("bob"));
     const [, sig] = setupToken.split(".");
     const forged = Buffer.from(
       JSON.stringify({ userId: "bob", secret: SECRET, exp: START + 60_000 }),
     ).toString("base64url");
 
-    expect(() =>
-      twofa.confirmTotpSetup(user("bob"), `${forged}.${sig}`, code()),
-    ).toThrow("Bad setup token");
-    expect(() =>
-      twofa.confirmTotpSetup(user("bob"), "garbage", generateSync({ secret })),
-    ).toThrow("Bad setup token");
-    expect(() =>
-      twofa.confirmTotpSetup(user("bob"), "garbage", code()),
-    ).toThrow(BadRequestException);
+    await expect(confirm("bob", `${forged}.${sig}`, code())).rejects.toThrow(
+      "Bad setup token",
+    );
+    await expect(
+      confirm("bob", "garbage", generateSync({ secret })),
+    ).rejects.toThrow("Bad setup token");
+    await expect(confirm("bob", "garbage", code())).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
-  test("setup token expires after ten minutes", () => {
+  test("setup token expires after ten minutes", async () => {
     const { setupToken, secret } = twofa.beginTotpSetup(user("bob"));
 
     setSystemTime(START + 10 * 60_000 + 1);
 
-    expect(() =>
-      twofa.confirmTotpSetup(user("bob"), setupToken, generateSync({ secret })),
-    ).toThrow("Setup token expired");
-    expect(() =>
-      twofa.confirmTotpSetup(user("bob"), setupToken, generateSync({ secret })),
-    ).toThrow(BadRequestException);
+    await expect(
+      confirm("bob", setupToken, generateSync({ secret })),
+    ).rejects.toThrow("Setup token expired");
+    await expect(
+      confirm("bob", setupToken, generateSync({ secret })),
+    ).rejects.toThrow(BadRequestException);
   });
 
-  test("wrong code does not enable TOTP", () => {
+  test("wrong code does not enable TOTP", async () => {
     const { setupToken } = twofa.beginTotpSetup(user("bob"));
 
     let err: unknown;
     try {
-      twofa.confirmTotpSetup(user("bob"), setupToken, "000000");
+      await confirm("bob", setupToken, "000000");
     } catch (e) {
       err = e;
     }
@@ -505,17 +513,24 @@ describe("TOTP setup", () => {
     });
   });
 
-  test("telegram 2FA needs a linked Telegram account", () => {
+  test("telegram 2FA needs a linked Telegram account", async () => {
     users.create(account("erin"));
 
-    expect(() => twofa.enableTelegram(user("erin"))).toThrow(
+    await expect(twofa.enableTelegram(user("erin"), "pw", null)).rejects.toThrow(
       "Link your Telegram account first",
     );
 
-    twofa.enableTelegram(user("bob"));
+    await twofa.enableTelegram(user("bob"), "pw", null);
     expect(user("bob")).toMatchObject({
       telegram2faEnabled: true,
       twofaPrimary: "telegram",
     });
+  });
+
+  test("telegram 2FA can't be switched without the password", async () => {
+    await expect(
+      twofa.enableTelegram(user("bob"), "not it", null),
+    ).rejects.toThrow(BadRequestException);
+    expect(user("bob").telegram2faEnabled).toBeFalsy();
   });
 });

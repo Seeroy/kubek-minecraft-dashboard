@@ -1,7 +1,9 @@
+import { assertServerName } from "@/modules/servers/server-name";
 import { TaskErrorCode } from "@/core/errors/error-codes";
 import type { ServerRuntimeSetting } from "@/core/types/config";
 import { getErrorMessage } from "@/core/utils/error";
 import { getServerPath } from "@/core/utils/serverPath";
+import { placeUploadSync, removeUploadSync } from "@/core/utils/uploads";
 import { ConfigService } from "@/modules/config/config.service";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
@@ -36,13 +38,17 @@ export function writeCustomCore(
   serverId: string,
   file: Express.Multer.File,
 ): void {
-  const extension =
-    path.extname(file.originalname || "").toLowerCase() || ".jar";
-  if (extension !== ".jar")
-    throw new BadRequestException("Custom core must be a .jar file");
-  const dir = getServerPath(serverId);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "server.jar"), file.buffer);
+  try {
+    const extension =
+      path.extname(file.originalname || "").toLowerCase() || ".jar";
+    if (extension !== ".jar")
+      throw new BadRequestException("Custom core must be a .jar file");
+    const dir = getServerPath(serverId);
+    fs.mkdirSync(dir, { recursive: true });
+    placeUploadSync(file, path.join(dir, "server.jar"));
+  } finally {
+    removeUploadSync(file);
+  }
 }
 
 /**
@@ -116,12 +122,13 @@ export class ServersFactory {
       blueprint.manifest,
       props.variables,
     );
-    if (this.servers.findByName(props.name)) {
+    const name = assertServerName(props.name);
+    if (this.servers.findByName(name)) {
       throw new BadRequestException("NAME_TAKEN");
     }
 
     const server = this.servers.create({
-      name: props.name,
+      name,
       status: ServerStatus.STOPPED,
       restartOnError: { enabled: true, attempts: 3 },
       folderId: null,
@@ -134,7 +141,7 @@ export class ServersFactory {
 
     const taskId = this.tasksService.createTask(
       options.taskType ?? TaskType.SERVER_CREATE,
-      { serverId: server.id, serverName: props.name },
+      { serverId: server.id, serverName: name },
       ownerId,
     );
 
@@ -153,6 +160,19 @@ export class ServersFactory {
     return { taskId, server };
   }
 
+  /** Keeps what the install resolved for empty variables, like the loader version */
+  saveResolvedVariables(
+    server: IServer,
+    values: Record<string, string>,
+  ): IServer {
+    if (!Object.keys(values).length) return server;
+    return (
+      this.servers.update(server.id, {
+        variables: { ...server.variables, ...values },
+      }) ?? server
+    );
+  }
+
   private async createServer(
     blueprint: LoadedBlueprint,
     server: IServer,
@@ -168,7 +188,12 @@ export class ServersFactory {
     try {
       if (customCoreFile) writeCustomCore(server.id, customCoreFile);
 
-      await this.installPipeline.run(blueprint, server, taskId);
+      const resolved = await this.installPipeline.run(
+        blueprint,
+        server,
+        taskId,
+      );
+      server = this.saveResolvedVariables(server, resolved);
       await options.afterInstall?.(server, taskId);
 
       this.broadcastServersList();

@@ -1,6 +1,9 @@
+import { SessionOnly } from "@/modules/auth/decorators/session-only.decorator";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { extractClientIp } from "@/core/utils/request";
 import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { PasswordConfirmDto } from "@/modules/auth/dto/password-confirm.dto";
+import { PasswordRecheckService } from "@/modules/rate-limit/password-recheck.service";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
@@ -60,21 +63,26 @@ export class TelegramBotController {
     private readonly linking: BotLinkingService,
     private readonly broadcast: ServerBroadcastService,
     private readonly audit: AuditLogService,
+    private readonly passwordRecheck: PasswordRecheckService,
   ) {}
 
   @Post("generate-otp")
   @UseGuards(BearerAuthGuard)
+  @SessionOnly()
   @ApiBearerAuth()
   @ApiOperation({ summary: "Generate OTP for Telegram linking" })
   @ApiOkResponse({
     type: GenerateOtpResponseDto,
     description: "OTP generated successfully",
   })
-  @ApiErrorResponses()
-  generateOtp(
+  @ApiErrorResponses([400, 401, 429])
+  async generateOtp(
     @CurrentUser() user: IUser,
+    @Body() dto: PasswordConfirmDto,
     @Req() req: Request,
-  ): GenerateOtpResponseDto {
+  ): Promise<GenerateOtpResponseDto> {
+    // Whoever links a Telegram can confirm logins with it later
+    await this.passwordRecheck.assert(user, dto.password, extractClientIp(req));
     const { otp, otpId, expiresAt } = this.linking.generateOtp(user.id);
     // The code itself never goes into the log
     const actor = panelActor(user, req);
@@ -101,6 +109,7 @@ export class TelegramBotController {
 
   @Post("link-telegram")
   @UseGuards(BearerAuthGuard)
+  @SessionOnly()
   @ApiBearerAuth()
   @ApiOperation({ summary: "Validate OTP and link Telegram account" })
   @ApiOkResponse({

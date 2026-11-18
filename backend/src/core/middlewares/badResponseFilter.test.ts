@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ArgumentsHost, BadRequestException, Logger } from "@nestjs/common";
-import type { HttpArgumentsHost } from "@nestjs/common/interfaces";
+import type { HttpArgumentsHost } from "@/testing/http-host";
 import type { Request, Response } from "express";
 import { fake } from "@/testing/fake";
 import { BadResponseFilter } from "./badResponseFilter";

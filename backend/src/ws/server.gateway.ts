@@ -1,4 +1,7 @@
+import { AccessArea } from "@shared/access/areas";
+import { can } from "@shared/access/can";
 import { AppEventsService } from "@/core/events/app-events.service";
+import { ApiKeysService } from "@/modules/api-keys/api-keys.service";
 import { UsersRepository } from "@/modules/database/repositories/users.repository";
 import { visibleServers } from "@/core/utils/serverAccess";
 import { getErrorMessage } from "@/core/utils/error";
@@ -58,6 +61,7 @@ export class ServerGateway
     private readonly commandHandler: CommandHandlerService,
     private readonly terminalHandler: TerminalHandlerService,
     private readonly events: AppEventsService,
+    private readonly apiKeys: ApiKeysService,
   ) {}
 
   afterInit(server: Server) {
@@ -65,10 +69,16 @@ export class ServerGateway
 
     // The session is checked only at handshake, so revoked ones are cut here
     this.events.on("session.revoked", ({ userId, sessionId }) =>
-      this.dropSockets(userId, (id) => id === sessionId),
+      this.dropSockets(userId, ({ session }) => session?.id === sessionId),
     );
     this.events.on("user.sessions_revoked", ({ userId, exceptSessionId }) =>
-      this.dropSockets(userId, (id) => id !== exceptSessionId),
+      this.dropSockets(
+        userId,
+        ({ session }) => session?.id !== exceptSessionId,
+      ),
+    );
+    this.events.on("api_key.changed", ({ userId, keyId }) =>
+      this.dropSockets(userId, ({ user }) => user?.apiKey?.id === keyId),
     );
     // Rooms were joined with the old access, the client reconnects with fresh checks
     this.events.on("user.access_changed", ({ userId }) =>
@@ -79,16 +89,15 @@ export class ServerGateway
 
   private async dropSockets(
     userId: string,
-    bySession?: (sessionId: string | undefined) => boolean,
+    match?: (data: { session?: IUserSession; user?: IUser }) => boolean,
   ): Promise<void> {
     const room = this.server.in(this.roomService.getUserRoomName(userId));
-    if (!bySession) {
+    if (!match) {
       room.disconnectSockets(true);
       return;
     }
     for (const socket of await room.fetchSockets()) {
-      const session = socket.data.session as IUserSession | undefined;
-      if (bySession(session?.id)) socket.disconnect(true);
+      if (match(socket.data)) socket.disconnect(true);
     }
   }
 
@@ -106,7 +115,8 @@ export class ServerGateway
       emitWs(client, WsServerEventTypes.LIST, visibleServers(user, servers));
 
       osutils.cpuUsage((cpu) => {
-        if (client.disconnected) return;
+        if (client.disconnected || !can(user, AccessArea.MONITORING, "read"))
+          return;
         emitWs(client, WsSystemEventTypes.SYSTEM_METRICS, {
           cpu: Math.round(cpu * 100),
           memory: { total: os.totalmem(), free: os.freemem() },
@@ -134,8 +144,11 @@ export class ServerGateway
 
   // Fresh copy from the database, the socket keeps the user from connect time
   private currentUser(client: Socket): IUser | undefined {
-    const id = (client.data.user as IUser | undefined)?.id;
-    return (id && this.usersRepo.findById(id)) || undefined;
+    const stored = client.data.user as IUser | undefined;
+    return this.apiKeys.reload(
+      stored,
+      stored && this.usersRepo.findById(stored.id),
+    );
   }
 
   @SubscribeMessage(WsRoomEventTypes.ROOM_SUBSCRIBE)

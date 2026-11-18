@@ -1,5 +1,6 @@
 import { Global, Module } from "@nestjs/common";
 import { DatabaseSeeder } from "./database.seeder";
+import { ApiKeysRepository } from "./repositories/api-keys.repository";
 import { AuditLogsRepository } from "./repositories/audit-logs.repository";
 import { AuthChallengesRepository } from "./repositories/auth-challenges.repository";
 import { CompanionEventsRepository } from "./repositories/companion-events.repository";
@@ -44,6 +45,7 @@ import { SqliteProvider } from "./sqlite.provider";
     TelegramUsersRepository,
     OtpCodesRepository,
     UserSessionsRepository,
+    ApiKeysRepository,
     ScheduledTasksRepository,
     ScheduledTaskRunsRepository,
     AuthChallengesRepository,
@@ -73,6 +75,7 @@ import { SqliteProvider } from "./sqlite.provider";
     TelegramUsersRepository,
     OtpCodesRepository,
     UserSessionsRepository,
+    ApiKeysRepository,
     ScheduledTasksRepository,
     ScheduledTaskRunsRepository,
     AuthChallengesRepository,

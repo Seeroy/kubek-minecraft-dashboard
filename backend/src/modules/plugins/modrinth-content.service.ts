@@ -63,6 +63,8 @@ export interface ContentEngineConfig {
   };
   /** Throw if the given server cannot host this kind of content */
   validateServer: (server: IServer) => void;
+  /** Loaders a version must have to go on this server, defaultLoaders when missing */
+  loadersFor?: (server: IServer) => string[];
   /**
    * Resolve the server's target game version
    */
@@ -156,6 +158,7 @@ export abstract class ModrinthContentService {
   ): Promise<{ taskId: string }> {
     const server = this.requireServer(dto.serverId);
     const context = await this.prepareInstallContext(
+      server,
       dto.projectId,
       dto.versionId,
     );
@@ -196,6 +199,7 @@ export abstract class ModrinthContentService {
   ): Promise<{ taskId: string }> {
     const { record, server } = this.requireRecord(serverId, pluginId);
     const context = await this.prepareInstallContext(
+      server,
       record.projectId,
       dto.versionId,
     );
@@ -284,6 +288,7 @@ export abstract class ModrinthContentService {
     const installedDependencies: ServerPluginRecord[] = [];
     for (const dependency of options.dependencies) {
       const context = await this.prepareInstallContext(
+        this.requireServer(serverId),
         dependency.projectId,
         dependency.versionId,
       );
@@ -327,6 +332,7 @@ export abstract class ModrinthContentService {
   }
 
   private async prepareInstallContext(
+    server: IServer,
     projectIdOrSlug: string,
     versionId: string,
   ): Promise<InstallContext> {
@@ -335,6 +341,14 @@ export abstract class ModrinthContentService {
     if (version.project_id !== project.id) {
       throw new BadRequestException(
         `Version ${version.id} does not belong to project ${project.id}`,
+      );
+    }
+    // Otherwise a Paper plugin could land in mods/ of a Quilt server
+    const loaders =
+      this.config.loadersFor?.(server) ?? this.config.defaultLoaders;
+    if (!version.loaders.some((loader) => loaders.includes(loader))) {
+      throw new BadRequestException(
+        `${project.title} ${version.version_number} runs on ${version.loaders.join(", ") || "no loader"}, this server takes ${loaders.join(", ")}`,
       );
     }
     return { project, version };

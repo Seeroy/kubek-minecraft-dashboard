@@ -78,13 +78,17 @@ export class FilesTools implements ToolGroup {
       args: serverArgs({ path: relativePath.min(1) }),
       run: async (_ctx, { serverId, path }) => {
         if (isSecretFile(path)) return failure(SECRET_FILE);
-        const buffer = await this.files.readFile(serverId, path);
-        if (looksBinary(buffer)) return failure("Binary file, cannot show it");
-        const head = buffer.subarray(0, MAX_READ_BYTES).toString("utf8");
+        const { head, size } = await this.files.readHead(
+          serverId,
+          path,
+          MAX_READ_BYTES,
+        );
+        if (looksBinary(head)) return failure("Binary file, cannot show it");
+        const shown = head.toString("utf8");
         return text(
-          buffer.length > MAX_READ_BYTES
-            ? `${head}\n[file is ${buffer.length} bytes, only the start is shown]`
-            : head,
+          size > MAX_READ_BYTES
+            ? `${shown}\n[file is ${size} bytes, only the start is shown]`
+            : shown,
         );
       },
     });

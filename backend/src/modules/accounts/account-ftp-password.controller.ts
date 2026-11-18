@@ -1,3 +1,4 @@
+import { SessionOnly } from "@/modules/auth/decorators/session-only.decorator";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { AppEventsService } from "@/core/events/app-events.service";
 import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
@@ -44,6 +45,8 @@ import { FtpPasswordService } from "./ftp-password.service";
 @ApiBearerAuth()
 @Controller("api/accounts")
 @UseGuards(BearerAuthGuard, AccessGuard)
+// FTP logs in as the full account, a key must not hand that out
+@SessionOnly()
 export class AccountFtpPasswordController {
   constructor(
     private readonly accountsService: AccountsService,

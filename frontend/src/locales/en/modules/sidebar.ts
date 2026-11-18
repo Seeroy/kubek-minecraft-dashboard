@@ -48,7 +48,7 @@ export const sidebarTranslations: TranslationDictionary = {
     ram: "RAM",
   },
   serverControls: {
-    stopping: "Stopping…",
+    stopping: "Stopping...",
     noServerSelected: "No server selected",
     start: "Start",
     stop: "Stop",

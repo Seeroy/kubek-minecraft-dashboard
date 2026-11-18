@@ -13,7 +13,7 @@ const call = {
   preview: { type: "summary" as const, title: "Start", lines: [] },
 };
 
-function setup() {
+function setup(assistant?: boolean) {
   const bus = new AssistantEventsService();
   const calls: { method: string; args: unknown[] }[] = [];
   const service = new BotAssistantService(
@@ -22,6 +22,7 @@ function setup() {
     { isConfigured: () => true } as never,
     { getUser: () => ({ id: "u", isAdmin: true }) } as never,
     { findById: () => ({ name: "Lobby" }) } as never,
+    { get: () => ({ enabled: true, assistant }) } as never,
   );
   // Every Bot API method is recorded and succeeds
   const api = new Proxy(
@@ -38,6 +39,19 @@ function setup() {
 }
 
 describe("BotAssistantService", () => {
+  it("ignores messages when the assistant is off in the bot settings", async () => {
+    const { calls, service } = setup(false);
+    const handled = await service.handleMessage(
+      { chat: { id: 5 }, reply: () => Promise.resolve() } as never,
+      "en",
+      { id: 1, userId: "u" } as never,
+      { text: "hi", messageId: 1 },
+    );
+    expect(handled).toBe(false);
+    expect(service.userFor({ id: 1, userId: "u" } as never)).toBeNull();
+    expect(calls).toHaveLength(0);
+  });
+
   it("sends one thinking placeholder and then the confirmation card", async () => {
     const { bus, calls, service } = setup();
     await service.handleMessage(

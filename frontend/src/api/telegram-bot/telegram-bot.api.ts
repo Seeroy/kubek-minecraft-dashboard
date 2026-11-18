@@ -9,8 +9,10 @@ import type {
 export class TelegramBotApi {
   constructor(private authHttp: AuthHttpClient) {}
 
-  generateOtp = (): Promise<GenerateOtpResponse> =>
-    this.authHttp.post<GenerateOtpResponse>("telegram-bot/generate-otp");
+  generateOtp = (password: string): Promise<GenerateOtpResponse> =>
+    this.authHttp.post<GenerateOtpResponse>("telegram-bot/generate-otp", {
+      json: { password },
+    });
 
   linkTelegram = (otp: string): Promise<OtpValidation> =>
     this.authHttp.post<OtpValidation>("telegram-bot/link-telegram", {

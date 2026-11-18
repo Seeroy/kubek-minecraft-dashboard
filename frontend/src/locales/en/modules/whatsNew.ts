@@ -6,6 +6,15 @@ export const whatsNewTranslations: TranslationDictionary = {
   gotIt: "Got it",
   fullChangelog: "Full changelog on GitHub",
   releases: {
+    "4-1-2": {
+      cores: "NeoForge, Forge and Quilt cores, Fabric mods on Quilt",
+      games: "Server types grouped by game, player stats on Bedrock",
+      apiKeys: "API keys and MCP server for external AI clients",
+      assistant: "AI assistant: attachments, reasoning, web search and cost tracking",
+      telegram: "Updated Telegram bot",
+      catalog: "One click and bulk install for plugins",
+      security: "Security fixes",
+    },
     "4-1-1": {
       companion: "Kubek Companion plugin for Paper, Spigot, Purpur and Folia",
       performance: "Performance page (BETA) with TPS and a lag report",

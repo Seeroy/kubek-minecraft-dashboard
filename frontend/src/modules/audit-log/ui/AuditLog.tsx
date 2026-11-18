@@ -18,7 +18,9 @@ import { ToggleGroup } from "@/shared/ui/toggle-group";
 import type { Tone } from "@/shared/ui/tone";
 import { AuditAction, AuditCategory, AuditResult, type AuditLogQuery } from "@shared/types/audit.types";
 import { AccessArea } from "@shared/access/areas";
-import { AlertTriangle, Archive, LogIn, ScrollText, Search, Server, X, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Archive, LogIn, RotateCw, ScrollText, Search, Server, X, type LucideIcon } from "lucide-react";
+import { qk } from "@/shared/queries/query-keys";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useAuditLogsQuery } from "../api/audit-log.queries";
 import { SAMPLE_AUDIT } from "../data/samples";
@@ -134,6 +136,13 @@ export function AuditLog() {
     [debouncedSearch, category, server, result, period.from, page]
   );
   const query = useAuditLogsQuery(filters);
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+  // The stats above count from the same log, so they refresh too
+  const refresh = () => {
+    setRefreshing(true);
+    void queryClient.refetchQueries({ queryKey: qk.auditLog.all, type: "active" }).finally(() => setRefreshing(false));
+  };
   const dirty = !!search || category !== ALL || server !== ALL || result !== ALL || period.id !== "week";
 
   const reset = () => {
@@ -222,6 +231,17 @@ export function AuditLog() {
                   {t("filters.reset")}
                 </Button>
               )}
+              <Button
+                variant="outline"
+                size="icon"
+                className="ml-auto"
+                onClick={refresh}
+                disabled={refreshing}
+                aria-label={t("filters.refresh")}
+                title={t("filters.refresh")}
+              >
+                <RotateCw className={refreshing ? "animate-spin" : undefined} />
+              </Button>
             </div>
 
             <DataReveal id="audit-log" data={query.data?.items ?? []} loading={query.isLoading} sample={SAMPLE_AUDIT}>

@@ -39,7 +39,7 @@ export const javaManagerTranslations: TranslationDictionary = {
     range: (from: string, to: string) => `For ${from}-${to}`,
     newer: (from: string) => `For ${from} and newer`,
     install: "Install",
-    installing: (percent: number) => `Downloading… ${percent}%`,
+    installing: (percent: number) => `Downloading... ${percent}%`,
     installed: "Installed",
     empty: "No versions left to install",
   },

@@ -16,6 +16,7 @@ export enum AccessArea {
   STORAGES = "storages",
   INTEGRATIONS = "integrations",
   ASSISTANT = "assistant",
+  API = "api",
   PANEL = "panel",
 }
 
@@ -48,6 +49,7 @@ export const AREA_LEVELS: Record<AccessArea, readonly AccessLevel[]> = {
   [AccessArea.STORAGES]: ["read", "manage"],
   [AccessArea.INTEGRATIONS]: ["manage"],
   [AccessArea.ASSISTANT]: ["read", "manage"],
+  [AccessArea.API]: ["write", "manage"],
   [AccessArea.PANEL]: ["manage"],
 };
 

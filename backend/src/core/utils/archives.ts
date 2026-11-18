@@ -1,9 +1,14 @@
+import { ApiErrorCode } from "@/core/errors/error-codes";
 import { isInside, isRealInside } from "@/core/utils/paths";
-import { BadRequestException, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  Logger,
+  PayloadTooLargeException,
+} from "@nestjs/common";
 import compressing from "compressing";
 import fs, { createReadStream, createWriteStream } from "fs";
 import { basename, dirname, join, resolve } from "path";
-import { Readable } from "stream";
+import { Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
 
 export type ArchiveType = "zip" | "tar" | "tgz";
@@ -120,9 +125,42 @@ function unsafeEntry(): BadRequestException {
   return new BadRequestException("Archive contains entries with unsafe paths");
 }
 
+const GiB = 1024 * 1024 * 1024;
+
+export const UNPACK_LIMITS = {
+  // Same cap mrpack overrides get
+  default: { maxBytes: 8 * GiB, maxEntries: 100_000 },
+  // Whole servers, the free space check still applies
+  backup: { maxBytes: 256 * GiB, maxEntries: 2_000_000 },
+  // Extensions and blueprints
+  package: { maxBytes: 1 * GiB, maxEntries: 20_000 },
+} as const;
+
+// Leave some room on the disk for the panel and the servers
+const FREE_SPACE_RESERVE = 256 * 1024 * 1024;
+
+/** Archive went over its unpack limits, a 413 for API callers */
+export class ArchiveTooLargeError extends PayloadTooLargeException {
+  constructor(message: string) {
+    super({ code: ApiErrorCode.ARCHIVE_TOO_LARGE, message });
+  }
+}
+
+async function freeBytes(dir: string): Promise<number | null> {
+  try {
+    const stats = await fs.promises.statfs(dir);
+    return Number(stats.bavail) * Number(stats.bsize);
+  } catch {
+    return null;
+  }
+}
+
 export interface UnpackOptions {
   deleteAfter?: boolean;
   onProgress?: ArchiveProgressFn;
+  /** Uncompressed bytes it may write, counted while writing */
+  maxBytes?: number;
+  maxEntries?: number;
 }
 
 /**
@@ -134,36 +172,92 @@ export async function unpack(
   unpackPath: string,
   opts: UnpackOptions = {},
 ): Promise<void> {
-  await fs.promises.mkdir(unpackPath, { recursive: true });
+  const maxBytes = opts.maxBytes ?? UNPACK_LIMITS.default.maxBytes;
+  const maxEntries = opts.maxEntries ?? UNPACK_LIMITS.default.maxEntries;
+  const created: string[] = [];
+  const track = (made: string | undefined) => made && created.push(made);
+
+  track(await fs.promises.mkdir(unpackPath, { recursive: true }));
   const destRoot = resolve(unpackPath);
 
-  await walkArchive(
-    archivePath,
-    async (header, entry) => {
-      const outPath = resolve(join(destRoot, header.name));
-      if (!isInside(destRoot, outPath)) throw unsafeEntry();
+  const free = await freeBytes(destRoot);
+  const spaceBound = free !== null && free - FREE_SPACE_RESERVE < maxBytes;
+  const budget = spaceBound ? Math.max(0, free - FREE_SPACE_RESERVE) : maxBytes;
+  const overBudget = () =>
+    new ArchiveTooLargeError(
+      spaceBound
+        ? "Not enough free disk space to unpack the archive"
+        : `Archive unpacks to more than ${formatBytes(maxBytes)}`,
+    );
 
-      if (header.type === "directory") {
+  let entries = 0;
+  let written = 0;
+  try {
+    await walkArchive(
+      archivePath,
+      async (header, entry) => {
+        if (++entries > maxEntries) {
+          throw new ArchiveTooLargeError(
+            `Archive has more than ${maxEntries} entries`,
+          );
+        }
+        const outPath = resolve(join(destRoot, header.name));
+        if (!isInside(destRoot, outPath)) throw unsafeEntry();
+
+        if (header.type === "directory") {
+          if (!(await isRealInside(destRoot, outPath, true)))
+            throw unsafeEntry();
+          track(await fs.promises.mkdir(outPath, { recursive: true }));
+          entry.resume();
+          return;
+        }
+
+        // Skip symlinks and other special entries to avoid escapes
+        if (!isRegularFile(header)) {
+          entry.resume();
+          return;
+        }
+
         if (!(await isRealInside(destRoot, outPath, true))) throw unsafeEntry();
-        await fs.promises.mkdir(outPath, { recursive: true });
-        entry.resume();
-        return;
+        track(await fs.promises.mkdir(dirname(outPath), { recursive: true }));
+        const existed = await fs.promises.lstat(outPath).then(
+          () => true,
+          () => false,
+        );
+        if (!existed) created.push(outPath);
+        // Headers can lie about sizes, so count what really gets written
+        const counter = new Transform({
+          transform(chunk: Buffer, _enc, cb) {
+            written += chunk.length;
+            if (written > budget) cb(overBudget());
+            else cb(null, chunk);
+          },
+        });
+        await pipeline(entry, counter, createWriteStream(outPath));
+        // Keep the exec bit, but never more than 755
+        if (process.platform !== "win32" && (header.mode ?? 0) & 0o111) {
+          await fs.promises.chmod(outPath, 0o755);
+        }
+      },
+      { onProgress: opts.onProgress },
+    );
+  } catch (error) {
+    if (error instanceof ArchiveTooLargeError) {
+      for (const path of created.reverse()) {
+        await fs.promises
+          .rm(path, { recursive: true, force: true })
+          .catch(() => {});
       }
-
-      // Skip symlinks and other special entries to avoid escapes
-      if (!isRegularFile(header)) {
-        entry.resume();
-        return;
-      }
-
-      if (!(await isRealInside(destRoot, outPath, true))) throw unsafeEntry();
-      await fs.promises.mkdir(dirname(outPath), { recursive: true });
-      await pipeline(entry, createWriteStream(outPath));
-    },
-    { onProgress: opts.onProgress },
-  );
+    }
+    throw error;
+  }
 
   if (opts.deleteAfter) await fs.promises.unlink(archivePath);
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes >= GiB) return `${Math.round(bytes / GiB)} GB`;
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
 }
 
 const logger = new Logger("Archives");
@@ -173,9 +267,13 @@ export const unpackArchive = async (
   archivePath: string,
   unpackPath: string,
   deleteAfterUnpack = false,
+  limits: Pick<UnpackOptions, "maxBytes" | "maxEntries"> = {},
 ): Promise<boolean> => {
   try {
-    await unpack(archivePath, unpackPath, { deleteAfter: deleteAfterUnpack });
+    await unpack(archivePath, unpackPath, {
+      ...limits,
+      deleteAfter: deleteAfterUnpack,
+    });
     return true;
   } catch (e) {
     logger.warn(
@@ -256,11 +354,14 @@ export async function pack(
     if (zip && source.file) {
       const stat = stats[i];
       // compressing types only know fs streams, any readable works
-      stream.addEntry(liveFile(source.path, onRead) as fs.ReadStream, {
-        relativePath: source.relativePath ?? basename(source.path),
-        mtime: stat?.mtime,
-        mode: stat?.mode,
-      } as { relativePath: string });
+      stream.addEntry(
+        liveFile(source.path, onRead) as fs.ReadStream,
+        {
+          relativePath: source.relativePath ?? basename(source.path),
+          mtime: stat?.mtime,
+          mode: stat?.mode,
+        } as { relativePath: string },
+      );
       continue;
     }
     const entryOpts: { relativePath?: string; ignoreBase?: boolean } = {};

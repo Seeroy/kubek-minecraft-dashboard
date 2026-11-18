@@ -14,11 +14,17 @@ export function resolveProgressMessage(
   if (task.step === TaskSteps.PULLING_IMAGE) {
     return task.message ?? t("modules.notifications.tasks.steps.pullingImage");
   }
+  // Same for installer output
+  if (task.step === TaskSteps.RUNNING_INSTALLER) {
+    return task.message ?? t("modules.notifications.tasks.steps.runningInstaller");
+  }
   switch (task.step) {
     case TaskSteps.SEARCHING_CORE:
       return t("modules.notifications.tasks.steps.searchingCore");
     case TaskSteps.DOWNLOADING_CORE:
       return t("modules.notifications.tasks.steps.downloadingCore");
+    case TaskSteps.DOWNLOADING_GAME:
+      return t("modules.notifications.tasks.steps.downloadingGame");
     case TaskSteps.CHECKING_JAVA:
       return t("modules.notifications.tasks.steps.checkingJava");
     case TaskSteps.DOWNLOADING_JAVA:

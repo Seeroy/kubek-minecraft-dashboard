@@ -53,6 +53,7 @@ export function AuditDetails({ entry }: { entry: AuditLogEntry }) {
             </KeyValueItem>
           )}
           <KeyValueItem label={t("details.source")}>{t(`sources.${entry.source}`)}</KeyValueItem>
+          {entry.apiKeyName && <KeyValueItem label={t("details.apiKey")}>{entry.apiKeyName}</KeyValueItem>}
           <KeyValueItem label={t("details.category")}>{t(`categories.${entry.category}`)}</KeyValueItem>
           <KeyValueItem label="IP">
             <span className="font-mono">{entry.ip || "—"}</span>

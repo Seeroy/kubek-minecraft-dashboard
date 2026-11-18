@@ -82,20 +82,8 @@ export const spigot = {
     },
   ],
   versions: {
-    kind: "http",
-    list: {
-      request: {
-        url: "https://cdn.seeeroy.ru/Kubek/spigots.json",
-      },
-      select: "$.*",
-      sort: "semver-desc",
-    },
-    resolveDownload: {
-      request: {
-        url: "https://cdn.seeeroy.ru/Kubek/spigots.json",
-      },
-      select: "$[{{GAME_VERSION}}]",
-    },
+    kind: "resolver",
+    module: "versions.ts",
   },
   install: {
     runIn: "host",

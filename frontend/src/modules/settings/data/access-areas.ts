@@ -10,6 +10,7 @@ import {
   Coffee,
   Cog,
   FolderOpen,
+  KeyRound,
   Network,
   Power,
   Puzzle,
@@ -42,6 +43,7 @@ export const AREA_ICONS: Record<AccessArea, LucideIcon> = {
   [AccessArea.STORAGES]: Cloud,
   [AccessArea.INTEGRATIONS]: Blocks,
   [AccessArea.ASSISTANT]: Sparkles,
+  [AccessArea.API]: KeyRound,
   [AccessArea.PANEL]: Cog,
 };
 

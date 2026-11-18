@@ -8,6 +8,7 @@ import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
+import { UPLOAD_LIMITS, uploadStorage } from "@/core/utils/uploads";
 import { FilesTasksService } from "@/modules/files/files-tasks.service";
 import {
   applyDecorators,
@@ -157,6 +158,10 @@ export class FilesController {
     required: true,
   })
   @ApiOkResponse({ type: FileContentResponseDto })
+  @ApiResponse({
+    status: 413,
+    description: "File is over 5 MB, download it instead",
+  })
   async readFile(
     @Query() query: { serverId: string; path: string },
   ): Promise<FileContentResponseDto> {
@@ -187,11 +192,11 @@ export class FilesController {
   async downloadFile(
     @Query() query: { serverId: string; path: string },
   ): Promise<StreamableFile> {
-    const buffer = await this.fileManagerService.readFile(
+    const { stream, size } = await this.fileManagerService.openReadStream(
       query.serverId,
       query.path,
     );
-    return new StreamableFile(buffer);
+    return new StreamableFile(stream, { length: size });
   }
 
   @Post("content")
@@ -281,7 +286,12 @@ export class FilesController {
 
   @Post("upload")
   @HttpCode(201)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: uploadStorage(),
+      limits: { fileSize: UPLOAD_LIMITS.file },
+    }),
+  )
   @ApiOperation({
     summary: "Upload file to directory",
     description: "Upload a file to the specified directory path",
@@ -293,6 +303,7 @@ export class FilesController {
     required: true,
   })
   @ApiCreatedResponse({ description: "File uploaded successfully" })
+  @ApiResponse({ status: 413, description: "File is over 4 GB" })
   @Audit(
     fileAudit(AuditAction.FILE_UPLOAD, (_, req) => ({
       path: joinPath(req.query.path, req.file?.originalname),

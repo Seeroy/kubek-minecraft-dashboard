@@ -117,9 +117,13 @@ export class ServerCoreChanger {
 
     try {
       // skipExistingFiles keeps worlds and configs
-      await this.installPipeline.run(blueprint, server, taskId, {
-        skipExistingFiles: true,
-      });
+      const resolved = await this.installPipeline.run(
+        blueprint,
+        server,
+        taskId,
+        { skipExistingFiles: true },
+      );
+      this.factory.saveResolvedVariables(server, resolved);
 
       this.factory.broadcastServersList();
       this.tasksService.updateTask(taskId, {

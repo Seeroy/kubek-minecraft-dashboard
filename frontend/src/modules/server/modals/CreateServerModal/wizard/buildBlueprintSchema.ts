@@ -1,4 +1,5 @@
 import { serverNameSchema } from "@/modules/server";
+import { needsMinecraftEula } from "@/modules/server-types/lib/blueprint";
 import type {
   BlueprintSummary,
   BlueprintVariable,
@@ -34,7 +35,8 @@ export const EMPTY_WIZARD_VALUES: WizardValues = {
   aikar: true,
   extraArgs: "",
   autostart: true,
-  eula: true,
+  // The owner ticks it, the form never accepts for them
+  eula: false,
   folderId: null,
   javaPath: "",
 };
@@ -122,7 +124,9 @@ export function buildBlueprintForm(bp: BlueprintSummary): {
     aikar: z.boolean(),
     extraArgs: z.string(),
     autostart: z.boolean(),
-    eula: z.literal(true, { message: "modules.newServerModal.advanced.eula.required" }),
+    eula: needsMinecraftEula(bp)
+      ? z.literal(true, { message: "modules.newServerModal.advanced.eula.required" })
+      : z.boolean(),
     folderId: z.string().nullable(),
     javaPath: z.string(),
   });

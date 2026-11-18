@@ -11,13 +11,16 @@ export class PasswordRecheckService {
 
   async assert(
     user: IUser,
-    password: string,
+    password: string | undefined,
     ip: string | null = null,
+    actor: Pick<IUser, "apiKey"> = user,
   ): Promise<void> {
+    // A key has no password to type, its levels are the confirmation
+    if (actor.apiKey) return;
     this.rateLimit.check("password", user.id);
     // bcrypt is async, parallel requests would all pass the check above
     this.rateLimit.hit("password.attempts", user.id);
-    if (!(await comparePassword(password, user.password))) {
+    if (!password || !(await comparePassword(password, user.password))) {
       this.rateLimit.fail("password", user.id, {
         userId: user.id,
         username: user.username,

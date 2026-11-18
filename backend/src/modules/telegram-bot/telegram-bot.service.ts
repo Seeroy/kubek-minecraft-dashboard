@@ -172,10 +172,11 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
   /** Register the localized command menu shown by Telegram clients */
   private async publishCommands() {
     if (!this.bot) return;
+    const commands = (
+      ["start", "help", "servers", "status", "new", "language", "unlink"] as const
+    ).filter((command) => command !== "new" || this.assistant.isEnabled());
     const build = (lang: TelegramLang) =>
-      (
-        ["start", "help", "servers", "status", "new", "language", "unlink"] as const
-      ).map((command) => ({
+      commands.map((command) => ({
         command,
         description: t(lang, `commands.${command}`),
       }));
@@ -205,7 +206,8 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.bot.command("help", async (ctx) => {
-      await ctx.reply(t(this.users.langFor(ctx), "help.text"), {
+      const assistant = this.assistant.isEnabled();
+      await ctx.reply(t(this.users.langFor(ctx), "help.text", { assistant }), {
         parse_mode: "HTML",
       });
     });
@@ -492,6 +494,12 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     this.bot = null;
     this.avatar = null;
     return this.start();
+  }
+
+  /** The assistant was switched on or off, no restart needed */
+  async applyAssistantSetting(): Promise<void> {
+    if (!this.assistant.isEnabled()) this.assistant.stopAll();
+    await this.publishCommands();
   }
 
   async getBotInfo(): Promise<BotInfo> {

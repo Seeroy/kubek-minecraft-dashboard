@@ -282,6 +282,8 @@ async function main() {
         "@nestjs/microservices/microservices-module",
         "@nestjs/microservices",
         "class-transformer/storage",
+        // Swagger only needs it on Fastify
+        "@fastify/static",
       ],
       // Embed the version at compile time — the binary has no package.json on disk.
       define: {

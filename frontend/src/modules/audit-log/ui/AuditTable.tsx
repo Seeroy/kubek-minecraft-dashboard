@@ -52,6 +52,11 @@ function Who({ entry }: { entry: AuditLogEntry }) {
       <span className="truncate">{entry.username}</span>
       {entry.source === "telegram" && <Badge variant="info">TG</Badge>}
       {entry.source === "assistant" && <Badge variant="info">AI</Badge>}
+      {(entry.source === "api" || entry.source === "mcp") && (
+        <Badge variant="warning" title={[entry.apiKeyName, entry.source === "mcp" ? entry.userAgent : null].filter(Boolean).join(", ") || undefined}>
+          {entry.source === "mcp" ? "MCP" : "API"}
+        </Badge>
+      )}
     </span>
   );
 }
@@ -193,7 +198,7 @@ export function AuditTable({ items, total, page, pageSize, onPage }: AuditTableP
           {pageList(page, pages).map((p, i) =>
             p === null ? (
               <span key={`gap-${i}`} className="px-1.5">
-                …
+                ...
               </span>
             ) : (
               <Button

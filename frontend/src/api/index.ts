@@ -1,4 +1,5 @@
 import { accountsApi } from "./accounts/accounts.api";
+import { apiKeysApi } from "./api-keys/api-keys.api";
 import { assistantApi } from "./assistant/assistant.api";
 import { auditLogApi } from "./audit-log/audit-log.api";
 import { authApi } from "./auth/auth.api";
@@ -40,6 +41,7 @@ export const api = {
   telegramBot: telegramBotApi,
   backups: backupsApi,
   sessions: sessionsApi,
+  apiKeys: apiKeysApi,
   twofa: twofaApi,
   preferences: preferencesApi,
   plugins: pluginsApi,
@@ -63,6 +65,7 @@ export default api;
 
 // Per-resource clients, models and helpers
 export * from "./accounts";
+export * from "./api-keys";
 export * from "./assistant";
 export * from "./audit-log";
 export * from "./auth";

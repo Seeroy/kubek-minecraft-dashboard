@@ -9,6 +9,8 @@ type ResolverFetch = VersionResolverContext["fetch"];
 const MANIFEST =
   "https://launchermeta.mojang.com/mc/game/version_manifest.json";
 
+const OLDEST_WITH_SERVER = "1.2.5";
+
 interface VersionManifest {
   versions: { id: string; type: string; url: string }[];
 }
@@ -29,9 +31,12 @@ const resolver: VersionResolver = {
   async listVersions(ctx) {
     const manifest = await fetchManifest(ctx);
     // manifest is already newest-first; keep only stable releases
-    return manifest.versions
-      .filter((v) => v.type === "release")
-      .map((v) => ({ id: v.id, label: v.id }));
+    const releases = manifest.versions.filter((v) => v.type === "release");
+    // Releases before it have no server jar
+    const oldest = releases.findIndex((v) => v.id === OLDEST_WITH_SERVER);
+    return (oldest === -1 ? releases : releases.slice(0, oldest + 1)).map(
+      (v) => ({ id: v.id, label: v.id }),
+    );
   },
 
   async resolveDownload(version, ctx) {

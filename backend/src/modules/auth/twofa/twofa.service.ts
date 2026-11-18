@@ -319,9 +319,16 @@ export class TwofaService implements OnModuleInit {
     };
   }
 
-  confirmTotpSetup(user: IUser, setupToken: string, code: string): void {
+  async confirmTotpSetup(
+    user: IUser,
+    setupToken: string,
+    code: string,
+    password: string,
+    ip: string | null,
+  ): Promise<void> {
     const payload = this.verifySetupToken(setupToken);
     if (payload.userId !== user.id) throw new ForbiddenException();
+    await this.passwordRecheck.assert(user, password, ip);
     // Not 401: the client signs out on any 401
     if (!this.verifyCode(payload.secret, code)) {
       throw new BadRequestException({
@@ -358,7 +365,12 @@ export class TwofaService implements OnModuleInit {
     this.accounts.update(updated);
   }
 
-  enableTelegram(user: IUser): void {
+  async enableTelegram(
+    user: IUser,
+    password: string,
+    ip: string | null,
+  ): Promise<void> {
+    await this.passwordRecheck.assert(user, password, ip);
     const tg = this.telegramUsers.findByUserId(user.id);
     if (!tg || !tg.isActive) {
       throw new BadRequestException("Link your Telegram account first");
@@ -371,7 +383,12 @@ export class TwofaService implements OnModuleInit {
     this.accounts.update(updated);
   }
 
-  disableTelegram(user: IUser): void {
+  async disableTelegram(
+    user: IUser,
+    password: string,
+    ip: string | null,
+  ): Promise<void> {
+    await this.passwordRecheck.assert(user, password, ip);
     const updated: IUser = {
       ...user,
       telegram2faEnabled: false,

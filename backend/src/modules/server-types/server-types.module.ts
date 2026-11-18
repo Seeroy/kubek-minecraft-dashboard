@@ -3,7 +3,9 @@ import { Module } from "@nestjs/common";
 import { BlueprintResolver } from "./blueprint-resolver.service";
 import { InstallPipeline } from "./install-pipeline.service";
 import { DockerService } from "./runtime/docker.service";
+import { SteamCmdService } from "./steamcmd/steamcmd.service";
 import { MinecraftJavaQuery } from "./query-protocols/minecraft-java.query";
+import { GamedigQuery } from "./query-protocols/gamedig.query";
 import { NoneQuery } from "./query-protocols/none.query";
 import { QueryRegistry } from "./query-protocols/query-registry.service";
 import { ServerTypesInstaller } from "./server-types-installer.service";
@@ -26,8 +28,10 @@ import { VersionResolverService } from "./versions/version-resolver.service";
     ServerTypesInstaller,
     MinecraftJavaQuery,
     NoneQuery,
+    GamedigQuery,
     QueryRegistry,
     DockerService,
+    SteamCmdService,
   ],
   exports: [
     ServerTypesRegistry,

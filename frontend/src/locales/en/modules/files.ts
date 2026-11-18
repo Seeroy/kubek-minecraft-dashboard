@@ -57,7 +57,7 @@ export const filesTranslations: TranslationDictionary = {
       },
       preview: {
         label: "Will be included:",
-        more: ({ count }: { count: number }) => `… and ${ count } more`,
+        more: ({ count }: { count: number }) => `... and ${ count } more`,
       },
       submit: "Create",
       cancel: "Cancel",
@@ -177,10 +177,10 @@ export const filesTranslations: TranslationDictionary = {
       cannotEditFile: "This file type cannot be opened in the text editor",
     },
     progress: {
-      deleting: "Deleting files…",
-      archiving: "Building archive…",
-      extracting: "Extracting archive…",
-      uploading: "Uploading files…",
+      deleting: "Deleting files...",
+      archiving: "Building archive...",
+      extracting: "Extracting archive...",
+      uploading: "Uploading files...",
     },
   },
 };

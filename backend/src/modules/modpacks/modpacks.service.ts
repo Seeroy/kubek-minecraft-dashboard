@@ -1,3 +1,4 @@
+import { assertServerName } from "@/modules/servers/server-name";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { ModrinthClient } from "@/modules/modrinth/modrinth-client.service";
 import { ServersFactory } from "@/modules/servers/servers.factory";
@@ -66,8 +67,7 @@ export class ModpacksService {
     props: InstallModpackProps,
     ownerId: string,
   ): { server: IServer; taskId: string } {
-    const name = props.name.trim();
-    if (!name) throw new BadRequestException("Name is required");
+    const name = assertServerName(props.name);
     if (this.servers.findByName(name)) {
       throw new BadRequestException("NAME_TAKEN");
     }

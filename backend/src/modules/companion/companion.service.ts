@@ -37,6 +37,7 @@ import type {
   CompanionOverviewDto,
   CompanionSettingsDto,
 } from "./dto/companion-responses.dto";
+import type { IUser } from "@shared/types/user.types";
 import { CompanionInstallerService } from "./install/companion-installer.service";
 import {
   CompanionRequestError,
@@ -185,8 +186,22 @@ export class CompanionService {
     return maintenance;
   }
 
-  async broadcast(serverId: string, message: string): Promise<void> {
+  async broadcast(
+    serverId: string,
+    message: string,
+    byUser?: Pick<IUser, "id" | "username">,
+  ): Promise<void> {
     await this.call(this.link(serverId).request("broadcast", { message }));
+    if (!byUser) return;
+    this.instances.getByServerId(serverId)?.writeLog({
+      type: "kubek",
+      data: {
+        type: "broadcast",
+        id: byUser.id,
+        username: byUser.username,
+        message,
+      },
+    });
   }
 
   async title(

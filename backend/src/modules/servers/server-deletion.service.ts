@@ -42,7 +42,7 @@ export class ServerDeletionService {
   async delete(
     serverId: string,
     user: IUser,
-    password: string,
+    password: string | undefined,
     confirmName: string,
   ): Promise<void> {
     const server = this.serversRepo.findById(serverId);
@@ -77,7 +77,7 @@ export class ServerDeletionService {
   async bulkDelete(
     ids: string[],
     user: IUser,
-    password: string,
+    password: string | undefined,
   ): Promise<BulkDeleteResult> {
     await this.passwordRecheck.assert(user, password);
 

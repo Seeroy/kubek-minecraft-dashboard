@@ -46,6 +46,7 @@ export const consoleTranslations: TranslationDictionary = {
     stopped: (code: number) => `Server stopped, exit code ${code}`,
     restartFailed: (attempts: number) => `Failed to restart the server after ${attempts} attempts`,
     telegramControl: "used Telegram to",
+    broadcast: "said in chat",
     causes: {
       killed: "Stopped by request",
       crashed: "Crashed",

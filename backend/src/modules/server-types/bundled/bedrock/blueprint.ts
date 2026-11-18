@@ -6,7 +6,8 @@ export const bedrock = {
   name: "Minecraft: Bedrock Edition",
   shortName: "Bedrock",
   description: "Official Bedrock dedicated server",
-  game: "minecraft",
+  game: "minecraft-bedrock",
+  gameName: "Minecraft: Bedrock Edition",
   author: {
     name: "Kubek Team",
   },

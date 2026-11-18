@@ -12,16 +12,16 @@ export const en = {
       "🔗 To link your Telegram with your Kubek account, open the panel settings, copy the OTP code and send it here.",
   },
   help: {
-    text:
+    text: (p: { assistant?: boolean }) =>
       "🤖 <b>Commands</b>\n\n" +
       "🚀 /start - link or check your account\n" +
       "❓ /help - show this message\n" +
       "🖥️ /servers - list your servers\n" +
       "📊 /status &lt;id&gt; - server status &amp; controls\n" +
       "🌐 /language - change language\n" +
-      "🆕 /new - new chat with the AI assistant\n" +
-      "🔗 /unlink - unlink your Telegram account\n\n" +
-      "💬 Any other message goes to the AI assistant, if it is on in the panel. Photos and text files like configs and logs work too",
+      (p.assistant ? "🆕 /new - new chat with the AI assistant\n" : "") +
+      "🔗 /unlink - unlink your Telegram account" +
+      (p.assistant ? "\n\n💬 Any other message goes to the AI assistant, if it is on in the panel. Photos and text files like configs and logs work too" : ""),
   },
   menu: {
     text: "🎮 <b>Kubek Bot</b>\n\nChoose an action below 👇",

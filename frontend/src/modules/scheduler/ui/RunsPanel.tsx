@@ -126,7 +126,7 @@ export function RunsPanel({ serverId, tasks }: { serverId: string; tasks: ISched
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden text-muted-foreground tabular-nums @2xl/table:table-cell">
-                        {running ? "…" : formatRunDuration(run.durationMs, t)}
+                        {running ? "..." : formatRunDuration(run.durationMs, t)}
                       </TableCell>
                       <TableCell className="hidden @3xl/table:table-cell">
                         <Badge variant="secondary">{t(`trigger.${run.triggeredBy}`)}</Badge>

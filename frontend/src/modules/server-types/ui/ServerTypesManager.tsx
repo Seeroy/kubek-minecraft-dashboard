@@ -20,7 +20,9 @@ import { Boxes, RotateCw, Search, Shield, Trash2, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useBlueprints, useInstallBlueprintMutation, useRemoveBlueprintMutation } from "../api/server-types.queries";
 import { SAMPLE_BLUEPRINTS } from "../data/samples";
+import { gameTitle, groupByGame } from "../lib/blueprint";
 import { BlueprintCard } from "./BlueprintCard";
+import { GameGroupHeader } from "./GameGroupHeader";
 
 type Filter = "all" | BlueprintSummary["source"];
 const FILTERS: Filter[] = ["all", "bundled", "installed"];
@@ -43,7 +45,7 @@ export const ServerTypesManager = () => {
     return counts;
   }, [servers]);
   const q = query.trim().toLowerCase();
-  const shown = all.filter((bp) => (filter === "all" || bp.source === filter) && (!q || `${bp.name} ${bp.id}`.toLowerCase().includes(q)));
+  const shown = all.filter((bp) => (filter === "all" || bp.source === filter) && (!q || `${bp.name} ${bp.id} ${gameTitle(bp)}`.toLowerCase().includes(q)));
   const count = (key: Filter) => (key === "all" ? all.length : all.filter((bp) => bp.source === key).length);
 
   const confirmRemove = async (bp: BlueprintSummary) => {
@@ -133,16 +135,23 @@ export const ServerTypesManager = () => {
       ) : (
         <DataReveal id="server-types" data={shown} loading={blueprints.isLoading} sample={SAMPLE_BLUEPRINTS}>
           {(shown) => (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-              {shown.map((bp) => (
-                <BlueprintCard
-                  key={bp.id}
-                  blueprint={bp}
-                  usedBy={usage.get(bp.id) ?? 0}
-                  canRemove={canManage}
-                  busy={remove.isPending}
-                  onRemove={() => void confirmRemove(bp)}
-                />
+            <div className="grid gap-5">
+              {groupByGame(shown).map((group) => (
+                <section key={group.game} className="grid gap-2.5">
+                  <GameGroupHeader title={group.title} count={group.blueprints.length} />
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+                    {group.blueprints.map((bp) => (
+                      <BlueprintCard
+                        key={bp.id}
+                        blueprint={bp}
+                        usedBy={usage.get(bp.id) ?? 0}
+                        canRemove={canManage}
+                        busy={remove.isPending}
+                        onRemove={() => void confirmRemove(bp)}
+                      />
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           )}

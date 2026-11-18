@@ -17,6 +17,7 @@ const STATUS_CODES: Partial<Record<number, ApiErrorCode>> = {
   [HttpStatus.NOT_FOUND]: ApiErrorCode.NOT_FOUND,
   [HttpStatus.BAD_REQUEST]: ApiErrorCode.BAD_REQUEST,
   [HttpStatus.CONFLICT]: ApiErrorCode.CONFLICT,
+  [HttpStatus.PAYLOAD_TOO_LARGE]: ApiErrorCode.PAYLOAD_TOO_LARGE,
   [HttpStatus.TOO_MANY_REQUESTS]: ApiErrorCode.RATE_LIMITED,
 };
 

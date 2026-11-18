@@ -32,6 +32,10 @@ import { BlueprintResolver } from "./blueprint-resolver.service";
 import { InstallPipeline } from "./install-pipeline.service";
 import type { DockerService } from "./runtime/docker.service";
 import type { LoadedBlueprint } from "./server-types.types";
+import type {
+  SteamCmdProgress,
+  SteamCmdService,
+} from "./steamcmd/steamcmd.service";
 import type { VersionResolverService } from "./versions/version-resolver.service";
 
 let zipBytes: Buffer;
@@ -104,6 +108,8 @@ let javaInstalls: string[];
 let customJava: string | null;
 let dockerAvailable: boolean;
 let pulled: string[];
+let downloadVars: Record<string, string> | undefined;
+let steamApps: { step: object; dir: string }[];
 let pipeline: InstallPipeline;
 
 const server = (overrides: Partial<IServer> = {}): IServer => ({
@@ -182,6 +188,8 @@ beforeEach(() => {
   customJava = null;
   dockerAvailable = true;
   pulled = [];
+  downloadVars = undefined;
+  steamApps = [];
   docker = dockerWith("img:latest", []);
 
   tasks = new TasksService(
@@ -206,7 +214,10 @@ beforeEach(() => {
   pipeline = new InstallPipeline(
     fake<VersionResolverService>({
       resolveDownload: (_bp, version) =>
-        Promise.resolve({ url: url(`/core-${version}.jar`) }),
+        Promise.resolve({
+          url: url(`/core-${version}.jar`),
+          vars: downloadVars,
+        }),
     }),
     resolver,
     fake<JavaService>({
@@ -224,6 +235,13 @@ beforeEach(() => {
           ? Promise.resolve()
           : Promise.reject(new Error("Docker is not reachable")),
       getDocker: () => docker,
+    }),
+    fake<SteamCmdService>({
+      installApp: (step, dir, onProgress?: (p: SteamCmdProgress) => void) => {
+        steamApps.push({ step, dir });
+        onProgress?.({ phase: "downloading", percent: 42.5 });
+        return Promise.resolve();
+      },
     }),
   );
 });
@@ -585,5 +603,166 @@ describe("InstallPipeline docker", () => {
         server({ runtimeKind: "docker" }),
       ),
     ).rejects.toThrow("manifest unknown");
+  });
+});
+
+describe.skipIf(process.platform === "win32")("InstallPipeline exec", () => {
+  const exec = (command: string, extra: object = {}) =>
+    ({ type: "exec", command, ...extra }) as InstallStep;
+  const failure = (run: Promise<unknown>) =>
+    run.then(
+      () => "",
+      (e: unknown) => (e instanceof Error ? e.message : String(e)),
+    );
+
+  test("runs in the server folder with the managed Java", async () => {
+    const m = manifest({
+      variables: [{ key: "JAVA_VERSION", type: "number", default: 21 }],
+      install: {
+        steps: [exec('printf "%s|%s" "{{JAVA_BIN}}" "$(pwd)" > out.txt')],
+      },
+    });
+
+    await pipeline.run(loaded(m), server(), taskId);
+
+    expect(fs.readFileSync(serverFile("out.txt"), "utf8")).toBe(
+      `/opt/java21/bin/java|${fs.realpathSync(serverFile())}`,
+    );
+    expect(stepsSeen()).toContain(TaskSteps.RUNNING_INSTALLER);
+  });
+
+  test("takes the command for this OS when there is one", async () => {
+    const m = steps(
+      exec("echo generic > out.txt", {
+        commandByPlatform: { [process.platform]: "echo this-os > out.txt" },
+      }),
+    );
+
+    await pipeline.run(loaded(m), server());
+
+    expect(fs.readFileSync(serverFile("out.txt"), "utf8").trim()).toBe(
+      "this-os",
+    );
+  });
+
+  test("a failing command fails the install with its output", async () => {
+    const m = steps(exec("echo broken installer; exit 3"));
+
+    expect(await failure(pipeline.run(loaded(m), server()))).toMatch(
+      /code 3:\nbroken installer/,
+    );
+  });
+
+  test("a command that runs too long is stopped", async () => {
+    const m = steps(exec("sleep 5", { timeoutSec: 0.2 }));
+
+    expect(await failure(pipeline.run(loaded(m), server()))).toContain(
+      "did not finish in 0.2s",
+    );
+  });
+
+  test("user values can't break out of the command", async () => {
+    const m = steps(exec("echo {{MOTD}} > out.txt"));
+
+    expect(
+      await failure(
+        pipeline.run(
+          loaded(m),
+          server({ variables: { MOTD: "hi; touch pwned" } }),
+        ),
+      ),
+    ).toContain("Variable MOTD");
+    expect(fs.existsSync(serverFile("pwned"))).toBe(false);
+  });
+
+  test("resolver vars reach the steps but never replace variables", async () => {
+    downloadVars = { LOADER_VERSION: "21.1.77", MOTD: "from resolver" };
+    const m = manifest({
+      versions: { kind: "static", versions: [] },
+      variables: [
+        { key: "GAME_VERSION", type: "string", options: { from: "versions" } },
+        { key: "MOTD", type: "string" },
+      ],
+      install: {
+        steps: [
+          { type: "download", url: "{{DOWNLOAD_URL}}", dest: "server.jar" },
+          exec('printf "%s %s" "{{LOADER_VERSION}}" "{{MOTD}}" > out.txt'),
+        ],
+      },
+    });
+
+    await pipeline.run(
+      loaded(m),
+      server({ variables: { GAME_VERSION: "1.21.1", MOTD: "mine" } }),
+    );
+
+    expect(fs.readFileSync(serverFile("out.txt"), "utf8")).toBe("21.1.77 mine");
+  });
+
+  test("an empty variable takes the resolved value and is returned to save", async () => {
+    downloadVars = { LOADER: "0.29.2", LOADER_VERSION: "0.29.2", MOTD: "x" };
+    const m = manifest({
+      versions: { kind: "static", versions: [] },
+      variables: [
+        { key: "GAME_VERSION", type: "string", options: { from: "versions" } },
+        { key: "LOADER_VERSION", type: "string", default: "" },
+        { key: "MOTD", type: "string" },
+      ],
+      install: {
+        steps: [
+          { type: "download", url: "{{DOWNLOAD_URL}}", dest: "server.jar" },
+          exec('printf "%s" "{{LOADER_VERSION}}" > out.txt'),
+        ],
+      },
+    });
+
+    const resolved = await pipeline.run(
+      loaded(m),
+      server({
+        variables: { GAME_VERSION: "1.21.1", LOADER_VERSION: "", MOTD: "mine" },
+      }),
+    );
+
+    expect(resolved).toEqual({ LOADER_VERSION: "0.29.2" });
+    expect(fs.readFileSync(serverFile("out.txt"), "utf8")).toBe("0.29.2");
+  });
+});
+
+describe("InstallPipeline steamcmd", () => {
+  test("installs the app into the server folder with substitutions", async () => {
+    const m = manifest({
+      variables: [{ key: "BRANCH", type: "string", default: "public" }],
+      install: {
+        steps: [
+          {
+            type: "steamcmd",
+            appId: "896660",
+            beta: "{{BRANCH}}",
+            validate: false,
+          },
+        ],
+      },
+    });
+
+    await pipeline.run(
+      loaded(m),
+      server({ variables: { BRANCH: "public-test" } }),
+      taskId,
+    );
+
+    expect(steamApps).toEqual([
+      {
+        step: {
+          appId: "896660",
+          beta: "public-test",
+          betaPassword: undefined,
+          platform: undefined,
+          validate: false,
+        },
+        dir: fs.realpathSync(serverFile()),
+      },
+    ]);
+    expect(stepsSeen()).toContain(TaskSteps.DOWNLOADING_GAME);
+    expect(updates.some((u) => u.progress === 42)).toBe(true);
   });
 });

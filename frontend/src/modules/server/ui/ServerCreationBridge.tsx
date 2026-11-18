@@ -1,9 +1,11 @@
 "use client";
 import { api } from "@/api";
+import { qk } from "@/shared/queries/query-keys";
 import { emitToast } from "@/shared/lib/toast-bus";
 import { useSocketApi } from "@/shared/context/socket-context";
 import { type ITask, TaskStatus, TaskType } from "@shared/types/task.types";
 import { WsTaskEventsTypes } from "@shared/types/ws/task-events.types";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useServerCreationStore } from "../store/server-creation.store";
 
@@ -29,12 +31,18 @@ export function startIfRequested(taskId: string) {
 export function ServerCreationBridge() {
   const { subscribe, unsubscribe } = useSocketApi();
   const upsertFromTask = useServerCreationStore((s) => s.upsertFromTask);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const handle = (task: ITask) => {
       if (!CREATION_TASKS.has(task.type)) return;
       upsertFromTask(task);
       startIfRequested(task.id);
+      // The list may have asked for the icon before the install wrote it
+      const serverId = task.meta?.serverId;
+      if (task.status === TaskStatus.SUCCESS && serverId) {
+        void queryClient.invalidateQueries({ queryKey: qk.servers.icon(serverId) });
+      }
     };
     const events = [
       WsTaskEventsTypes.TASK_UPDATE,
@@ -44,7 +52,7 @@ export function ServerCreationBridge() {
 
     events.forEach((event) => subscribe(event, handle));
     return () => events.forEach((event) => unsubscribe(event, handle));
-  }, [subscribe, unsubscribe, upsertFromTask]);
+  }, [subscribe, unsubscribe, upsertFromTask, queryClient]);
 
   return null;
 }

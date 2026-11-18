@@ -1,4 +1,5 @@
-import { FEATURE_TONE, iconType } from "@/modules/server-types/lib/blueprint";
+import { FEATURE_TONE, gameTitle, groupByGame, iconType } from "@/modules/server-types/lib/blueprint";
+import { GameGroupHeader } from "@/modules/server-types/ui/GameGroupHeader";
 import { SAMPLE_BLUEPRINTS } from "@/modules/server-types/data/samples";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
@@ -33,7 +34,7 @@ export function TypeStep({ blueprints, loading, error, selectedId, onSelect, onC
   const [query, setQuery] = useState("");
   const needle = query.trim().toLowerCase();
   const shown = needle
-    ? blueprints.filter((bp) => `${bp.name} ${bp.id} ${bp.description ?? ""}`.toLowerCase().includes(needle))
+    ? blueprints.filter((bp) => `${bp.name} ${bp.id} ${bp.description ?? ""} ${gameTitle(bp)}`.toLowerCase().includes(needle))
     : blueprints;
 
   return (
@@ -72,46 +73,53 @@ export function TypeStep({ blueprints, loading, error, selectedId, onSelect, onC
       ) : (
         <DataReveal id="create-server-type" data={shown} loading={loading} sample={SAMPLE_BLUEPRINTS}>
           {(shown) => (
-            <div role="radiogroup" aria-label={t("steps.type.label")} className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3">
-              {shown.map((bp) => {
-                const selected = bp.id === selectedId;
-                const features = bp.features.filter((feature) => CONTENT_FEATURES.has(feature));
-                return (
-                  <button
-                    key={bp.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => onSelect(bp)}
-                    onDoubleClick={onConfirm}
-                    className="relative grid cursor-pointer content-start gap-1.5 rounded-lg border border-border bg-card p-3 text-left transition-[border-color,background-color,translate,box-shadow] duration-150 outline-none hover:-translate-y-px hover:border-foreground/20 focus-visible:ring-3 focus-visible:ring-primary/18 aria-checked:border-primary/65 aria-checked:bg-primary/7 aria-checked:shadow-[0_0_0_3px_color-mix(in_oklch,var(--primary)_14%,transparent)]"
-                  >
-                    {selected && (
-                      <span className="absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
-                        <Check className="size-3" />
-                      </span>
-                    )}
-                    <span className="flex min-w-0 items-center gap-2.5 pr-6">
-                      <BlueprintIcon icon={bp.icon} coreType={iconType(bp.id)} label={bp.name} className="size-[34px] rounded-lg" />
-                      <span className="min-w-0">
-                        <b className="block truncate text-sm font-semibold">{bp.shortName ?? bp.name}</b>
-                        <span className="block truncate font-mono text-[11px] text-muted-foreground">{bp.id}</span>
-                      </span>
-                    </span>
-                    {bp.description && <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{bp.description}</span>}
-                    {(features.length > 0 || bp.dockerCapable) && (
-                      <span className="flex flex-wrap gap-1">
-                        {features.map((feature) => (
-                          <Badge key={feature} className={cn("bg-tone/12 text-tone", toneClass[FEATURE_TONE[feature]])}>
-                            {tf(feature)}
-                          </Badge>
-                        ))}
-                        {bp.dockerCapable && <Badge variant="secondary">Docker</Badge>}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            <div role="radiogroup" aria-label={t("steps.type.label")} className="mt-3 grid gap-4">
+              {groupByGame(shown).map((group) => (
+                <section key={group.game} className="grid gap-2">
+                  <GameGroupHeader title={group.title} count={group.blueprints.length} />
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3">
+                    {group.blueprints.map((bp) => {
+                      const selected = bp.id === selectedId;
+                      const features = bp.features.filter((feature) => CONTENT_FEATURES.has(feature));
+                      return (
+                        <button
+                          key={bp.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => onSelect(bp)}
+                          onDoubleClick={onConfirm}
+                          className="relative grid cursor-pointer content-start gap-1.5 rounded-lg border border-border bg-card p-3 text-left transition-[border-color,background-color,translate,box-shadow] duration-150 outline-none hover:-translate-y-px hover:border-foreground/20 focus-visible:ring-3 focus-visible:ring-primary/18 aria-checked:border-primary/65 aria-checked:bg-primary/7 aria-checked:shadow-[0_0_0_3px_color-mix(in_oklch,var(--primary)_14%,transparent)]"
+                        >
+                          {selected && (
+                            <span className="absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                              <Check className="size-3" />
+                            </span>
+                          )}
+                          <span className="flex min-w-0 items-center gap-2.5 pr-6">
+                            <BlueprintIcon icon={bp.icon} coreType={iconType(bp.id)} label={bp.name} className="size-[34px] rounded-lg" />
+                            <span className="min-w-0">
+                              <b className="block truncate text-sm font-semibold">{bp.shortName ?? bp.name}</b>
+                              <span className="block truncate font-mono text-[11px] text-muted-foreground">{bp.id}</span>
+                            </span>
+                          </span>
+                          {bp.description && <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{bp.description}</span>}
+                          {(features.length > 0 || bp.dockerCapable) && (
+                            <span className="flex flex-wrap gap-1">
+                              {features.map((feature) => (
+                                <Badge key={feature} className={cn("bg-tone/12 text-tone", toneClass[FEATURE_TONE[feature]])}>
+                                  {tf(feature)}
+                                </Badge>
+                              ))}
+                              {bp.dockerCapable && <Badge variant="secondary">Docker</Badge>}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           )}
         </DataReveal>

@@ -34,6 +34,8 @@ import { SessionsService } from "@/modules/sessions/sessions.service";
 import { BotTwofaService } from "@/modules/telegram-bot/bot-twofa.service";
 import { fake } from "@/testing/fake";
 import { sqliteProvider } from "@/testing/sqlite";
+import { apiKeysService } from "@/testing/api-keys";
+import { ApiKeysService } from "@/modules/api-keys/api-keys.service";
 import { testUser } from "@/testing/user";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
@@ -105,6 +107,8 @@ class ProbeController {
 let app: INestApplication;
 let base: string;
 let sessions: SessionsService;
+let keys: ApiKeysService;
+let users: UsersRepository;
 let subnets: SubnetsAccess = { enabled: false };
 
 function account(
@@ -138,7 +142,7 @@ async function login(username: string): Promise<string> {
 
 beforeAll(async () => {
   const sqlite = sqliteProvider();
-  const users = new UsersRepository(sqlite);
+  users = new UsersRepository(sqlite);
   const accounts = new AccountsService(users);
   const servers = new ServersRepository(sqlite);
   const events = new AppEventsService();
@@ -167,16 +171,23 @@ beforeAll(async () => {
   users.create(account("backups", { [AccessArea.BACKUPS]: "read" }));
   users.create(account("reader", { [AccessArea.FILES]: "read" }));
   users.create(account("writer", { [AccessArea.FILES]: "write" }));
-  users.create(account("keeper", { [AccessArea.FILES]: "manage" }));
+  users.create(
+    account("keeper", {
+      [AccessArea.FILES]: "manage",
+      [AccessArea.API]: "write",
+    }),
+  );
   users.create(account("auditor", { [AccessArea.AUDIT]: "read" }));
   users.create(account("nobody"));
   users.create(account("admin", {}, { isAdmin: true }));
+  keys = apiKeysService(sqlite, users, events);
 
   const moduleRef = await Test.createTestingModule({
     controllers: [AuthController, SessionsController, ProbeController],
     providers: [
       { provide: AuthService, useValue: new AuthService(accounts) },
       { provide: SessionsService, useValue: sessions },
+      { provide: ApiKeysService, useValue: keys },
       { provide: RateLimitService, useValue: rateLimit },
       { provide: TwofaService, useValue: twofa },
       {
@@ -332,5 +343,59 @@ describe("RBAC over HTTP", () => {
     } finally {
       subnets = { enabled: false };
     }
+  });
+});
+
+describe("RBAC with an API key", () => {
+  const keyOf = (username: string, grants: Record<string, string>) =>
+    keys.create(users.findById(username)!, {
+      name: "probe",
+      grants,
+      servers: null,
+      mcp: false,
+    }).token;
+
+  test("the key gets only its own levels", async () => {
+    const token = keyOf("keeper", { [AccessArea.FILES]: "read" });
+
+    expect((await get("/api/probe/files/read", token)).status).toBe(200);
+    expect((await get("/api/probe/files/write", token)).status).toBe(403);
+  });
+
+  test("an admin's key is not an admin", async () => {
+    const token = keyOf("admin", { [AccessArea.AUDIT]: "manage" });
+
+    expect((await get("/api/probe/audit/manage", token)).status).toBe(200);
+    expect((await get("/api/probe/admin", token)).status).toBe(403);
+    expect((await get("/api/probe/files/read", token)).status).toBe(403);
+  });
+
+  test("sessions are closed to keys", async () => {
+    const token = keyOf("viewer", { [AccessArea.CONSOLE]: "read" });
+
+    const res = await get("/api/sessions", token);
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as { code?: string }).code).toBe(
+      "SESSION_REQUIRED",
+    );
+  });
+
+  test("the profile shows the cut down access", async () => {
+    const token = keyOf("keeper", { [AccessArea.FILES]: "read" });
+
+    const res = await get("/api/auth/profile", token);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      access: { levels: Record<string, string> };
+    };
+    expect(body.access.levels).toEqual({ [AccessArea.FILES]: "read" });
+  });
+
+  test("the key stops working once the owner loses api access", async () => {
+    const token = keyOf("keeper", { [AccessArea.FILES]: "read" });
+    const keeper = users.findById("keeper")!;
+    users.update({ ...keeper, grants: { [AccessArea.FILES]: "manage" } });
+
+    expect((await get("/api/probe/files/read", token)).status).toBe(401);
   });
 });

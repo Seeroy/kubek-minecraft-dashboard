@@ -34,6 +34,8 @@ import { SessionsService } from "@/modules/sessions/sessions.service";
 import { fake } from "@/testing/fake";
 import { testUser } from "@/testing/user";
 import { sqliteProvider } from "@/testing/sqlite";
+import { apiKeysService } from "@/testing/api-keys";
+import { ApiKeysService } from "@/modules/api-keys/api-keys.service";
 import { ServerGateway } from "./server.gateway";
 import { AuthService } from "./services/auth.service";
 import { CommandHandlerService } from "./services/command-handler.service";
@@ -50,6 +52,7 @@ let url: string;
 let gateway: ServerGateway;
 let users: UsersRepository;
 let sessions: SessionsService;
+let keys: ApiKeysService;
 let events: AppEventsService;
 let audit: AuditLogsRepository;
 let mine: string;
@@ -136,6 +139,7 @@ beforeAll(async () => {
     new ExtensionEventBus(servers),
     events,
   );
+  keys = apiKeysService(sqlite, users, events);
 
   const row = (name: string) =>
     servers.create({
@@ -161,7 +165,8 @@ beforeAll(async () => {
       CommandHandlerService,
       TerminalHandlerService,
       ServerBroadcastService,
-      { provide: AuthService, useValue: new AuthService(sessions) },
+      { provide: AuthService, useValue: new AuthService(sessions, keys) },
+      { provide: ApiKeysService, useValue: keys },
       { provide: AppEventsService, useValue: events },
       { provide: UsersRepository, useValue: users },
       { provide: ServersRepository, useValue: servers },
@@ -441,5 +446,61 @@ describe("WS sockets of revoked sessions", () => {
     events.emit("user.deleted", { userId: "removed" });
 
     expect(await gone).toBe("io server disconnect");
+  });
+});
+
+describe("WS with an API key", () => {
+  function keyFor(id: string, grants: AccessMap): string {
+    users.create(
+      testUser(id, { grants: { ...CONSOLE_WRITE, [AccessArea.API]: "write" } }),
+    );
+    const owner = users.findById(id)!;
+    return keys.create(owner, {
+      name: `${id}-key`,
+      grants,
+      servers: [mine],
+      mcp: false,
+    }).token;
+  }
+
+  test("a read only key can't send commands its owner could", async () => {
+    const socket = await ready(keyFor("keyowner", CONSOLE_READ));
+
+    expect(await join(socket, `server:${mine}`)).toEqual({ ok: true });
+    expect(await join(socket, `server:${foreign}`)).toEqual({ ok: false });
+    socket.emit(WsServerEventTypes.SUBMIT_COMMAND, {
+      serverId: mine,
+      command: "stop",
+    });
+    await ask(socket, WsServerEventTypes.REQUEST_FULL_LOG, { serverId: mine });
+
+    expect(sent).toEqual([]);
+  });
+
+  test("commands sent with a key are marked in the audit log", async () => {
+    const socket = await ready(keyFor("keywriter", CONSOLE_WRITE));
+
+    socket.emit(WsServerEventTypes.SUBMIT_COMMAND, {
+      serverId: mine,
+      command: "say from key",
+    });
+    await ask(socket, WsServerEventTypes.REQUEST_FULL_LOG, { serverId: mine });
+
+    const entry = audit
+      .query({ source: "api" })
+      .items.find((e) => e.username === "keywriter");
+    expect(entry?.apiKeyName).toBe("keywriter-key");
+  });
+
+  test("deleting the key drops its socket", async () => {
+    const token = keyFor("keydrop", CONSOLE_READ);
+    const socket = await ready(token);
+    const owner = users.findById("keydrop")!;
+    const [key] = keys.listOwn("keydrop");
+
+    const dropped = next(socket, "disconnect");
+    keys.delete(owner, key.id);
+    await dropped;
+    expect(socket.connected).toBe(false);
   });
 });

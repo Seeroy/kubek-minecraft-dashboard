@@ -33,6 +33,11 @@
   }
 }
 
+/* The preloader stays on top while the page under it transitions */
+::view-transition-group(page-preloader) {
+  z-index: 100;
+}
+
 /* Auth -> Dashboard transition */
 ::view-transition-old(.auth-exit) {
   animation: vt-shell-out 320ms cubic-bezier(0.4, 0, 0.2, 1) both;

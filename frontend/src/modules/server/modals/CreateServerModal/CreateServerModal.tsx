@@ -228,6 +228,7 @@ export function CreateServerModal({ isOpen, onClose }: ModalProps) {
                 versionVarKey={selection.versionVarKey}
                 versions={selection.versions}
                 versionsLoading={selection.versionsLoading}
+                versionsError={selection.versionsError}
                 javaResolving={javaResolving}
                 recommendedJava={resolvedJava}
                 docker={docker}

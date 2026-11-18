@@ -10,7 +10,7 @@ export const auditLogTranslations: TranslationDictionary = {
     failed: (n: number) => `failed ${n === 1 ? "operation" : "operations"}`,
   },
   filters: {
-    search: "Search by user, server, object or action…",
+    search: "Search by user, server, object or action...",
     allCategories: "All categories",
     allServers: "All servers",
     server: "Server",
@@ -19,6 +19,7 @@ export const auditLogTranslations: TranslationDictionary = {
     period: "Period",
     all: "All",
     reset: "Reset",
+    refresh: "Refresh",
     periods: {
       today: "Today",
       week: "7 days",
@@ -43,6 +44,8 @@ export const auditLogTranslations: TranslationDictionary = {
     telegram: "Telegram bot",
     system: "System",
     assistant: "AI assistant",
+    api: "API key",
+    mcp: "MCP",
   },
   actions: {
     server_create: "Create server",
@@ -147,6 +150,10 @@ export const auditLogTranslations: TranslationDictionary = {
     network_secret_rotate: "Rotate forwarding secret",
     audit_retention_update: "Change log retention",
     audit_prune: "Log rotation",
+    api_key_create: "Create API key",
+    api_key_update: "Change API key",
+    api_key_delete: "Revoke API key",
+    mcp_toggle: "Turn MCP on or off",
   },
   table: {
     time: "Time",
@@ -172,6 +179,7 @@ export const auditLogTranslations: TranslationDictionary = {
     after: "After",
     id: "Entry ID",
     source: "Source",
+    apiKey: "API key",
     category: "Category",
     client: "Client",
     time: "Time",

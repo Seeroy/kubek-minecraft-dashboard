@@ -33,7 +33,7 @@ export const newServerModalTranslations: TranslationDictionary = {
     back: "Back",
     next: "Next",
     create: "Create server",
-    creating: "Creating…",
+    creating: "Creating...",
     picked: (name: string) => `Selected: ${name}`,
     pickType: "Pick a server type",
     keys: "to continue",
@@ -90,8 +90,8 @@ export const newServerModalTranslations: TranslationDictionary = {
   java: {
     version: {
       label: "Java version",
-      loading: "Loading Java versions…",
-      resolving: "Finding a matching Java…",
+      loading: "Loading Java versions...",
+      resolving: "Finding a matching Java...",
       mismatch: (core: string, java: number) => `${core} needs Java ${java}`,
       tooOld: "The server will not start on this version",
       options: {

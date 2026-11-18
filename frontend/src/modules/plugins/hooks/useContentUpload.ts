@@ -87,7 +87,7 @@ export function useContentUpload({
           type: "error",
           title: t("upload.partial", success, failures.length),
           message:
-            failures.slice(0, 3).join(", ") + (failures.length > 3 ? "…" : ""),
+            failures.slice(0, 3).join(", ") + (failures.length > 3 ? "..." : ""),
         });
       }
 

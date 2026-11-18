@@ -110,8 +110,13 @@ let source: IServer;
 
 const serverDir = (id: string, ...p: string[]) =>
   path.join(root, "servers", id, ...p);
-const upload = (buffer: Buffer) =>
-  fake<Express.Multer.File>({ originalname: "server.zip", buffer });
+let uploads = 0;
+// Uploads land in the temp dir, so the leftover checks also cover them
+const upload = (buffer: Buffer): string => {
+  const file = path.join(tmp, `upload-${++uploads}`);
+  fs.writeFileSync(file, buffer);
+  return file;
+};
 
 const exportManifest = (
   server: Partial<ExportManifest["server"]> = {},
@@ -476,56 +481,54 @@ describe("ServerTransfer import", () => {
     ["no archive", undefined, "No archive provided"],
     [
       "a file that is not a zip",
-      upload(Buffer.from("plain text")),
+      Buffer.from("plain text"),
       "Failed to unpack archive",
     ],
     [
       "a zip without a manifest",
-      upload(buildZip([{ name: "a.txt", data: "a" }])),
+      buildZip([{ name: "a.txt", data: "a" }]),
       "Manifest missing - not a kubek export",
     ],
     [
       "a corrupted manifest",
-      upload(buildZip([{ name: EXPORT_MANIFEST_FILE, data: "{nope" }])),
+      buildZip([{ name: EXPORT_MANIFEST_FILE, data: "{nope" }]),
       "Manifest is corrupted",
     ],
     [
       "a manifest of another version",
-      upload(
-        buildZip([
-          {
-            name: EXPORT_MANIFEST_FILE,
-            data: JSON.stringify({ kubekExport: 2, server: {} }),
-          },
-        ]),
-      ),
+      buildZip([
+        {
+          name: EXPORT_MANIFEST_FILE,
+          data: JSON.stringify({ kubekExport: 2, server: {} }),
+        },
+      ]),
       "Unsupported manifest version",
     ],
     [
       "a manifest without a blueprint",
-      upload(
-        buildZip([
-          {
-            name: EXPORT_MANIFEST_FILE,
-            data: exportManifest({ blueprintId: "" }),
-          },
-        ]),
-      ),
+      buildZip([
+        {
+          name: EXPORT_MANIFEST_FILE,
+          data: exportManifest({ blueprintId: "" }),
+        },
+      ]),
       "Archive has no blueprint - not importable",
     ],
     [
       "a manifest without a name",
-      upload(
-        buildZip([
-          { name: EXPORT_MANIFEST_FILE, data: exportManifest({ name: "" }) },
-        ]),
-      ),
-      "Server name is empty",
+      buildZip([
+        { name: EXPORT_MANIFEST_FILE, data: exportManifest({ name: "" }) },
+      ]),
+      "Name is required",
     ],
   ])(
     "%s is refused and leaves nothing behind",
-    async (_label, file, message) => {
-      const result = transfer.importServer(file, undefined, "u1");
+    async (_label, archive, message) => {
+      const result = transfer.importServer(
+        archive && upload(archive),
+        undefined,
+        "u1",
+      );
 
       await expect(result).rejects.toThrow(message);
       await expect(result).rejects.toBeInstanceOf(BadRequestException);

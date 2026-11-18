@@ -7,7 +7,7 @@ export const modsTranslations: TranslationDictionary = {
   description: "Install and manage server mods",
   notAvailable: {
     title: "Mods are not available",
-    description: (server: string) => `Mods run on servers with the Fabric loader, while ${server} uses another core.`,
+    description: (server: string) => `Mods run on servers with the Fabric or Quilt loader, while ${server} uses another core.`,
     switchTo: (server: string) => `Switch to ${server}`,
   },
   count,
@@ -15,7 +15,7 @@ export const modsTranslations: TranslationDictionary = {
     title: "No mods installed yet",
     description: "Open the Available tab to find mods and install them in one click",
   },
-  searchPlaceholder: "Search Modrinth mods…",
+  searchPlaceholder: "Search Modrinth mods...",
   catalogEnd: "No more mods to load",
   unsupported: "This mod does not run on the server side",
   install: {
@@ -30,7 +30,7 @@ export const modsTranslations: TranslationDictionary = {
     removed: (file: string) => `Removed ${file}`,
   },
   upload: {
-    progress: "Uploading mods…",
+    progress: "Uploading mods...",
     noJar: "Pick mod files in .jar format",
     done: (n: number) => `Uploaded ${count(n)}`,
     partial: (ok: number, fail: number) => `Uploaded ${ok}, failed ${fail}`,

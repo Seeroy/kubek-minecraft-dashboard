@@ -158,6 +158,22 @@ export class AuditLogEntryDto implements IAuditLog {
   })
   source: AuditSource;
 
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+    description: "API key the request came with",
+  })
+  apiKeyId?: string | null;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+    description: "API key name when the action happened",
+  })
+  apiKeyName?: string | null;
+
   @ApiProperty({ description: "Creation timestamp (ms epoch)" })
   createdAt: number;
 }

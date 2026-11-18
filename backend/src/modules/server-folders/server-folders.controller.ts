@@ -2,8 +2,10 @@ import {
   RequireAccess,
   RequireServerView,
 } from "@/modules/auth/decorators/require-access.decorator";
+import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { AccessArea } from "@shared/access/areas";
+import type { IUser } from "@shared/types/user.types";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
 import { CreateFolderDto } from "@/modules/server-folders/dto/create-folder.dto";
@@ -95,7 +97,10 @@ export class ServerFoldersController {
   @ApiOkResponse({ type: FolderMoveResponseDto, description: "Move summary" })
   @ApiErrorResponses([400, 401, 403, 404])
   @RequireAccess(AccessArea.SERVERS, "manage")
-  move(@Body() body: MoveServersDto): FolderMoveResponseDto {
-    return this.service.move(body.serverIds, body.folderId ?? null);
+  move(
+    @Body() body: MoveServersDto,
+    @CurrentUser() user: IUser,
+  ): FolderMoveResponseDto {
+    return this.service.move(body.serverIds, body.folderId ?? null, user);
   }
 }

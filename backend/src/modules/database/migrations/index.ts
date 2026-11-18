@@ -22,6 +22,7 @@ import { companionFeed } from "./021-companion-feed";
 import { assistantUsage } from "./022-assistant-usage";
 import { assistantAttachments } from "./023-assistant-attachments";
 import { assistantCachedTokens } from "./024-assistant-cached-tokens";
+import { apiKeys } from "./025-api-keys";
 import type { Migration } from "./migration.types";
 
 // Only add new steps at the end, never edit released ones
@@ -177,5 +178,11 @@ export const MIGRATIONS: Migration[] = [
     name: "assistant-cached-tokens",
     up: assistantCachedTokens,
     touches: ["assistant_messages"],
+  },
+  {
+    version: 25,
+    name: "api-keys",
+    up: apiKeys,
+    touches: ["api_keys", "audit_logs"],
   },
 ];

@@ -7,13 +7,20 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   symlinkSync,
   writeFileSync,
 } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { gzipSync } from "zlib";
-import { pack, unpack, unpackArchive, walkArchive } from "./archives";
+import {
+  ArchiveTooLargeError,
+  pack,
+  unpack,
+  unpackArchive,
+  walkArchive,
+} from "./archives";
 
 interface RawEntry {
   name: string;
@@ -21,6 +28,8 @@ interface RawEntry {
   /** tar typeflag, "0" file, "2" symlink, "5" directory */
   tarType?: string;
   linkname?: string;
+  /** Permission bits for tar entries */
+  tarMode?: number;
   /** Full unix mode for zip entries */
   zipMode?: number;
 }
@@ -34,7 +43,7 @@ function tarHeader(entry: RawEntry, size: number): Buffer {
   const octal = (n: number, length: number) =>
     n.toString(8).padStart(length - 1, "0") + "\0";
   put(entry.name, 0, 100);
-  put(octal(0o644, 8), 100, 8);
+  put(octal(entry.tarMode ?? 0o644, 8), 100, 8);
   put(octal(0, 8), 108, 8);
   put(octal(0, 8), 116, 8);
   put(octal(size, 12), 124, 12);
@@ -179,6 +188,35 @@ describe("unpack", () => {
     expect(existsSync(archive)).toBe(false);
   });
 
+  test.skipIf(process.platform === "win32")(
+    "keeps executables runnable in zip and tar.gz, capped at 755",
+    async () => {
+      const zip = write(
+        "bin.zip",
+        buildZip([
+          { name: "server", data: "z", zipMode: 0o104777 },
+          { name: "plain.txt", data: "p" },
+        ]),
+      );
+      const tgz = write(
+        "bin.tar.gz",
+        gzipSync(
+          buildTar([
+            { name: "engine", data: "t", tarMode: 0o755 },
+            { name: "notes.txt", data: "n", tarMode: 0o644 },
+          ]),
+        ),
+      );
+      await unpack(zip, dest);
+      await unpack(tgz, dest);
+      const mode = (name: string) => statSync(join(dest, name)).mode & 0o7777;
+      expect(mode("server")).toBe(0o755);
+      expect(mode("engine")).toBe(0o755);
+      expect(mode("plain.txt") & 0o111).toBe(0);
+      expect(mode("notes.txt") & 0o111).toBe(0);
+    },
+  );
+
   test("rejects a tar.gz entry with ../", async () => {
     const archive = write(
       "evil.tar.gz",
@@ -257,6 +295,72 @@ describe("unpack", () => {
     expect(await unpackArchive(zip, dest, true)).toBe(false);
     // The archive stays after a failed unpack
     expect(existsSync(zip)).toBe(true);
+  });
+
+  test("stops at the byte limit and removes only what it wrote", async () => {
+    mkdirSync(join(dest, "world"), { recursive: true });
+    writeFileSync(join(dest, "world", "level.dat"), "keep");
+    const archive = write(
+      "bomb.zip",
+      buildZip([
+        { name: "world/a.txt", data: "a".repeat(600) },
+        { name: "plugins/", zipMode: 0o40755 },
+        { name: "plugins/b.txt", data: "b".repeat(600) },
+      ]),
+    );
+
+    const error = await unpack(archive, dest, { maxBytes: 1000 }).catch(
+      (e: unknown) => e,
+    );
+
+    expect(error).toBeInstanceOf(ArchiveTooLargeError);
+    expect((error as ArchiveTooLargeError).getStatus()).toBe(413);
+    expect((error as Error).message).toContain("more than");
+    expect(readdirSync(dest).sort()).toEqual(["world"]);
+    expect(readdirSync(join(dest, "world"))).toEqual(["level.dat"]);
+    expect(readFileSync(join(dest, "world", "level.dat"), "utf8")).toBe("keep");
+  });
+
+  test("counts tar.gz bytes as they are written", async () => {
+    const archive = write(
+      "bomb.tar.gz",
+      gzipSync(buildTar([{ name: "big.txt", data: "x".repeat(5000) }])),
+    );
+    const error = await unpack(archive, dest, { maxBytes: 4096 }).catch(
+      (e: unknown) => e,
+    );
+    expect(error).toBeInstanceOf(ArchiveTooLargeError);
+    // dest was made by this unpack, so it goes too
+    expect(existsSync(dest)).toBe(false);
+  });
+
+  test("stops at the entry limit", async () => {
+    const archive = write(
+      "many.zip",
+      buildZip(
+        Array.from({ length: 5 }, (_, i) => ({ name: `f${i}.txt`, data: "" })),
+      ),
+    );
+    expect(await rejection(unpack(archive, dest, { maxEntries: 4 }))).toContain(
+      "more than 4 entries",
+    );
+    expect(existsSync(dest)).toBe(false);
+    expect(await unpackArchive(archive, dest, false, { maxEntries: 5 })).toBe(
+      true,
+    );
+    expect(readdirSync(dest)).toHaveLength(5);
+  });
+
+  test("an archive right at the limits unpacks", async () => {
+    const archive = write(
+      "exact.zip",
+      buildZip([
+        { name: "a.txt", data: "a".repeat(10) },
+        { name: "b.txt", data: "b".repeat(10) },
+      ]),
+    );
+    await unpack(archive, dest, { maxBytes: 20, maxEntries: 2 });
+    expect(readFileSync(join(dest, "b.txt"), "utf8")).toBe("b".repeat(10));
   });
 
   test("reports real progress up to the archive size", async () => {

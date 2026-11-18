@@ -21,6 +21,8 @@ export interface BlueprintSummary {
   shortName?: string;
   description?: string;
   game: string;
+  /** Game title from the manifest, the panel knows the bundled ones itself */
+  gameName?: string;
   icon?: string;
   version: string;
   /** Restrict to these host OSes; undefined means available everywhere */

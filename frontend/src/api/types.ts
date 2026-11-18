@@ -2694,6 +2694,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** API keys of the current user */
+        get: operations["ApiKeysController_list"];
+        put?: never;
+        /** Create an API key, the token is shown once */
+        post: operations["ApiKeysController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/api-keys/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** API keys of every user */
+        get: operations["ApiKeysController_listAll"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/api-keys/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke own key, or any key with manage */
+        delete: operations["ApiKeysController_delete"];
+        options?: never;
+        head?: never;
+        /** Change name, levels, servers or MCP of own key */
+        patch: operations["ApiKeysController_update"];
+        trace?: never;
+    };
     "/api/kubek/version": {
         parameters: {
             query?: never;
@@ -3374,6 +3427,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mcp/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether MCP is turned on for the panel */
+        get: operations["McpController_settings"];
+        /** Turn MCP on or off for the panel */
+        put: operations["McpController_updateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3401,7 +3472,7 @@ export interface components {
              * @example BAD_REQUEST
              * @enum {string}
              */
-            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION" | "COMPANION_UNSUPPORTED" | "COMPANION_NOT_CONNECTED" | "COMPANION_TIMEOUT" | "COMPANION_REJECTED" | "COMPANION_RATE_LIMITED" | "COMPANION_RELEASE_UNAVAILABLE";
+            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "PAYLOAD_TOO_LARGE" | "ARCHIVE_TOO_LARGE" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "VERSIONS_UNAVAILABLE" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION" | "SESSION_REQUIRED" | "MCP_DISABLED" | "COMPANION_UNSUPPORTED" | "COMPANION_NOT_CONNECTED" | "COMPANION_TIMEOUT" | "COMPANION_REJECTED" | "COMPANION_RATE_LIMITED" | "COMPANION_RELEASE_UNAVAILABLE";
             /**
              * @description Human-readable error message
              * @example Validation failed
@@ -3504,7 +3575,11 @@ export interface components {
              * @description Source of the action
              * @enum {string}
              */
-            source: "panel" | "telegram" | "system" | "assistant";
+            source: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp";
+            /** @description API key the request came with */
+            apiKeyId?: string | null;
+            /** @description API key name when the action happened */
+            apiKeyName?: string | null;
             /** @description Creation timestamp (ms epoch) */
             createdAt: number;
         };
@@ -3661,6 +3736,11 @@ export interface components {
              * @enum {string}
              */
             assistant?: "read" | "manage";
+            /**
+             * @description Level in api
+             * @enum {string}
+             */
+            api?: "write" | "manage";
             /**
              * @description Level in panel
              * @enum {string}
@@ -3823,10 +3903,10 @@ export interface components {
         };
         ChangePasswordDto: {
             /**
-             * @description Current password
+             * @description Current password, not needed with an API key
              * @example oldPassword123
              */
-            old: string;
+            old?: string;
             /**
              * @description New password
              * @example newSecurePassword123
@@ -3943,6 +4023,10 @@ export interface components {
         DuplicateRoleDto: {
             /** @description Name of the copy, "<name> (copy)" when left out */
             name?: string;
+        };
+        PasswordConfirmDto: {
+            /** @description Current account password */
+            password: string;
         };
         GenerateOtpResponseDto: {
             /**
@@ -4128,16 +4212,16 @@ export interface components {
             timestamp: string;
         };
         DeleteServerDto: {
-            /** @description Account password for confirmation */
-            password: string;
+            /** @description Account password for confirmation, not needed with an API key */
+            password?: string;
             /** @description Server name typed by user for confirmation */
             confirmName: string;
         };
         BulkDeleteServersDto: {
             /** @description Server IDs to delete */
             ids: string[];
-            /** @description Account password for confirmation */
-            password: string;
+            /** @description Account password for confirmation, not needed with an API key */
+            password?: string;
         };
         BulkDeleteFailureDto: {
             /**
@@ -4294,6 +4378,11 @@ export interface components {
              * @example minecraft
              */
             game?: string;
+            /**
+             * @description Game title, blueprints of one game are grouped under it
+             * @example Minecraft: Java Edition
+             */
+            gameName?: string;
             /** @description Icon as a data URI */
             icon?: string | null;
             /** @description Blueprint version */
@@ -4846,7 +4935,7 @@ export interface components {
             status: "pending" | "running" | "done" | "failed";
             progress?: number;
             /** @enum {string} */
-            step?: "searchingCore" | "checkingJava" | "downloadingJava" | "unpackingJava" | "downloadingCore" | "pullingImage" | "creatingBat" | "downloadingMods" | "applyingOverrides" | "registeringContent" | "completion" | "completed" | "failed";
+            step?: "searchingCore" | "checkingJava" | "downloadingJava" | "unpackingJava" | "downloadingCore" | "pullingImage" | "runningInstaller" | "downloadingGame" | "creatingBat" | "downloadingMods" | "applyingOverrides" | "registeringContent" | "completion" | "completed" | "failed";
             bytes?: components["schemas"]["TaskStageBytesDto"];
         };
         TaskEntity: {
@@ -6439,10 +6528,57 @@ export interface components {
             setupToken: string;
             /** @description 6-digit TOTP code */
             code: string;
+            /** @description Current account password */
+            password: string;
         };
         DisableTotpDto: {
             /** @description Current account password */
             password: string;
+        };
+        ApiKeyDto: {
+            id: string;
+            /** @description Owner account id */
+            userId: string;
+            /** @description Owner name, only in the list of all keys */
+            username?: string;
+            /** @example Grafana */
+            name: string;
+            /**
+             * @description Start of the token
+             * @example kbk_Ab12Cd34
+             */
+            prefix: string;
+            grants: components["schemas"]["AccessMapDto"];
+            /** @description Servers the key reaches, null for all of the owner's */
+            servers: string[] | null;
+            /** @description Key may connect over MCP */
+            mcp: boolean;
+            createdAt: number;
+            expiresAt: number | null;
+            lastUsedAt: number | null;
+            lastUsedIp: string | null;
+        };
+        CreateApiKeyDto: {
+            /** @example Grafana */
+            name: string;
+            grants: components["schemas"]["AccessMapDto"];
+            /** @description Servers the key reaches, null or missing for all */
+            servers?: string[] | null;
+            /** @default false */
+            mcp: boolean;
+            /** @description Expiry time (ms epoch), null for a key that never expires */
+            expiresAt?: number | null;
+        };
+        CreatedApiKeyDto: {
+            key: components["schemas"]["ApiKeyDto"];
+            /** @description Full token, shown only once */
+            token: string;
+        };
+        UpdateApiKeyDto: {
+            name?: string;
+            grants?: components["schemas"]["AccessMapDto"];
+            servers?: string[] | null;
+            mcp?: boolean;
         };
         UpdateCheckResultDto: {
             /**
@@ -6489,6 +6625,11 @@ export interface components {
             token?: string;
             /** @description Chat IDs that receive notifications */
             chatIds?: string[];
+            /**
+             * @description Whether the AI assistant answers in the bot, on when omitted
+             * @example true
+             */
+            assistant?: boolean;
         };
         TelemetrySettingsDto: {
             /**
@@ -7000,6 +7141,10 @@ export interface components {
              */
             uptime: number;
         };
+        McpSettingsDto: {
+            /** @description MCP endpoint is open for keys that allow it */
+            enabled: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -7018,7 +7163,10 @@ export interface operations {
                 /** @description Entries about one server */
                 serverId?: string;
                 result?: "success" | "failed";
-                /** @description Matches username, resource name or action */
+                source?: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp";
+                /** @description Entries made with one API key */
+                apiKeyId?: string;
+                /** @description Matches username, resource name, action or key name */
                 search?: string;
                 /** @description Inclusive createdAt lower bound (ms epoch) */
                 from?: number;
@@ -8285,7 +8433,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordConfirmDto"];
+            };
+        };
         responses: {
             /** @description OTP generated successfully */
             200: {
@@ -8312,23 +8464,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorBodyDto"];
-                };
-            };
-            500: {
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9569,6 +9705,14 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
         };
     };
     ServersController_getIcon: {
@@ -9583,7 +9727,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Server icon */
+            /** @description Server icon set by the owner */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9667,6 +9811,14 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12804,6 +12956,13 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
+            /** @description File is over 5 MB, download it instead */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             500: {
                 headers: {
                     [name: string]: unknown;
@@ -13263,6 +13422,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
+            };
+            /** @description File is over 4 GB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             500: {
                 headers: {
@@ -16937,6 +17103,14 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
         };
     };
     TwofaController_disableTotp: {
@@ -16992,7 +17166,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordConfirmDto"];
+            };
+        };
         responses: {
             /** @description Telegram 2FA enabled */
             204: {
@@ -17017,6 +17195,14 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
         };
     };
     TwofaController_disableTelegram: {
@@ -17026,7 +17212,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordConfirmDto"];
+            };
+        };
         responses: {
             /** @description Telegram 2FA disabled */
             204: {
@@ -17035,7 +17225,241 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ApiKeysController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ApiKeysController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateApiKeyDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedApiKeyDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ApiKeysController_listAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ApiKeysController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Key revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ApiKeysController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateApiKeyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -19297,6 +19721,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthDto"];
+                };
+            };
+        };
+    };
+    McpController_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpSettingsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    McpController_updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpSettingsDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
         };

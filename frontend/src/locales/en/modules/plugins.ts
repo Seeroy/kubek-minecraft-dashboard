@@ -15,7 +15,7 @@ export const pluginsTranslations: TranslationDictionary = {
     title: "No plugins installed yet",
     description: "Open the Available tab to find plugins and install them in one click",
   },
-  searchPlaceholder: "Search Modrinth plugins…",
+  searchPlaceholder: "Search Modrinth plugins...",
   catalogEnd: "No more plugins to load",
   unsupported: "This plugin does not run on the server side",
   install: {
@@ -30,7 +30,7 @@ export const pluginsTranslations: TranslationDictionary = {
     removed: (file: string) => `Removed ${file}`,
   },
   upload: {
-    progress: "Uploading plugins…",
+    progress: "Uploading plugins...",
     noJar: "Pick plugin files in .jar format",
     done: (n: number) => `Uploaded ${count(n)}`,
     partial: (ok: number, fail: number) => `Uploaded ${ok}, failed ${fail}`,

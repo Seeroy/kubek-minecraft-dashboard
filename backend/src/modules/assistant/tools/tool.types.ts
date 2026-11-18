@@ -11,7 +11,13 @@ import type { z } from "zod";
 export interface ToolContext {
   user: IUser;
   /** Where the call came from, recorded in the audit log */
-  origin: { conversationId?: string };
+  origin: {
+    conversationId?: string;
+    mcp?: boolean;
+    // Request address and client name, MCP has no panel request to take them from
+    ip?: string | null;
+    client?: string | null;
+  };
   signal?: AbortSignal;
 }
 

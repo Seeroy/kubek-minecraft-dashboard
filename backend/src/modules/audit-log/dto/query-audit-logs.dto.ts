@@ -1,7 +1,20 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { AuditCategory, AuditResult } from "@shared/types/audit.types";
+import {
+  AUDIT_SOURCES,
+  AuditCategory,
+  AuditResult,
+  type AuditSource,
+} from "@shared/types/audit.types";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import {
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from "class-validator";
 
 export class QueryAuditLogsDto {
   @ApiProperty({ required: false, enum: AuditCategory })
@@ -29,9 +42,22 @@ export class QueryAuditLogsDto {
   @IsEnum(AuditResult)
   result?: AuditResult;
 
+  @ApiProperty({ required: false, enum: AUDIT_SOURCES })
+  @IsOptional()
+  @IsIn(AUDIT_SOURCES)
+  source?: AuditSource;
+
   @ApiProperty({
     required: false,
-    description: "Matches username, resource name or action",
+    description: "Entries made with one API key",
+  })
+  @IsOptional()
+  @IsString()
+  apiKeyId?: string;
+
+  @ApiProperty({
+    required: false,
+    description: "Matches username, resource name, action or key name",
   })
   @IsOptional()
   @IsString()

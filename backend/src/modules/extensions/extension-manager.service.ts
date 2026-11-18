@@ -1,4 +1,4 @@
-import { unpackArchive } from "@/core/utils/archives";
+import { UNPACK_LIMITS, unpackArchive } from "@/core/utils/archives";
 import { getErrorMessage } from "@/core/utils/error";
 import { isInside } from "@/core/utils/paths";
 import { safeId } from "@/core/utils/safeId";
@@ -342,7 +342,12 @@ export class ExtensionManager implements OnModuleInit {
     const archivePath = join(work, "upload.zip");
     fs.writeFileSync(archivePath, buffer);
     const extractDir = join(work, "extracted");
-    const ok = await unpackArchive(archivePath, extractDir, true);
+    const ok = await unpackArchive(
+      archivePath,
+      extractDir,
+      true,
+      UNPACK_LIMITS.package,
+    );
     if (!ok) {
       fs.rmSync(work, { recursive: true, force: true });
       throw new BadRequestException("Failed to unpack extension archive");

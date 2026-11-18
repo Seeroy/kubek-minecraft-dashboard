@@ -1,4 +1,5 @@
 import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { auditPrincipal } from "@/modules/audit-log/audit-principal";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { Injectable } from "@nestjs/common";
@@ -45,6 +46,7 @@ export class CommandHandlerService {
       username: user.username,
       details: { command },
       ...origin,
+      ...auditPrincipal(user),
     });
   }
 

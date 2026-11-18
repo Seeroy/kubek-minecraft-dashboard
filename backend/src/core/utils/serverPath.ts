@@ -17,7 +17,8 @@ export function getSafeServerPath(
   serverId: string,
   requestedPath = "",
 ): string {
-  if (!serverId || /[\\/]|\.\./.test(serverId)) {
+  // Plain ids only, "." would point at servers/ itself
+  if (!/^[A-Za-z0-9_-]+$/.test(serverId)) {
     throw new BadRequestException("Invalid server id");
   }
 

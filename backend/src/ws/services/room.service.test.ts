@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { ApiKeysService } from "@/modules/api-keys/api-keys.service";
 import type { UsersRepository } from "@/modules/database/repositories/users.repository";
 import type { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { WsTelegramEventTypes } from "@shared/types/ws/server-events.types";
@@ -39,7 +40,10 @@ function service(fresh: IUser) {
   const users = fake<UsersRepository>({ findById: () => fresh });
   const instances = fake<InstancesRegistry>({ getByServerId: () => null });
   const broadcast = fake<ServerBroadcastService>();
-  return new RoomService(instances, broadcast, users);
+  const apiKeys = fake<ApiKeysService>({
+    reload: (_stored, f) => f ?? undefined,
+  });
+  return new RoomService(instances, broadcast, users, apiKeys);
 }
 
 describe("RoomService server rooms", () => {
@@ -111,7 +115,10 @@ describe("OTP updates", () => {
         throw new Error("broadcast to everyone");
       },
     });
-    const broadcast = new ServerBroadcastService(fake<UsersRepository>());
+    const broadcast = new ServerBroadcastService(
+      fake<UsersRepository>(),
+      fake<ApiKeysService>(),
+    );
     broadcast.attach(io);
     broadcast.emitOtpUpdate("u1", { code: "123456", expiresAt: 1 });
     expect(rooms).toEqual(["user:u1"]);

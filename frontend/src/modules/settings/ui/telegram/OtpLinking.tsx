@@ -10,6 +10,7 @@ import { WsTelegramEventTypes } from "@shared/types/ws/server-events.types";
 import { Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useGenerateOtpMutation } from "../../api/telegram.queries";
+import { PasswordDialog } from "../twofa/PasswordDialog";
 
 interface Otp {
   code: string;
@@ -22,9 +23,11 @@ const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds
 /** One-time code the user sends to the bot, it arrives over the socket with its expiry */
 export function OtpLinking({ botUsername }: { botUsername?: string }) {
   const { t } = useTranslation("modules.settings.telegram.linking");
+  const { t: tTwofa } = useTranslation("modules.settings.twofa");
   const { subscribe, unsubscribe } = useSocketApi();
   const generate = useGenerateOtpMutation();
   const [otp, setOtp] = useState<Otp | null>(null);
+  const [asking, setAsking] = useState(false);
   const now = useNow();
 
   useEffect(() => {
@@ -55,10 +58,11 @@ export function OtpLinking({ botUsername }: { botUsername?: string }) {
       ) : (
         <p className="text-[12.5px] text-muted-foreground">{otp ? t("expired") : t("idle")}</p>
       )}
-      <Button onClick={() => generate.mutate()} disabled={generate.isPending}>
+      <Button onClick={() => setAsking(true)} disabled={generate.isPending}>
         {generate.isPending ? <Spinner /> : <Zap />}
         {t("generate")}
       </Button>
+      {asking && <PasswordDialog title={tTwofa("passwordDialog.otp")} onConfirm={generate.mutateAsync} onClose={() => setAsking(false)} />}
     </div>
   );
 }

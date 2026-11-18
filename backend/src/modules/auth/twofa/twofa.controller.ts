@@ -1,3 +1,4 @@
+import { SessionOnly } from "@/modules/auth/decorators/session-only.decorator";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { toPublicUser } from "@/core/utils/publicUser";
 import { extractClientIp } from "@/core/utils/request";
@@ -29,6 +30,7 @@ import { CurrentUser } from "../decorators/current-user.decorator";
 import { Public } from "../decorators/public.decorator";
 import { BearerAuthGuard } from "../guards/bearer.guard";
 import { AccessGuard } from "../guards/access.guard";
+import { PasswordConfirmDto } from "@/modules/auth/dto/password-confirm.dto";
 import { ConfirmTotpDto } from "./dto/confirm-totp.dto";
 import { DisableTotpDto } from "./dto/disable-totp.dto";
 import { SwitchChallengeDto } from "./dto/switch-challenge.dto";
@@ -46,6 +48,7 @@ import { TwofaService } from "./twofa.service";
 @ApiBearerAuth()
 @Controller("api/auth/2fa")
 @UseGuards(BearerAuthGuard, AccessGuard)
+@SessionOnly()
 export class TwofaController {
   constructor(
     private readonly twofa: TwofaService,
@@ -147,14 +150,24 @@ export class TwofaController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Confirm TOTP setup" })
   @ApiNoContentResponse({ description: "TOTP confirmed" })
-  @ApiErrorResponses([400, 401, 403])
+  @ApiErrorResponses([400, 401, 403, 429])
   @Audit({
     action: AuditAction.TWOFA_TOTP_ENABLE,
     category: AuditCategory.AUTH,
     resourceType: "2fa",
   })
-  confirmTotp(@CurrentUser() user: IUser, @Body() dto: ConfirmTotpDto): void {
-    this.twofa.confirmTotpSetup(user, dto.setupToken, dto.code);
+  async confirmTotp(
+    @CurrentUser() user: IUser,
+    @Body() dto: ConfirmTotpDto,
+    @Req() req: Request,
+  ): Promise<void> {
+    await this.twofa.confirmTotpSetup(
+      user,
+      dto.setupToken,
+      dto.code,
+      dto.password,
+      extractClientIp(req),
+    );
   }
 
   @Post("totp/disable")
@@ -179,27 +192,35 @@ export class TwofaController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Enable Telegram 2FA (requires linked account)" })
   @ApiNoContentResponse({ description: "Telegram 2FA enabled" })
-  @ApiErrorResponses([400, 401])
+  @ApiErrorResponses([400, 401, 429])
   @Audit({
     action: AuditAction.TWOFA_TELEGRAM_ENABLE,
     category: AuditCategory.AUTH,
     resourceType: "2fa",
   })
-  enableTelegram(@CurrentUser() user: IUser): void {
-    this.twofa.enableTelegram(user);
+  async enableTelegram(
+    @CurrentUser() user: IUser,
+    @Body() dto: PasswordConfirmDto,
+    @Req() req: Request,
+  ): Promise<void> {
+    await this.twofa.enableTelegram(user, dto.password, extractClientIp(req));
   }
 
   @Post("telegram/disable")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Disable Telegram 2FA" })
   @ApiNoContentResponse({ description: "Telegram 2FA disabled" })
-  @ApiErrorResponses([401])
+  @ApiErrorResponses([400, 401, 429])
   @Audit({
     action: AuditAction.TWOFA_TELEGRAM_DISABLE,
     category: AuditCategory.AUTH,
     resourceType: "2fa",
   })
-  disableTelegram(@CurrentUser() user: IUser): void {
-    this.twofa.disableTelegram(user);
+  async disableTelegram(
+    @CurrentUser() user: IUser,
+    @Body() dto: PasswordConfirmDto,
+    @Req() req: Request,
+  ): Promise<void> {
+    await this.twofa.disableTelegram(user, dto.password, extractClientIp(req));
   }
 }

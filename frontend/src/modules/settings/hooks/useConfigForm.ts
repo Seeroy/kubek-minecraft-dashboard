@@ -18,7 +18,12 @@ const toFormValues = (config: IMainConfig, skinName: string | null | undefined):
     enabled: false,
     subnets: [],
   },
-  telegramBot: config.telegramBot ?? { enabled: false, token: "", chatIds: [] },
+  telegramBot: {
+    enabled: !!config.telegramBot?.enabled,
+    token: config.telegramBot?.token ?? "",
+    chatIds: config.telegramBot?.chatIds ?? [],
+    assistant: config.telegramBot?.assistant !== false,
+  },
   telemetry: config.telemetry ?? { enabled: true },
   serverStats: config.serverStats ?? { enabled: true },
   port: config.port || 8080,

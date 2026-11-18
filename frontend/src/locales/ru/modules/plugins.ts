@@ -16,7 +16,7 @@ export const pluginsTranslations: TranslationDictionary = {
     title: "Плагины ещё не установлены",
     description: "Перейдите на вкладку \"Доступные\", чтобы найти плагины и установить их одним кликом",
   },
-  searchPlaceholder: "Поиск плагинов Modrinth…",
+  searchPlaceholder: "Поиск плагинов Modrinth...",
   catalogEnd: "Больше плагинов для загрузки нет",
   unsupported: "Этот плагин не поддерживается на стороне сервера",
   install: {
@@ -31,7 +31,7 @@ export const pluginsTranslations: TranslationDictionary = {
     removed: (file: string) => `Удалён ${file}`,
   },
   upload: {
-    progress: "Загрузка плагинов…",
+    progress: "Загрузка плагинов...",
     noJar: "Выберите файлы плагинов в формате .jar",
     done: (n: number) => `Загружено: ${plugins(n)}`,
     partial: (ok: number, fail: number) => `Загружено ${ok}, не удалось ${fail}`,

@@ -44,6 +44,8 @@ export const componentsTranslations: TranslationDictionary = {
       searchingCore: "Поиск сборки",
       downloadingCore: "Скачивание ядра",
       pullingImage: "Загрузка Docker-образа",
+      runningInstaller: "Установщик ядра",
+      downloadingGame: "Скачивание игры через SteamCMD",
       checkingJava: "Проверка Java",
       downloadingJava: "Скачивание Java",
       unpackingJava: "Распаковка Java",

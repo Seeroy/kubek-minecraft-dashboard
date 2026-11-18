@@ -31,6 +31,8 @@ import { SessionsService } from "@/modules/sessions/sessions.service";
 import { BotTwofaService } from "@/modules/telegram-bot/bot-twofa.service";
 import { fake } from "@/testing/fake";
 import { sqliteProvider } from "@/testing/sqlite";
+import { apiKeysService } from "@/testing/api-keys";
+import { ApiKeysService } from "@/modules/api-keys/api-keys.service";
 import { testUser } from "@/testing/user";
 import { AccountFtpPasswordController } from "./account-ftp-password.controller";
 import { AccountsController } from "./accounts.controller";
@@ -146,6 +148,10 @@ beforeAll(async () => {
       { provide: AuthService, useValue: new AuthService(accounts) },
       { provide: AccountsService, useValue: accounts },
       { provide: SessionsService, useValue: sessions },
+      {
+        provide: ApiKeysService,
+        useValue: apiKeysService(sqlite, users, events),
+      },
       { provide: RateLimitService, useValue: rateLimit },
       { provide: TwofaService, useValue: twofa },
       {

@@ -30,6 +30,8 @@ export interface AppEventMap {
   /** Levels, roles, servers or admin flag changed, open sockets are stale */
   "user.access_changed": { userId: string };
   "user.deleted": { userId: string };
+  /** A key was deleted or its access changed, its sockets have to go */
+  "api_key.changed": { userId: string; keyId: string };
   /** Every finished backup operation, written to the backup journal */
   "backup.operation": Omit<BackupJournalEntry, "id" | "createdAt" | "username">;
   "server.deleted": { serverId: string };

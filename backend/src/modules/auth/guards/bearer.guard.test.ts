@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { UnauthorizedException } from "@nestjs/common";
+import { ForbiddenException, UnauthorizedException } from "@nestjs/common";
 import type { ExecutionContext, Type } from "@nestjs/common";
-import type { HttpArgumentsHost } from "@nestjs/common/interfaces";
+import type { HttpArgumentsHost } from "@/testing/http-host";
 import { Reflector } from "@nestjs/core";
 import { AppEventsService } from "@/core/events/app-events.service";
 import { testUser } from "@/testing/user";
@@ -13,7 +13,12 @@ import { ExtensionEventBus } from "@/modules/extensions/extension-event-bus.serv
 import { SessionsService } from "@/modules/sessions/sessions.service";
 import { fake } from "@/testing/fake";
 import { sqliteProvider } from "@/testing/sqlite";
+import { apiKeysService } from "@/testing/api-keys";
+import type { ApiKeysService } from "@/modules/api-keys/api-keys.service";
+import { AccessArea } from "@shared/access/areas";
+import type { IUser } from "@shared/types/user.types";
 import { Public } from "../decorators/public.decorator";
+import { SessionOnly } from "../decorators/session-only.decorator";
 import { BearerAuthGuard } from "./bearer.guard";
 
 class Routes {
@@ -21,6 +26,9 @@ class Routes {
 
   @Public()
   publicPage() {}
+
+  @SessionOnly()
+  ownAccount() {}
 }
 
 @Public()
@@ -30,7 +38,7 @@ class PublicRoutes {
 
 interface TestRequest {
   headers: Record<string, string>;
-  user?: { id: string };
+  user?: IUser;
   session?: { id: string };
 }
 
@@ -48,20 +56,32 @@ function context(
 }
 
 let sessions: SessionsService;
+let keys: ApiKeysService;
+let alice: IUser;
 let guard: BearerAuthGuard;
 
 beforeEach(() => {
   const sqlite = sqliteProvider();
   const users = new UsersRepository(sqlite);
-  users.create(testUser("alice"));
+  alice = testUser("alice", {
+    grants: {
+      [AccessArea.CONSOLE]: "write",
+      [AccessArea.FILES]: "read",
+      [AccessArea.API]: "write",
+    },
+  });
+  users.create(alice);
   sessions = new SessionsService(
     new UserSessionsRepository(sqlite),
     new AccountsService(users),
     new ExtensionEventBus(new ServersRepository(sqlite)),
     new AppEventsService(),
   );
-  guard = new BearerAuthGuard(sessions, new Reflector());
+  keys = apiKeysService(sqlite, users);
+  guard = new BearerAuthGuard(sessions, keys, new Reflector());
 });
+
+const keyHeader = (token: string) => ({ authorization: `Bearer ${token}` });
 
 describe("BearerAuthGuard", () => {
   test("valid token attaches the user and session to the request", () => {
@@ -135,5 +155,67 @@ describe("BearerAuthGuard", () => {
         context({ headers: {} }, PublicRoutes.prototype.page, PublicRoutes),
       ),
     ).toBe(true);
+  });
+});
+
+describe("BearerAuthGuard with an API key", () => {
+  const create = (grants: Record<string, string>, expiresAt?: number) =>
+    keys.create(alice, {
+      name: "ci",
+      grants,
+      servers: null,
+      mcp: false,
+      expiresAt,
+    });
+
+  test("the user is cut down to the key and has no session", () => {
+    const { token, key } = create({
+      [AccessArea.CONSOLE]: "read",
+      [AccessArea.FILES]: "read",
+    });
+    const request: TestRequest = { headers: keyHeader(token) };
+
+    expect(guard.canActivate(context(request))).toBe(true);
+    expect(request.user?.id).toBe("alice");
+    expect(request.user?.apiKey?.id).toBe(key.id);
+    expect(request.user?.access.levels).toEqual({
+      [AccessArea.CONSOLE]: "read",
+      [AccessArea.FILES]: "read",
+    });
+    expect(request.session).toBeUndefined();
+  });
+
+  test("session only routes refuse a key", () => {
+    const { token } = create({ [AccessArea.CONSOLE]: "read" });
+
+    expect(() =>
+      guard.canActivate(
+        context({ headers: keyHeader(token) }, Routes.prototype.ownAccount),
+      ),
+    ).toThrow(ForbiddenException);
+  });
+
+  test("an unknown key is a 401", () => {
+    expect(() =>
+      guard.canActivate(context({ headers: keyHeader("kbk_nope") })),
+    ).toThrow("Invalid API key");
+  });
+
+  test("a deleted key stops working", () => {
+    const { token, key } = create({ [AccessArea.CONSOLE]: "read" });
+    keys.delete(alice, key.id);
+
+    expect(() =>
+      guard.canActivate(context({ headers: keyHeader(token) })),
+    ).toThrow(UnauthorizedException);
+  });
+
+  test("a key can't be made above its owner", () => {
+    expect(() => create({ [AccessArea.FILES]: "manage" })).toThrow(
+      ForbiddenException,
+    );
+    expect(() => create({ [AccessArea.API]: "write" })).toThrow(
+      ForbiddenException,
+    );
   });
 });

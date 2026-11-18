@@ -42,6 +42,7 @@ export function useUnlinkUserMutation() {
 
 export function useGenerateOtpMutation() {
   return useMutation({
-    mutationFn: () => api.telegramBot.generateOtp(),
+    mutationFn: (password: string) => api.telegramBot.generateOtp(password),
+    meta: { silent: true },
   });
 }

@@ -69,6 +69,7 @@ const telegramSchema = (tokenStored: boolean) =>
       enabled: z.boolean(),
       token: z.string().optional(),
       chatIds: z.array(z.string()).optional(),
+      assistant: z.boolean(),
     })
     .superRefine((data, ctx) => {
       if (data.enabled) {

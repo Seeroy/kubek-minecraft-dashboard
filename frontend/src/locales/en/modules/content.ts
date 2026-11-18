@@ -87,7 +87,7 @@ export const contentTranslations: TranslationDictionary = {
     clientOnly: "Client only",
     details: "Details and versions",
     chooseVersion: "Choose version",
-    installing: "Installing…",
+    installing: "Installing...",
     incompatible: (version: string) => `No build for ${version}`,
     showIncompatible: "Incompatible",
     showIncompatibleHint: (version: string) => `Show projects without a build for MC ${version}`,
@@ -148,6 +148,6 @@ export const contentTranslations: TranslationDictionary = {
   remove: {
     version: (version: string, file: string) => `Version ${version} · ${file}`,
     cancel: "Cancel",
-    removing: "Removing…",
+    removing: "Removing...",
   },
 };

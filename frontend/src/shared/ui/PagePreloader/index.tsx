@@ -54,6 +54,8 @@ const PagePreloader = () => {
         "fixed inset-0 z-[99999] grid place-items-center bg-background transition-opacity duration-400 ease-smooth",
         phase === "fading" && "pointer-events-none opacity-0"
       )}
+      // Own group, otherwise a view transition lifts the page above it
+      style={{ viewTransitionName: "page-preloader" }}
     >
       <div
         className={cn(

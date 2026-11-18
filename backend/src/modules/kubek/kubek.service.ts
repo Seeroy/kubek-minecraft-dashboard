@@ -66,10 +66,30 @@ export class KubekService {
     const oldTelegram = oldConfig.telegramBot;
     const newTelegram = newConfig.telegramBot;
 
-    if (
+    const assistantBefore = oldTelegram?.assistant !== false;
+    const assistant = newTelegram?.assistant !== false;
+    const restart =
       oldTelegram?.enabled !== newTelegram?.enabled ||
-      oldTelegram?.token !== newTelegram?.token
-    ) {
+      oldTelegram?.token !== newTelegram?.token;
+
+    if (assistant !== assistantBefore) {
+      void this.telegramBotService.applyAssistantSetting();
+      if (actor && !restart) {
+        this.audit.record({
+          action: AuditAction.TELEGRAM_BOT_CONFIGURE,
+          category: AuditCategory.TELEGRAM,
+          resourceType: "telegram_bot",
+          userId: actor.userId,
+          username: actor.username,
+          details: { assistantBefore, assistant },
+          result: AuditResult.SUCCESS,
+          ip: actor.ip,
+          userAgent: actor.userAgent,
+        });
+      }
+    }
+
+    if (restart) {
       // Started right away so a following info request waits for it
       void this.telegramBotService
         .restartBot()
@@ -89,6 +109,8 @@ export class KubekService {
               enabledBefore: !!oldTelegram?.enabled,
               enabled: !!newTelegram?.enabled,
               tokenChanged: oldTelegram?.token !== newTelegram?.token,
+              assistantBefore,
+              assistant,
               botName: info.name || null,
             },
             result:

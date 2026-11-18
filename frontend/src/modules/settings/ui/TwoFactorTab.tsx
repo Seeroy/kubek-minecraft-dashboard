@@ -25,6 +25,7 @@ import {
   useUpdatePreferencesMutation,
 } from "../api/twofa.queries";
 import { SAMPLE_TWOFA } from "../data/samples";
+import { PasswordDialog } from "./twofa/PasswordDialog";
 import { DisableTotpDialog, TotpSetupDialog, type TotpSetup } from "./twofa/TotpDialogs";
 
 function MethodLabel({ title, enabled }: { title: string; enabled: boolean }) {
@@ -58,10 +59,13 @@ export default function TwoFactorTab() {
   // Telegram confirmation needs an active link between this account and a Telegram user
   const telegramReady = !!me && (linked.data ?? []).some((link) => link.telegramUser?.userId === me.id && link.telegramUser?.isActive);
 
-  const toggleTelegram = (next: boolean) =>
-    (next ? enableTelegram : disableTelegram).mutate(undefined, {
-      onSuccess: () => notify({ type: "success", title: t(next ? "toasts.telegramEnabled" : "toasts.telegramDisabled") }),
-    });
+  const [telegramTarget, setTelegramTarget] = useState<boolean | null>(null);
+
+  const toggleTelegram = async (password: string) => {
+    const next = !!telegramTarget;
+    await (next ? enableTelegram : disableTelegram).mutateAsync(password);
+    notify({ type: "success", title: t(next ? "toasts.telegramEnabled" : "toasts.telegramDisabled") });
+  };
 
   return (
     <>
@@ -96,7 +100,7 @@ export default function TwoFactorTab() {
                 <Switch
                   checked={telegram}
                   disabled={!telegramReady || enableTelegram.isPending || disableTelegram.isPending}
-                  onCheckedChange={toggleTelegram}
+                  onCheckedChange={setTelegramTarget}
                   aria-label={t("telegram.title")}
                 />
               </SettingsField>
@@ -132,6 +136,13 @@ export default function TwoFactorTab() {
 
       {setup && <TotpSetupDialog setup={setup} onClose={() => setSetup(null)} />}
       {disabling && <DisableTotpDialog onClose={() => setDisabling(false)} />}
+      {telegramTarget !== null && (
+        <PasswordDialog
+          title={t(telegramTarget ? "passwordDialog.telegramOn" : "passwordDialog.telegramOff")}
+          onConfirm={toggleTelegram}
+          onClose={() => setTelegramTarget(null)}
+        />
+      )}
     </>
   );
 }

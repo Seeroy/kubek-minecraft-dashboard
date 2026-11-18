@@ -51,7 +51,7 @@ describe("getSafeServerPath", () => {
     );
   });
 
-  test.each(["", "../abc", "a/b", "a\\b", ".."])(
+  test.each(["", "../abc", "a/b", "a\\b", "..", ".", " "])(
     "rejects server id %p",
     (id) => {
       expect(() => getSafeServerPath(id)).toThrow("Invalid server id");

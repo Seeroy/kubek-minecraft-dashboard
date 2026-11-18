@@ -10,7 +10,7 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { SaveBar } from "@/shared/ui/settings";
 import { Tabs, TabsContent, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
-import { AlertTriangle, Blocks, Cloud, Globe, Info, Lock, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Blocks, Cloud, Globe, Info, KeyRound, Lock, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { CrashScreen } from "@/shared/ui/ErrorBoundary";
 import { useSearchParams } from "next/navigation";
@@ -21,6 +21,7 @@ import { useConfigForm } from "../hooks/useConfigForm";
 import { SETTINGS_EXT_TAB, SETTINGS_TABS, type SettingsTabId } from "../lib/tabs";
 import type { MainConfigFormData } from "../validations/schema";
 import AboutPanel from "./AboutPanel";
+import ApiKeysTab from "./ApiKeysTab";
 import AssistantSettings from "./AssistantSettings";
 import GeneralSettings from "./GeneralSettings";
 import RoleManagement from "./RoleManagement";
@@ -43,6 +44,7 @@ const TABS: { id: SettingsTabId; icon: LucideIcon; separatorBefore?: boolean; ac
   { id: "assistant", icon: Sparkles, access: [AccessArea.ASSISTANT, "manage"] },
   { id: "users", icon: Users, separatorBefore: true, access: [AccessArea.ACCOUNTS, "read"] },
   { id: "roles", icon: ShieldCheck, access: [AccessArea.ACCOUNTS, "read"] },
+  { id: "api", icon: KeyRound, access: [AccessArea.API, "write"] },
   { id: "sessions", icon: Globe },
   { id: "twofa", icon: Lock },
   { id: "about", icon: Info },
@@ -149,6 +151,9 @@ export default function Settings() {
         </TabsContent>
         <TabsContent value="roles">
           <RoleManagement />
+        </TabsContent>
+        <TabsContent value="api">
+          <ApiKeysTab />
         </TabsContent>
         <TabsContent value="sessions">
           <SessionsTab />

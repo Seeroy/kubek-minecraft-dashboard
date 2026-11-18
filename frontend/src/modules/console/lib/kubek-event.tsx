@@ -89,6 +89,15 @@ export function describeKubekEvent(log: IInstanceLog, t: Translate, accent: Tone
           time,
         ],
       };
+    case "broadcast":
+      return {
+        content: (
+          <>
+            {user(event.username)} {muted(t("events.broadcast"))} <span className="font-medium text-c-amber">{event.message}</span>
+          </>
+        ),
+        details: [[t("events.details.user"), event.username || "—"], [t("events.details.id"), mono(event.id || "—")], time],
+      };
   }
 }
 
@@ -107,5 +116,7 @@ export function kubekEventText(log: IInstanceLog, t: Translate): string {
       return t("events.restartFailed", event.attempts);
     case "bot_control":
       return `${event.username} ${t("events.telegramControl")} ${event.action}`;
+    case "broadcast":
+      return `${event.username} ${t("events.broadcast")} ${event.message}`;
   }
 }

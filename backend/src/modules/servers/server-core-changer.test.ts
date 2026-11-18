@@ -117,13 +117,16 @@ beforeEach(() => {
     fake<InstallPipeline>({
       run: (blueprint, _server, _taskId, opts) => {
         installs.push({ blueprintId: blueprint.manifest.id, opts });
-        return installError ? Promise.reject(installError) : Promise.resolve();
+        return installError
+          ? Promise.reject(installError)
+          : Promise.resolve({});
       },
     }),
     fake<ServersFactory>({
       broadcastServersList: () => {
         broadcasts++;
       },
+      saveResolvedVariables: (server) => server,
     }),
   );
 

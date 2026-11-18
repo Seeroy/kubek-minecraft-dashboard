@@ -48,7 +48,7 @@ export const sidebarTranslations: TranslationDictionary = {
     ram: "ОЗУ",
   },
   serverControls: {
-    stopping: "Останавливается…",
+    stopping: "Останавливается...",
     noServerSelected: "Сервер не выбран",
     start: "Запустить",
     stop: "Остановить",

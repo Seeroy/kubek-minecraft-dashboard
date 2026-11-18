@@ -27,6 +27,13 @@ export class ServerTypeDto {
 
   @ApiProperty({
     required: false,
+    description: "Game title, blueprints of one game are grouped under it",
+    example: "Minecraft: Java Edition",
+  })
+  gameName?: string;
+
+  @ApiProperty({
+    required: false,
     nullable: true,
     description: "Icon as a data URI",
   })

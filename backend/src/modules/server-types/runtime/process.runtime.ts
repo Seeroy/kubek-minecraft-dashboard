@@ -2,6 +2,7 @@ import { killPromise } from "@/core/utils/promiseKill";
 import { ChildProcess, spawn } from "node:child_process";
 import type { LaunchSpec } from "../server-types.types";
 import { withUtf8Locale } from "./locale-env";
+import { shellArgv } from "./run-process";
 import type { IServerRuntime, StopMethod } from "./runtime.interface";
 
 /**
@@ -55,19 +56,11 @@ export class ProcessRuntime implements IServerRuntime {
     }
   }
 
-  /**
-   * sh -c on POSIX, cmd /c on Windows, both inherit the spawned PTY console
-   */
-  private shellArgv(command: string): string[] {
-    return process.platform === "win32"
-      ? ["cmd.exe", "/d", "/s", "/c", `"${command}"`]
-      : ["/bin/sh", "-c", command];
-  }
-
   /** Try to spawn attached to a PTY, returns false if this Bun cannot attach one here */
   private startPty(spec: LaunchSpec): boolean {
     try {
-      const proc = Bun.spawn(this.shellArgv(spec.command), {
+      // Both shells inherit the spawned PTY console
+      const proc = Bun.spawn(shellArgv(spec.command), {
         cwd: spec.cwd,
         env: withUtf8Locale({ ...process.env, ...spec.env }),
         // Keep the cmd.exe command line verbatim so the pre-quoted java path is

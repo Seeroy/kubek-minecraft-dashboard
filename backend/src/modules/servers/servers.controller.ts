@@ -6,6 +6,11 @@ import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { AccessArea } from "@shared/access/areas";
 import { visibleServers } from "@/core/utils/serverAccess";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
+import {
+  removeUpload,
+  UPLOAD_LIMITS,
+  uploadStorage,
+} from "@/core/utils/uploads";
 import { MultipartPayload } from "@/core/middlewares/json-payload.pipe";
 import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
@@ -55,7 +60,6 @@ import {
 import { AuditAction } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
 import type { Request } from "express";
-import { memoryStorage } from "multer";
 
 @ApiTags("Servers")
 @ApiBearerAuth()
@@ -119,8 +123,8 @@ export class ServersController {
   )
   @UseInterceptors(
     FileInterceptor("coreFile", {
-      storage: memoryStorage(),
-      limits: { fileSize: 1024 * 1024 * 512 },
+      storage: uploadStorage(),
+      limits: { fileSize: UPLOAD_LIMITS.core },
     }),
   )
   @ApiConsumes("multipart/form-data")
@@ -156,19 +160,24 @@ export class ServersController {
   })
   async create(
     @MultipartPayload(CreateServerDto) dto: CreateServerDto,
-    @UploadedFile() coreFile: Express.Multer.File,
+    @UploadedFile() coreFile: Express.Multer.File | undefined,
     @CurrentUser() user: IUser,
   ): Promise<ServerCreatedResponseDto> {
     if (dto.blueprintId === "com.kubek.custom" && !coreFile) {
       throw new BadRequestException("coreFile is required for custom servers");
     }
 
-    await this.javaService.assertJavaPathAllowed(
-      dto.variables?.JAVA_PATH,
-      user,
-    );
-
-    return this.servers.create(dto, user.id, coreFile);
+    try {
+      await this.javaService.assertJavaPathAllowed(
+        dto.variables?.JAVA_PATH,
+        user,
+      );
+      return await this.servers.create(dto, user.id, coreFile);
+    } catch (error) {
+      // On success the install task takes the jar over
+      await removeUpload(coreFile);
+      throw error;
+    }
   }
 
   /** Start a server */

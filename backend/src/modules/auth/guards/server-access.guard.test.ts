@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import type { ExecutionContext } from "@nestjs/common";
-import type { HttpArgumentsHost } from "@nestjs/common/interfaces";
+import type { HttpArgumentsHost } from "@/testing/http-host";
 import { fake } from "@/testing/fake";
 import { requestServerId, ServerAccessGuard } from "./server-access.guard";
 

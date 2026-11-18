@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, Length, Matches } from "class-validator";
+import { IsString, Length, Matches, MinLength } from "class-validator";
 
 export class ConfirmTotpDto {
   @ApiProperty({ description: "Setup token issued by /totp/setup" })
@@ -11,4 +11,9 @@ export class ConfirmTotpDto {
   @Length(6, 6)
   @Matches(/^\d{6}$/)
   code!: string;
+
+  @ApiProperty({ description: "Current account password" })
+  @IsString()
+  @MinLength(1)
+  password!: string;
 }

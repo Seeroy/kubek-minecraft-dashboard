@@ -15,7 +15,7 @@ import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Spinner } from "@/shared/ui/spinner";
 import { Switch } from "@/shared/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { AlertTriangle, Bell, Check, Info, KeyRound, Link2, Send, Trash2, Users } from "lucide-react";
+import { AlertTriangle, Bell, Check, Info, KeyRound, Link2, Send, Sparkles, Trash2, Users } from "lucide-react";
 import { Controller, useWatch, type UseFormReturn } from "react-hook-form";
 import { useBotAvatarQuery, useBotInfoQuery, useLinkedUsersQuery, useUnlinkUserMutation } from "../api/telegram.queries";
 import type { MainConfigFormData } from "../validations/schema";
@@ -82,7 +82,7 @@ function LinkedUsers() {
   const unlink = useUnlinkUserMutation();
   const users = linked.data ?? [];
 
-  if (linked.isLoading) return <div className="p-4 text-[13px] text-muted-foreground">…</div>;
+  if (linked.isLoading) return <div className="p-4 text-[13px] text-muted-foreground">...</div>;
 
   if (users.length === 0) {
     return (
@@ -206,6 +206,16 @@ export default function TelegramSettings({ form }: { form: UseFormReturn<MainCon
             {...register("telegramBot.token")}
           />
           {errors.telegramBot?.token?.message && <FieldError>{tRoot(errors.telegramBot.token.message)}</FieldError>}
+        </SettingsField>
+
+        <SettingsField label={t("bot.assistant")} icon={Sparkles} hint={t("bot.assistantHint")} changed={!!dirtyFields.telegramBot?.assistant} inline>
+          <Controller
+            control={control}
+            name="telegramBot.assistant"
+            render={({ field }) => (
+              <Switch checked={!!field.value} onCheckedChange={field.onChange} disabled={!enabled} aria-label={t("bot.assistant")} />
+            )}
+          />
         </SettingsField>
 
         <SettingsField label={t("bot.info")} icon={Info}>

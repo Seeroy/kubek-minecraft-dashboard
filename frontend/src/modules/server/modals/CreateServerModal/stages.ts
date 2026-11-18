@@ -27,6 +27,8 @@ const BASE_STAGES: StageDef[] = [
       TaskSteps.SEARCHING_CORE,
       TaskSteps.DOWNLOADING_CORE,
       TaskSteps.PULLING_IMAGE,
+      TaskSteps.RUNNING_INSTALLER,
+      TaskSteps.DOWNLOADING_GAME,
     ],
   },
 ];

@@ -69,6 +69,7 @@ export function useBlueprintSelection({ form, schemaRef, freePort }: UseBlueprin
     versionVarKey,
     versions: versions.data,
     versionsLoading: versions.isLoading,
+    versionsError: versions.error,
     dockerAvailable: !!system.data?.dockerAvailable,
   };
 }

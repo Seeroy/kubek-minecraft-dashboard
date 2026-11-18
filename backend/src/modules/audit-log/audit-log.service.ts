@@ -45,6 +45,8 @@ export class AuditLogService {
         ip: input.ip ?? null,
         userAgent: input.userAgent ?? null,
         source: input.source ?? "panel",
+        apiKeyId: input.apiKeyId ?? null,
+        apiKeyName: input.apiKeyId ? (input.apiKeyName ?? null) : null,
       });
     } catch (e) {
       console.error("[AuditLog] Failed to record entry:", e);

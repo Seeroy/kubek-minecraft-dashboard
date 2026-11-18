@@ -1,13 +1,16 @@
+import { ApiErrorCode } from "@/core/errors/error-codes";
 import { getSafeServerPath } from "@/core/utils/serverPath";
+import { placeUpload, removeUpload } from "@/core/utils/uploads";
 import { ExtensionEventBus } from "@/modules/extensions/extension-event-bus.service";
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  PayloadTooLargeException,
 } from "@nestjs/common";
 import { FileType, IFile } from "@shared/types/file.types";
-import { type Dirent, promises as fs } from "fs";
+import { type Dirent, promises as fs, type ReadStream } from "fs";
 import { join, resolve } from "path";
 import {
   assertParentInside,
@@ -18,6 +21,9 @@ import {
   lstatBatched,
   pathExists,
 } from "./file-jail";
+
+// The editor and the assistant only deal with text of a sane size
+export const MAX_READ_FILE_BYTES = 5 * 1024 * 1024;
 
 @Injectable()
 export class FileManagerService {
@@ -154,9 +160,69 @@ export class FileManagerService {
     }
     await assertRealPathInside(serverId, safePath);
 
+    const { size } = await fs.stat(safePath);
+    if (size > MAX_READ_FILE_BYTES) {
+      throw new PayloadTooLargeException({
+        code: ApiErrorCode.PAYLOAD_TOO_LARGE,
+        message: `File is too large to open (over ${MAX_READ_FILE_BYTES / 1024 / 1024} MB), download it instead`,
+      });
+    }
+
     try {
       return await fs.readFile(safePath);
     } catch (error) {
+      throw new InternalServerErrorException(
+        `Failed to read file: ${error.message}`,
+      );
+    }
+  }
+
+  /** First bytes of a file of any size, with its full size */
+  async readHead(
+    serverId: string,
+    filePath: string,
+    maxBytes: number,
+  ): Promise<{ head: Buffer; size: number }> {
+    const safePath = getSafeServerPath(serverId, filePath);
+
+    if (!(await isFileEntry(safePath))) {
+      throw new NotFoundException("File not found");
+    }
+    await assertRealPathInside(serverId, safePath);
+
+    const handle = await fs.open(safePath, "r");
+    try {
+      const { size } = await handle.stat();
+      const head = Buffer.alloc(Math.min(size, maxBytes));
+      const { bytesRead } = await handle.read(head, 0, head.length, 0);
+      return { head: head.subarray(0, bytesRead), size };
+    } finally {
+      await handle.close();
+    }
+  }
+
+  /** Stream for downloads, the file is never read into memory */
+  async openReadStream(
+    serverId: string,
+    filePath: string,
+  ): Promise<{ stream: ReadStream; size: number }> {
+    const safePath = getSafeServerPath(serverId, filePath);
+
+    if (!(await isFileEntry(safePath))) {
+      throw new NotFoundException("File not found");
+    }
+    await assertRealPathInside(serverId, safePath);
+
+    const handle = await fs.open(safePath, "r").catch((error) => {
+      throw new InternalServerErrorException(
+        `Failed to read file: ${error.message}`,
+      );
+    });
+    try {
+      const { size } = await handle.stat();
+      return { stream: handle.createReadStream(), size };
+    } catch (error) {
+      await handle.close();
       throw new InternalServerErrorException(
         `Failed to read file: ${error.message}`,
       );
@@ -287,27 +353,28 @@ export class FileManagerService {
     directoryPath: string,
     file: Express.Multer.File,
   ): Promise<void> {
-    const safeDirPath = getSafeServerPath(serverId, directoryPath);
-    const filePath = join(safeDirPath, file.originalname);
-
-    // Security check for the file path
-    getSafeServerPath(serverId, join(directoryPath, file.originalname));
-
-    if (await pathExists(filePath)) {
-      throw new BadRequestException("File already exists");
-    }
-    await assertRealPathInside(serverId, filePath, true);
-
     try {
-      // Ensure directory exists
-      await fs.mkdir(safeDirPath, { recursive: true });
+      const safeDirPath = getSafeServerPath(serverId, directoryPath);
+      const filePath = join(safeDirPath, file.originalname);
 
-      // Write the file buffer to disk
-      await fs.writeFile(filePath, file.buffer);
-    } catch (error) {
-      throw new InternalServerErrorException(
-        `Failed to upload file: ${error.message}`,
-      );
+      // Security check for the file path
+      getSafeServerPath(serverId, join(directoryPath, file.originalname));
+
+      if (await pathExists(filePath)) {
+        throw new BadRequestException("File already exists");
+      }
+      await assertRealPathInside(serverId, filePath, true);
+
+      try {
+        await fs.mkdir(safeDirPath, { recursive: true });
+        await placeUpload(file, filePath);
+      } catch (error) {
+        throw new InternalServerErrorException(
+          `Failed to upload file: ${error.message}`,
+        );
+      }
+    } finally {
+      await removeUpload(file);
     }
   }
 }

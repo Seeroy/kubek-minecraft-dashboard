@@ -97,6 +97,7 @@ export const sharedTranslations: TranslationDictionary = {
       PLAYERS_NEEDS_STOPPED_SERVER: "Чтобы задать это, остановите сервер",
       PLAYERS_APPLY_TIMEOUT: "Сервер не подтвердил изменение, проверьте консоль",
       UNSAFE_LAUNCH_ARGUMENT: (field?: string) => (field ? `Небезопасное значение в "${field}"` : "Небезопасное значение в аргументах запуска"),
+      VERSIONS_UNAVAILABLE: (_field?: string, reason?: string) => (reason ? `Не удалось получить список версий: ${reason}` : "Не удалось получить список версий"),
       ASSISTANT_NOT_CONFIGURED: "Ассистент не настроен",
       ASSISTANT_BUSY: "Ассистент ещё отвечает, дождитесь конца ответа",
       ROLE_NAME_TAKEN: "Роль с таким названием уже есть",

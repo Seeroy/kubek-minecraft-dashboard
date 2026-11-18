@@ -3,7 +3,10 @@ import type { NetworksRepository } from "@/modules/database/repositories/network
 import type { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import type { JavaService } from "@/modules/java/java.service";
 import type { BlueprintResolver } from "@/modules/server-types/blueprint-resolver.service";
-import { assertLaunchVariablesSafe } from "@/modules/server-types/launch-args";
+import {
+  assertCommandValuesSafe,
+  assertLaunchVariablesSafe,
+} from "@/modules/server-types/launch-args";
 import { containerLabels } from "@/modules/server-types/runtime/container-reconcile";
 import {
   containerMemoryBytes,
@@ -91,6 +94,8 @@ export class LaunchCommandBuilder {
 
     // Old values saved before the check existed
     assertLaunchVariablesSafe(blueprint, config.variables);
+    // Panel values like SERVER_NAME too, a blueprint may put them in the command
+    assertCommandValuesSafe(command, scope);
     return blueprintResolver.substitute(command, scope);
   }
 

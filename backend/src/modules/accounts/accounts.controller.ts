@@ -13,6 +13,7 @@ import { RequireAccess } from "@/modules/auth/decorators/require-access.decorato
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
 import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { auditPrincipal } from "@/modules/audit-log/audit-principal";
 import { RolesService } from "@/modules/roles/roles.service";
 import { extractClientIp } from "@/core/utils/request";
 import {
@@ -258,7 +259,7 @@ export class AccountsController {
     }
     enforce(canManageAccount(actor, user));
 
-    await this.passwordRecheck.assert(user, dto.old);
+    await this.passwordRecheck.assert(user, dto.old, null, actor);
 
     this.accountsService.update({
       ...user,
@@ -298,7 +299,7 @@ export class AccountsController {
       username: actor.username,
       ip: extractClientIp(req),
       userAgent: req.headers?.["user-agent"] ?? null,
-      source: "panel",
+      ...auditPrincipal(actor),
     });
   }
 

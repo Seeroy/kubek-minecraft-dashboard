@@ -2,6 +2,7 @@ import { RequireAccess } from "@/modules/auth/decorators/require-access.decorato
 import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
+import { UPLOAD_LIMITS } from "@/core/utils/uploads";
 import { Audit } from "@/modules/audit-log/audit.decorator";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
@@ -45,7 +46,9 @@ export class ServerIconController {
   /** Upload server icon */
   @Post(":id/icon")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseInterceptors(FileInterceptor("icon"))
+  @UseInterceptors(
+    FileInterceptor("icon", { limits: { fileSize: UPLOAD_LIMITS.icon } }),
+  )
   @ApiOperation({
     summary: "Upload server icon",
     operationId: "ServersController_uploadIcon",
@@ -66,7 +69,7 @@ export class ServerIconController {
   @RequireAccess(AccessArea.SETTINGS, "write")
   @ApiParam({ name: "id", description: "Server ID" })
   @ApiNoContentResponse({ description: "Icon uploaded successfully" })
-  @ApiErrorResponses([400, 401, 403, 404])
+  @ApiErrorResponses([400, 401, 403, 404, 413])
   @Audit(serverAudit(AuditAction.SERVER_ICON_UPDATE))
   async uploadIcon(
     @Param("id") id: string,
@@ -83,14 +86,16 @@ export class ServerIconController {
   })
   @CheckServerAccess("id")
   @ApiParam({ name: "id", description: "Server ID" })
-  @ApiResponse({ status: 200, description: "Server icon" })
+  @ApiResponse({ status: 200, description: "Server icon set by the owner" })
   @ApiErrorResponses([401, 403, 404])
   async getIcon(@Param("id") id: string, @Res() res): Promise<void> {
-    const iconPath = this.icons.iconPath(id);
+    // The UI shows the core icon instead of Kubek's default one
+    const iconPath = this.icons.customIconPath(id);
     if (!iconPath) {
       throw new NotFoundException("Server icon not found");
     }
 
-    res.sendFile(iconPath);
+    // The file can change by hand, the ETag check keeps refetches cheap
+    res.sendFile(iconPath, { headers: { "Cache-Control": "no-cache" } });
   }
 }

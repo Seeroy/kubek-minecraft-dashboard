@@ -77,7 +77,7 @@ export function FilesBar(props: FilesBarProps) {
           {props.busy ? (
             <div className="flex w-48 items-center gap-2 px-2 text-xs text-muted-foreground">
               <Progress value={props.busy.progress ?? 0} className="flex-1" />
-              <span className="tabular-nums">{props.busy.progress != null ? `${props.busy.progress}%` : "…"}</span>
+              <span className="tabular-nums">{props.busy.progress != null ? `${props.busy.progress}%` : "..."}</span>
             </div>
           ) : (
             <>

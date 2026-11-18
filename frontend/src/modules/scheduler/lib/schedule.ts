@@ -34,7 +34,7 @@ export function describeSchedule(schedule: SchedulePayload, t: Translator): stri
 }
 
 export function formatRunDuration(ms: number | null, t: Translator): string {
-  if (ms == null) return "…";
+  if (ms == null) return "...";
   if (ms < 60_000) return t("duration.seconds", (ms / 1000).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
   return t("duration.minutes", Math.floor(ms / 60_000), Math.round((ms % 60_000) / 1000));
 }

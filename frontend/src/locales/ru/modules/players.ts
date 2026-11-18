@@ -36,7 +36,7 @@ export const playersTranslations: TranslationDictionary = {
     bans: "Баны",
     activity: "Активность",
   },
-  search: "Поиск по нику или UUID…",
+  search: "Поиск по нику или UUID...",
   count: (n: number) => `${n} ${plural(n, "игрок", "игрока", "игроков")}`,
   noMatches: "Никто не подходит под поиск",
   uuid: {

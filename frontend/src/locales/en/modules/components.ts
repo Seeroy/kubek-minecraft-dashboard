@@ -35,6 +35,8 @@ export const componentsTranslations: TranslationDictionary = {
       searchingCore: "Looking up the build",
       downloadingCore: "Downloading the core",
       pullingImage: "Pulling the Docker image",
+      runningInstaller: "Core installer",
+      downloadingGame: "Downloading the game with SteamCMD",
       checkingJava: "Checking Java",
       downloadingJava: "Downloading Java",
       unpackingJava: "Unpacking Java",

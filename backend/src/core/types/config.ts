@@ -1,3 +1,4 @@
+import type { McpSettings } from "@shared/types/api-key.types";
 import type { IPanelSettings } from "@shared/types/configs/mainConfig.types";
 
 export type {
@@ -10,5 +11,7 @@ export type {
 } from "@shared/types/configs/mainConfig.types";
 
 export interface IConfiguration extends IPanelSettings {
+  /** Off until an admin turns it on */
+  mcp?: McpSettings;
   [key: string]: any;
 }

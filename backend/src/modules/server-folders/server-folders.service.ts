@@ -1,9 +1,11 @@
+import { canAccessServer } from "@/core/utils/serverAccess";
 import { ServerFoldersRepository } from "@/modules/database/repositories/server-folders.repository";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { CreateFolderDto } from "@/modules/server-folders/dto/create-folder.dto";
 import { UpdateFolderDto } from "@/modules/server-folders/dto/update-folder.dto";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { IServerFolder } from "@shared/types/server/folder.types";
+import type { IUser } from "@shared/types/user.types";
 
 @Injectable()
 export class ServerFoldersService {
@@ -47,14 +49,20 @@ export class ServerFoldersService {
     return folder;
   }
 
-  move(serverIds: string[], folderId: string | null): { moved: number } {
+  move(
+    serverIds: string[],
+    folderId: string | null,
+    user?: IUser,
+  ): { moved: number } {
     if (folderId != null) {
       const folder = this.folders.findById(folderId);
       if (!folder) throw new NotFoundException("Folder not found");
     }
-    // Filter to existing servers to avoid silent no-ops on bad ids
+    // Existing servers the user can reach, the rest is skipped
     const validIds = serverIds.filter(
-      (id) => this.servers.findById(id) != null,
+      (id) =>
+        this.servers.findById(id) != null &&
+        (!user || canAccessServer(user, id)),
     );
     const moved = this.folders.moveServers(validIds, folderId);
     return { moved };

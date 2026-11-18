@@ -25,8 +25,9 @@ export class AuditLogsRepository {
       .prepare(
         `INSERT INTO audit_logs
           (id, userId, username, action, category, resourceType, resourceId, resourceName,
-           serverId, serverName, changes, details, result, error, ip, userAgent, source, createdAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           serverId, serverName, changes, details, result, error, ip, userAgent, source,
+           apiKeyId, apiKeyName, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         entry.id,
@@ -46,6 +47,8 @@ export class AuditLogsRepository {
         entry.ip ?? null,
         entry.userAgent ?? null,
         entry.source,
+        entry.apiKeyId ?? null,
+        entry.apiKeyName ?? null,
         entry.createdAt,
       );
   }
@@ -74,6 +77,14 @@ export class AuditLogsRepository {
       where.push("result = ?");
       params.push(q.result);
     }
+    if (q.source) {
+      where.push("source = ?");
+      params.push(q.source);
+    }
+    if (q.apiKeyId) {
+      where.push("apiKeyId = ?");
+      params.push(q.apiKeyId);
+    }
     if (q.from != null) {
       where.push("createdAt >= ?");
       params.push(q.from);
@@ -84,10 +95,10 @@ export class AuditLogsRepository {
     }
     if (q.search) {
       where.push(
-        "(username LIKE ? OR resourceName LIKE ? OR serverName LIKE ? OR action LIKE ?)",
+        "(username LIKE ? OR resourceName LIKE ? OR serverName LIKE ? OR action LIKE ? OR apiKeyName LIKE ?)",
       );
       const like = `%${q.search}%`;
-      params.push(like, like, like, like);
+      params.push(like, like, like, like, like);
     }
 
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
@@ -176,6 +187,8 @@ export class AuditLogsRepository {
       ip: row.ip ?? null,
       userAgent: row.userAgent ?? null,
       source: row.source as AuditSource,
+      apiKeyId: row.apiKeyId ?? null,
+      apiKeyName: row.apiKeyName ?? null,
       createdAt: Number(row.createdAt),
     };
   }

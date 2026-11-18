@@ -38,10 +38,15 @@ export class ModsService extends ModrinthContentService {
           registry.get(server.blueprintId)?.manifest.features ?? [];
         if (!features.includes("mods:fabric")) {
           throw new BadRequestException(
-            "Mods are only supported for Fabric servers",
+            "Mods are only supported for Fabric and Quilt servers",
           );
         }
       },
+      // Quilt runs both its own mods and Fabric ones
+      loadersFor: (server) =>
+        server.blueprintId === "com.kubek.quilt"
+          ? ["fabric", "quilt"]
+          : ["fabric"],
       resolveGameVersion: (server) =>
         resolveServerGameVersion(registry, server),
     });

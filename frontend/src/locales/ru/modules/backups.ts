@@ -18,7 +18,7 @@ export const backupsTranslations: TranslationDictionary = {
     last: "Последняя успешная",
   },
   filters: {
-    search: "Поиск резервных копий…",
+    search: "Поиск резервных копий...",
     status: {
       all: "Все",
       completed: "Завершено",
@@ -105,7 +105,7 @@ export const backupsTranslations: TranslationDictionary = {
     },
     pickFiles: "Выбрать файлы",
     selectedCount: (n: number) => `Выбрано: ${files(n)}`,
-    loadingFiles: "Загрузка файлов…",
+    loadingFiles: "Загрузка файлов...",
     advanced: "Расширенные настройки",
     format: "Формат",
     compression: (value: number) => `Степень сжатия: ${value}`,
@@ -117,7 +117,7 @@ export const backupsTranslations: TranslationDictionary = {
     add: "Добавить",
     removeExclusion: (pattern: string) => `Убрать ${pattern}`,
     submit: "Создать резервную копию",
-    submitting: "Создание…",
+    submitting: "Создание...",
   },
   validations: {
     nameRequired: "Имя резервной копии обязательно",

@@ -106,7 +106,7 @@ export const oobeTranslations: TranslationDictionary = {
       description: "Давайте настроим ваш первый Minecraft сервер. Нажмите кнопку ниже, чтобы открыть мастер создания сервера",
       button: "Хочу создать сейчас",
     },
-    creating: (name: string) => `Создаём "${name}"…`,
+    creating: (name: string) => `Создаём "${name}"...`,
     created: "Создан",
     createdHint: "Сервер появится в списке после входа в панель. Запустить его можно кнопкой \"Запустить\" в сайдбаре.",
     failed: "Не удалось создать сервер",
@@ -117,7 +117,7 @@ export const oobeTranslations: TranslationDictionary = {
     title: "Всё готово!",
     subtitle: "Настройка завершена. Добро пожаловать в Kubek, приятной работы!",
     cta: "Перейти в панель",
-    opening: "Открываем панель…",
+    opening: "Открываем панель...",
     items: {
       license: "Лицензия принята",
       theme: "Тема настроена",

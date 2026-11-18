@@ -114,7 +114,7 @@ export function useFilesDropUpload({
             fail: failures.length,
           }),
           message:
-            failures.slice(0, 3).join(", ") + (failures.length > 3 ? "…" : ""),
+            failures.slice(0, 3).join(", ") + (failures.length > 3 ? "..." : ""),
         });
       }
 

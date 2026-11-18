@@ -1,3 +1,4 @@
+import { SessionOnly } from "@/modules/auth/decorators/session-only.decorator";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
 import { CurrentSession } from "@/modules/auth/decorators/current-session.decorator";
@@ -33,6 +34,7 @@ import { SessionsService } from "./sessions.service";
 @ApiBearerAuth()
 @Controller("api/sessions")
 @UseGuards(BearerAuthGuard, AccessGuard)
+@SessionOnly()
 export class SessionsController {
   constructor(private readonly sessionsService: SessionsService) {}
 

@@ -1,3 +1,4 @@
+import { assertServerName } from "@/modules/servers/server-name";
 import { getErrorMessage } from "@/core/utils/error";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import type { ServerInstance } from "@/modules/instances/instance";
@@ -225,11 +226,12 @@ export class ServersService {
     const updateData: Partial<IServer> = {};
 
     if (updates.name !== undefined) {
-      const owner = this.serversRepo.findByName(updates.name);
+      const name = assertServerName(updates.name);
+      const owner = this.serversRepo.findByName(name);
       if (owner && owner.id !== serverId) {
         throw new BadRequestException("NAME_TAKEN");
       }
-      updateData.name = updates.name;
+      updateData.name = name;
     }
 
     if (updates.restartOnError !== undefined) {

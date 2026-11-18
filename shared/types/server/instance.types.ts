@@ -56,6 +56,14 @@ export interface InstanceLog_BotControl {
   telegramId: number;
 }
 
+/** Chat message sent through Kubek Companion */
+export interface InstanceLog_Broadcast {
+  type: "broadcast";
+  id: string;
+  username: string;
+  message: string;
+}
+
 export interface InstanceLog_Error {
   type: "error";
   errorType: string;
@@ -81,5 +89,6 @@ export interface IInstanceLog {
     | InstanceLog_StatusChange
     | InstanceLog_OnStop
     | InstanceLog_RestartFailed
-    | InstanceLog_BotControl;
+    | InstanceLog_BotControl
+    | InstanceLog_Broadcast;
 }

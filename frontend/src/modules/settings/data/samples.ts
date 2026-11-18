@@ -1,4 +1,4 @@
-import type { Account, AssistantSettingsResponse, Role, TwoFactorMethod } from "@/api";
+import type { Account, ApiKey, AssistantSettingsResponse, Role, TwoFactorMethod } from "@/api";
 import type { SessionPublicView } from "@shared/types/session.types";
 import type { GithubRelease } from "../api/about.queries";
 import type { MainConfigFormData } from "../validations/schema";
@@ -54,6 +54,22 @@ export const SAMPLE_SESSIONS: SessionPublicView[] = [
   session(2, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Firefox/131.0", false),
 ];
 
+const apiKey = (i: number, name: string): ApiKey => ({
+  id: `sample-key-${i}`,
+  userId: "sample",
+  name,
+  prefix: "kbk_xxxxxxxx",
+  grants: { console: "read", power: "write" },
+  servers: null,
+  mcp: i === 1,
+  createdAt: Date.now() - i * 86_400_000,
+  expiresAt: null,
+  lastUsedAt: Date.now() - 3_600_000,
+  lastUsedIp: "127.0.0.1",
+});
+
+export const SAMPLE_API_KEYS: ApiKey[] = [apiKey(1, "Sample key"), apiKey(2, "Another key")];
+
 export const SAMPLE_TWOFA = { totp: true, telegram: false, primary: null as TwoFactorMethod | null };
 
 export const SAMPLE_ASSISTANT_SETTINGS: AssistantSettingsResponse = {
@@ -79,14 +95,14 @@ export const SAMPLE_ASSISTANT_SETTINGS: AssistantSettingsResponse = {
 export const SAMPLE_CONFIG_FORM: MainConfigFormData = {
   ftpd: { enabled: true, port: 21 },
   subnetsAccessRestriction: { enabled: false, subnets: [] },
-  telegramBot: { enabled: true, token: "", chatIds: [] },
+  telegramBot: { enabled: true, token: "", chatIds: [], assistant: true },
   telemetry: { enabled: true },
   serverStats: { enabled: true },
   port: 3000,
   skinName: "sample-head",
 };
 
-export const SAMPLE_PANEL_VERSION = "4.1.1";
+export const SAMPLE_PANEL_VERSION = "4.1.2";
 
 const release = (id: number, tagName: string): GithubRelease => ({
   id,
@@ -98,4 +114,4 @@ const release = (id: number, tagName: string): GithubRelease => ({
   prerelease: false,
 });
 
-export const SAMPLE_RELEASES: GithubRelease[] = [release(1, "v4.1.1"), release(2, "v4.1.0"), release(3, "v4.0.2")];
+export const SAMPLE_RELEASES: GithubRelease[] = [release(1, "v4.1.2"), release(2, "v4.1.1"), release(3, "v4.1.0")];

@@ -2,6 +2,11 @@ import { RequireAccess } from "@/modules/auth/decorators/require-access.decorato
 import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
+import {
+  removeUploadSync,
+  UPLOAD_LIMITS,
+  uploadStorage,
+} from "@/core/utils/uploads";
 import { MultipartPayload } from "@/core/middlewares/json-payload.pipe";
 import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
 import { diffChanges } from "@/modules/audit-log/audit-diff";
@@ -49,7 +54,6 @@ import {
 import { AuditAction } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
 import type { Request } from "express";
-import { memoryStorage } from "multer";
 
 // operationIds keep the ServersController names the generated client uses
 @ApiTags("Servers")
@@ -164,8 +168,8 @@ export class ServerSettingsController {
   @Audit(serverAudit(AuditAction.SERVER_CHANGE_CORE))
   @UseInterceptors(
     FileInterceptor("coreFile", {
-      storage: memoryStorage(),
-      limits: { fileSize: 1024 * 1024 * 512 },
+      storage: uploadStorage(),
+      limits: { fileSize: UPLOAD_LIMITS.core },
     }),
   )
   @ApiConsumes("multipart/form-data")
@@ -202,7 +206,7 @@ export class ServerSettingsController {
   changeCore(
     @Param("id") id: string,
     @MultipartPayload(ChangeServerCoreDto) dto: ChangeServerCoreDto,
-    @UploadedFile() coreFile: Express.Multer.File,
+    @UploadedFile() coreFile: Express.Multer.File | undefined,
     @CurrentUser() user: IUser,
     @Req() req: Request,
   ): ServerCreatedResponseDto {
@@ -220,6 +224,11 @@ export class ServerSettingsController {
         { blueprintId: dto.blueprintId, version: dto.version },
       ),
     });
-    return this.servers.changeCore(id, dto, user.id, coreFile);
+    try {
+      return this.servers.changeCore(id, dto, user.id, coreFile);
+    } finally {
+      // The jar is already in place by now, or not needed at all
+      if (coreFile) removeUploadSync(coreFile);
+    }
   }
 }

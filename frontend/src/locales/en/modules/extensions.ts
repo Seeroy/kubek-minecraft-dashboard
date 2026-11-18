@@ -13,7 +13,7 @@ export const extensionsTranslations: TranslationDictionary = {
     title: "Upload a .kubekext package",
     hint: "Drop the file here or pick it manually",
     choose: "Choose file",
-    installing: "Installing…",
+    installing: "Installing...",
   },
   list: {
     filters: {

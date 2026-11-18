@@ -1,6 +1,9 @@
 import { visibleServers } from "@/core/utils/serverAccess";
+import { ApiKeysService } from "@/modules/api-keys/api-keys.service";
 import { UsersRepository } from "@/modules/database/repositories/users.repository";
 import { Injectable } from "@nestjs/common";
+import { AccessArea } from "@shared/access/areas";
+import { can } from "@shared/access/can";
 import type { IInstanceLog } from "@shared/types/server/instance.types";
 import type { IUser } from "@shared/types/user.types";
 import type {
@@ -42,7 +45,25 @@ export function emitWs<E extends WsEvent>(
 export class ServerBroadcastService {
   private server: Server | null = null;
 
-  constructor(private readonly users: UsersRepository) {}
+  constructor(
+    private readonly users: UsersRepository,
+    private readonly apiKeys: ApiKeysService,
+  ) {}
+
+  // Fresh user per socket, cut down again when it came with a key
+  private socketUsers(): [Socket, IUser][] {
+    const fresh = new Map<string, IUser | null>();
+    const result: [Socket, IUser][] = [];
+    for (const socket of this.io.sockets.sockets.values()) {
+      const stored = socket.data?.user as IUser | undefined;
+      if (!stored?.id) continue;
+      if (!fresh.has(stored.id))
+        fresh.set(stored.id, this.users.findById(stored.id));
+      const user = this.apiKeys.reload(stored, fresh.get(stored.id));
+      if (user) result.push([socket, user]);
+    }
+    return result;
+  }
 
   attach(server: Server): void {
     this.server = server;
@@ -111,16 +132,8 @@ export class ServerBroadcastService {
   // Each socket gets only the servers its user can access. The user is read
   // again, so access changes show up without a reconnect
   emitServersList(servers: WsServerListItem[]) {
-    const users = new Map<string, IUser | null>();
-    for (const socket of this.io.sockets.sockets.values()) {
-      const userId = (socket.data?.user as IUser | undefined)?.id;
-      if (!userId) continue;
-      if (!users.has(userId)) users.set(userId, this.users.findById(userId));
-      emitWs(
-        socket,
-        WsServerEventTypes.LIST,
-        visibleServers(users.get(userId), servers),
-      );
+    for (const [socket, user] of this.socketUsers()) {
+      emitWs(socket, WsServerEventTypes.LIST, visibleServers(user, servers));
     }
   }
 
@@ -133,10 +146,11 @@ export class ServerBroadcastService {
   }
 
   emitSystemMetrics(metrics: WsMetricsData) {
-    emitWs(this.io, WsSystemEventTypes.SYSTEM_METRICS, {
-      ...metrics,
-      timestamp: new Date().toISOString(),
-    });
+    const payload = { ...metrics, timestamp: new Date().toISOString() };
+    for (const [socket, user] of this.socketUsers()) {
+      if (can(user, AccessArea.MONITORING, "read"))
+        emitWs(socket, WsSystemEventTypes.SYSTEM_METRICS, payload);
+    }
   }
 
   // Owner only, the code links Telegram to this account

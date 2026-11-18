@@ -1,4 +1,9 @@
-import { pack, unpackArchive } from "@/core/utils/archives";
+import {
+  ArchiveTooLargeError,
+  pack,
+  UNPACK_LIMITS,
+  unpack,
+} from "@/core/utils/archives";
 import { BackupFormat } from "@shared/types/backup.types";
 import { join } from "path";
 import type { ArchiveEntry } from "./backup-files";
@@ -30,9 +35,12 @@ export async function unpackBackup(
   archivePath: string,
   destination: string,
 ): Promise<void> {
-  // unpackArchive jails every entry to the destination
-  if (!(await unpackArchive(archivePath, destination))) {
-    throw new Error("Archive could not be extracted");
+  // unpack jails every entry to the destination
+  try {
+    await unpack(archivePath, destination, UNPACK_LIMITS.backup);
+  } catch (error) {
+    if (error instanceof ArchiveTooLargeError) throw error;
+    throw new Error("Archive could not be extracted", { cause: error });
   }
 }
 

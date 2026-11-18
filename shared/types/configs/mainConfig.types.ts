@@ -36,6 +36,8 @@ export type TelegramBot = {
   enabled: boolean;
   token?: string;
   chatIds?: string[];
+  /** The AI assistant answers in the bot, on unless set to false */
+  assistant?: boolean;
 };
 
 export type FTPService = {

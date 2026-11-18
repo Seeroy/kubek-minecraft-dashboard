@@ -22,6 +22,8 @@ RUN bun run build --platform native \
 # Runtime: binary is self-contained (frontend embedded), Java is downloaded on demand
 FROM debian:trixie-slim AS runtime
 
+ARG TARGETARCH
+# 32-bit libs for SteamCMD, it has no ARM build
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates \
@@ -30,6 +32,9 @@ RUN apt-get update \
       curl \
       procps \
       tini \
+ && if [ "$TARGETARCH" = "amd64" ]; then \
+      apt-get install -y --no-install-recommends lib32gcc-s1 lib32stdc++6; \
+    fi \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /kubek /usr/local/bin/kubek

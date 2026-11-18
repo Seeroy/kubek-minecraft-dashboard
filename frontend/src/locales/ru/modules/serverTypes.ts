@@ -14,7 +14,7 @@ export const serverTypesTranslations: TranslationDictionary = {
     title: "Загрузите blueprint .kbp или .json",
     hint: "Перетащите файл сюда или выберите вручную",
     choose: "Выбрать файл",
-    installing: "Установка…",
+    installing: "Установка...",
   },
   filters: {
     all: "Все",

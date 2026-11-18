@@ -1,6 +1,8 @@
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { Audit, type AuditMeta } from "@/modules/audit-log/audit.decorator";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
+import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
+import type { IUser } from "@shared/types/user.types";
 import {
   RequireAccess,
   RequireServerView,
@@ -174,8 +176,9 @@ export class CompanionController {
   async broadcast(
     @Param("serverId") serverId: string,
     @Body() dto: CompanionBroadcastDto,
+    @CurrentUser() user: IUser,
   ): Promise<void> {
-    await this.companion.broadcast(serverId, dto.message);
+    await this.companion.broadcast(serverId, dto.message, user);
   }
 
   @Post("title")

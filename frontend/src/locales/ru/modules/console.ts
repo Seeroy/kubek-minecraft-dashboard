@@ -48,6 +48,7 @@ export const consoleTranslations: TranslationDictionary = {
     restartFailed: (attempts: number) =>
       `Не удалось перезапустить сервер после ${attempts} ${plural(attempts, ["попытки", "попыток", "попыток"])}`,
     telegramControl: "через Telegram:",
+    broadcast: "написал в чат",
     causes: {
       killed: "Остановлен по запросу",
       crashed: "Аварийное завершение",

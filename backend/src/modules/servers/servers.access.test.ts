@@ -5,7 +5,7 @@ import { PlayersController } from "@/modules/players/players.controller";
 import { fake } from "@/testing/fake";
 import { userWith } from "@/testing/user";
 import type { ExecutionContext, Type } from "@nestjs/common";
-import type { HttpArgumentsHost } from "@nestjs/common/interfaces";
+import type { HttpArgumentsHost } from "@/testing/http-host";
 import { Reflector } from "@nestjs/core";
 import { AccessArea, type AccessMap } from "@shared/access/areas";
 import { ServerSettingsController } from "./server-settings.controller";

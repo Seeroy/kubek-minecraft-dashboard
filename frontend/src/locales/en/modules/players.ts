@@ -30,7 +30,7 @@ export const playersTranslations: TranslationDictionary = {
     bans: "Bans",
     activity: "Activity",
   },
-  search: "Search by name or UUID…",
+  search: "Search by name or UUID...",
   count: players,
   noMatches: "Nobody matches the search",
   uuid: {

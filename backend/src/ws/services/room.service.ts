@@ -1,3 +1,4 @@
+import { ApiKeysService } from "@/modules/api-keys/api-keys.service";
 import { UsersRepository } from "@/modules/database/repositories/users.repository";
 import { InstancesRegistry } from "@/modules/instances/instances.registry";
 import { ServerBroadcastService } from "@/ws/services/server-broadcast.service";
@@ -25,6 +26,7 @@ export class RoomService {
     private readonly instancesRegistry: InstancesRegistry,
     private readonly broadcast: ServerBroadcastService,
     private readonly users: UsersRepository,
+    private readonly apiKeys: ApiKeysService,
   ) {}
 
   joinUserRoom(client: Socket, userId: string) {
@@ -38,7 +40,8 @@ export class RoomService {
   async onRoomSubscribe(client: Socket, room: string): Promise<WsRoomAck> {
     if (!client.data?.user) return { ok: false };
 
-    const user = this.users.findById((client.data.user as IUser).id);
+    const stored = client.data.user as IUser;
+    const user = this.apiKeys.reload(stored, this.users.findById(stored.id));
 
     // Clients can only join server rooms
     const [prefix, id] = room.split(":");

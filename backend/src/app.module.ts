@@ -2,6 +2,8 @@ import { AppEventsModule } from "@/core/events/app-events.module";
 import { ServerLocksModule } from "@/core/locks/server-locks.module";
 import { StaticMiddleware } from "@/core/middlewares/static";
 import { AccountsModule } from "@/modules/accounts/accounts.module";
+import { ApiKeysModule } from "@/modules/api-keys/api-keys.module";
+import { McpModule } from "@/modules/mcp/mcp.module";
 import { AssistantModule } from "@/modules/assistant/assistant.module";
 import { AuditLogModule } from "@/modules/audit-log/audit-log.module";
 import { AuthModule } from "@/modules/auth/auth.module";
@@ -52,6 +54,7 @@ import { APP_GUARD } from "@nestjs/core";
     PermissionsModule,
     AuthModule,
     AccountsModule,
+    ApiKeysModule,
     RolesModule,
     ServerTypesModule,
     KubekModule,
@@ -81,6 +84,7 @@ import { APP_GUARD } from "@nestjs/core";
     HealthModule,
     PlayersModule,
     AssistantModule,
+    McpModule,
   ],
   controllers: [],
   providers: [

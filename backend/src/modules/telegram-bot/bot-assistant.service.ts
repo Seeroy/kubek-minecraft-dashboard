@@ -5,6 +5,7 @@ import {
   type AssistantRunEvent,
 } from "@/modules/assistant/runner/assistant-events.service";
 import { AssistantSettingsService } from "@/modules/assistant/settings/assistant-settings.service";
+import { ConfigService } from "@/modules/config/config.service";
 import { ServersService } from "@/modules/servers/servers.service";
 import {
   ConflictException,
@@ -98,6 +99,7 @@ export class BotAssistantService {
     private readonly settings: AssistantSettingsService,
     private readonly access: BotAccessService,
     private readonly servers: ServersService,
+    private readonly config: ConfigService,
   ) {}
 
   setBot(bot: Bot<MyContext> | null): void {
@@ -109,8 +111,25 @@ export class BotAssistantService {
     this.serverContext.set(telegramId, serverId);
   }
 
+  /** Turned off in the bot settings, the bot then acts as if there is no assistant */
+  isEnabled(): boolean {
+    return this.config.get("telegramBot").assistant !== false;
+  }
+
+  /** Stops every running answer and forgets the chats */
+  stopAll(): void {
+    for (const run of [...this.runs.values()]) {
+      this.stop(run);
+      this.detach(run.conversationId);
+    }
+    for (const album of this.albums.values()) clearTimeout(album.timer);
+    this.albums.clear();
+    this.chats.clear();
+  }
+
   /** Panel user allowed to chat, null when the assistant is not for them */
   userFor(tgUser: ITelegramUser): IUser | null {
+    if (!this.isEnabled()) return null;
     const user = this.access.getUser(tgUser.userId);
     return user && can(user, AccessArea.ASSISTANT, "read") ? user : null;
   }

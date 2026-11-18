@@ -1,5 +1,6 @@
 import { aboutKeys } from "./about.keys";
 import { accountsKeys } from "./accounts.keys";
+import { apiKeysKeys } from "./api-keys.keys";
 import { assistantKeys } from "./assistant.keys";
 import { auditLogKeys } from "./audit-log.keys";
 import { authKeys } from "./auth.keys";
@@ -44,6 +45,7 @@ export const qk = {
   java: javaKeys,
   accounts: accountsKeys,
   sessions: sessionsKeys,
+  apiKeys: apiKeysKeys,
   tasks: tasksKeys,
   config: configKeys,
   scheduler: schedulerKeys,
@@ -63,6 +65,7 @@ export const qk = {
 export {
   aboutKeys,
   accountsKeys,
+  apiKeysKeys,
   assistantKeys,
   auditLogKeys,
   authKeys,

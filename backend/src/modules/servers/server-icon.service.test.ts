@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { Branding } from "@/core/constants/branding";
 import { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import { fake } from "@/testing/fake";
 import { sqliteProvider } from "@/testing/sqlite";
@@ -56,6 +57,19 @@ describe("ServerIconService", () => {
     expect(icons.iconPath(server.id)).toBeNull();
   });
 
+  test("Kubek's default icon doesn't count as the owner's", () => {
+    fs.writeFileSync(iconFile(), Buffer.from(Branding.Base64Icon, "base64"));
+    expect(icons.iconPath(server.id)).not.toBeNull();
+    expect(icons.customIconPath(server.id)).toBeNull();
+  });
+
+  test("any other icon is the owner's, also one put there by hand", () => {
+    const icon = Buffer.from(Branding.Base64Icon, "base64");
+    icon[icon.length - 1] ^= 1;
+    fs.writeFileSync(iconFile(), icon);
+    expect(icons.customIconPath(server.id)).toBe(fs.realpathSync(iconFile()));
+  });
+
   test("an id that leaves the servers folder is refused", () => {
     expect(() => icons.iconPath("../etc")).toThrow("Invalid server id");
   });
@@ -92,6 +106,18 @@ describe("ServerIconService", () => {
     await expect(
       icons.upload(server.id, upload(Buffer.from("hello"))),
     ).rejects.toThrow(BadRequestException);
+    expect(fs.existsSync(iconFile())).toBe(false);
+  });
+
+  test("an image over 4096 px is refused before it is decoded", async () => {
+    const png = await new Jimp({ width: 8, height: 8, color: 0xff }).getBuffer(
+      "image/png",
+    );
+    png.writeUInt32BE(5000, 16);
+
+    await expect(icons.upload(server.id, upload(png))).rejects.toThrow(
+      "Image is too large, max 4096x4096",
+    );
     expect(fs.existsSync(iconFile())).toBe(false);
   });
 

@@ -24,6 +24,8 @@ export const RATE_LIMIT_POLICIES = {
   },
   /** Every login attempt from one address */
   "login.ip": { kind: "window", limit: 30, windowMs: MINUTE },
+  /** Every attempt for one username, counted before bcrypt */
+  "login.user.attempts": { kind: "window", limit: 20, windowMs: MINUTE },
   /** Wrong TOTP codes for one account across all challenges */
   totp: failures(5),
   /** Each switch sends a new Telegram prompt */
@@ -36,6 +38,8 @@ export const RATE_LIMIT_POLICIES = {
   "telegram.otp": failures(5),
   /** Assistant messages of one user, each one costs provider tokens */
   assistant: { kind: "window", limit: 40, windowMs: 10 * MINUTE },
+  /** Requests made with one API key */
+  "api.key": { kind: "window", limit: 300, windowMs: MINUTE },
 } satisfies Record<string, LimitPolicy>;
 
 export type RateLimitPolicy = keyof typeof RATE_LIMIT_POLICIES;

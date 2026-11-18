@@ -92,9 +92,15 @@ class FakeResponse {
   setHeader(name: string, value: string) {
     this.headers[name] = value;
   }
-  sendFile(file: string, done?: (err: Error | null) => void) {
+  // Express takes options before the callback, both are optional
+  sendFile(
+    file: string,
+    optionsOrDone?: object | ((err: Error | null) => void),
+    done?: (err: Error | null) => void,
+  ) {
     this.sent = file;
-    done?.(this.sendError);
+    const callback = typeof optionsOrDone === "function" ? optionsOrDone : done;
+    callback?.(this.sendError);
   }
   status(code: number) {
     this.statusCode = code;

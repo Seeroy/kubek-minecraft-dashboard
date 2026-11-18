@@ -1,5 +1,6 @@
 import { getErrorMessage } from "@/core/utils/error";
 import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { auditPrincipal } from "@/modules/audit-log/audit-principal";
 import { ServersService } from "@/modules/servers/servers.service";
 import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import type { AssistantToolPreview } from "@shared/types/assistant.types";
@@ -131,7 +132,10 @@ export class ToolRegistryService implements OnModuleInit {
       },
       result: result.isError ? AuditResult.FAILED : AuditResult.SUCCESS,
       error: result.isError ? result.content.slice(0, 500) : null,
-      source: "assistant",
+      ip: ctx.origin.ip ?? null,
+      userAgent: ctx.origin.client ?? null,
+      ...auditPrincipal(ctx.user, "assistant"),
+      ...(ctx.origin.mcp && { source: "mcp" }),
     });
   }
 }

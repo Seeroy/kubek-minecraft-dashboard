@@ -1,3 +1,4 @@
+import { SessionOnly } from "@/modules/auth/decorators/session-only.decorator";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
 import { PublicUserDto } from "@/core/dto/public-user.dto";
 import { toPublicUser } from "@/core/utils/publicUser";
@@ -86,6 +87,8 @@ export class AuthController {
     this.rateLimit.hit("login.ip", ipKey(ip));
     this.rateLimit.check("login", key);
     this.rateLimit.check("login.user", username);
+    // bcrypt is async, parallel requests would all pass the checks above
+    this.rateLimit.hit("login.user.attempts", username);
 
     const user = await this.authService.validateUser(
       loginDto.username,
@@ -129,6 +132,7 @@ export class AuthController {
   }
 
   @Post("logout")
+  @SessionOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Logout - revoke the current session" })
   @ApiNoContentResponse({ description: "Logged out" })
@@ -153,6 +157,7 @@ export class AuthController {
   }
 
   @Post("complete-oobe")
+  @SessionOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Mark current user's OOBE as completed" })
   @ApiNoContentResponse({ description: "OOBE marked as completed" })

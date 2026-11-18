@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ArrayMinSize, IsArray, IsNotEmpty, IsString } from "class-validator";
+import { ArrayMinSize, IsArray, IsOptional, IsString } from "class-validator";
 
 export class BulkDeleteServersDto {
   @ApiProperty({ description: "Server IDs to delete", type: [String] })
@@ -8,8 +8,12 @@ export class BulkDeleteServersDto {
   @IsString({ each: true })
   ids!: string[];
 
-  @ApiProperty({ description: "Account password for confirmation" })
+  @ApiProperty({
+    required: false,
+    description:
+      "Account password for confirmation, not needed with an API key",
+  })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  password!: string;
+  password?: string;
 }

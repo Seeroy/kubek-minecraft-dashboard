@@ -85,6 +85,34 @@ export function assertLaunchVariablesSafe(
   }
 }
 
+// Set by the panel, paths can have spaces and parens
+const PANEL_VALUES = new Set([
+  "JAVA_BIN",
+  "SERVER_DIR",
+  "SERVER_ID",
+  "HOST_OS",
+  "HOST_UID",
+  "HOST_GID",
+  "EXE_SUFFIX",
+  "DOWNLOAD_URL",
+  "JAVA_IMAGE_TAG",
+]);
+
+/** Same check as for the startup command, for any command template */
+export function assertCommandValuesSafe(
+  template: string,
+  scope: Record<string, unknown>,
+): void {
+  for (const match of template.matchAll(PLACEHOLDER)) {
+    const key = match[1];
+    if (PANEL_VALUES.has(key)) continue;
+    const value = scope[key];
+    if (typeof value !== "string") continue;
+    const reason = unsafeLaunchReason(value);
+    if (reason) throw new UnsafeLaunchArgumentError(key, reason);
+  }
+}
+
 /** Same, but a 400 for API input */
 export function assertLaunchVariablesSafeForRequest(
   blueprint: KubekBlueprintManifest,

@@ -2,6 +2,7 @@ import { RequireAccess } from "@/modules/auth/decorators/require-access.decorato
 import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { AccessArea } from "@shared/access/areas";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
+import { ApiErrorCode } from "@/core/errors/error-codes";
 import { getErrorMessage } from "@/core/utils/error";
 import { Audit } from "@/modules/audit-log/audit.decorator";
 import { AdminGuard } from "@/modules/auth/guards/admin.guard";
@@ -74,6 +75,7 @@ export class ServerTypesController {
         shortName: b.manifest.shortName,
         description: b.manifest.description,
         game: b.manifest.game,
+        gameName: b.manifest.gameName,
         icon: this.registry.iconDataUri(b),
         version: b.manifest.version,
         platforms: b.manifest.platforms,
@@ -101,9 +103,13 @@ export class ServerTypesController {
     } catch (error) {
       if (error instanceof HttpException) throw error;
       // Versions come from upstream APIs, if they fail it's not on us
-      throw new BadGatewayException(
-        `Failed to list versions: ${getErrorMessage(error)}`,
-      );
+      const reason = getErrorMessage(error);
+      throw new BadGatewayException({
+        code: ApiErrorCode.VERSIONS_UNAVAILABLE,
+        message: `Failed to list versions: ${reason}`,
+        // Shown in the UI as the reason
+        details: [{ field: "versions", message: reason }],
+      });
     }
   }
 

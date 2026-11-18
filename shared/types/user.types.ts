@@ -1,5 +1,6 @@
 import type { AccessMap } from "../access/areas";
 import type { UserAccess } from "../access/can";
+import type { ApiKeyPrincipal } from "./api-key.types";
 
 export interface IUser {
   id: string;
@@ -28,6 +29,8 @@ export interface IUser {
   skinName?: string | null;
   /** When the FTP password was set, null if there's none */
   ftpPasswordSetAt?: number | null;
+  /** Set when the request came with an API key, access is already cut to it */
+  apiKey?: ApiKeyPrincipal;
 }
 
 export type TwoFactorMethod = "totp" | "telegram";
@@ -36,4 +39,3 @@ export interface UserServersRestrict {
   enabled: boolean;
   allowed: string[];
 }
-

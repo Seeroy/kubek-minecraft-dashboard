@@ -30,6 +30,8 @@ interface AccessMatrixProps {
   inherited?: InheritedRole[];
   // Access of whoever edits, null for admins who may give anything
   limit?: UserAccess | null;
+  // Areas left out of the grid, like api for a key
+  hiddenAreas?: readonly AccessArea[];
   readOnly?: boolean;
   className?: string;
 }
@@ -59,6 +61,7 @@ export function AccessMatrix({
   extOptions = [],
   inherited = [],
   limit = null,
+  hiddenAreas = [],
   readOnly,
   className,
 }: AccessMatrixProps) {
@@ -97,7 +100,9 @@ export function AccessMatrix({
     onChange(withLevel(value, area, levelAtLeast(value[area], level) ? lowerLevel(area, level) : level));
   };
 
-  const columnAreas = (level: AccessLevel) => AREA_GROUPS.flatMap((group) => group.areas).filter((area) => AREA_LEVELS[area].includes(level));
+  const groups = AREA_GROUPS.map((group) => ({ ...group, areas: group.areas.filter((area) => !hiddenAreas.includes(area)) }));
+
+  const columnAreas = (level: AccessLevel) => groups.flatMap((group) => group.areas).filter((area) => AREA_LEVELS[area].includes(level));
 
   const columnState = (level: AccessLevel) => {
     const states = columnAreas(level).map((area) => ({ area, ...cellState(area, level) }));
@@ -178,7 +183,7 @@ export function AccessMatrix({
             </tr>
           </thead>
           <tbody>
-            {AREA_GROUPS.map((group) => (
+            {groups.map((group) => (
               <Fragment key={group.id}>
                 <tr>
                   <td colSpan={ACCESS_LEVELS.length + 1} className="px-4 pt-3.5 pb-1">

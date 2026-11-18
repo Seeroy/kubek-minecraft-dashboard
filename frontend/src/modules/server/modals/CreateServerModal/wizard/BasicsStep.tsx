@@ -1,5 +1,6 @@
 import { VariableControl } from "@/modules/server/ui/VariableControl";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import type { BlueprintSummary } from "@/shared/types/server-types.types";
 import { FileDropZone } from "@/shared/ui/file-drop-zone";
 import { Input } from "@/shared/ui/input";
@@ -18,6 +19,8 @@ interface BasicsStepProps {
   versionVarKey: string | undefined;
   versions: string[] | undefined;
   versionsLoading: boolean;
+  /** Why the version list failed, shown under the version field */
+  versionsError: unknown;
   javaResolving: boolean;
   recommendedJava: number | null;
   /** Docker images ship their own Java, so custom paths do not apply */
@@ -27,7 +30,7 @@ interface BasicsStepProps {
 }
 
 export function BasicsStep(props: BasicsStepProps) {
-  const { form, blueprint, versionVarKey, versions, versionsLoading, javaResolving, recommendedJava, docker, portOwner, freePort } = props;
+  const { form, blueprint, versionVarKey, versions, versionsLoading, versionsError, javaResolving, recommendedJava, docker, portOwner, freePort } = props;
   const { t } = useTranslation("modules.newServerModal");
   // Validation messages are full translation keys
   const { t: tRoot } = useTranslation();
@@ -106,7 +109,7 @@ export function BasicsStep(props: BasicsStepProps) {
                 icon={isVersion ? Box : SlidersHorizontal}
                 htmlFor={id}
                 hint={variable.description}
-                error={message(errors.variables?.[variable.key]?.message)}
+                error={message(errors.variables?.[variable.key]?.message) ?? (isVersion && versionsError ? getApiErrorMessage(versionsError) : undefined)}
               >
                 <VariableControl
                   id={id}

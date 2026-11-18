@@ -13,10 +13,12 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuditResult } from "@shared/types/audit.types";
+import type { IUser } from "@shared/types/user.types";
 import type { Request } from "express";
 import { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
 import { AuditLogService } from "./audit-log.service";
+import { auditPrincipal } from "./audit-principal";
 import {
   AUDIT_META_KEY,
   readAuditNote,
@@ -95,8 +97,7 @@ export class AuditInterceptor implements NestInterceptor {
     result: AuditResult,
     error?: string,
   ): void {
-    const user = (req as Request & { user?: { id: string; username: string } })
-      .user;
+    const user = (req as Request & { user?: IUser }).user;
     const resourceType = extra.resourceType ?? meta.resourceType ?? null;
     const resourceId =
       extra.resourceId ?? (req.params?.id as string | undefined) ?? null;
@@ -129,7 +130,7 @@ export class AuditInterceptor implements NestInterceptor {
         "unknown",
       ip: extractClientIp(req),
       userAgent: req.headers?.["user-agent"] ?? null,
-      source: "panel",
+      ...auditPrincipal(user),
     });
   }
 

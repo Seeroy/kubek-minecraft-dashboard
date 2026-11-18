@@ -59,10 +59,35 @@
             }
           },
           {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "panel",
+                "telegram",
+                "system",
+                "assistant",
+                "api",
+                "mcp"
+              ]
+            }
+          },
+          {
+            "name": "apiKeyId",
+            "required": false,
+            "in": "query",
+            "description": "Entries made with one API key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "search",
             "required": false,
             "in": "query",
-            "description": "Matches username, resource name or action",
+            "description": "Matches username, resource name, action or key name",
             "schema": {
               "type": "string"
             }
@@ -569,7 +594,8 @@
         "summary": "Logout - revoke the current session",
         "tags": [
           "Auth"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/profile": {
@@ -636,7 +662,8 @@
         "summary": "Mark current user's OOBE as completed",
         "tags": [
           "Auth"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/accounts": {
@@ -1195,7 +1222,8 @@
         "x-access": {
           "area": "files",
           "level": "read"
-        }
+        },
+        "x-session-only": true
       },
       "post": {
         "description": "An older password stops working right away",
@@ -1245,7 +1273,8 @@
         "x-access": {
           "area": "files",
           "level": "read"
-        }
+        },
+        "x-session-only": true
       },
       "delete": {
         "operationId": "AccountsController_removeOwnFtpPassword",
@@ -1273,7 +1302,8 @@
         "summary": "Remove the FTP password of the current user",
         "tags": [
           "Accounts"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/accounts/{username}/ftp-password": {
@@ -1345,7 +1375,8 @@
         "x-access": {
           "area": "accounts",
           "level": "write"
-        }
+        },
+        "x-session-only": true
       },
       "delete": {
         "operationId": "AccountsController_removeAccountFtpPassword",
@@ -1407,7 +1438,8 @@
         "x-access": {
           "area": "accounts",
           "level": "write"
-        }
+        },
+        "x-session-only": true
       }
     },
     "/api/roles": {
@@ -1893,6 +1925,16 @@
       "post": {
         "operationId": "TelegramBotController_generateOtp",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordConfirmDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OTP generated successfully",
@@ -1924,27 +1966,7 @@
               }
             }
           },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBodyDto"
-                }
-              }
-            }
-          },
-          "500": {
+          "429": {
             "description": "",
             "content": {
               "application/json": {
@@ -1963,7 +1985,8 @@
         "summary": "Generate OTP for Telegram linking",
         "tags": [
           "Telegram Bot"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/telegram-bot/link-telegram": {
@@ -2050,7 +2073,8 @@
         "summary": "Validate OTP and link Telegram account",
         "tags": [
           "Telegram Bot"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/telegram-bot/info": {
@@ -3729,6 +3753,16 @@
                 }
               }
             }
+          },
+          "413": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3819,6 +3853,16 @@
                 }
               }
             }
+          },
+          "413": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3850,7 +3894,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Server icon"
+            "description": "Server icon set by the owner"
           },
           "401": {
             "description": "",
@@ -4264,14 +4308,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": "number",
+                  "nullable": true
                 }
               }
             }
@@ -8544,6 +8582,9 @@
               }
             }
           },
+          "413": {
+            "description": "File is over 5 MB, download it instead"
+          },
           "500": {
             "description": "",
             "content": {
@@ -9200,6 +9241,9 @@
                 }
               }
             }
+          },
+          "413": {
+            "description": "File is over 4 GB"
           },
           "500": {
             "description": "",
@@ -14543,7 +14587,8 @@
         "summary": "Verify TOTP code for an active challenge",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/challenge/switch": {
@@ -14610,7 +14655,8 @@
         "summary": "Switch active 2FA challenge to another method",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/challenge/{id}/status": {
@@ -14656,7 +14702,8 @@
         "summary": "Poll challenge status",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/status": {
@@ -14693,7 +14740,8 @@
         "summary": "Get current user's 2FA status",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/totp/setup": {
@@ -14730,7 +14778,8 @@
         "summary": "Generate new TOTP secret + QR",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/totp/confirm": {
@@ -14780,6 +14829,16 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -14790,7 +14849,8 @@
         "summary": "Confirm TOTP setup",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/totp/disable": {
@@ -14850,13 +14910,24 @@
         "summary": "Disable TOTP",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/telegram/enable": {
       "post": {
         "operationId": "TwofaController_enableTelegram",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordConfirmDto"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "Telegram 2FA enabled"
@@ -14880,6 +14951,16 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -14890,18 +14971,49 @@
         "summary": "Enable Telegram 2FA (requires linked account)",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/auth/2fa/telegram/disable": {
       "post": {
         "operationId": "TwofaController_disableTelegram",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordConfirmDto"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "Telegram 2FA disabled"
           },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
           "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "429": {
             "description": "",
             "content": {
               "application/json": {
@@ -14920,7 +15032,341 @@
         "summary": "Disable Telegram 2FA",
         "tags": [
           "Auth 2FA"
-        ]
+        ],
+        "x-session-only": true
+      }
+    },
+    "/api/api-keys": {
+      "get": {
+        "operationId": "ApiKeysController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "API keys of the current user",
+        "tags": [
+          "API keys"
+        ],
+        "x-access": {
+          "area": "api",
+          "level": "write"
+        },
+        "x-session-only": true
+      },
+      "post": {
+        "operationId": "ApiKeysController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiKeyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedApiKeyDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an API key, the token is shown once",
+        "tags": [
+          "API keys"
+        ],
+        "x-access": {
+          "area": "api",
+          "level": "write"
+        },
+        "x-session-only": true
+      }
+    },
+    "/api/api-keys/all": {
+      "get": {
+        "operationId": "ApiKeysController_listAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "API keys of every user",
+        "tags": [
+          "API keys"
+        ],
+        "x-access": {
+          "area": "api",
+          "level": "manage"
+        },
+        "x-session-only": true
+      }
+    },
+    "/api/api-keys/{id}": {
+      "patch": {
+        "operationId": "ApiKeysController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApiKeyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change name, levels, servers or MCP of own key",
+        "tags": [
+          "API keys"
+        ],
+        "x-access": {
+          "area": "api",
+          "level": "write"
+        },
+        "x-session-only": true
+      },
+      "delete": {
+        "operationId": "ApiKeysController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Key revoked"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke own key, or any key with manage",
+        "tags": [
+          "API keys"
+        ],
+        "x-access": {
+          "area": "api",
+          "level": "write"
+        },
+        "x-session-only": true
       }
     },
     "/api/kubek/version": {
@@ -17360,7 +17806,8 @@
         "summary": "List active sessions of the current user",
         "tags": [
           "Sessions"
-        ]
+        ],
+        "x-session-only": true
       },
       "delete": {
         "operationId": "SessionsController_revokeAll",
@@ -17388,7 +17835,8 @@
         "summary": "Revoke all sessions except the current one",
         "tags": [
           "Sessions"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/sessions/{id}": {
@@ -17437,7 +17885,8 @@
         "summary": "Revoke a specific session",
         "tags": [
           "Sessions"
-        ]
+        ],
+        "x-session-only": true
       }
     },
     "/api/extensions": {
@@ -18188,6 +18637,127 @@
           "Health"
         ]
       }
+    },
+    "/api/mcp/settings": {
+      "get": {
+        "operationId": "McpController_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSettingsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Whether MCP is turned on for the panel",
+        "tags": [
+          "MCP"
+        ],
+        "x-access": {
+          "area": "api",
+          "level": "write"
+        }
+      },
+      "put": {
+        "operationId": "McpController_updateSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSettingsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Turn MCP on or off for the panel",
+        "tags": [
+          "MCP"
+        ],
+        "x-access": {
+          "area": "panel",
+          "level": "manage"
+        },
+        "x-session-only": true
+      }
     }
   },
   "info": {
@@ -18246,6 +18816,8 @@
               "INTERNAL_ERROR",
               "RATE_LIMITED",
               "CONFLICT",
+              "PAYLOAD_TOO_LARGE",
+              "ARCHIVE_TOO_LARGE",
               "VALIDATION_ERROR",
               "TOTP_LOCKED",
               "TOTP_INVALID",
@@ -18259,12 +18831,15 @@
               "PLAYERS_NEEDS_STOPPED_SERVER",
               "PLAYERS_APPLY_TIMEOUT",
               "UNSAFE_LAUNCH_ARGUMENT",
+              "VERSIONS_UNAVAILABLE",
               "ASSISTANT_NOT_CONFIGURED",
               "ASSISTANT_BUSY",
               "ROLE_NAME_TAKEN",
               "ROLE_BUILTIN",
               "ROLE_UNKNOWN",
               "ACCESS_ESCALATION",
+              "SESSION_REQUIRED",
+              "MCP_DISABLED",
               "COMPANION_UNSUPPORTED",
               "COMPANION_NOT_CONNECTED",
               "COMPANION_TIMEOUT",
@@ -18494,9 +19069,21 @@
               "panel",
               "telegram",
               "system",
-              "assistant"
+              "assistant",
+              "api",
+              "mcp"
             ],
             "description": "Source of the action"
+          },
+          "apiKeyId": {
+            "type": "string",
+            "nullable": true,
+            "description": "API key the request came with"
+          },
+          "apiKeyName": {
+            "type": "string",
+            "nullable": true,
+            "description": "API key name when the action happened"
           },
           "createdAt": {
             "type": "number",
@@ -18798,6 +19385,14 @@
               "manage"
             ],
             "description": "Level in assistant"
+          },
+          "api": {
+            "type": "string",
+            "enum": [
+              "write",
+              "manage"
+            ],
+            "description": "Level in api"
           },
           "panel": {
             "type": "string",
@@ -19128,7 +19723,7 @@
         "properties": {
           "old": {
             "type": "string",
-            "description": "Current password",
+            "description": "Current password, not needed with an API key",
             "example": "oldPassword123"
           },
           "new": {
@@ -19140,7 +19735,6 @@
           }
         },
         "required": [
-          "old",
           "new"
         ]
       },
@@ -19374,6 +19968,18 @@
             "description": "Name of the copy, \"<name> (copy)\" when left out"
           }
         }
+      },
+      "PasswordConfirmDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "Current account password"
+          }
+        },
+        "required": [
+          "password"
+        ]
       },
       "GenerateOtpResponseDto": {
         "type": "object",
@@ -19721,7 +20327,7 @@
         "properties": {
           "password": {
             "type": "string",
-            "description": "Account password for confirmation"
+            "description": "Account password for confirmation, not needed with an API key"
           },
           "confirmName": {
             "type": "string",
@@ -19729,7 +20335,6 @@
           }
         },
         "required": [
-          "password",
           "confirmName"
         ]
       },
@@ -19745,12 +20350,11 @@
           },
           "password": {
             "type": "string",
-            "description": "Account password for confirmation"
+            "description": "Account password for confirmation, not needed with an API key"
           }
         },
         "required": [
-          "ids",
-          "password"
+          "ids"
         ]
       },
       "BulkDeleteFailureDto": {
@@ -20032,6 +20636,11 @@
             "type": "string",
             "description": "Game identifier",
             "example": "minecraft"
+          },
+          "gameName": {
+            "type": "string",
+            "description": "Game title, blueprints of one game are grouped under it",
+            "example": "Minecraft: Java Edition"
           },
           "icon": {
             "type": "string",
@@ -21244,6 +21853,8 @@
               "unpackingJava",
               "downloadingCore",
               "pullingImage",
+              "runningInstaller",
+              "downloadingGame",
               "creatingBat",
               "downloadingMods",
               "applyingOverrides",
@@ -25537,11 +26148,16 @@
           "code": {
             "type": "string",
             "description": "6-digit TOTP code"
+          },
+          "password": {
+            "type": "string",
+            "description": "Current account password"
           }
         },
         "required": [
           "setupToken",
-          "code"
+          "code",
+          "password"
         ]
       },
       "DisableTotpDto": {
@@ -25555,6 +26171,146 @@
         "required": [
           "password"
         ]
+      },
+      "ApiKeyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Owner account id"
+          },
+          "username": {
+            "type": "string",
+            "description": "Owner name, only in the list of all keys"
+          },
+          "name": {
+            "type": "string",
+            "example": "Grafana"
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Start of the token",
+            "example": "kbk_Ab12Cd34"
+          },
+          "grants": {
+            "$ref": "#/components/schemas/AccessMapDto"
+          },
+          "servers": {
+            "nullable": true,
+            "description": "Servers the key reaches, null for all of the owner's",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mcp": {
+            "type": "boolean",
+            "description": "Key may connect over MCP"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "expiresAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "lastUsedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "lastUsedIp": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "name",
+          "prefix",
+          "grants",
+          "servers",
+          "mcp",
+          "createdAt",
+          "expiresAt",
+          "lastUsedAt",
+          "lastUsedIp"
+        ]
+      },
+      "CreateApiKeyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Grafana",
+            "maxLength": 64
+          },
+          "grants": {
+            "$ref": "#/components/schemas/AccessMapDto"
+          },
+          "servers": {
+            "nullable": true,
+            "description": "Servers the key reaches, null or missing for all",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mcp": {
+            "type": "boolean",
+            "default": false
+          },
+          "expiresAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "Expiry time (ms epoch), null for a key that never expires"
+          }
+        },
+        "required": [
+          "name",
+          "grants"
+        ]
+      },
+      "CreatedApiKeyDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/ApiKeyDto"
+          },
+          "token": {
+            "type": "string",
+            "description": "Full token, shown only once"
+          }
+        },
+        "required": [
+          "key",
+          "token"
+        ]
+      },
+      "UpdateApiKeyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "grants": {
+            "$ref": "#/components/schemas/AccessMapDto"
+          },
+          "servers": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mcp": {
+            "type": "boolean"
+          }
+        }
       },
       "UpdateCheckResultDto": {
         "type": "object",
@@ -25635,6 +26391,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "assistant": {
+            "type": "boolean",
+            "description": "Whether the AI assistant answers in the bot, on when omitted",
+            "example": true
           }
         },
         "required": [
@@ -26987,6 +27748,18 @@
           "status",
           "db",
           "uptime"
+        ]
+      },
+      "McpSettingsDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "MCP endpoint is open for keys that allow it"
+          }
+        },
+        "required": [
+          "enabled"
         ]
       }
     }

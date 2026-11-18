@@ -11,7 +11,7 @@ export const auditLogTranslations: TranslationDictionary = {
     failed: (n: number) => plural(n, ["неудачная операция", "неудачные операции", "неудачных операций"]),
   },
   filters: {
-    search: "Поиск по пользователю, серверу, объекту или действию…",
+    search: "Поиск по пользователю, серверу, объекту или действию...",
     allCategories: "Все категории",
     allServers: "Все серверы",
     server: "Сервер",
@@ -20,6 +20,7 @@ export const auditLogTranslations: TranslationDictionary = {
     period: "Период",
     all: "Все",
     reset: "Сбросить",
+    refresh: "Обновить",
     periods: {
       today: "Сегодня",
       week: "7 дней",
@@ -44,6 +45,8 @@ export const auditLogTranslations: TranslationDictionary = {
     telegram: "Telegram-бот",
     system: "Система",
     assistant: "ИИ-ассистент",
+    api: "API-ключ",
+    mcp: "MCP",
   },
   actions: {
     server_create: "Создание сервера",
@@ -148,6 +151,10 @@ export const auditLogTranslations: TranslationDictionary = {
     network_secret_rotate: "Новый секрет форвардинга",
     audit_retention_update: "Изменение хранения журнала",
     audit_prune: "Ротация журнала",
+    api_key_create: "Создание API-ключа",
+    api_key_update: "Изменение API-ключа",
+    api_key_delete: "Отзыв API-ключа",
+    mcp_toggle: "Включение или выключение MCP",
   },
   table: {
     time: "Время",
@@ -173,6 +180,7 @@ export const auditLogTranslations: TranslationDictionary = {
     after: "Стало",
     id: "ID записи",
     source: "Источник",
+    apiKey: "API-ключ",
     category: "Категория",
     client: "Клиент",
     time: "Время",

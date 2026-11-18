@@ -17,6 +17,8 @@ export const AUDIT_SOURCES = [
   "telegram",
   "system",
   "assistant",
+  "api",
+  "mcp",
 ] as const;
 
 export type AuditSource = (typeof AUDIT_SOURCES)[number];
@@ -125,6 +127,10 @@ export const AuditAction = {
   NETWORK_SECRET_ROTATE: "network.secret_rotate",
   AUDIT_RETENTION_UPDATE: "audit.retention_update",
   AUDIT_PRUNE: "audit.prune",
+  API_KEY_CREATE: "api_key.create",
+  API_KEY_UPDATE: "api_key.update",
+  API_KEY_DELETE: "api_key.delete",
+  MCP_TOGGLE: "mcp.toggle",
 } as const;
 
 /**
@@ -162,6 +168,9 @@ export interface IAuditLog {
   ip?: string | null;
   userAgent?: string | null;
   source: AuditSource;
+  /** Key the request came with, the name is a snapshot */
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
   createdAt: number;
 }
 
@@ -183,6 +192,8 @@ export interface AuditRecordInput {
   ip?: string | null;
   userAgent?: string | null;
   source?: AuditSource;
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
 }
 
 export interface AuditLogQuery {
@@ -191,6 +202,8 @@ export interface AuditLogQuery {
   userId?: string;
   serverId?: string;
   result?: AuditResult;
+  source?: AuditSource;
+  apiKeyId?: string;
   search?: string;
   /** Inclusive createdAt range (ms epoch) */
   from?: number;

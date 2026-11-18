@@ -72,6 +72,13 @@ export class TelegramBotDto {
     required: false,
   })
   chatIds?: string[];
+
+  @ApiProperty({
+    description: "Whether the AI assistant answers in the bot, on when omitted",
+    example: true,
+    required: false,
+  })
+  assistant?: boolean;
 }
 
 /** Telemetry configuration */

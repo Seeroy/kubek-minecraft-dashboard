@@ -58,7 +58,7 @@ export const filesTranslations: TranslationDictionary = {
       },
       preview: {
         label: "Будет включено:",
-        more: ({ count }: { count: number }) => `… и ещё ${ count }`,
+        more: ({ count }: { count: number }) => `... и ещё ${ count }`,
       },
       submit: "Создать",
       cancel: "Отмена",
@@ -178,10 +178,10 @@ export const filesTranslations: TranslationDictionary = {
       cannotEditFile: "Этот тип файла нельзя открыть в текстовом редакторе",
     },
     progress: {
-      deleting: "Удаление файлов…",
-      archiving: "Создание архива…",
-      extracting: "Распаковка архива…",
-      uploading: "Загрузка файлов…",
+      deleting: "Удаление файлов...",
+      archiving: "Создание архива...",
+      extracting: "Распаковка архива...",
+      uploading: "Загрузка файлов...",
     },
   },
 };

@@ -28,12 +28,13 @@ export function TotpSetupDialog({ setup, onClose }: { setup: TotpSetup; onClose:
   const { notify } = useNotifications();
   const confirm = useConfirmTotpMutation();
   const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     confirm.mutate(
-      { setupToken: setup.setupToken, code },
+      { setupToken: setup.setupToken, code, password },
       {
         onSuccess: () => {
           notify({ type: "success", title: t("toasts.totpEnabled") });
@@ -89,13 +90,26 @@ export function TotpSetupDialog({ setup, onClose }: { setup: TotpSetup; onClose:
                 />
                 {error && <FieldError>{error}</FieldError>}
               </Field>
+              <Field>
+                <FieldLabel htmlFor="totp-setup-password">{t("setup.password")}</FieldLabel>
+                <Input
+                  id="totp-setup-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(null);
+                  }}
+                />
+              </Field>
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={confirm.isPending}>
               {t("setup.cancel")}
             </Button>
-            <Button type="submit" disabled={confirm.isPending || code.length !== 6}>
+            <Button type="submit" disabled={confirm.isPending || code.length !== 6 || !password}>
               {confirm.isPending && <Spinner />}
               {t("setup.confirm")}
             </Button>

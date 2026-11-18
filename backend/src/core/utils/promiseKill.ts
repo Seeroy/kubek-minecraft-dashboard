@@ -117,7 +117,18 @@ function buildTree(
       out += d.toString("ascii");
     });
 
+    // No ps on the host (slim images), kill what we know instead of crashing
+    let settled = false;
+    ps.on("error", () => {
+      if (settled) return;
+      settled = true;
+      delete pending[parentPid];
+      if (Object.keys(pending).length === 0) resolve();
+    });
+
     ps.on("close", (code) => {
+      if (settled) return;
+      settled = true;
       delete pending[parentPid];
 
       // No child processes

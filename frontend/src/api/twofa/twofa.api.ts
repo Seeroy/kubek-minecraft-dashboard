@@ -13,9 +13,9 @@ export class TwofaApi {
   setupTotp = (): Promise<TotpSetupResponse> =>
     this.authHttp.post<TotpSetupResponse>("auth/2fa/totp/setup");
 
-  confirmTotp = (setupToken: string, code: string): Promise<void> =>
+  confirmTotp = (setupToken: string, code: string, password: string): Promise<void> =>
     this.authHttp.post<void>("auth/2fa/totp/confirm", {
-      json: { setupToken, code },
+      json: { setupToken, code, password },
     });
 
   disableTotp = (password: string): Promise<void> =>
@@ -23,11 +23,15 @@ export class TwofaApi {
       json: { password },
     });
 
-  enableTelegram = (): Promise<void> =>
-    this.authHttp.post<void>("auth/2fa/telegram/enable");
+  enableTelegram = (password: string): Promise<void> =>
+    this.authHttp.post<void>("auth/2fa/telegram/enable", {
+      json: { password },
+    });
 
-  disableTelegram = (): Promise<void> =>
-    this.authHttp.post<void>("auth/2fa/telegram/disable");
+  disableTelegram = (password: string): Promise<void> =>
+    this.authHttp.post<void>("auth/2fa/telegram/disable", {
+      json: { password },
+    });
 }
 
 export const twofaApi = new TwofaApi(authHttp);

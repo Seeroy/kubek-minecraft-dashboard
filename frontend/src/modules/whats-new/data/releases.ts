@@ -7,6 +7,7 @@ import {
   CalendarClock,
   Container,
   FileText,
+  Gamepad2,
   Gauge,
   History,
   KeyRound,
@@ -15,6 +16,7 @@ import {
   Package,
   PanelLeft,
   Plug,
+  Send,
   ShieldCheck,
   SquareTerminal,
   Upload,
@@ -36,6 +38,18 @@ export interface Release {
 
 // Curated highlights shown once after the panel updates to a given version
 export const RELEASES: Release[] = [
+  {
+    version: "4.1.2",
+    highlights: [
+      { icon: Boxes, titleKey: "releases.4-1-2.cores" },
+      { icon: Gamepad2, titleKey: "releases.4-1-2.games" },
+      { icon: KeyRound, titleKey: "releases.4-1-2.apiKeys" },
+      { icon: Bot, titleKey: "releases.4-1-2.assistant" },
+      { icon: Send, titleKey: "releases.4-1-2.telegram" },
+      { icon: Package, titleKey: "releases.4-1-2.catalog" },
+      { icon: ShieldCheck, titleKey: "releases.4-1-2.security" },
+    ],
+  },
   {
     version: "4.1.1",
     highlights: [

@@ -20,9 +20,9 @@ export const logViewerTranslations: TranslationDictionary = {
   },
   viewer: {
     pick: "Выберите файл слева, чтобы просмотреть",
-    loading: "Загружается…",
+    loading: "Загружается...",
     empty: "Файл пуст",
-    search: "Поиск по строке…",
+    search: "Поиск по строке...",
     nothingFound: "Ничего не найдено",
     position: (current: number, total: number) => `${current} / ${total}`,
     prev: "Предыдущее (Shift+Enter)",

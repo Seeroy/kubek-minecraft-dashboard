@@ -2,6 +2,7 @@ import type { Tone } from "@/shared/ui/tone";
 import { AuditCategory } from "@shared/types/audit.types";
 import {
   Archive,
+  Bot,
   Construction,
   Megaphone,
   MonitorPlay,
@@ -161,6 +162,10 @@ const ACTIONS: Record<string, Look> = {
   "network.secret_rotate": { icon: KeyRound, tone: "amber" },
   "audit.retention_update": { icon: Archive, tone: "amber" },
   "audit.prune": { icon: Eraser, tone: "gray" },
+  "api_key.create": { icon: KeyRound, tone: "amber" },
+  "api_key.update": { icon: KeyRound, tone: "blue" },
+  "api_key.delete": { icon: Trash2, tone: "red" },
+  "mcp.toggle": { icon: Bot, tone: "purple" },
 };
 
 const CATEGORIES: Record<AuditCategory, Look> = {

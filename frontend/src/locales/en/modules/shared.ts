@@ -97,6 +97,7 @@ export const sharedTranslations: TranslationDictionary = {
       PLAYERS_NEEDS_STOPPED_SERVER: "Stop the server to set this",
       PLAYERS_APPLY_TIMEOUT: "The server did not confirm the change, check the console",
       UNSAFE_LAUNCH_ARGUMENT: (field?: string) => (field ? `Unsafe value in "${field}"` : "A launch argument has an unsafe value"),
+      VERSIONS_UNAVAILABLE: (_field?: string, reason?: string) => (reason ? `Could not get the version list: ${reason}` : "Could not get the version list"),
       ASSISTANT_NOT_CONFIGURED: "The assistant is not set up",
       ASSISTANT_BUSY: "The assistant is still answering, wait for it to finish",
       ROLE_NAME_TAKEN: "A role with this name already exists",

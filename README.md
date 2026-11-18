@@ -23,7 +23,8 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 
 ### Servers
 
-- Run as many servers as you like side by side: Vanilla, Paper, Spigot, Purpur, Bukkit, Fabric, Forge, Velocity, or a plain custom jar
+- Run as many servers as you like side by side: Vanilla, Paper, Purpur, Folia, Spigot, Fabric, NeoForge, Forge, Quilt, Bedrock, the Velocity and Waterfall proxies, or a plain custom jar
+- Server types are grouped by game, and more games can be added as blueprints
 - Start, stop, restart and type console commands, with output streamed live over WebSocket
 - Duplicate a server, export it to a single file, or import one back. Sort servers into folders, and delete several at once when you're cleaning up
 - New servers go through a short setup flow, and the matching Java runtime is downloaded automatically
@@ -38,7 +39,7 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 
 - Per-server CPU, RAM and player counts in real time + host-level stats (CPU, memory, disks)
 - Historical CPU/RAM charts, so you can look back instead of only at the current moment
-- Player list with names, avatars and online status, read over the Query protocol
+- Player list with names, avatars and online status, read over the game's own query protocol (Java Query, Bedrock, Valve A2S and more through gamedig)
 - Log analysis catches the usual suspects — out of memory, port already in use, corrupt world, plugin/mod crashes, the wrong Java version — and the diagnostics panel offers a fix where it can
 
 ### Files, console & backups
@@ -103,7 +104,7 @@ Extensions can declare their own permissions, they show up in the editor next to
 
 ## 🧩 Extensions & blueprints (for developers)
 
-Kubek is built to be extended from the outside, no fork required. **Blueprints** describe server types — how a jar is fetched, configured and launched — and **extensions** bolt on whole features: new pages and UI, API routes, event handlers and their own permissions
+Kubek is built to be extended from the outside, no fork required. **Blueprints** describe server types — how the server is fetched (a direct download, an installer like Forge's, or SteamCMD for Steam games), configured, launched and queried — and **extensions** bolt on whole features: new pages and UI, API routes, event handlers and their own permissions
 
 Two SDKs with starter templates get you going in minutes:
 
@@ -135,7 +136,7 @@ curl -fsSL .../install.sh | bash -s -- --docker
 curl -fsSL .../install.sh | bash -s -- --binary
 
 # Custom directory / version / install without starting
-curl -fsSL .../install.sh | bash -s -- --dir /opt/kubek --version v4.1.1 --no-run
+curl -fsSL .../install.sh | bash -s -- --dir /opt/kubek --version v4.1.2 --no-run
 ```
 
 </details>

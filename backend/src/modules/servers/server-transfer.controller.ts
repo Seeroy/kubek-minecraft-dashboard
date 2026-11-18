@@ -3,6 +3,7 @@ import { AccessGuard } from "@/modules/auth/guards/access.guard";
 import { AccessArea } from "@shared/access/areas";
 import { TaskRefResponseDto } from "@/core/dto/task-ref-response.dto";
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
+import { UPLOAD_LIMITS, uploadStorage } from "@/core/utils/uploads";
 import { Audit } from "@/modules/audit-log/audit.decorator";
 import { CheckServerAccess } from "@/modules/auth/decorators/check-server-access.decorator";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
@@ -39,7 +40,6 @@ import {
 } from "@nestjs/swagger";
 import { AuditAction } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
-import { memoryStorage } from "multer";
 
 // operationIds keep the ServersController names the generated client uses
 @ApiTags("Servers")
@@ -161,8 +161,8 @@ export class ServerTransferController {
   @RequireAccess(AccessArea.SERVERS, "write")
   @UseInterceptors(
     FileInterceptor("archive", {
-      storage: memoryStorage(),
-      limits: { fileSize: 1024 * 1024 * 1024 * 2 },
+      storage: uploadStorage(),
+      limits: { fileSize: UPLOAD_LIMITS.serverImport },
     }),
   )
   @ApiConsumes("multipart/form-data")
@@ -180,7 +180,7 @@ export class ServerTransferController {
     type: ServerCreatedResponseDto,
     description: "Import started",
   })
-  @ApiErrorResponses([400, 401, 403])
+  @ApiErrorResponses([400, 401, 403, 413])
   @Audit(
     serverAudit(AuditAction.SERVER_IMPORT, {
       resolve: ({ result }) => ({
@@ -192,10 +192,14 @@ export class ServerTransferController {
     }),
   )
   async importServer(
-    @UploadedFile() archive: Express.Multer.File,
+    @UploadedFile() archive: Express.Multer.File | undefined,
     @Body("name") overrideName: string | undefined,
     @CurrentUser() user: IUser,
   ): Promise<ServerCreatedResponseDto> {
-    return this.transfer.importServer(archive, overrideName, user.id || "");
+    return this.transfer.importServer(
+      archive?.path,
+      overrideName,
+      user.id || "",
+    );
   }
 }

@@ -17,7 +17,7 @@ export const backupsTranslations: TranslationDictionary = {
     last: "Last successful",
   },
   filters: {
-    search: "Search backups…",
+    search: "Search backups...",
     status: {
       all: "All",
       completed: "Completed",
@@ -104,7 +104,7 @@ export const backupsTranslations: TranslationDictionary = {
     },
     pickFiles: "Pick files",
     selectedCount: (n: number) => `Selected: ${files(n)}`,
-    loadingFiles: "Loading files…",
+    loadingFiles: "Loading files...",
     advanced: "Advanced settings",
     format: "Format",
     compression: (value: number) => `Compression level: ${value}`,
@@ -116,7 +116,7 @@ export const backupsTranslations: TranslationDictionary = {
     add: "Add",
     removeExclusion: (pattern: string) => `Remove ${pattern}`,
     submit: "Create backup",
-    submitting: "Creating…",
+    submitting: "Creating...",
   },
   validations: {
     nameRequired: "A backup name is required",
