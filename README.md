@@ -190,11 +190,13 @@ After a successful import the old files are renamed to `*.migrated-backup` and m
 
 ## ⚙️ Configuration
 
-| Variable   | Default | Description                             |
-| ---------- | ------- | --------------------------------------- |
-| `PORT`     | `8000`  | Web panel port (HTTP + WebSocket)       |
-| `FTP_PORT` | `21`    | Built-in FTP server port (when enabled) |
-| `TZ`       | `UTC`   | Container timezone                      |
+| Variable           | Default | Description                                                                                        |
+| ------------------ | ------- | -------------------------------------------------------------------------------------------------- |
+| `PORT`             | `8000`  | Web panel port (HTTP + WebSocket)                                                                  |
+| `FTP_PORT`         | `21`    | Built-in FTP server port (when enabled)                                                            |
+| `TZ`               | `UTC`   | Container timezone                                                                                 |
+| `TRUST_PROXY`      | `0`     | Number of reverse proxies in front of Kubek, see [Behind a reverse proxy](#behind-a-reverse-proxy) |
+| `TRUST_CLOUDFLARE` | `0`     | Take the client IP from Cloudflare, see [Behind a reverse proxy](#behind-a-reverse-proxy)          |
 
 On first launch a setup wizard creates your admin account and shows password in logs
 
@@ -210,6 +212,23 @@ Everything lives in the working directory (`/data` in Docker) — mount it as a 
 | `servers/`       | All Minecraft server files      |
 | `backups/`       | Backup archives                 |
 | `binaries/java/` | Auto-downloaded Java runtimes   |
+
+### Behind a reverse proxy
+
+Behind Traefik, nginx, Caddy, Dokploy or Coolify the panel only sees the proxy's address, so the audit log, login rate limits and the subnet filter all get something like `10.0.1.4`. Tell Kubek what sits in front of it:
+
+| Setup                                        | Variables                              |
+| -------------------------------------------- | -------------------------------------- |
+| Open straight to the internet                | nothing                                |
+| One proxy (Traefik, nginx, Dokploy, Coolify) | `TRUST_PROXY=1`                        |
+| Two proxies in a chain                       | `TRUST_PROXY=2`                        |
+| Cloudflare (orange cloud) → proxy → Kubek    | `TRUST_PROXY=1` + `TRUST_CLOUDFLARE=1` |
+| Cloudflare (orange cloud) → Kubek, no proxy  | `TRUST_CLOUDFLARE=1`                   |
+
+- `TRUST_PROXY` makes Kubek read `X-Forwarded-For`, taking the address your own proxies appended (counted from the right). Entries further left come from the client and are ignored
+- `TRUST_CLOUDFLARE` uses `CF-Connecting-IP`, but only when the request actually came from a [Cloudflare address](https://www.cloudflare.com/ips/). Requests that bypass Cloudflare keep their real address, so the header can't be spoofed
+- Don't set them without a proxy: anyone could then fake their IP and slip past the subnet filter
+- If the subnet filter is on, double-check it after enabling: it starts matching real client addresses instead of the proxy's
 
 ### Ports & Minecraft servers
 

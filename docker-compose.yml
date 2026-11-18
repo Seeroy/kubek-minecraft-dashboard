@@ -20,6 +20,8 @@ services:
     environment:
       - PORT=8000
       - TZ=UTC
+      # - TRUST_PROXY=1        # reverse proxies in front (Traefik, nginx), see README
+      # - TRUST_CLOUDFLARE=1   # read the client IP from Cloudflare, see README
       # - KUBEK_STOP_TIMEOUT=60  # seconds a server gets to stop before it is killed
       # - FTP_PORT=21        # built-in FTP server (off unless you enable it in the UI)
       # - FTP_PASV_START=50000   # FTP passive range, publish the same range below
