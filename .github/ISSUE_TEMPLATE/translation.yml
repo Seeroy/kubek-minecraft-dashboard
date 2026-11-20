@@ -1,0 +1,48 @@
+name: Translation / Перевод
+description: Fix a translation or add a new language / Исправить перевод или добавить язык
+labels: [translation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Small fixes and new languages are welcome as a pull request right away. To add a language:
+        1. Copy `frontend/src/locales/en` to `frontend/src/locales/<code>` and translate the files in `modules/`
+        2. Add it to `translationResources` and `languageOptions` in `frontend/src/locales/index.ts`
+        3. If the language has more than two plural forms, add a helper like `ru/plural.ts`
+
+        Мелкие правки и новые языки можно сразу присылать pull request'ом. Чтобы добавить язык:
+        1. Скопируйте `frontend/src/locales/en` в `frontend/src/locales/<код>` и переведите файлы в `modules/`
+        2. Добавьте язык в `translationResources` и `languageOptions` в `frontend/src/locales/index.ts`
+        3. Если в языке больше двух форм множественного числа, добавьте хелпер как `ru/plural.ts`
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What / Что
+      options:
+        - Wrong or missing translation / Неверный или пропущенный перевод
+        - New language, I'll send a PR / Новый язык, пришлю PR
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Language / Язык
+      placeholder: Русский, Deutsch, Español...
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where in the panel / Где в панели
+      description: For a fix only / Только для правки
+      placeholder: Settings > Backups / Настройки > Бэкапы
+  - type: textarea
+    id: now
+    attributes:
+      label: What it says now / Как написано сейчас
+      description: For a fix only, a screenshot works too / Только для правки, можно скриншот
+  - type: textarea
+    id: should
+    attributes:
+      label: How it should be / Как должно быть
+      description: For a fix only / Только для правки

@@ -1,0 +1,72 @@
+name: Bug report / Баг
+description: Something doesn't work as it should / Что-то работает не так
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search [existing issues](../issues) first. Problems with a community blueprint or extension go to [blueprints](https://github.com/KubekPanel/blueprints) or [extensions](https://github.com/KubekPanel/extensions).
+
+        Сначала поищите [похожие issue](../issues). Проблемы с blueprint или расширением от сообщества пишите в [blueprints](https://github.com/KubekPanel/blueprints) или [extensions](https://github.com/KubekPanel/extensions).
+  - type: input
+    id: version
+    attributes:
+      label: Kubek version / Версия Kubek
+      placeholder: "4.1.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install method / Способ установки
+      options:
+        - install.sh
+        - Docker Compose
+        - Docker image / Docker-образ
+        - Prebuilt binary / Готовый бинарник
+        - Built from source / Сборка из исходников
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS / ОС
+      placeholder: Ubuntu 24.04, Windows 11, macOS 15...
+    validations:
+      required: true
+  - type: input
+    id: server
+    attributes:
+      label: Server type, if the bug is about a server / Тип сервера, если баг связан с сервером
+      placeholder: Paper 1.21.4, Fabric, Bedrock...
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened / Что случилось
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Как повторить
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected / Что ожидали
+  - type: textarea
+    id: logs
+    attributes:
+      label: Panel logs / Логи панели
+      description: Terminal output or `docker compose logs kubek`. Remove passwords and tokens / Вывод в терминале или `docker compose logs kubek`. Уберите пароли и токены
+      render: shell
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Скриншоты
+      description: If it's about the UI / Если дело в интерфейсе

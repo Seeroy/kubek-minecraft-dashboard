@@ -1,0 +1,33 @@
+name: Feature request / Идея
+description: Suggest something new or a change / Предложить новое или изменение
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem / В чём проблема
+      description: What you are trying to do and what gets in the way / Что вы хотите сделать и что мешает
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How you see it / Как вы это видите
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead / Что пробовали вместо этого
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / Раздел
+      options:
+        - Servers / Серверы
+        - Plugins and mods / Плагины и моды
+        - Files, console, backups / Файлы, консоль, бэкапы
+        - Scheduler / Планировщик
+        - Users and access / Пользователи и доступ
+        - Extensions and blueprints / Расширения и blueprint'ы
+        - Something else / Другое

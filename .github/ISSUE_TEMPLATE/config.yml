@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Add a blueprint or report one / Добавить blueprint или пожаловаться
+    url: https://github.com/KubekPanel/blueprints
+    about: Community server types live in KubekPanel/blueprints, open PRs and issues there, not here / Типы серверов от сообщества живут в KubekPanel/blueprints, PR и issue открывайте там, а не здесь
+  - name: Add an extension or report one / Добавить расширение или пожаловаться
+    url: https://github.com/KubekPanel/extensions
+    about: Community extensions live in KubekPanel/extensions, open PRs and issues there, not here / Расширения от сообщества живут в KubekPanel/extensions, PR и issue открывайте там, а не здесь
+  - name: Security issue / Уязвимость
+    url: https://github.com/Seeroy/kubek-minecraft-dashboard/security/advisories/new
+    about: Report it privately, not in a public issue / Сообщите приватно, не в публичном issue
