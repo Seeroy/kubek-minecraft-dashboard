@@ -1,10 +1,11 @@
 "use client";
-import { CatalogBrowser, type CatalogMark } from "@/modules/catalog";
+import { CatalogBrowser, CatalogFact, CatalogFacts, CatalogSection, type CatalogMark } from "@/modules/catalog";
 import { sampleItem, sampleResponse } from "@/modules/catalog/lib/samples";
 import { useNotifications } from "@/modules/notifications";
 import type { CatalogLayout } from "@/modules/plugins/hooks/useCatalogView";
 import { useSystemInfoQuery } from "@/modules/system-monitoring/api/system-monitoring.queries";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { Badge } from "@/shared/ui/badge";
 import type { CatalogBlueprint } from "@shared/types/catalog.types";
 import { Boxes, Container, Gamepad2, Monitor, Terminal } from "lucide-react";
 import { useBlueprintsCatalog, useInstallBlueprintFromCatalogMutation } from "../api/server-types.queries";
@@ -24,7 +25,9 @@ const SAMPLE = sampleResponse<CatalogBlueprint>(
 );
 
 // These run programs on the host while installing, worth a second look
-const HOST_STEPS = ["exec", "steamcmd"];
+const HOST_STEPS = ["exec", "script", "steamcmd"];
+// A newer SDK may add steps this panel has no name for, those show the raw type
+const KNOWN_STEPS = new Set(["download", "writeFile", "chmod", "template", "script", "exec", "steamcmd", "dockerPull"]);
 
 const PLATFORM_NAMES: Record<string, string> = { linux: "Linux", win32: "Windows", darwin: "macOS" };
 
@@ -52,6 +55,54 @@ export function ServerTypesCatalog({ view, canInstall }: { view: CatalogLayout; 
     ];
   };
 
+  const details = (item: CatalogBlueprint) => {
+    const platforms = item.platforms ?? [];
+    return (
+      <>
+        <CatalogSection title={t("catalog.details.about")}>
+          <CatalogFacts>
+            <CatalogFact label={t("catalog.details.game")}>{gameTitle({ game: item.game, gameName: item.gameName ?? undefined })}</CatalogFact>
+            <CatalogFact label={t("catalog.details.runtime")}>{t(`catalog.details.${item.runtime}`)}</CatalogFact>
+            <CatalogFact label={t("catalog.details.platforms")}>
+              {platforms.length === 0
+                ? t("catalog.details.anyOs")
+                : platforms.map((p, i) => (
+                    <span key={p} className={host && p === host ? "font-medium" : undefined}>
+                      {i > 0 && ", "}
+                      {PLATFORM_NAMES[p] ?? p}
+                    </span>
+                  ))}
+              {host && platforms.length > 0 && !platforms.includes(host) && <span className="text-warn"> ({t("catalog.details.notThisOs")})</span>}
+            </CatalogFact>
+          </CatalogFacts>
+        </CatalogSection>
+        {item.installSteps.length > 0 && (
+          <CatalogSection title={t("catalog.details.install")}>
+            <div className="flex flex-wrap gap-1.5">
+              {item.installSteps.map((step) => (
+                <Badge key={step} variant={HOST_STEPS.includes(step) ? "warning" : "secondary"} title={HOST_STEPS.includes(step) ? t("catalog.hostStepsHint") : undefined}>
+                  {HOST_STEPS.includes(step) && <Terminal />}
+                  {KNOWN_STEPS.has(step) ? t(`catalog.details.stepNames.${step}`) : step}
+                </Badge>
+              ))}
+            </div>
+          </CatalogSection>
+        )}
+        {item.tags.length > 0 && (
+          <CatalogSection title={t("catalog.details.tags")}>
+            <div className="flex flex-wrap gap-1.5">
+              {item.tags.map((tag) => (
+                <Badge key={tag} variant="secondary">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </CatalogSection>
+        )}
+      </>
+    );
+  };
+
   return (
     <CatalogBrowser
       id="blueprints"
@@ -62,6 +113,7 @@ export function ServerTypesCatalog({ view, canInstall }: { view: CatalogLayout; 
       sample={SAMPLE}
       marks={marks}
       searchText={(item) => `${item.shortName ?? ""} ${item.gameName ?? item.game} ${item.tags.join(" ")}`}
+      details={details}
       install={
         canInstall
           ? async (item) => {

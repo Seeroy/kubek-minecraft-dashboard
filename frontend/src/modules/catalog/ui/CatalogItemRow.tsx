@@ -17,20 +17,23 @@ interface CatalogItemRowProps {
   icon: LucideIcon;
   installing: boolean;
   onInstall?: () => void;
+  onOpen: () => void;
 }
 
-export function CatalogItemRow({ item, marks, icon, installing, onInstall }: CatalogItemRowProps) {
+export function CatalogItemRow({ item, marks, icon, installing, onInstall, onOpen }: CatalogItemRowProps) {
   const { t } = useTranslation("modules.catalog");
   // Warnings first, the cell fits one badge, the rest go into the "+N" hint
   const [first, ...rest] = [...marks].sort((a, b) => Number(!!b.warning) - Number(!!a.warning));
 
   return (
-    <TableRow className="h-[58px]">
+    <TableRow className="h-[58px] cursor-pointer" onClick={(event) => !(event.target as HTMLElement).closest("a, button") && onOpen()}>
       <TableCell>
         <div className="flex min-w-0 items-center gap-3">
           <CatalogIcon item={item} fallback={icon} />
           <div className="min-w-0">
-            <b className="block truncate font-semibold">{item.name}</b>
+            <button type="button" onClick={onOpen} className="block max-w-full cursor-pointer truncate text-left font-semibold outline-none hover:underline focus-visible:underline">
+              {item.name}
+            </button>
             <span className="block truncate text-xs text-muted-foreground">{item.description}</span>
           </div>
         </div>

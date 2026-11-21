@@ -16,6 +16,12 @@ export const extensionsTranslations: TranslationDictionary = {
     permissions: (n: number) => `${n} ${plural(n, ["разрешение", "разрешения", "разрешений"])}`,
     backend: "Серверная часть",
     frontend: "Интерфейс",
+    details: {
+      parts: "Из чего состоит",
+      backendHint: "Код, который работает в процессе панели",
+      frontendHint: "Страницы и виджеты в интерфейсе панели",
+      keywords: "Ключевые слова",
+    },
   },
   notice: {
     title: "Код расширений выполняется без изоляции",

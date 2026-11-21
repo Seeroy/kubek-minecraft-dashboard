@@ -17,23 +17,30 @@ interface CatalogItemCardProps {
   icon: LucideIcon;
   installing: boolean;
   onInstall?: () => void;
+  onOpen: () => void;
 }
 
-export function CatalogItemCard({ item, marks, icon, installing, onInstall }: CatalogItemCardProps) {
+export function CatalogItemCard({ item, marks, icon, installing, onInstall, onOpen }: CatalogItemCardProps) {
   const { t } = useTranslation("modules.catalog");
   const updated = item.updatedAt ? formatRelative(new Date(item.updatedAt).getTime(), t("justNow")) : null;
 
   return (
     <article
+      // Links and buttons inside keep their own action
+      onClick={(event) => !(event.target as HTMLElement).closest("a, button") && onOpen()}
       className={cn(
-        "flex flex-col gap-2.5 rounded-lg border border-border bg-card p-4 transition-[border-color,translate,box-shadow] duration-200 ease-smooth hover:-translate-y-0.5 hover:border-foreground/18 hover:shadow-lg",
+        "flex cursor-pointer flex-col gap-2.5 rounded-lg border border-border bg-card p-4 transition-[border-color,translate,box-shadow] duration-200 ease-smooth hover:-translate-y-0.5 hover:border-foreground/18 hover:shadow-lg",
         item.updateAvailable && "border-primary/40"
       )}
     >
       <div className="flex items-center gap-3">
         <CatalogIcon item={item} fallback={icon} size="lg" />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[14.5px] font-semibold">{item.name}</h3>
+          <h3 className="truncate text-[14.5px] font-semibold">
+            <button type="button" onClick={onOpen} className="max-w-full cursor-pointer truncate text-left outline-none hover:underline focus-visible:underline">
+              {item.name}
+            </button>
+          </h3>
           <span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
             <User className="size-3 shrink-0" />
             {item.authorUrl ? (

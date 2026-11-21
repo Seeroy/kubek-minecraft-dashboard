@@ -14,6 +14,12 @@ export const extensionsTranslations: TranslationDictionary = {
     permissions: (n: number) => (n === 1 ? "1 permission" : `${n} permissions`),
     backend: "Backend",
     frontend: "Interface",
+    details: {
+      parts: "What is inside",
+      backendHint: "Code that runs in the panel process",
+      frontendHint: "Pages and widgets in the panel interface",
+      keywords: "Keywords",
+    },
   },
   reload: "Reload",
   notice: {

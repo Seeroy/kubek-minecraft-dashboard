@@ -13,7 +13,7 @@ import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
 import type { CatalogResponse } from "@shared/types/catalog.types";
 import { CloudOff, GitPullRequest, Search, SearchX, type LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   CATALOG_FILTERS,
   CATALOG_SORTS,
@@ -25,6 +25,7 @@ import {
   sortItems,
 } from "../lib/catalog";
 import { CatalogItemCard } from "./CatalogItemCard";
+import { CatalogItemDialog } from "./CatalogItemDialog";
 import { CatalogItemRow } from "./CatalogItemRow";
 import { CommunityInstallDialog } from "./CommunityInstallDialog";
 
@@ -48,19 +49,24 @@ interface CatalogBrowserProps<T extends CatalogEntry> {
   sample: CatalogResponse<T>;
   marks: (item: T) => CatalogMark[];
   searchText: (item: T) => string;
+  /** Kind-specific sections of the details dialog */
+  details?: (item: T) => ReactNode;
   /** Missing when the user may not install */
   install?: (item: T) => Promise<unknown>;
 }
 
-export function CatalogBrowser<T extends CatalogEntry>({ id, query, view, icon: Icon, repo, sample, marks, searchText, install }: CatalogBrowserProps<T>) {
+export function CatalogBrowser<T extends CatalogEntry>({ id, query, view, icon: Icon, repo, sample, marks, searchText, details, install }: CatalogBrowserProps<T>) {
   const { t } = useTranslation("modules.catalog");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<CatalogFilter>("all");
   const [sort, setSort] = useState<CatalogSort>("name");
   const [installing, setInstalling] = useState<Set<string>>(() => new Set());
   const [confirming, setConfirming] = useState<T | null>(null);
+  // By id, so the dialog follows the install state after a refetch
+  const [viewingId, setViewingId] = useState<string | null>(null);
 
   const all = query.data?.items ?? [];
+  const viewing = all.find((item) => item.id === viewingId) ?? null;
   const q = search.trim().toLowerCase();
   const shown = sortItems(
     all.filter((item) => matchesFilter(item, filter) && (!q || `${item.name} ${item.id} ${item.author} ${item.description} ${searchText(item)}`.toLowerCase().includes(q))),
@@ -181,6 +187,7 @@ export function CatalogBrowser<T extends CatalogEntry>({ id, query, view, icon: 
                         icon={Icon}
                         installing={installing.has(item.id)}
                         onInstall={install ? () => onInstall(item) : undefined}
+                        onOpen={() => setViewingId(item.id)}
                       />
                     ))}
                   </TableBody>
@@ -196,6 +203,7 @@ export function CatalogBrowser<T extends CatalogEntry>({ id, query, view, icon: 
                     icon={Icon}
                     installing={installing.has(item.id)}
                     onInstall={install ? () => onInstall(item) : undefined}
+                    onOpen={() => setViewingId(item.id)}
                   />
                 ))}
               </div>
@@ -213,6 +221,16 @@ export function CatalogBrowser<T extends CatalogEntry>({ id, query, view, icon: 
         <GitPullRequest className="size-3.5" />
         {t("addYours", repo)}
       </a>
+
+      <CatalogItemDialog
+        item={viewing}
+        icon={Icon}
+        marks={viewing ? marks(viewing) : []}
+        details={viewing && details?.(viewing)}
+        installing={!!viewing && installing.has(viewing.id)}
+        onInstall={install && viewing ? () => onInstall(viewing) : undefined}
+        onClose={() => setViewingId(null)}
+      />
 
       <CommunityInstallDialog
         item={confirming}
