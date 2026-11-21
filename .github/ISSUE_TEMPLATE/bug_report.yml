@@ -1,6 +1,6 @@
 name: Bug report / Баг
 description: Something doesn't work as it should / Что-то работает не так
-labels: [bug]
+labels: ["баг / bug"]
 body:
   - type: markdown
     attributes:

@@ -1,6 +1,6 @@
 name: Translation / Перевод
 description: Fix a translation or add a new language / Исправить перевод или добавить язык
-labels: [translation]
+labels: ["перевод / translation"]
 body:
   - type: markdown
     attributes:
