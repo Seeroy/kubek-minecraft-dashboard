@@ -150,6 +150,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
     },
   },
   world: {
+    movedToGamerules: "В этой версии Minecraft эти настройки перенесены в правила игры. Меняйте их в консоли командой /gamerule, автодополнение подскажет названия правил",
     worldGeneration: {
       title: "Генерация мира",
       description: "Настройка создания мира и параметров terrain",

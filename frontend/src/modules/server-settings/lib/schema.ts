@@ -36,7 +36,8 @@ type FieldBase = { key: string; label: string; icon: LucideIcon };
 export type PropertyField = FieldBase &
   (
     | { kind: "text" | "number"; hint?: string; placeholder?: string; wide?: boolean }
-    | { kind: "switch"; hint?: string; offWarning?: string }
+    // gamerule: on newer versions the key became a game rule
+    | { kind: "switch"; hint?: string; offWarning?: string; gamerule?: boolean }
     | { kind: "select"; options: { value: string; label: string }[] }
     // Rendered by a dedicated component next to the generic ones
     | { kind: "motd" | "seed"; hint?: string; placeholder?: string; wide: true }
@@ -161,7 +162,7 @@ export const PROPERTY_GROUPS: PropertyGroup[] = [
     icon: Orbit,
     title: "world.dimensionSettings.title",
     description: "world.dimensionSettings.description",
-    fields: [{ kind: "switch", key: "allow-nether", icon: Flame, label: "world.dimensionSettings.allowNether", hint: "world.dimensionSettings.allowNetherDescription" }],
+    fields: [{ kind: "switch", key: "allow-nether", icon: Flame, label: "world.dimensionSettings.allowNether", hint: "world.dimensionSettings.allowNetherDescription", gamerule: true }],
   },
   {
     id: "spawning",
@@ -171,9 +172,9 @@ export const PROPERTY_GROUPS: PropertyGroup[] = [
     title: "world.spawnSettings.title",
     description: "world.spawnSettings.description",
     fields: [
-      { kind: "switch", key: "spawn-animals", icon: Rabbit, label: "world.spawnSettings.spawnAnimals", hint: "world.spawnSettings.spawnAnimalsDescription" },
-      { kind: "switch", key: "spawn-monsters", icon: Bug, label: "world.spawnSettings.spawnMonsters", hint: "world.spawnSettings.spawnMonstersDescription" },
-      { kind: "switch", key: "spawn-npcs", icon: Users, label: "world.spawnSettings.spawnNpcs", hint: "world.spawnSettings.spawnNpcsDescription" },
+      { kind: "switch", key: "spawn-animals", icon: Rabbit, label: "world.spawnSettings.spawnAnimals", hint: "world.spawnSettings.spawnAnimalsDescription", gamerule: true },
+      { kind: "switch", key: "spawn-monsters", icon: Bug, label: "world.spawnSettings.spawnMonsters", hint: "world.spawnSettings.spawnMonstersDescription", gamerule: true },
+      { kind: "switch", key: "spawn-npcs", icon: Users, label: "world.spawnSettings.spawnNpcs", hint: "world.spawnSettings.spawnNpcsDescription", gamerule: true },
     ],
   },
   {

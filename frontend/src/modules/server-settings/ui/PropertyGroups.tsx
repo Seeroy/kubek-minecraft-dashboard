@@ -1,12 +1,13 @@
 "use client";
 import type { Server } from "@/modules/server";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Switch } from "@/shared/ui/switch";
-import { Shuffle } from "lucide-react";
+import { Info, Shuffle } from "lucide-react";
 import type { SettingsDraft } from "../hooks/useSettingsDraft";
 import { PROPERTY_GROUPS, type PropertyField, type SettingsTab } from "../lib/schema";
 import { MotdPreview } from "./MotdPreview";
@@ -95,24 +96,41 @@ function PropertyControl({ field, draft, server }: { field: PropertyField; draft
   }
 }
 
+// The switch would write a key the server no longer reads
+const movedToGamerule = (field: PropertyField, draft: SettingsDraft) => field.kind === "switch" && !!field.gamerule && draft.propertyMissing(field.key);
+
+function GameruleNotice() {
+  const { t } = useTranslation("modules.serverSettings.world");
+  return (
+    <Alert className="md:col-span-2">
+      <Info />
+      <AlertDescription>{t("movedToGamerules")}</AlertDescription>
+    </Alert>
+  );
+}
+
 export function PropertyGroups({ tab, draft, server }: { tab: SettingsTab; draft: SettingsDraft; server: Server }) {
   const { t } = useTranslation("modules.serverSettings");
   return (
     <>
-      {PROPERTY_GROUPS.filter((group) => group.tab === tab).map((group) => (
-        <SettingsGroup
-          key={group.id}
-          tone={group.tone}
-          icon={group.icon}
-          title={t(group.title)}
-          description={t(group.description)}
-          note={group.note && t(group.note)}
-        >
-          {group.fields.map((field) => (
-            <PropertyControl key={field.key} field={field} draft={draft} server={server} />
-          ))}
-        </SettingsGroup>
-      ))}
+      {PROPERTY_GROUPS.filter((group) => group.tab === tab).map((group) => {
+        const fields = group.fields.filter((field) => !movedToGamerule(field, draft));
+        return (
+          <SettingsGroup
+            key={group.id}
+            tone={group.tone}
+            icon={group.icon}
+            title={t(group.title)}
+            description={t(group.description)}
+            note={group.note && t(group.note)}
+          >
+            {fields.map((field) => (
+              <PropertyControl key={field.key} field={field} draft={draft} server={server} />
+            ))}
+            {fields.length < group.fields.length && <GameruleNotice />}
+          </SettingsGroup>
+        );
+      })}
     </>
   );
 }

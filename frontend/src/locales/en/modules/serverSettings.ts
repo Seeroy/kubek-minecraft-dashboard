@@ -147,6 +147,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
     },
   },
   world: {
+    movedToGamerules: "This Minecraft version moved these settings to game rules. Change them in the console with /gamerule, autocomplete shows the rule names",
     worldGeneration: {
       title: "World Generation",
       description: "Configure world creation and terrain settings",

@@ -69,6 +69,8 @@ export function useSettingsDraft(server: Server) {
 
   const property = (key: string) => props[key] ?? savedProps[key] ?? "";
   const propertyChanged = (key: string) => key in props || removed.has(key);
+  // Empty before the first start, nothing counts as missing then
+  const propertyMissing = (key: string) => Object.keys(savedProps).length > 0 && !(key in savedProps);
 
   const setProperty = (key: string, value: string) => {
     if (removed.has(key)) {
@@ -192,6 +194,7 @@ export function useSettingsDraft(server: Server) {
     addedKeys: Object.keys(props).filter((key) => !(key in savedProps)),
     property,
     propertyChanged,
+    propertyMissing,
     setProperty,
     removeProperty,
     values,
