@@ -1,4 +1,4 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import {
   AUDIT_SOURCES,
   AuditCategory,
@@ -17,7 +17,8 @@ import {
   Min,
 } from "class-validator";
 
-export class QueryAuditLogsDto {
+// Not OmitType, in the built binary it lost the validators and rejected every filter
+export class AuditLogFiltersDto {
   @ApiProperty({ required: false, enum: AuditCategory })
   @IsOptional()
   @IsEnum(AuditCategory)
@@ -81,7 +82,9 @@ export class QueryAuditLogsDto {
   @Type(() => Number)
   @IsInt()
   to?: number;
+}
 
+export class QueryAuditLogsDto extends AuditLogFiltersDto {
   @ApiProperty({ required: false, default: 50, minimum: 1, maximum: 200 })
   @IsOptional()
   @Type(() => Number)
@@ -98,10 +101,7 @@ export class QueryAuditLogsDto {
   offset?: number = 0;
 }
 
-export class ExportAuditLogsDto extends OmitType(QueryAuditLogsDto, [
-  "limit",
-  "offset",
-] as const) {
+export class ExportAuditLogsDto extends AuditLogFiltersDto {
   @ApiProperty({ required: false, enum: AUDIT_EXPORT_FORMATS, default: "json" })
   @IsOptional()
   @IsIn(AUDIT_EXPORT_FORMATS)

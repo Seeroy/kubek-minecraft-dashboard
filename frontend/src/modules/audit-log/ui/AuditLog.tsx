@@ -18,7 +18,7 @@ import { ToggleGroup } from "@/shared/ui/toggle-group";
 import type { Tone } from "@/shared/ui/tone";
 import { AuditAction, AuditCategory, AuditResult, type AuditLogQuery } from "@shared/types/audit.types";
 import { AccessArea } from "@shared/access/areas";
-import { AlertTriangle, Archive, LogIn, RotateCw, ScrollText, Search, Server, X, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Archive, CircleCheck, CircleX, Layers, LogIn, RotateCw, ScrollText, Search, Server, X, type LucideIcon } from "lucide-react";
 import { qk } from "@/shared/queries/query-keys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -159,17 +159,36 @@ export function AuditLog() {
     <div className="grid stagger-enter gap-4">
       <PageHeader title={t("title")} description={t("description")} className="mb-1" />
       <Tabs value={tab} onValueChange={(value) => changeTab(value as AuditTab)} className="gap-4">
-        {canRotate && (
-          <TabsList>
-            <TabsTrigger value="log">
-              <ScrollText />
-              {t("tabs.log")}
-            </TabsTrigger>
-            <TabsTrigger value="retention">
-              <Archive />
-              {t("tabs.retention")}
-            </TabsTrigger>
-          </TabsList>
+        {(canRotate || tab === "log") && (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {canRotate && (
+              <TabsList>
+                <TabsTrigger value="log">
+                  <ScrollText />
+                  {t("tabs.log")}
+                </TabsTrigger>
+                <TabsTrigger value="retention">
+                  <Archive />
+                  {t("tabs.retention")}
+                </TabsTrigger>
+              </TabsList>
+            )}
+            {tab === "log" && (
+              <div className="ml-auto flex items-center gap-2">
+                <AuditExportButton filters={filters} total={query.data?.total ?? 0} />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={refresh}
+                  disabled={refreshing}
+                  aria-label={t("filters.refresh")}
+                  title={t("filters.refresh")}
+                >
+                  <RotateCw className={refreshing ? "animate-spin" : undefined} />
+                </Button>
+              </div>
+            )}
+          </div>
         )}
         <TabsContent value="log" className="grid gap-4">
           <Stats from={period.from} />
@@ -204,12 +223,15 @@ export function AuditLog() {
                 className="max-sm:w-full"
               >
                 <Toggle variant="segmented" className="max-sm:flex-1 max-sm:px-1" value={ALL}>
+                  <Layers />
                   {t("filters.all")}
                 </Toggle>
                 <Toggle variant="segmented" className="max-sm:flex-1 max-sm:px-1" value={AuditResult.SUCCESS}>
+                  <CircleCheck />
                   {t("results.success")}
                 </Toggle>
                 <Toggle variant="segmented" className="max-sm:flex-1 max-sm:px-1" value={AuditResult.FAILED}>
+                  <CircleX />
                   {t("results.failed")}
                 </Toggle>
               </ToggleGroup>
@@ -232,18 +254,6 @@ export function AuditLog() {
                   {t("filters.reset")}
                 </Button>
               )}
-              <div className="ml-auto" />
-              <AuditExportButton filters={filters} total={query.data?.total ?? 0} />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={refresh}
-                disabled={refreshing}
-                aria-label={t("filters.refresh")}
-                title={t("filters.refresh")}
-              >
-                <RotateCw className={refreshing ? "animate-spin" : undefined} />
-              </Button>
             </div>
 
             <DataReveal id="audit-log" data={query.data?.items ?? []} loading={query.isLoading} sample={SAMPLE_AUDIT}>
