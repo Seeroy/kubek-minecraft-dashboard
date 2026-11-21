@@ -51,3 +51,32 @@ export function useRemoveBlueprintMutation() {
       queryClient.invalidateQueries({ queryKey: qk.serverTypes.all }),
   });
 }
+
+/** KubekPanel/blueprints catalog, the backend caches it for 10 minutes */
+export function useBlueprintsCatalog(options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: qk.serverTypes.catalog(),
+    queryFn: () => api.serverTypes.catalog(),
+    enabled: options.enabled ?? true,
+    staleTime: 5 * 60_000,
+    // the tab shows its own error with a retry
+    meta: { silent: true },
+  });
+}
+
+export function useInstallBlueprintFromCatalogMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.serverTypes.installFromCatalog(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.serverTypes.all }),
+  });
+}
+
+/** Skips the backend cache, for the refresh button */
+export function useRefreshBlueprintsCatalogMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.serverTypes.catalog(true),
+    onSuccess: (data) => queryClient.setQueryData(qk.serverTypes.catalog(), data),
+  });
+}

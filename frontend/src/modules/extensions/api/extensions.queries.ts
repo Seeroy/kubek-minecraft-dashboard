@@ -67,3 +67,32 @@ export function useRemoveExtensionMutation() {
       queryClient.invalidateQueries({ queryKey: qk.extensions.all }),
   });
 }
+
+/** KubekPanel/extensions catalog, the backend caches it for 10 minutes */
+export function useExtensionsCatalog(options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: qk.extensions.catalog(),
+    queryFn: () => api.extensions.catalog(),
+    enabled: options.enabled ?? true,
+    staleTime: 5 * 60_000,
+    // the tab shows its own error with a retry
+    meta: { silent: true },
+  });
+}
+
+export function useInstallExtensionFromCatalogMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.extensions.installFromCatalog(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.extensions.all }),
+  });
+}
+
+/** Skips the backend cache, for the refresh button */
+export function useRefreshExtensionsCatalogMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.extensions.catalog(true),
+    onSuccess: (data) => queryClient.setQueryData(qk.extensions.catalog(), data),
+  });
+}

@@ -152,9 +152,11 @@ export class ExtensionManager implements OnModuleInit {
     );
   }
 
-  private async installFromBuffer(
+  /** expectedId guards catalog installs against a package with someone else's id */
+  async installFromBuffer(
     buffer: Buffer,
     filename: string,
+    expectedId?: string,
   ): Promise<ExtensionRecord> {
     const staged = await this.stage(buffer, filename);
     try {
@@ -162,6 +164,10 @@ export class ExtensionManager implements OnModuleInit {
       if (errors.length)
         throw new BadRequestException(
           `Invalid extension: ${errors.join(", ")}`,
+        );
+      if (expectedId && staged.manifest.id !== expectedId)
+        throw new BadRequestException(
+          `Package id ${staged.manifest.id} does not match ${expectedId}`,
         );
 
       const dest = join(EXT_ROOT, safeId(staged.manifest.id));
@@ -176,13 +182,22 @@ export class ExtensionManager implements OnModuleInit {
       if (staged.manifest.frontend)
         await this.buildFrontend(dest, staged.manifest.frontend.entry);
 
-      return this.repo.upsert({
+      // An update keeps what was already approved, new permissions still need consent
+      const requested = staged.manifest.permissions?.requires ?? [];
+      const granted = (existing?.grantedCapabilities ?? []).filter((c) =>
+        requested.includes(c),
+      );
+      const record = this.repo.upsert({
         id: staged.manifest.id,
         enabled: false,
         manifest: staged.manifest,
-        grantedCapabilities: [],
+        grantedCapabilities: granted,
         status: "installed",
       });
+      // A failed start shows up as the error status, the install itself went fine
+      if (existing?.enabled && granted.length === requested.length)
+        return this.enable(record.id).catch(() => this.require(record.id));
+      return record;
     } finally {
       fs.rmSync(staged.dir, { recursive: true, force: true });
     }

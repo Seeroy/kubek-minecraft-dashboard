@@ -8,6 +8,7 @@ import { componentsTranslations } from "./modules/components";
 import { consoleTranslations } from "./modules/console";
 import { dashboardTranslations } from "./modules/dashboard";
 import { diagnosticsTranslations } from "./modules/diagnostics";
+import { catalogTranslations } from "./modules/catalog";
 import { extensionsTranslations } from "./modules/extensions";
 import { filesTranslations } from "./modules/files";
 import { javaManagerTranslations } from "./modules/javaManager";
@@ -72,6 +73,7 @@ export const usTranslations: TranslationDictionary = {
     diagnostics: diagnosticsTranslations,
     dashboard: dashboardTranslations,
     auditLog: auditLogTranslations,
+    catalog: catalogTranslations,
     extensions: extensionsTranslations,
     serverTypes: serverTypesTranslations,
     whatsNew: whatsNewTranslations,

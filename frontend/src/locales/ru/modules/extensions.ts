@@ -1,9 +1,22 @@
 import type { TranslationDictionary } from "../../../locales/types";
+import { plural } from "../plural";
 
 export const extensionsTranslations: TranslationDictionary = {
   title: "Расширения",
   description: "Устанавливайте расширения панели, проверяйте запрашиваемый доступ, включайте или удаляйте их",
   reload: "Перезагрузить",
+  tabs: {
+    installed: "Установленные",
+    catalog: "Каталог",
+    view: "Вид каталога",
+    cards: "Карточки",
+    table: "Таблица",
+  },
+  catalog: {
+    permissions: (n: number) => `${n} ${plural(n, ["разрешение", "разрешения", "разрешений"])}`,
+    backend: "Серверная часть",
+    frontend: "Интерфейс",
+  },
   notice: {
     title: "Код расширений выполняется без изоляции",
     description:
@@ -76,6 +89,7 @@ export const extensionsTranslations: TranslationDictionary = {
   },
   toasts: {
     installed: (name: string) => `Расширение ${name} установлено, проверьте доступ`,
+    updated: (name: string) => `Расширение ${name} обновлено`,
     consent: "Согласие сохранено",
     enabled: (name: string) => `${name} включено`,
     disabled: (name: string) => `${name} выключено`,

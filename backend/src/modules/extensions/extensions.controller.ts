@@ -15,6 +15,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UploadedFile,
@@ -35,7 +36,13 @@ import {
 } from "@nestjs/swagger";
 import { AccessArea } from "@shared/access/areas";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
+import type { CatalogExtensionIndexItem } from "@shared/types/catalog.types";
 import type { Request, Response } from "express";
+import { CatalogService } from "../catalog/catalog.service";
+import {
+  CatalogExtensionsResponseDto,
+  CatalogQueryDto,
+} from "../catalog/dto/catalog.dto";
 import {
   ExtensionRegistryEntryDto,
   ExtensionSummaryDto,
@@ -47,7 +54,10 @@ import { ExtensionManager } from "./extension-manager.service";
 @Controller("api/extensions")
 @UseGuards(BearerAuthGuard, AccessGuard)
 export class ExtensionsController {
-  constructor(private readonly manager: ExtensionManager) {}
+  constructor(
+    private readonly manager: ExtensionManager,
+    private readonly catalog: CatalogService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "List installed extensions" })
@@ -72,6 +82,50 @@ export class ExtensionsController {
   @ApiErrorResponses()
   registry(): ExtensionRegistryEntryDto[] {
     return this.manager.frontendRegistry();
+  }
+
+  @Get("catalog")
+  @ApiOperation({
+    summary: "Extensions from the KubekPanel/extensions catalog",
+  })
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  @ApiOkResponse({ type: CatalogExtensionsResponseDto })
+  @ApiErrorResponses([401, 403, 502])
+  catalogList(
+    @Query() q: CatalogQueryDto,
+  ): Promise<CatalogExtensionsResponseDto> {
+    const installed = new Map(
+      this.manager.list().map((r) => [r.id, { version: r.manifest.version }]),
+    );
+    return this.catalog.list<CatalogExtensionIndexItem>(
+      "extensions",
+      installed,
+      q.refresh,
+    );
+  }
+
+  @Post("catalog/:id/install")
+  @ApiOperation({ summary: "Install or update an extension from the catalog" })
+  // Same as an upload, the code runs in-process
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  @UseGuards(AdminGuard)
+  @Audit({
+    action: AuditAction.EXTENSION_INSTALL,
+    category: AuditCategory.SETTINGS,
+    resourceType: "extension",
+    resolve: ({ result }) => ({
+      resourceName: result?.manifest?.name,
+      details: { source: "catalog", version: result?.manifest?.version },
+    }),
+  })
+  @HttpCode(201)
+  @ApiCreatedResponse({ type: ExtensionSummaryDto })
+  @ApiErrorResponses([400, 401, 403, 404, 502])
+  async installFromCatalog(
+    @Param("id") id: string,
+  ): Promise<ExtensionSummaryDto> {
+    const pkg = await this.catalog.download("extensions", id);
+    return this.manager.installFromBuffer(pkg.buffer, pkg.filename, id);
   }
 
   @Get(":id/assets/*path")

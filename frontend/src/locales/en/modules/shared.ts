@@ -110,6 +110,9 @@ export const sharedTranslations: TranslationDictionary = {
       COMPANION_REJECTED: "Kubek Companion refused the request",
       COMPANION_RATE_LIMITED: "A lag report was just collected, try again in a few seconds",
       COMPANION_RELEASE_UNAVAILABLE: "Could not get Kubek Companion from GitHub, try again later",
+      CATALOG_UNAVAILABLE: (_field?: string, reason?: string) => (reason ? `The catalog is unavailable: ${reason}` : "The catalog is unavailable, try again later"),
+      CATALOG_ITEM_BLOCKED: (_field?: string, reason?: string) => (reason ? `The package was pulled from the catalog: ${reason}` : "The package was pulled from the catalog"),
+      CATALOG_CHECKSUM_MISMATCH: "The downloaded package doesn't match the catalog, install cancelled",
     },
   },
   fileSizes: {

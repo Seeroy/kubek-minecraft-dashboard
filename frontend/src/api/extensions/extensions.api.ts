@@ -1,6 +1,8 @@
 import { authHttp, type AuthHttpClient } from "@/shared/lib/http";
 import type { Capability } from "@kubekpanel/extension-sdk";
 import type {
+  CatalogExtension,
+  CatalogResponse,
   ExtensionRegistryEntry,
   InstalledExtension,
 } from "./extensions.model";
@@ -21,6 +23,13 @@ export class ExtensionsApi {
       body: formData,
     });
   };
+
+  catalog = (refresh = false): Promise<CatalogResponse<CatalogExtension>> =>
+    this.authHttp.get<CatalogResponse<CatalogExtension>>(`extensions/catalog${refresh ? "?refresh=true" : ""}`);
+
+  // Downloads on the server can take a while on a slow link
+  installFromCatalog = (id: string): Promise<InstalledExtension> =>
+    this.authHttp.post<InstalledExtension>(`extensions/catalog/${encodeURIComponent(id)}/install`, { timeout: 120_000 });
 
   consent = (id: string, capabilities: Capability[]): Promise<void> =>
     this.authHttp.post<void>(`extensions/${encodeURIComponent(id)}/consent`, {

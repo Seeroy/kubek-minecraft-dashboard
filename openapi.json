@@ -209,6 +209,224 @@
         }
       }
     },
+    "/api/audit-logs/export": {
+      "get": {
+        "operationId": "AuditLogController_export",
+        "parameters": [
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "server",
+                "account",
+                "auth",
+                "settings",
+                "telegram",
+                "roles"
+              ]
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "serverId",
+            "required": false,
+            "in": "query",
+            "description": "Entries about one server",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "result",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "success",
+                "failed"
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "panel",
+                "telegram",
+                "system",
+                "assistant",
+                "api",
+                "mcp"
+              ]
+            }
+          },
+          {
+            "name": "apiKeyId",
+            "required": false,
+            "in": "query",
+            "description": "Entries made with one API key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Matches username, resource name, action or key name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Inclusive createdAt lower bound (ms epoch)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Inclusive createdAt upper bound (ms epoch)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "json",
+              "type": "string",
+              "enum": [
+                "json",
+                "csv"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON array or CSV file, newest first"
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download every entry matching the filters",
+        "tags": [
+          "Audit Log"
+        ],
+        "x-access": {
+          "area": "audit",
+          "level": "read"
+        }
+      }
+    },
     "/api/audit-logs/retention": {
       "get": {
         "operationId": "AuditLogController_getRetention",
@@ -4659,6 +4877,167 @@
           }
         ],
         "summary": "Install a blueprint from an uploaded file",
+        "tags": [
+          "Server Types"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      }
+    },
+    "/api/server-types/catalog": {
+      "get": {
+        "operationId": "ServerTypesController_catalogList",
+        "parameters": [
+          {
+            "name": "refresh",
+            "required": false,
+            "in": "query",
+            "description": "Skip the 10 minute cache and download the index again",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogBlueprintsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Blueprints from the KubekPanel/blueprints catalog",
+        "tags": [
+          "Server Types"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      }
+    },
+    "/api/server-types/catalog/{id}/install": {
+      "post": {
+        "operationId": "ServerTypesController_installFromCatalog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerTypeInstallResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Install or update a blueprint from the catalog",
         "tags": [
           "Server Types"
         ],
@@ -18132,6 +18511,167 @@
         ]
       }
     },
+    "/api/extensions/catalog": {
+      "get": {
+        "operationId": "ExtensionsController_catalogList",
+        "parameters": [
+          {
+            "name": "refresh",
+            "required": false,
+            "in": "query",
+            "description": "Skip the 10 minute cache and download the index again",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogExtensionsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Extensions from the KubekPanel/extensions catalog",
+        "tags": [
+          "Extensions"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      }
+    },
+    "/api/extensions/catalog/{id}/install": {
+      "post": {
+        "operationId": "ExtensionsController_installFromCatalog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionSummaryDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Install or update an extension from the catalog",
+        "tags": [
+          "Extensions"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      }
+    },
     "/api/extensions/{id}/assets/{path}": {
       "get": {
         "operationId": "ExtensionsController_asset",
@@ -18845,7 +19385,10 @@
               "COMPANION_TIMEOUT",
               "COMPANION_REJECTED",
               "COMPANION_RATE_LIMITED",
-              "COMPANION_RELEASE_UNAVAILABLE"
+              "COMPANION_RELEASE_UNAVAILABLE",
+              "CATALOG_UNAVAILABLE",
+              "CATALOG_ITEM_BLOCKED",
+              "CATALOG_CHECKSUM_MISMATCH"
             ],
             "example": "BAD_REQUEST"
           },
@@ -20713,6 +21256,239 @@
           "configFiles",
           "features",
           "source"
+        ]
+      },
+      "CatalogBlockedDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reason"
+        ]
+      },
+      "CatalogEnginesDto": {
+        "type": "object",
+        "properties": {
+          "kubek": {
+            "type": "string",
+            "example": ">=4.2.0"
+          }
+        },
+        "required": [
+          "kubek"
+        ]
+      },
+      "CatalogDownloadDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number",
+            "description": "Package size in bytes"
+          }
+        },
+        "required": [
+          "url",
+          "sha256",
+          "size"
+        ]
+      },
+      "CatalogBlueprintDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "authorUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "engines": {
+            "$ref": "#/components/schemas/CatalogEnginesDto"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true,
+            "description": "Png url"
+          },
+          "iconText": {
+            "type": "string",
+            "nullable": true,
+            "description": "Emoji icon"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "official",
+              "community"
+            ]
+          },
+          "repo": {
+            "type": "string",
+            "description": "owner/name on GitHub"
+          },
+          "commit": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reviewed commit the community package is built from"
+          },
+          "homepage": {
+            "type": "string",
+            "nullable": true
+          },
+          "license": {
+            "type": "string",
+            "nullable": true
+          },
+          "download": {
+            "$ref": "#/components/schemas/CatalogDownloadDto"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO date"
+          },
+          "compatible": {
+            "type": "boolean",
+            "description": "engines.kubek matches this panel"
+          },
+          "installedVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "updateAvailable": {
+            "type": "boolean"
+          },
+          "builtIn": {
+            "type": "boolean",
+            "description": "Ships with the panel and can't be replaced"
+          },
+          "shortName": {
+            "type": "string",
+            "nullable": true
+          },
+          "game": {
+            "type": "string"
+          },
+          "gameName": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "platforms": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "runtime": {
+            "type": "string",
+            "enum": [
+              "native",
+              "docker"
+            ]
+          },
+          "installSteps": {
+            "description": "Install step types it uses",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "version",
+          "author",
+          "authorUrl",
+          "engines",
+          "icon",
+          "iconText",
+          "source",
+          "repo",
+          "homepage",
+          "license",
+          "download",
+          "updatedAt",
+          "compatible",
+          "installedVersion",
+          "updateAvailable",
+          "builtIn",
+          "shortName",
+          "game",
+          "gameName",
+          "tags",
+          "platforms",
+          "runtime",
+          "installSteps"
+        ]
+      },
+      "CatalogBlueprintsResponseDto": {
+        "type": "object",
+        "properties": {
+          "blocked": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogBlockedDto"
+            }
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "ISO date the index was built"
+          },
+          "fetchedAt": {
+            "type": "number",
+            "description": "When the panel downloaded it (ms epoch)"
+          },
+          "stale": {
+            "type": "boolean",
+            "description": "GitHub didn't answer, this is an old copy"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogBlueprintDto"
+            }
+          }
+        },
+        "required": [
+          "blocked",
+          "generatedAt",
+          "fetchedAt",
+          "stale",
+          "items"
         ]
       },
       "ServerTypeInstallResponseDto": {
@@ -27715,6 +28491,169 @@
           "bundleUrl",
           "contributes",
           "locales"
+        ]
+      },
+      "CatalogExtensionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "authorUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "engines": {
+            "$ref": "#/components/schemas/CatalogEnginesDto"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true,
+            "description": "Png url"
+          },
+          "iconText": {
+            "type": "string",
+            "nullable": true,
+            "description": "Emoji icon"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "official",
+              "community"
+            ]
+          },
+          "repo": {
+            "type": "string",
+            "description": "owner/name on GitHub"
+          },
+          "commit": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reviewed commit the community package is built from"
+          },
+          "homepage": {
+            "type": "string",
+            "nullable": true
+          },
+          "license": {
+            "type": "string",
+            "nullable": true
+          },
+          "download": {
+            "$ref": "#/components/schemas/CatalogDownloadDto"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO date"
+          },
+          "compatible": {
+            "type": "boolean",
+            "description": "engines.kubek matches this panel"
+          },
+          "installedVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "updateAvailable": {
+            "type": "boolean"
+          },
+          "builtIn": {
+            "type": "boolean",
+            "description": "Ships with the panel and can't be replaced"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hasBackend": {
+            "type": "boolean"
+          },
+          "hasFrontend": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "version",
+          "author",
+          "authorUrl",
+          "engines",
+          "icon",
+          "iconText",
+          "source",
+          "repo",
+          "homepage",
+          "license",
+          "download",
+          "updatedAt",
+          "compatible",
+          "installedVersion",
+          "updateAvailable",
+          "builtIn",
+          "keywords",
+          "capabilities",
+          "hasBackend",
+          "hasFrontend"
+        ]
+      },
+      "CatalogExtensionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "blocked": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogBlockedDto"
+            }
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "ISO date the index was built"
+          },
+          "fetchedAt": {
+            "type": "number",
+            "description": "When the panel downloaded it (ms epoch)"
+          },
+          "stale": {
+            "type": "boolean",
+            "description": "GitHub didn't answer, this is an old copy"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogExtensionDto"
+            }
+          }
+        },
+        "required": [
+          "blocked",
+          "generatedAt",
+          "fetchedAt",
+          "stale",
+          "items"
         ]
       },
       "HealthDto": {

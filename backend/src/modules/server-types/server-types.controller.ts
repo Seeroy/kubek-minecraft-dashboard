@@ -19,6 +19,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -34,6 +35,12 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
+import type { CatalogBlueprintIndexItem } from "@shared/types/catalog.types";
+import { CatalogService } from "../catalog/catalog.service";
+import {
+  CatalogBlueprintsResponseDto,
+  CatalogQueryDto,
+} from "../catalog/dto/catalog.dto";
 import {
   ServerTypeDto,
   ServerTypeInstallResponseDto,
@@ -53,6 +60,7 @@ export class ServerTypesController {
     private readonly versions: VersionResolverService,
     private readonly installer: ServerTypesInstaller,
     private readonly docker: DockerService,
+    private readonly catalog: CatalogService,
   ) {}
 
   @Get()
@@ -88,6 +96,66 @@ export class ServerTypesController {
         queryProtocol: b.manifest.query?.protocol,
         source: b.source,
       }));
+  }
+
+  @Get("catalog")
+  @ApiOperation({
+    summary: "Blueprints from the KubekPanel/blueprints catalog",
+  })
+  @ApiOkResponse({ type: CatalogBlueprintsResponseDto })
+  @ApiErrorResponses([401, 403, 502])
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  catalogList(
+    @Query() q: CatalogQueryDto,
+  ): Promise<CatalogBlueprintsResponseDto> {
+    const installed = new Map(
+      this.registry
+        .list()
+        .map((b) => [
+          b.manifest.id,
+          { version: b.manifest.version, builtIn: b.source === "bundled" },
+        ]),
+    );
+    return this.catalog.list<CatalogBlueprintIndexItem>(
+      "blueprints",
+      installed,
+      q.refresh,
+    );
+  }
+
+  @Post("catalog/:id/install")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Install or update a blueprint from the catalog" })
+  @ApiCreatedResponse({ type: ServerTypeInstallResponseDto })
+  @ApiErrorResponses([400, 401, 403, 404, 502])
+  // Same as an upload, the resolver code runs in-process
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  @UseGuards(AdminGuard)
+  @Audit({
+    action: AuditAction.SERVER_TYPE_INSTALL,
+    category: AuditCategory.SETTINGS,
+    resourceType: "server_type",
+    resolve: ({ result }) => ({
+      resourceName: result?.name,
+      details: { source: "catalog" },
+    }),
+  })
+  async installFromCatalog(
+    @Param("id") id: string,
+  ): Promise<ServerTypeInstallResponseDto> {
+    if (this.registry.get(id)?.source === "bundled")
+      throw new BadRequestException("Bundled blueprints cannot be replaced");
+    const pkg = await this.catalog.download("blueprints", id);
+    const loaded = await this.installer.installFromBuffer(
+      pkg.buffer,
+      pkg.filename,
+      id,
+    );
+    return {
+      id: loaded.manifest.id,
+      name: loaded.manifest.name,
+      valid: loaded.valid,
+    };
   }
 
   @Get(":id/versions")

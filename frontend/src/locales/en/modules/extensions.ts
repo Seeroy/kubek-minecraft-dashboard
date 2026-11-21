@@ -3,6 +3,18 @@ import type { TranslationDictionary } from "../../../locales/types";
 export const extensionsTranslations: TranslationDictionary = {
   title: "Extensions",
   description: "Install panel extensions, review the access they ask for, turn them on or remove them",
+  tabs: {
+    installed: "Installed",
+    catalog: "Catalog",
+    view: "Catalog view",
+    cards: "Cards",
+    table: "Table",
+  },
+  catalog: {
+    permissions: (n: number) => (n === 1 ? "1 permission" : `${n} permissions`),
+    backend: "Backend",
+    frontend: "Interface",
+  },
   reload: "Reload",
   notice: {
     title: "Extension code runs without isolation",
@@ -76,6 +88,7 @@ export const extensionsTranslations: TranslationDictionary = {
   },
   toasts: {
     installed: (name: string) => `Extension ${name} installed, review its access`,
+    updated: (name: string) => `Extension ${name} updated`,
     consent: "Consent saved",
     enabled: (name: string) => `${name} enabled`,
     disabled: (name: string) => `${name} disabled`,

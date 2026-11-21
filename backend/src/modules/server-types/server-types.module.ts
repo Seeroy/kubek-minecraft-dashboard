@@ -1,3 +1,4 @@
+import { CatalogModule } from "@/modules/catalog/catalog.module";
 import { JavaModule } from "@/modules/java/java.module";
 import { Module } from "@nestjs/common";
 import { BlueprintResolver } from "./blueprint-resolver.service";
@@ -16,7 +17,7 @@ import { ResolverRunner } from "./versions/resolver-runner.service";
 import { VersionResolverService } from "./versions/version-resolver.service";
 
 @Module({
-  imports: [JavaModule],
+  imports: [JavaModule, CatalogModule],
   controllers: [ServerTypesController],
   providers: [
     ServerTypesRegistry,

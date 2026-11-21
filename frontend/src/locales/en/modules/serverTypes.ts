@@ -3,6 +3,21 @@ import type { TranslationDictionary } from "../../../locales/types";
 export const serverTypesTranslations: TranslationDictionary = {
   title: "Server types",
   description: "Install and manage server types (blueprints)",
+  tabs: {
+    installed: "Installed",
+    catalog: "Catalog",
+    view: "Catalog view",
+    cards: "Cards",
+    table: "Table",
+  },
+  catalog: {
+    otherOs: "Not for this OS",
+    steps: {
+      exec: "Runs commands",
+      steamcmd: "SteamCMD",
+    },
+    hostStepsHint: "Runs programs on the panel host while installing",
+  },
   refresh: "Refresh",
   notice: {
     title: "Blueprint code runs without isolation",
@@ -54,6 +69,7 @@ export const serverTypesTranslations: TranslationDictionary = {
   },
   toasts: {
     installed: (name: string) => `Server type ${name} installed`,
+    updated: (name: string) => `Server type ${name} updated`,
     removed: (name: string) => `Server type ${name} removed`,
   },
 };

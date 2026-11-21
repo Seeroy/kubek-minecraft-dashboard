@@ -13,7 +13,7 @@ import { AlertTriangle, Blocks, Check, ChevronDown, LayoutDashboard, Menu, Panel
 import { useState, type ReactNode } from "react";
 
 // Capabilities that reach outside the panel or act on servers deserve a second look
-const RISKY = new Set<Capability>(["servers:control", "http:outbound", "events:auth", "http:routes"]);
+export const RISKY = new Set<Capability>(["servers:control", "http:outbound", "events:auth", "http:routes"]);
 
 const STATUS_BADGE = {
   active: "success",

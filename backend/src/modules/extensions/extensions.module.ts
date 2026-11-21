@@ -1,3 +1,4 @@
+import { CatalogModule } from "@/modules/catalog/catalog.module";
 import { ServersModule } from "@/modules/servers/servers.module";
 import { Global, Module } from "@nestjs/common";
 import { ContextFactory } from "./context/context.factory";
@@ -12,7 +13,7 @@ import { InProcessHost } from "./isolation/in-process.host";
 
 @Global()
 @Module({
-  imports: [ServersModule],
+  imports: [ServersModule, CatalogModule],
   controllers: [ExtensionsController, ExtensionDispatchController],
   providers: [
     ExtensionEventBus,

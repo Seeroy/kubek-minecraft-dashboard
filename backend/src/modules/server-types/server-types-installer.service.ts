@@ -28,9 +28,11 @@ export class ServerTypesInstaller {
     );
   }
 
-  private async installFromBuffer(
+  /** expectedId guards catalog installs against a package with someone else's id */
+  async installFromBuffer(
     buffer: Buffer,
     filename: string,
+    expectedId?: string,
   ): Promise<LoadedBlueprint> {
     const isJson =
       filename.toLowerCase().endsWith(".json") || this.looksLikeJson(buffer);
@@ -43,6 +45,11 @@ export class ServerTypesInstaller {
       if (errors.length) {
         throw new BadRequestException(
           `Invalid blueprint: ${errors.join(", ")}`,
+        );
+      }
+      if (expectedId && staged.manifest.id !== expectedId) {
+        throw new BadRequestException(
+          `Package id ${staged.manifest.id} does not match ${expectedId}`,
         );
       }
 

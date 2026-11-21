@@ -5,6 +5,21 @@ export const serverTypesTranslations: TranslationDictionary = {
   title: "Типы серверов",
   description: "Устанавливайте типы серверов (blueprint) и управляйте ими",
   refresh: "Обновить",
+  tabs: {
+    installed: "Установленные",
+    catalog: "Каталог",
+    view: "Вид каталога",
+    cards: "Карточки",
+    table: "Таблица",
+  },
+  catalog: {
+    otherOs: "Не для этой ОС",
+    steps: {
+      exec: "Запускает команды",
+      steamcmd: "SteamCMD",
+    },
+    hostStepsHint: "При установке запускает программы на хосте панели",
+  },
   notice: {
     title: "Код блюпринтов выполняется без изоляции",
     description:
@@ -55,6 +70,7 @@ export const serverTypesTranslations: TranslationDictionary = {
   },
   toasts: {
     installed: (name: string) => `Тип сервера ${name} установлен`,
+    updated: (name: string) => `Тип сервера ${name} обновлён`,
     removed: (name: string) => `Тип сервера ${name} удалён`,
   },
 };

@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/audit-logs/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download every entry matching the filters */
+        get: operations["AuditLogController_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/audit-logs/retention": {
         parameters: {
             query?: never;
@@ -832,6 +849,40 @@ export interface paths {
         put?: never;
         /** Install a blueprint from an uploaded file */
         post: operations["ServerTypesController_install"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/server-types/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Blueprints from the KubekPanel/blueprints catalog */
+        get: operations["ServerTypesController_catalogList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/server-types/catalog/{id}/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Install or update a blueprint from the catalog */
+        post: operations["ServerTypesController_installFromCatalog"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3308,6 +3359,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/extensions/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Extensions from the KubekPanel/extensions catalog */
+        get: operations["ExtensionsController_catalogList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/extensions/catalog/{id}/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Install or update an extension from the catalog */
+        post: operations["ExtensionsController_installFromCatalog"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/extensions/{id}/assets/{path}": {
         parameters: {
             query?: never;
@@ -3472,7 +3557,7 @@ export interface components {
              * @example BAD_REQUEST
              * @enum {string}
              */
-            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "PAYLOAD_TOO_LARGE" | "ARCHIVE_TOO_LARGE" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "VERSIONS_UNAVAILABLE" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION" | "SESSION_REQUIRED" | "MCP_DISABLED" | "COMPANION_UNSUPPORTED" | "COMPANION_NOT_CONNECTED" | "COMPANION_TIMEOUT" | "COMPANION_REJECTED" | "COMPANION_RATE_LIMITED" | "COMPANION_RELEASE_UNAVAILABLE";
+            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "PAYLOAD_TOO_LARGE" | "ARCHIVE_TOO_LARGE" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "VERSIONS_UNAVAILABLE" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION" | "SESSION_REQUIRED" | "MCP_DISABLED" | "COMPANION_UNSUPPORTED" | "COMPANION_NOT_CONNECTED" | "COMPANION_TIMEOUT" | "COMPANION_REJECTED" | "COMPANION_RATE_LIMITED" | "COMPANION_RELEASE_UNAVAILABLE" | "CATALOG_UNAVAILABLE" | "CATALOG_ITEM_BLOCKED" | "CATALOG_CHECKSUM_MISMATCH";
             /**
              * @description Human-readable error message
              * @example Validation failed
@@ -4421,6 +4506,69 @@ export interface components {
              * @example bundled
              */
             source: string;
+        };
+        CatalogBlockedDto: {
+            id: string;
+            reason: string;
+        };
+        CatalogEnginesDto: {
+            /** @example >=4.2.0 */
+            kubek: string;
+        };
+        CatalogDownloadDto: {
+            url: string;
+            sha256: string;
+            /** @description Package size in bytes */
+            size: number;
+        };
+        CatalogBlueprintDto: {
+            id: string;
+            name: string;
+            description: string;
+            version: string;
+            author: string;
+            authorUrl: string | null;
+            engines: components["schemas"]["CatalogEnginesDto"];
+            /** @description Png url */
+            icon: string | null;
+            /** @description Emoji icon */
+            iconText: string | null;
+            /** @enum {string} */
+            source: "official" | "community";
+            /** @description owner/name on GitHub */
+            repo: string;
+            /** @description Reviewed commit the community package is built from */
+            commit?: string | null;
+            homepage: string | null;
+            license: string | null;
+            download: components["schemas"]["CatalogDownloadDto"];
+            /** @description ISO date */
+            updatedAt: string | null;
+            /** @description engines.kubek matches this panel */
+            compatible: boolean;
+            installedVersion: string | null;
+            updateAvailable: boolean;
+            /** @description Ships with the panel and can't be replaced */
+            builtIn: boolean;
+            shortName: string | null;
+            game: string;
+            gameName: string | null;
+            tags: string[];
+            platforms: string[] | null;
+            /** @enum {string} */
+            runtime: "native" | "docker";
+            /** @description Install step types it uses */
+            installSteps: string[];
+        };
+        CatalogBlueprintsResponseDto: {
+            blocked: components["schemas"]["CatalogBlockedDto"][];
+            /** @description ISO date the index was built */
+            generatedAt: string;
+            /** @description When the panel downloaded it (ms epoch) */
+            fetchedAt: number;
+            /** @description GitHub didn't answer, this is an old copy */
+            stale: boolean;
+            items: components["schemas"]["CatalogBlueprintDto"][];
         };
         ServerTypeInstallResponseDto: {
             /**
@@ -7122,6 +7270,50 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        CatalogExtensionDto: {
+            id: string;
+            name: string;
+            description: string;
+            version: string;
+            author: string;
+            authorUrl: string | null;
+            engines: components["schemas"]["CatalogEnginesDto"];
+            /** @description Png url */
+            icon: string | null;
+            /** @description Emoji icon */
+            iconText: string | null;
+            /** @enum {string} */
+            source: "official" | "community";
+            /** @description owner/name on GitHub */
+            repo: string;
+            /** @description Reviewed commit the community package is built from */
+            commit?: string | null;
+            homepage: string | null;
+            license: string | null;
+            download: components["schemas"]["CatalogDownloadDto"];
+            /** @description ISO date */
+            updatedAt: string | null;
+            /** @description engines.kubek matches this panel */
+            compatible: boolean;
+            installedVersion: string | null;
+            updateAvailable: boolean;
+            /** @description Ships with the panel and can't be replaced */
+            builtIn: boolean;
+            keywords: string[];
+            capabilities: string[];
+            hasBackend: boolean;
+            hasFrontend: boolean;
+        };
+        CatalogExtensionsResponseDto: {
+            blocked: components["schemas"]["CatalogBlockedDto"][];
+            /** @description ISO date the index was built */
+            generatedAt: string;
+            /** @description When the panel downloaded it (ms epoch) */
+            fetchedAt: number;
+            /** @description GitHub didn't answer, this is an old copy */
+            stale: boolean;
+            items: components["schemas"]["CatalogExtensionDto"][];
+        };
         HealthDto: {
             /**
              * @description Overall state, error when a dependency is down
@@ -7228,6 +7420,86 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    AuditLogController_export: {
+        parameters: {
+            query?: {
+                category?: "server" | "account" | "auth" | "settings" | "telegram" | "roles";
+                action?: string;
+                userId?: string;
+                /** @description Entries about one server */
+                serverId?: string;
+                result?: "success" | "failed";
+                source?: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp";
+                /** @description Entries made with one API key */
+                apiKeyId?: string;
+                /** @description Matches username, resource name, action or key name */
+                search?: string;
+                /** @description Inclusive createdAt lower bound (ms epoch) */
+                from?: number;
+                /** @description Inclusive createdAt upper bound (ms epoch) */
+                to?: number;
+                format?: "json" | "csv";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JSON array or CSV file, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                    "text/csv": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                    "text/csv": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                    "text/csv": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                    "text/csv": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                    "text/csv": components["schemas"]["ApiErrorBodyDto"];
                 };
             };
         };
@@ -10338,6 +10610,113 @@ export interface operations {
                 };
             };
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerTypesController_catalogList: {
+        parameters: {
+            query?: {
+                /** @description Skip the 10 minute cache and download the index again */
+                refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogBlueprintsResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerTypesController_installFromCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerTypeInstallResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -19343,6 +19722,113 @@ export interface operations {
                 };
             };
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_catalogList: {
+        parameters: {
+            query?: {
+                /** @description Skip the 10 minute cache and download the index again */
+                refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogExtensionsResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_installFromCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtensionSummaryDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
