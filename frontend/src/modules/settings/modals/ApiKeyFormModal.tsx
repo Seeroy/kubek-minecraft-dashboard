@@ -2,14 +2,10 @@
 
 import type { ApiKey, CreatedApiKey } from "@/api";
 import { useNotifications } from "@/modules/notifications";
-import { useServerStore } from "@/modules/server";
-import { ServerAvatar } from "@/modules/server/ui/ServerAvatar";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { cn } from "@/shared/lib/cn";
 import type { ModalProps } from "@/shared/types/modal.types";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
@@ -27,6 +23,7 @@ import { useCreateApiKeyMutation, useMcpSettings, useUpdateApiKeyMutation } from
 import { toAccessMap, toAccessMapDto } from "../data/access-areas";
 import { useAccessErrorMessage } from "../lib/access-errors";
 import { AccessMatrix } from "../ui/access/AccessMatrix";
+import { ServerAccessField } from "../ui/access/ServerAccessField";
 import { useAccessLimit } from "../ui/access/useAccessContext";
 import { ApiKeyToken } from "../ui/api-keys/ApiKeyToken";
 
@@ -67,7 +64,6 @@ export default function ApiKeyFormModal({ isOpen, onClose, apiKey }: ModalProps 
   const { t } = useTranslation("modules.settings.apiKeys.form");
   const { t: tRoot } = useTranslation();
   const { notify } = useNotifications();
-  const { servers } = useServerStore();
   const limit = useAccessLimit();
   const mcpSettings = useMcpSettings();
   const errorMessage = useAccessErrorMessage();
@@ -90,7 +86,6 @@ export default function ApiKeyFormModal({ isOpen, onClose, apiKey }: ModalProps 
     },
   });
   const { errors } = form.formState;
-  const restrict = useWatch({ control: form.control, name: "restrict" });
   const mcp = useWatch({ control: form.control, name: "mcp" });
 
   const submit = form.handleSubmit(async (values) => {
@@ -113,8 +108,6 @@ export default function ApiKeyFormModal({ isOpen, onClose, apiKey }: ModalProps 
       setSubmitError(errorMessage(err));
     }
   });
-
-  const toggleIn = (list: string[], id: string, on: boolean) => (on ? [...list, id] : list.filter((item) => item !== id));
 
   if (created) {
     return (
@@ -208,47 +201,14 @@ export default function ApiKeyFormModal({ isOpen, onClose, apiKey }: ModalProps 
               {mcp && mcpSettings.data && !mcpSettings.data.enabled && <p className="text-[12.5px] text-warn">{t("mcpOff")}</p>}
             </section>
 
-            <section className="grid gap-2">
-              <div className="flex items-center justify-between gap-4">
-                <span className="font-semibold">{t("servers")}</span>
-                <Controller
-                  control={form.control}
-                  name="restrict"
-                  render={({ field }) => (
-                    <label className="flex cursor-pointer items-center gap-2 text-[12.5px] font-medium">
-                      {t("restrict")}
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </label>
-                  )}
-                />
-              </div>
-              {servers.length === 0 ? (
-                <p className="text-[12.5px] text-muted-foreground">{t("noServers")}</p>
-              ) : (
-                <Controller
-                  control={form.control}
-                  name="servers"
-                  render={({ field }) => (
-                    <div className={cn("flex flex-wrap gap-1.5 transition-opacity", !restrict && "pointer-events-none opacity-40")}>
-                      {servers.map((server) => (
-                        <label
-                          key={server.id}
-                          className="flex cursor-pointer items-center gap-2 rounded-md border border-border py-1.5 pr-2.5 pl-2 hover:bg-hover has-data-checked:border-primary/50 has-data-checked:bg-primary/6"
-                        >
-                          <Checkbox
-                            checked={!restrict || field.value.includes(server.id)}
-                            disabled={!restrict}
-                            onCheckedChange={(checked) => field.onChange(toggleIn(field.value, server.id, checked))}
-                          />
-                          <ServerAvatar serverId={server.id} name={server.name} className="size-5 rounded-[5px]" />
-                          <span className="text-[13px] font-medium">{server.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                />
-              )}
-            </section>
+            <ServerAccessField
+              control={form.control}
+              restrictName="restrict"
+              serversName="servers"
+              label={t("servers")}
+              restrictLabel={t("restrict")}
+              emptyLabel={t("noServers")}
+            />
 
             <section className="grid gap-2">
               <div className="grid gap-0.5">

@@ -65,6 +65,11 @@ export const componentsTranslations: TranslationDictionary = {
     stopping: "Останавливается",
     crashed: "Упал",
   },
+  pagination: {
+    prev: "Назад",
+    next: "Вперёд",
+    range: (from: number, to: number, total: number) => `${from}-${to} из ${total}`,
+  },
   loadError: {
     title: "Не удалось загрузить данные",
     description: "Проверьте соединение с панелью и попробуйте ещё раз",

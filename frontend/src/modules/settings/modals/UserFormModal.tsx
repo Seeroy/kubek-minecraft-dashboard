@@ -2,20 +2,15 @@
 
 import type { Account } from "@/api";
 import { useNotifications } from "@/modules/notifications";
-import { useServerStore } from "@/modules/server";
-import { ServerAvatar } from "@/modules/server/ui/ServerAvatar";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { cn } from "@/shared/lib/cn";
 import type { ModalProps } from "@/shared/types/modal.types";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Plate } from "@/shared/ui/plate";
 import { Spinner } from "@/shared/ui/spinner";
-import { Switch } from "@/shared/ui/switch";
 import type { AccessMap } from "@shared/access/areas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Pencil, Plus } from "lucide-react";
@@ -29,6 +24,7 @@ import { useAccessErrorMessage } from "../lib/access-errors";
 import { AccessMatrix } from "../ui/access/AccessMatrix";
 import { AccessSummary } from "../ui/access/AccessSummary";
 import { RolePicker } from "../ui/access/RolePicker";
+import { ServerAccessField } from "../ui/access/ServerAccessField";
 import { useAccessLimit, useExtOptions, useInheritedRoles } from "../ui/access/useAccessContext";
 import { AccountFtpPassword } from "../ui/ftp/AccountFtpPassword";
 
@@ -68,7 +64,6 @@ export default function UserFormModal({ isOpen, onClose, account }: ModalProps &
   const { t } = useTranslation("modules.settings.userForm");
   const { t: tRoot } = useTranslation();
   const { notify } = useNotifications();
-  const { servers } = useServerStore();
   const roles = useRoles();
   const extOptions = useExtOptions();
   const limit = useAccessLimit();
@@ -92,7 +87,7 @@ export default function UserFormModal({ isOpen, onClose, account }: ModalProps &
     },
   });
   const { errors } = form.formState;
-  const [restrict, roleIds, grants, ext] = useWatch({ control: form.control, name: ["restrict", "roles", "grants", "ext"] });
+  const [roleIds, grants, ext] = useWatch({ control: form.control, name: ["roles", "grants", "ext"] });
   const inherited = useInheritedRoles(roles.data, roleIds);
   const error = (message: string | undefined) => (message ? <FieldError>{tRoot(message)}</FieldError> : null);
 
@@ -130,8 +125,6 @@ export default function UserFormModal({ isOpen, onClose, account }: ModalProps &
       notify({ type: "success", title: tRoot("modules.settings.users.toasts.created") });
     }
   };
-
-  const toggleIn = (list: string[], id: string, on: boolean) => (on ? [...list, id] : list.filter((item) => item !== id));
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !pending && onClose()}>
@@ -175,48 +168,14 @@ export default function UserFormModal({ isOpen, onClose, account }: ModalProps &
 
             {account && <AccountFtpPassword account={account} />}
 
-            <section className="grid gap-2">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-semibold">{t("serverAccess")}</span>
-                <Controller
-                  control={form.control}
-                  name="restrict"
-                  render={({ field }) => (
-                    <label className="flex cursor-pointer items-center gap-2 text-[12.5px] font-medium">
-                      {t("restrict")}
-                      <Switch checked={!!field.value} onCheckedChange={field.onChange} />
-                    </label>
-                  )}
-                />
-              </div>
-              {servers.length === 0 ? (
-                <p className="text-[12.5px] text-muted-foreground">{t("noServers")}</p>
-              ) : (
-                <Controller
-                  control={form.control}
-                  name="allowed"
-                  render={({ field }) => (
-                    <div className={cn("flex flex-wrap gap-1.5 transition-opacity", !restrict && "pointer-events-none opacity-40")}>
-                      {servers.map((server) => (
-                        <label
-                          key={server.id}
-                          className="flex cursor-pointer items-center gap-2 rounded-md border border-border py-1.5 pr-2.5 pl-2 hover:bg-hover has-data-checked:border-primary/50 has-data-checked:bg-primary/6"
-                        >
-                          <Checkbox
-                            // Unrestricted users reach every server, so all look picked
-                            checked={!restrict || field.value.includes(server.id)}
-                            disabled={!restrict}
-                            onCheckedChange={(checked) => field.onChange(toggleIn(field.value, server.id, checked))}
-                          />
-                          <ServerAvatar serverId={server.id} name={server.name} className="size-5 rounded-[5px]" />
-                          <span className="text-[13px] font-medium">{server.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                />
-              )}
-            </section>
+            <ServerAccessField
+              control={form.control}
+              restrictName="restrict"
+              serversName="allowed"
+              label={t("serverAccess")}
+              restrictLabel={t("restrict")}
+              emptyLabel={t("noServers")}
+            />
 
             <section className="grid gap-2">
               <div className="grid gap-0.5">

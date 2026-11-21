@@ -10,18 +10,18 @@ import { useInstalledContent, useRefreshContentSearch } from "@/shared/queries";
 import { Button } from "@/shared/ui/button";
 import { DataReveal, LoadReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { NoServerEmpty } from "@/shared/ui/NoServerEmpty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Toggle } from "@/shared/ui/toggle";
-import { ToggleGroup } from "@/shared/ui/toggle-group";
-import { Globe, LayoutGrid, List, Puzzle, RotateCw, Search, Server as ServerIcon, ServerOff, Upload } from "lucide-react";
+import { ViewModeToggle } from "@/shared/ui/ViewModeToggle";
+import { Globe, Puzzle, RotateCw, Search, Server as ServerIcon, Upload } from "lucide-react";
 import type { InstalledPluginView } from "@shared/types/plugins";
 import { useRef } from "react";
 import { getContentKind } from "../content-kind";
 import { SAMPLE_INSTALLED } from "../data/samples";
-import { type CatalogLayout, useCatalogView } from "../hooks/useCatalogView";
+import { useCatalogView } from "../hooks/useCatalogView";
 import { useContentTaskSync } from "../hooks/useContentTaskSync";
 import { useContentUpload } from "../hooks/useContentUpload";
 import { CONTENT_TABS, type ContentTab } from "../lib/tabs";
@@ -132,19 +132,13 @@ function ServerContent({ kind, server }: { kind: ContentKind; server: Server }) 
                 </TabsTrigger>
               </TabsList>
               {tab === "available" ? (
-                <ToggleGroup
-                  variant="segmented"
-                  value={[catalogView.view]}
-                  onValueChange={(next) => next[0] && catalogView.changeView(next[0] as CatalogLayout)}
-                  aria-label={tc("catalog.view.label")}
-                >
-                  <Toggle variant="segmented" value="cards" aria-label={tc("catalog.view.cards")} title={tc("catalog.view.cards")}>
-                    <LayoutGrid />
-                  </Toggle>
-                  <Toggle variant="segmented" value="table" aria-label={tc("catalog.view.table")} title={tc("catalog.view.table")}>
-                    <List />
-                  </Toggle>
-                </ToggleGroup>
+                <ViewModeToggle
+                  value={catalogView.view}
+                  onChange={catalogView.changeView}
+                  label={tc("catalog.view.label")}
+                  cardsLabel={tc("catalog.view.cards")}
+                  tableLabel={tc("catalog.view.table")}
+                />
               ) : (
                 <span className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground max-sm:hidden">
                   <Globe className="size-3.5" />
@@ -190,15 +184,7 @@ export default function ContentDashboard({ kind }: { kind: ContentKind }) {
     return (
       <div className="stagger-enter">
         <PageHeader title={t("title")} description={t("description")} />
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ServerOff />
-            </EmptyMedia>
-            <EmptyTitle>{tc("noServer.title")}</EmptyTitle>
-            <EmptyDescription>{tc("noServer.description")}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+        <NoServerEmpty title={tc("noServer.title")} description={tc("noServer.description")} />
       </div>
     );
   }

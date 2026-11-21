@@ -3,9 +3,9 @@ import { useServerStore, type Server } from "@/modules/server";
 import { TopbarActions } from "@/modules/topbar";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { NoServerEmpty } from "@/shared/ui/NoServerEmpty";
 import { PageHeader } from "@/shared/ui/page-header";
-import { RotateCw, ServerOff } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useLogContentQuery, useLogFilesQuery } from "../api/server-logs.queries";
@@ -55,15 +55,7 @@ export default function LogViewer() {
       {selectedServer ? (
         <ServerLogs key={selectedServer.id} server={selectedServer} />
       ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ServerOff />
-            </EmptyMedia>
-            <EmptyTitle>{t("noServer.title")}</EmptyTitle>
-            <EmptyDescription>{t("noServer.description")}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+        <NoServerEmpty title={t("noServer.title")} description={t("noServer.description")} />
       )}
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { BlockedNotice } from "@/modules/catalog";
 import { useNotifications } from "@/modules/notifications";
-import { type CatalogLayout, useCatalogView } from "@/modules/plugins/hooks/useCatalogView";
+import { useCatalogView } from "@/modules/plugins/hooks/useCatalogView";
 import { useRouteTab } from "@/shared/hooks/useRouteTab";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { confirmDialog } from "@/shared/modals";
@@ -19,9 +19,10 @@ import { Plate } from "@/shared/ui/plate";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
+import { ViewModeToggle } from "@/shared/ui/ViewModeToggle";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { AccessArea } from "@shared/access/areas";
-import { Blocks, LayoutGrid, List, PackageSearch, RotateCw, Shield, Trash2 } from "lucide-react";
+import { Blocks, PackageSearch, RotateCw, Shield, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   useConsentExtensionMutation,
@@ -154,19 +155,13 @@ export const ExtensionsManager = () => {
               </TabsTrigger>
             </TabsList>
             {tab === "catalog" && (
-              <ToggleGroup
-                variant="segmented"
-                value={[catalogView.view]}
-                onValueChange={(next) => next[0] && catalogView.changeView(next[0] as CatalogLayout)}
-                aria-label={t("tabs.view")}
-              >
-                <Toggle variant="segmented" value="cards" aria-label={t("tabs.cards")} title={t("tabs.cards")}>
-                  <LayoutGrid />
-                </Toggle>
-                <Toggle variant="segmented" value="table" aria-label={t("tabs.table")} title={t("tabs.table")}>
-                  <List />
-                </Toggle>
-              </ToggleGroup>
+              <ViewModeToggle
+                value={catalogView.view}
+                onChange={catalogView.changeView}
+                label={t("tabs.view")}
+                cardsLabel={t("tabs.cards")}
+                tableLabel={t("tabs.table")}
+              />
             )}
           </div>
         )}

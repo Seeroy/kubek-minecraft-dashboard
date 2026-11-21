@@ -1,5 +1,5 @@
-import { useValidateJavaPathMutation } from "@/modules/java-manager/api/java.queries";
 import { useJavaVersionOptions } from "@/modules/server/hooks";
+import { JAVA_MANUAL_OPTION, useJavaPathChoice } from "@/modules/server/hooks/useJavaPathChoice";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { Badge } from "@/shared/ui/badge";
@@ -10,10 +10,8 @@ import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import { Spinner } from "@/shared/ui/spinner";
 import { AccessArea } from "@shared/access/areas";
 import { AlertTriangle, CheckCircle2, FolderSearch, Star, XCircle } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { SAMPLE_JAVA_OPTIONS } from "../../../data/samples";
-
-const MANUAL = "__manual";
 
 interface JavaPickerProps {
   value: number | undefined;
@@ -42,40 +40,10 @@ export function JavaPicker({ value, onChange, path, onPathChange, recommended, r
   const { t } = useTranslation("modules.newServerModal.java.version");
   const { options, isLoading } = useJavaVersionOptions();
   const canEnterPath = useAuthStore((s) => s.can(AccessArea.JAVA, "manage"));
-  const validate = useValidateJavaPathMutation();
-  const custom = onPathChange ? options.filter((o) => o.custom) : [];
-  const registered = path ? custom.find((o) => o.path === path) : undefined;
-  // null follows the saved path, a path outside the registry opens the manual editor prefilled
-  const [choice, setManual] = useState<boolean | null>(null);
-  const [typedPath, setTyped] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const unregistered = !isLoading && !!path && !registered;
-  const manual = choice ?? unregistered;
-  const typed = typedPath ?? (unregistered ? path : "");
+  const java = useJavaPathChoice({ path, onPathChange, onChange, custom: onPathChange ? options.filter((o) => o.custom) : [], isLoading });
+  const { manual, typed, error } = java;
 
-  const selected = manual ? MANUAL : (registered?.version ?? String(value ?? ""));
-
-  const select = (next: string) => {
-    setError(null);
-    if (next === MANUAL) return setManual(true);
-    setManual(false);
-    const option = custom.find((o) => o.version === next);
-    if (option?.path) return onPathChange?.(option.path);
-    if (path) onPathChange?.("");
-    onChange(Number(next));
-  };
-
-  const apply = async () => {
-    const candidate = typed.trim();
-    setError(null);
-    try {
-      const result = await validate.mutateAsync(candidate);
-      if (result.valid) onPathChange?.(candidate);
-      else setError(result.error || t("manual.invalid"));
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t("manual.invalid"));
-    }
-  };
+  const selected = manual ? JAVA_MANUAL_OPTION : (java.registered?.version ?? String(value ?? ""));
 
   const mismatch = !path && recommended != null && value != null && value !== recommended;
 
@@ -86,7 +54,7 @@ export function JavaPicker({ value, onChange, path, onPathChange, recommended, r
         const custom = onPathChange ? list.filter((o) => o.custom) : [];
         return (
           <div className="grid gap-1.5">
-            <RadioGroup value={selected} onValueChange={(next) => select(String(next))} aria-label={t("label")} className="gap-1.5">
+            <RadioGroup value={selected} onValueChange={(next) => java.select(String(next))} aria-label={t("label")} className="gap-1.5">
               {managed.map((o) => (
                 <Row
                   key={o.version}
@@ -114,7 +82,7 @@ export function JavaPicker({ value, onChange, path, onPathChange, recommended, r
                 </Row>
               ))}
               {onPathChange && canEnterPath && (
-                <Row value={MANUAL}>
+                <Row value={JAVA_MANUAL_OPTION}>
                   <span className="inline-flex items-center gap-2 text-muted-foreground">
                     <FolderSearch className="size-3.5" />
                     {t("manual.option")}
@@ -130,20 +98,17 @@ export function JavaPicker({ value, onChange, path, onPathChange, recommended, r
                     value={typed}
                     placeholder={t("manual.placeholder")}
                     className="font-mono"
-                    onChange={(event) => {
-                      setTyped(event.target.value);
-                      setError(null);
-                    }}
+                    onChange={(event) => java.editPath(event.target.value)}
                     onKeyDown={(event) => {
                       // Apply the path instead of advancing the wizard
                       if (event.key !== "Enter") return;
                       event.preventDefault();
                       event.stopPropagation();
-                      if (typed.trim()) void apply();
+                      if (typed.trim()) void java.apply();
                     }}
                   />
-                  <Button type="button" variant="outline" disabled={!typed.trim() || validate.isPending} onClick={() => void apply()}>
-                    {validate.isPending ? <Spinner /> : t("manual.apply")}
+                  <Button type="button" variant="outline" disabled={!typed.trim() || java.validating} onClick={() => void java.apply()}>
+                    {java.validating ? <Spinner /> : t("manual.apply")}
                   </Button>
                 </div>
                 {error ? (

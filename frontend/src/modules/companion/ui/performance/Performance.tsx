@@ -4,7 +4,7 @@ import type { CompanionMetricsWindow } from "@/api";
 import { useServerStore } from "@/modules/server/contexts/server-context";
 import type { Server } from "@/modules/server/types";
 import { useTranslation } from "@/shared/hooks/useTranslation";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { NoServerEmpty } from "@/shared/ui/NoServerEmpty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { LoadReveal } from "@/shared/ui/data-reveal";
 import { LoadError } from "@/shared/ui/load-error";
@@ -111,15 +111,7 @@ export function Performance() {
       ) : (
         <>
           <PageHeader title={t("title")} description={t("description")} />
-          <Empty className="rounded-lg border border-border bg-card py-14">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Gauge />
-              </EmptyMedia>
-              <EmptyTitle>{t("noServer.title")}</EmptyTitle>
-              <EmptyDescription>{t("noServer.description")}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <NoServerEmpty icon={Gauge} title={t("noServer.title")} description={t("noServer.description")} className="rounded-lg border border-border bg-card py-14" />
         </>
       )}
     </div>

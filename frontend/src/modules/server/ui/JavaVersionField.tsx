@@ -1,5 +1,5 @@
-import { useValidateJavaPathMutation } from "@/modules/java-manager/api/java.queries";
 import { useJavaVersionOptions } from "@/modules/server/hooks";
+import { JAVA_MANUAL_OPTION, useJavaPathChoice } from "@/modules/server/hooks/useJavaPathChoice";
 import { useLanguageContext } from "@/shared/context/language-context";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { Badge } from "@/shared/ui/badge";
@@ -15,10 +15,6 @@ import {
 } from "@/shared/ui/select";
 import { CheckCircle2, FolderSearch, Loader2, Star, XCircle } from "lucide-react";
 import { AccessArea } from "@shared/access/areas";
-import { useState } from "react";
-
-/** Select value for the manual path entry mode */
-const MANUAL_OPTION = "__custom_path";
 
 interface JavaVersionFieldProps {
   value: number | string | undefined;
@@ -46,79 +42,34 @@ export function JavaVersionField({
   const managed = options.filter((o) => o.managed);
   const custom = onPathChange ? options.filter((o) => o.custom) : [];
 
-  // null follows the saved value, true or false is an explicit user choice
-  const [manualChoice, setManualChoice] = useState<boolean | null>(null);
-  const [typedPath, setTypedPath] = useState<string | null>(null);
-  const [manualError, setManualError] = useState<string | null>(null);
-  const validateMutation = useValidateJavaPathMutation();
+  const java = useJavaPathChoice({ path: pathValue, onPathChange, onChange, custom, isLoading });
   // Arbitrary paths need java manage on the backend, others pick from the registry only
   const canEnterPath = useAuthStore((s) => s.can(AccessArea.JAVA, "manage"));
-
-  const registryMatch = pathValue
-    ? custom.find((o) => o.path === pathValue)
-    : undefined;
-
-  // A saved path that is not a registered installation opens the manual editor prefilled
-  const savedIsUnregistered = !isLoading && !!pathValue && !registryMatch;
-  const manualMode = manualChoice ?? savedIsUnregistered;
-  const manualPath = typedPath ?? (savedIsUnregistered ? pathValue : "");
+  const manualPath = java.typed;
+  const manualError = java.error;
 
   // Explicit manual mode wins so a registered pick can be switched to a typed path
-  const selectValue = manualMode
-    ? MANUAL_OPTION
-    : registryMatch
-      ? registryMatch.version
+  const selectValue = java.manual
+    ? JAVA_MANUAL_OPTION
+    : java.registered
+      ? java.registered.version
       : pathValue
-        ? MANUAL_OPTION
+        ? JAVA_MANUAL_OPTION
         : String(value ?? "");
   const showManualOption =
-    !!onPathChange && (canEnterPath || selectValue === MANUAL_OPTION);
+    !!onPathChange && (canEnterPath || selectValue === JAVA_MANUAL_OPTION);
 
   // Trigger labels for synthetic values, managed majors keep their raw value
   const selectLabels: Record<string, string> = {
-    [MANUAL_OPTION]: t("modules.newServerModal.java.version.manual.option"),
+    [JAVA_MANUAL_OPTION]: t("modules.newServerModal.java.version.manual.option"),
   };
   for (const o of custom) selectLabels[o.version] = o.label;
 
   const handleSelect = (v: string | null) => {
     if (v == null) return;
-    setManualError(null);
-    if (v === MANUAL_OPTION) {
-      setManualChoice(true);
-      return;
-    }
-    setManualChoice(false);
-    setTypedPath("");
-    const customOption = custom.find((o) => o.version === v);
-    if (customOption?.path) {
-      onPathChange?.(customOption.path);
-      return;
-    }
-    if (pathValue) onPathChange?.("");
-    onChange(Number(v));
-  };
-
-  // Validate the typed path and apply it as the JAVA_PATH override on success
-  const handleApplyManual = async () => {
-    const trimmed = manualPath.trim();
-    if (!trimmed) return;
-    setManualError(null);
-    try {
-      const result = await validateMutation.mutateAsync(trimmed);
-      if (!result.valid) {
-        setManualError(
-          result.error || t("modules.newServerModal.java.version.manual.invalid")
-        );
-        return;
-      }
-      onPathChange?.(trimmed);
-    } catch (error) {
-      setManualError(
-        error instanceof Error
-          ? error.message
-          : t("modules.newServerModal.java.version.manual.invalid")
-      );
-    }
+    // A picked version drops whatever was typed before
+    if (v !== JAVA_MANUAL_OPTION) java.editPath("");
+    java.select(v);
   };
 
   return (
@@ -138,7 +89,7 @@ export function JavaVersionField({
               onValueChange={handleSelect}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Java version" />
+                <SelectValue placeholder={t("modules.newServerModal.java.version.placeholder")} />
               </SelectTrigger>
               <SelectContent>
                 {managed.map((o) => (
@@ -178,7 +129,7 @@ export function JavaVersionField({
                   </SelectItem>
                 ))}
                 {showManualOption && (
-                  <SelectItem value={MANUAL_OPTION}>
+                  <SelectItem value={JAVA_MANUAL_OPTION}>
                     <span className="flex items-center gap-2">
                       <FolderSearch className="size-3.5" />
                       {t("modules.newServerModal.java.version.manual.option")}
@@ -190,7 +141,7 @@ export function JavaVersionField({
         )}
       </DataReveal>
 
-      {onPathChange && selectValue === MANUAL_OPTION && (
+      {onPathChange && selectValue === JAVA_MANUAL_OPTION && (
         <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 p-3">
           <div className="flex gap-2">
             <Input
@@ -199,22 +150,19 @@ export function JavaVersionField({
               placeholder={t(
                 "modules.newServerModal.java.version.manual.placeholder"
               )}
-              onChange={(e) => {
-                setTypedPath(e.target.value);
-                setManualError(null);
-              }}
+              onChange={(e) => java.editPath(e.target.value)}
             />
             <Button
               type="button"
               variant="outline"
-              onClick={handleApplyManual}
+              onClick={java.apply}
               disabled={
                 !canEnterPath ||
                 !manualPath.trim() ||
-                validateMutation.isPending
+                java.validating
               }
             >
-              {validateMutation.isPending ? (
+              {java.validating ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 t("modules.newServerModal.java.version.manual.apply")

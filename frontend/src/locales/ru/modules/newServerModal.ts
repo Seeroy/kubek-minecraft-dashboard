@@ -90,6 +90,7 @@ export const newServerModalTranslations: TranslationDictionary = {
   java: {
     version: {
       label: "Версия Java",
+      placeholder: "Выберите версию Java",
       loading: "Загрузка версий Java...",
       resolving: "Подбираем подходящую Java...",
       mismatch: (core: string, java: number) => `Для ${core} нужна Java ${java}`,

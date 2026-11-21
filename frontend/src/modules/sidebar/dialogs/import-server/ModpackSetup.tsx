@@ -3,6 +3,7 @@ import type { InstallModpackProps, ModpackPreview } from "@/api";
 import { useJavaVersionForGame } from "@/modules/java-manager/api/java.queries";
 import { ProjectIcon } from "@/modules/plugins/ui/ProjectIcon";
 import { serverNameSchema, useServerStore } from "@/modules/server";
+import { nextFreePort, portOwners } from "@/modules/server/lib/ports";
 import { JavaPicker } from "@/modules/server/modals/CreateServerModal/wizard/JavaPicker";
 import { WizardField, WizardSection } from "@/modules/server/modals/CreateServerModal/wizard/WizardField";
 import { useLanguageContext } from "@/shared/context/language-context";
@@ -21,14 +22,8 @@ const DEFAULT_MEMORY = 4096;
 // Matches the panel default when the Mojang lookup fails
 const FALLBACK_JAVA = 21;
 
-// Every numeric value under a port-like variable of an existing server
-function portOwners(servers: { name: string; variables?: Record<string, unknown> }[]) {
-  const owners = new Map<number, string>();
-  for (const server of servers)
-    for (const [key, value] of Object.entries(server.variables ?? {}))
-      if ((/PORT$/i.test(key) || key === "game") && Number(value)) owners.set(Number(value), server.name);
-  return owners;
-}
+// "game" is the primary port key of the bundled blueprints
+const isPortKey = (key: string) => /PORT$/i.test(key) || key === "game";
 
 // Pack titles often carry brackets and symbols the server name rules reject
 const suggestName = (title: string) =>
@@ -48,16 +43,12 @@ export function ModpackSetup({ preview, onSubmit }: ModpackSetupProps) {
   const { t } = useTranslation("modules.modpacks");
   const { t: tRoot } = useLanguageContext();
   const { servers } = useServerStore();
-  const owners = portOwners(servers);
+  const owners = portOwners(servers, isPortKey);
   const java = useJavaVersionForGame(preview.minecraftVersion);
   const recommendedJava = typeof java.data === "number" ? java.data : null;
 
   const [name, setName] = useState(() => suggestName(preview.name));
-  const [port, setPort] = useState(() => {
-    let next = DEFAULT_PORT;
-    while (owners.has(next)) next++;
-    return String(next);
-  });
+  const [port, setPort] = useState(() => String(nextFreePort(owners, DEFAULT_PORT)));
   const [memory, setMemory] = useState(String(DEFAULT_MEMORY));
   const [javaChoice, setJava] = useState<number | null>(null);
   const [javaPath, setJavaPath] = useState("");

@@ -3,13 +3,13 @@ import type { AuditLogEntry } from "@/api";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Plate } from "@/shared/ui/plate";
 import { PlayerHead } from "@/shared/ui/player-head";
+import { Pagination } from "@/shared/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { AuditResult } from "@shared/types/audit.types";
-import { ChevronLeft, ChevronRight, Cpu, ScrollText } from "lucide-react";
+import { ChevronRight, Cpu, ScrollText } from "lucide-react";
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import { formatEntryTime, useActionLabel } from "../lib/format";
 import { actionLook } from "../lib/look";
@@ -22,16 +22,6 @@ interface AuditTableProps {
   page: number;
   pageSize: number;
   onPage: (page: number) => void;
-}
-
-// First, last and the neighbours of the current page, gaps become an ellipsis
-function pageList(current: number, count: number): (number | null)[] {
-  const pages: (number | null)[] = [];
-  for (let p = 0; p < count; p++) {
-    if (p === 0 || p === count - 1 || Math.abs(p - current) <= 1) pages.push(p);
-    else if (pages.at(-1) !== null) pages.push(null);
-  }
-  return pages;
 }
 
 function Who({ entry }: { entry: AuditLogEntry }) {
@@ -86,9 +76,6 @@ export function AuditTable({ items, total, page, pageSize, onPage }: AuditTableP
   const label = useActionLabel();
   const [open, setOpen] = useState<string | null>(null);
   const [headerRow, columns] = useVisibleColumns(items.length > 0);
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  const from = total ? page * pageSize + 1 : 0;
-  const to = Math.min((page + 1) * pageSize, total);
 
   const goTo = (next: number) => {
     setOpen(null);
@@ -188,37 +175,7 @@ export function AuditTable({ items, total, page, pageSize, onPage }: AuditTableP
         </TableBody>
       </Table>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2 text-[12.5px] text-muted-foreground">
-        <span className="tabular-nums">{t("pagination.range", from, to, total)}</span>
-        <div className="ml-auto flex items-center gap-0.5">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => goTo(page - 1)}>
-            <ChevronLeft />
-            {t("pagination.prev")}
-          </Button>
-          {pageList(page, pages).map((p, i) =>
-            p === null ? (
-              <span key={`gap-${i}`} className="px-1.5">
-                ...
-              </span>
-            ) : (
-              <Button
-                key={p}
-                size="sm"
-                variant={p === page ? "default" : "outline"}
-                className="min-w-[30px] tabular-nums"
-                aria-current={p === page ? "page" : undefined}
-                onClick={() => goTo(p)}
-              >
-                {p + 1}
-              </Button>
-            )
-          )}
-          <Button variant="outline" size="sm" disabled={page >= pages - 1} onClick={() => goTo(page + 1)}>
-            {t("pagination.next")}
-            <ChevronRight />
-          </Button>
-        </div>
-      </div>
+      <Pagination page={page} pageSize={pageSize} total={total} onPage={goTo} />
     </>
   );
 }

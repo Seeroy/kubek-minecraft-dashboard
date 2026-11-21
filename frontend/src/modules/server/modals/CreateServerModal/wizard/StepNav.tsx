@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { Fragment } from "react";
 
 export const WIZARD_STEPS = ["type", "basics", "advanced", "create"] as const;
+export const CREATE_STEP = WIZARD_STEPS.length - 1;
 
 interface StepNavProps {
   current: number;

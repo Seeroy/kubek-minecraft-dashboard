@@ -6,12 +6,12 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAccess } from "@/shared/lib/access";
 import { Button } from "@/shared/ui/button";
 import { DataReveal } from "@/shared/ui/data-reveal";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { NoServerEmpty } from "@/shared/ui/NoServerEmpty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
 import type { IScheduledTask } from "@shared/types/scheduler.types";
-import { CalendarClock, Plus, ScrollText, ServerOff } from "lucide-react";
+import { CalendarClock, Plus, ScrollText } from "lucide-react";
 import { useScheduledTasksByServer, useTaskRunsByServer } from "../api/scheduler.queries";
 import { SAMPLE_TASKS } from "../data/samples";
 import { SCHEDULER_TABS, type SchedulerTab } from "../lib/tabs";
@@ -83,15 +83,7 @@ export default function Scheduler() {
       ) : (
         <>
           <PageHeader title={t("title")} description={t("description")} />
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <ServerOff />
-              </EmptyMedia>
-              <EmptyTitle>{t("noServer.title")}</EmptyTitle>
-              <EmptyDescription>{t("noServer.description")}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <NoServerEmpty title={t("noServer.title")} description={t("noServer.description")} />
         </>
       )}
     </div>

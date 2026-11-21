@@ -8,13 +8,13 @@ import { formatBytes } from "@/shared/lib/bytesToGb";
 import { formatRelative } from "@/shared/lib/formatRelative";
 import { Button } from "@/shared/ui/button";
 import { DataReveal } from "@/shared/ui/data-reveal";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { NoServerEmpty } from "@/shared/ui/NoServerEmpty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Stat, StatStrip } from "@/shared/ui/stat-strip";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
 import { BackupStatus, type Backup } from "@shared/types/backup.types";
-import { Archive, CheckCircle2, Database, HardDrive, History, Plus, ServerOff, ShieldCheck } from "lucide-react";
+import { Archive, CheckCircle2, Database, HardDrive, History, Plus, ShieldCheck } from "lucide-react";
 import { useBackupsByServer } from "../api/backups.queries";
 import { SAMPLE_BACKUPS } from "../data/samples";
 import { useBackupTaskSync } from "../hooks/useBackups";
@@ -124,15 +124,7 @@ export default function Backups() {
       ) : (
         <>
           <PageHeader title={t("title")} description={t("description")} />
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <ServerOff />
-              </EmptyMedia>
-              <EmptyTitle>{t("noServer.title")}</EmptyTitle>
-              <EmptyDescription>{t("noServer.description")}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <NoServerEmpty title={t("noServer.title")} description={t("noServer.description")} />
         </>
       )}
     </div>

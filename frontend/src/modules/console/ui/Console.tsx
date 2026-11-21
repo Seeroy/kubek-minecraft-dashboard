@@ -8,7 +8,7 @@ import { useSocketApi, useSocketState } from "@/shared/context/socket-context";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAccess } from "@/shared/lib/access";
 import { Badge } from "@/shared/ui/badge";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { NoServerEmpty } from "@/shared/ui/NoServerEmpty";
 import InputWithHistory from "@/shared/ui/InputWithHistory";
 import { StatusDot } from "@/shared/ui/status-dot";
 import { TooltipProvider } from "@/shared/ui/tooltip";
@@ -19,7 +19,6 @@ import { useCallback } from "react";
 import { useConsoleLogFeed } from "../hooks/useConsoleLog";
 import { ConsoleRail } from "./ConsoleRail";
 import { LogPanel } from "./LogPanel";
-import { ServerOff } from "lucide-react";
 
 const statusBadge: Record<ServerStatus, "success" | "secondary" | "warning" | "destructive"> = {
   [ServerStatus.RUNNING]: "success",
@@ -129,15 +128,7 @@ export default function Console() {
 
   if (!selectedServer) {
     return (
-      <Empty className="h-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <ServerOff />
-          </EmptyMedia>
-          <EmptyTitle>{t("noServer.title")}</EmptyTitle>
-          <EmptyDescription>{t("noServer.description")}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <NoServerEmpty className="h-full" title={t("noServer.title")} description={t("noServer.description")} />
     );
   }
 

@@ -12,10 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
-import { Toggle } from "@/shared/ui/toggle";
-import { ToggleGroup } from "@/shared/ui/toggle-group";
+import { ViewModeToggle } from "@/shared/ui/ViewModeToggle";
 import { AccessArea } from "@shared/access/areas";
-import { CheckSquare, Ellipsis, FolderPlus, LayoutGrid, List, Network, Plus, Search, Upload } from "lucide-react";
+import { CheckSquare, Ellipsis, FolderPlus, Network, Plus, Search, Upload } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
 interface Props {
@@ -70,19 +69,7 @@ export default function ServersListToolbar({
         />
       </InputGroup>
 
-      <ToggleGroup
-        variant="segmented"
-        value={[view]}
-        onValueChange={(next) => next[0] && onChangeView(next[0] as ServersView)}
-        aria-label={t("view.label")}
-      >
-        <Toggle variant="segmented" value="cards" aria-label={t("view.cards")} title={t("view.cards")}>
-          <LayoutGrid />
-        </Toggle>
-        <Toggle variant="segmented" value="table" aria-label={t("view.table")} title={t("view.table")}>
-          <List />
-        </Toggle>
-      </ToggleGroup>
+      <ViewModeToggle value={view} onChange={onChangeView} label={t("view.label")} cardsLabel={t("view.cards")} tableLabel={t("view.table")} />
 
       {access.create && (
         <Button onClick={onCreateServer}>

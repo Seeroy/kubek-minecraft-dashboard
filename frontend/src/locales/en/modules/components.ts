@@ -56,6 +56,11 @@ export const componentsTranslations: TranslationDictionary = {
     stopping: "Stopping",
     crashed: "Crashed",
   },
+  pagination: {
+    prev: "Previous",
+    next: "Next",
+    range: (from: number, to: number, total: number) => `${from}-${to} of ${total}`,
+  },
   loadError: {
     title: "Couldn't load data",
     description: "Check the connection to the panel and try again",
