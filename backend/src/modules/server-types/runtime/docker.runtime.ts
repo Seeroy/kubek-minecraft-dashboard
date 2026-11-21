@@ -221,7 +221,7 @@ export class DockerRuntime implements IServerRuntime {
         await this.kill();
       } else if (method.signal === "SIGTERM") {
         // Daemon sends SIGTERM and kills only after the timeout
-        await this.container.stop({ t: stopTimeoutSec() });
+        await this.container.stop({ t: method.timeoutSec ?? stopTimeoutSec() });
       } else {
         await this.container.kill({ signal: method.signal });
       }

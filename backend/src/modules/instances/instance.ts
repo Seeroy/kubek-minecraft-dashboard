@@ -466,7 +466,10 @@ export class ServerInstance implements IInstance {
     }
 
     // The start-time onExit handler drives onClose, which settles this promise
-    return this.pendingStop.begin(() => void this.serverRuntime?.kill());
+    return this.pendingStop.begin(
+      () => void this.serverRuntime?.kill(),
+      method.timeoutSec,
+    );
   }
 
   /** Runs in a container, survives a panel restart */

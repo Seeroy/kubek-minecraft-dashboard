@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { DEFAULT_STOP_TIMEOUT_SEC, stopTimeoutSec } from "./stopTimeout";
+import {
+  blueprintStopTimeoutSec,
+  DEFAULT_STOP_TIMEOUT_SEC,
+  stopTimeoutSec,
+} from "./stopTimeout";
 
 describe("stopTimeoutSec", () => {
   test("defaults when unset or invalid", () => {
@@ -17,5 +21,23 @@ describe("stopTimeoutSec", () => {
 
   test("caps huge values", () => {
     expect(stopTimeoutSec("999999")).toBe(3600);
+  });
+});
+
+describe("blueprintStopTimeoutSec", () => {
+  test("keeps a valid value", () => {
+    expect(blueprintStopTimeoutSec(10)).toBe(10);
+    expect(blueprintStopTimeoutSec(2.6)).toBe(3);
+  });
+
+  test("falls back to the panel default on bad input", () => {
+    expect(blueprintStopTimeoutSec(undefined)).toBeUndefined();
+    expect(blueprintStopTimeoutSec("10")).toBeUndefined();
+    expect(blueprintStopTimeoutSec(0)).toBeUndefined();
+    expect(blueprintStopTimeoutSec(Number.NaN)).toBeUndefined();
+  });
+
+  test("caps huge values", () => {
+    expect(blueprintStopTimeoutSec(1e9)).toBe(3600);
   });
 });

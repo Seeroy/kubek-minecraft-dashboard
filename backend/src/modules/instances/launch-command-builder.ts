@@ -1,4 +1,5 @@
 import { getServerPath } from "@/core/utils/serverPath";
+import { blueprintStopTimeoutSec } from "@/core/utils/stopTimeout";
 import type { NetworksRepository } from "@/modules/database/repositories/networks.repository";
 import type { ServersRepository } from "@/modules/database/repositories/servers.repository";
 import type { JavaService } from "@/modules/java/java.service";
@@ -178,11 +179,14 @@ export class LaunchCommandBuilder {
       (config.runtimeKind === "docker"
         ? blueprint?.dockerProfile?.stop
         : undefined) ?? blueprint?.startup?.stop;
-    if (stop?.type === "command") return { type: "command", value: stop.value };
+    const timeoutSec = blueprintStopTimeoutSec(stop?.timeoutSec);
+    if (stop?.type === "command")
+      return { type: "command", value: stop.value, timeoutSec };
     if (stop?.type.startsWith("signal:")) {
       return {
         type: "signal",
         signal: stop.type.split(":")[1] as NodeJS.Signals,
+        timeoutSec,
       };
     }
     return { type: "signal", signal: "SIGKILL" };

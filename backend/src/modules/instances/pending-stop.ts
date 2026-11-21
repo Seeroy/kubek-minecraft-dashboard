@@ -10,7 +10,10 @@ export class PendingStop {
     return this.promise;
   }
 
-  begin(escalate: () => void): Promise<boolean> {
+  begin(
+    escalate: () => void,
+    timeoutSec: number = stopTimeoutSec(),
+  ): Promise<boolean> {
     this.promise = new Promise<boolean>((resolve) => {
       this.settle = resolve;
       // If a graceful stop hangs, escalate to SIGKILL so the server can't stick in STOPPING
@@ -18,7 +21,7 @@ export class PendingStop {
         if (!this.settle) return;
         escalate();
         this.timer = setTimeout(() => this.finish(false), 3000);
-      }, stopTimeoutSec() * 1000);
+      }, timeoutSec * 1000);
     }).finally(() => {
       this.promise = undefined;
     });

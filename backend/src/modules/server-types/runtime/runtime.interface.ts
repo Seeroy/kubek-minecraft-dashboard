@@ -6,9 +6,13 @@ export interface RuntimeStats {
   memory: number;
 }
 
-export type StopMethod =
+export type StopMethod = (
   | { type: "command"; value: string }
-  | { type: "signal"; signal: NodeJS.Signals };
+  | { type: "signal"; signal: NodeJS.Signals }
+) & {
+  /** Seconds before kill, unset means the panel default */
+  timeoutSec?: number;
+};
 
 /**
  * Uniform launch/stop surface for a running server

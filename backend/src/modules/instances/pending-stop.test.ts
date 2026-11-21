@@ -22,4 +22,16 @@ describe("PendingStop", () => {
     stop.exited();
     expect(stop.current).toBeUndefined();
   });
+
+  test("escalates after the given timeout", async () => {
+    const stop = new PendingStop();
+    let escalated = false;
+    const done = stop.begin(() => {
+      escalated = true;
+      stop.exited();
+    }, 1);
+
+    expect(await done).toBe(true);
+    expect(escalated).toBe(true);
+  });
 });
