@@ -39,6 +39,14 @@ export interface Release {
 // Curated highlights shown once after the panel updates to a given version
 export const RELEASES: Release[] = [
   {
+    version: "4.1.3",
+    highlights: [
+      { icon: Users, titleKey: "releases.4-1-3.players" },
+      { icon: Bot, titleKey: "releases.4-1-3.playerTools" },
+      { icon: Plug, titleKey: "releases.4-1-3.companion" },
+    ],
+  },
+  {
     version: "4.1.2",
     highlights: [
       { icon: Boxes, titleKey: "releases.4-1-2.cores" },

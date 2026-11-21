@@ -502,6 +502,7 @@ export class ServerInstance implements IInstance {
 
       this.runtime.playersOnline = result.players.online;
       this.runtime.playersList = result.players.list ?? [];
+      if (result.version) this.runtime.gameVersion = result.version;
 
       this.serverEventsService.emitServerQueryData(this.serverId, {
         players: {

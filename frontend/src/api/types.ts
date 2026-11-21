@@ -2422,6 +2422,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/servers/{serverId}/players/known": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Players the server has seen, newest save first, one page */
+        get: operations["PlayersController_known"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/known/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved position, vitals and stats of a player by UUID or name */
+        get: operations["PlayersController_details"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/known/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Reset a player's progress, stats and advancements */
+        delete: operations["PlayersController_resetData"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/servers/{serverId}/players/settings": {
         parameters: {
             query?: never;
@@ -2586,6 +2637,74 @@ export interface paths {
         put?: never;
         /** Kick an online player */
         post: operations["PlayersController_kick"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/gamemode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the game mode of an online player */
+        post: operations["PlayersController_gamemode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/teleport": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Teleport an online player */
+        post: operations["PlayersController_teleport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/heal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore the health of an online player */
+        post: operations["PlayersController_heal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/servers/{serverId}/players/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fill the hunger bar of an online player */
+        post: operations["PlayersController_feed"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3557,7 +3676,7 @@ export interface components {
              * @example BAD_REQUEST
              * @enum {string}
              */
-            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "PAYLOAD_TOO_LARGE" | "ARCHIVE_TOO_LARGE" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "UNSAFE_LAUNCH_ARGUMENT" | "VERSIONS_UNAVAILABLE" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION" | "SESSION_REQUIRED" | "MCP_DISABLED" | "COMPANION_UNSUPPORTED" | "COMPANION_NOT_CONNECTED" | "COMPANION_TIMEOUT" | "COMPANION_REJECTED" | "COMPANION_RATE_LIMITED" | "COMPANION_RELEASE_UNAVAILABLE" | "CATALOG_UNAVAILABLE" | "CATALOG_ITEM_BLOCKED" | "CATALOG_CHECKSUM_MISMATCH";
+            code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL_ERROR" | "RATE_LIMITED" | "CONFLICT" | "PAYLOAD_TOO_LARGE" | "ARCHIVE_TOO_LARGE" | "VALIDATION_ERROR" | "TOTP_LOCKED" | "TOTP_INVALID" | "TOTP_SETUP_EXPIRED" | "INVALID_PASSWORD" | "PLAYERS_UNSUPPORTED" | "PLAYER_NOT_FOUND" | "MOJANG_UNAVAILABLE" | "SERVER_NOT_RUNNING" | "SERVER_BUSY" | "PLAYERS_NEEDS_STOPPED_SERVER" | "PLAYERS_APPLY_TIMEOUT" | "PLAYERS_PLAYER_ONLINE" | "PLAYERS_NEEDS_NEWER_VERSION" | "UNSAFE_LAUNCH_ARGUMENT" | "VERSIONS_UNAVAILABLE" | "ASSISTANT_NOT_CONFIGURED" | "ASSISTANT_BUSY" | "ROLE_NAME_TAKEN" | "ROLE_BUILTIN" | "ROLE_UNKNOWN" | "ACCESS_ESCALATION" | "SESSION_REQUIRED" | "MCP_DISABLED" | "COMPANION_UNSUPPORTED" | "COMPANION_NOT_CONNECTED" | "COMPANION_TIMEOUT" | "COMPANION_REJECTED" | "COMPANION_RATE_LIMITED" | "COMPANION_RELEASE_UNAVAILABLE" | "CATALOG_UNAVAILABLE" | "CATALOG_ITEM_BLOCKED" | "CATALOG_CHECKSUM_MISMATCH";
             /**
              * @description Human-readable error message
              * @example Validation failed
@@ -6005,6 +6124,11 @@ export interface components {
             ping: number | null;
             /** @description Join time, ms epoch */
             since: number | null;
+            /** @description Half hearts, since plugin 1.1.0 */
+            health?: number;
+            food?: number;
+            /** @description Experience level */
+            level?: number;
             x?: number;
             y?: number;
             z?: number;
@@ -6526,6 +6650,57 @@ export interface components {
             /** @enum {string} */
             source: "mojang" | "offline";
         };
+        KnownPlayerDto: {
+            /** @example 8667ba71-b85a-4004-af54-457a9734eed7 */
+            uuid: string;
+            /** @example Steve */
+            name: string | null;
+            /** @description ms epoch of the player file */
+            savedAt: number | null;
+        };
+        KnownPlayersPageDto: {
+            items: components["schemas"]["KnownPlayerDto"][];
+            /** @description Matches across all pages */
+            total: number;
+        };
+        PlayerPositionDto: {
+            /** @example minecraft:overworld */
+            dimension: string;
+            x: number;
+            y: number;
+            z: number;
+        };
+        PlayerStatsDto: {
+            /** @description Game ticks, 20 per second */
+            playTimeTicks: number;
+            deaths: number;
+            mobKills: number;
+            playerKills: number;
+            /** @description Walked, swum, flown and ridden, in cm */
+            distanceCm: number;
+            jumps: number;
+        };
+        PlayerDetailsDto: {
+            /** @example 8667ba71-b85a-4004-af54-457a9734eed7 */
+            uuid: string;
+            /** @example Steve */
+            name: string | null;
+            /** @description ms epoch of the player file */
+            savedAt: number | null;
+            /** @enum {string|null} */
+            gamemode: "survival" | "creative" | "adventure" | "spectator" | null;
+            /** @description Half hearts */
+            health: number | null;
+            food: number | null;
+            xpLevel: number | null;
+            position: components["schemas"]["PlayerPositionDto"] | null;
+            lastDeath: components["schemas"]["PlayerPositionDto"] | null;
+            stats: components["schemas"]["PlayerStatsDto"] | null;
+        };
+        ResetPlayerDataDto: {
+            /** @description Files removed */
+            deleted: number;
+        };
         UpdatePlayersSettingsDto: {
             /** @description white-list in server.properties */
             whitelist?: boolean;
@@ -6580,6 +6755,30 @@ export interface components {
             name: string;
             /** @description Kick message */
             reason?: string;
+        };
+        GamemodeDto: {
+            /**
+             * @description Player name
+             * @example Steve
+             */
+            name: string;
+            /** @enum {string} */
+            gamemode: "survival" | "creative" | "adventure" | "spectator";
+        };
+        TeleportDto: {
+            /**
+             * @description Player name
+             * @example Steve
+             */
+            name: string;
+            x: number;
+            y: number;
+            z: number;
+            /**
+             * @description Dimension id, the player's current one when omitted
+             * @example minecraft:the_nether
+             */
+            dimension?: string;
         };
         VerifyTotpDto: {
             /** @description Challenge id received from /auth/login */
@@ -14995,6 +15194,8 @@ export interface operations {
                 before?: number;
                 /** @description Substring of the name, uuid, chat message or kick reason */
                 q?: string;
+                /** @description Events of one player */
+                uuid?: string;
                 limit?: number;
             };
             header?: never;
@@ -16528,6 +16729,183 @@ export interface operations {
             };
         };
     };
+    PlayersController_known: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Part of a name or UUID */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnownPlayersPageDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_details: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerDetailsDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_resetData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetPlayerDataDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     PlayersController_updateSettings: {
         parameters: {
             query?: never;
@@ -17215,6 +17593,266 @@ export interface operations {
         };
         responses: {
             /** @description Kick command sent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_gamemode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GamemodeDto"];
+            };
+        };
+        responses: {
+            /** @description Command sent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_teleport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeleportDto"];
+            };
+        };
+        responses: {
+            /** @description Command sent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_heal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayerNameDto"];
+            };
+        };
+        responses: {
+            /** @description Command sent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    PlayersController_feed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayerNameDto"];
+            };
+        };
+        responses: {
+            /** @description Command sent */
             204: {
                 headers: {
                     [name: string]: unknown;

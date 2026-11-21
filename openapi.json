@@ -11478,6 +11478,15 @@
             }
           },
           {
+            "name": "uuid",
+            "required": false,
+            "in": "query",
+            "description": "Events of one player",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "limit",
             "required": false,
             "in": "query",
@@ -13787,6 +13796,305 @@
         }
       }
     },
+    "/api/servers/{serverId}/players/known": {
+      "get": {
+        "operationId": "PlayersController_known",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Part of a name or UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnownPlayersPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Players the server has seen, newest save first, one page",
+        "tags": [
+          "Players"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "read"
+        }
+      }
+    },
+    "/api/servers/{serverId}/players/known/{id}": {
+      "get": {
+        "operationId": "PlayersController_details",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerDetailsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Saved position, vitals and stats of a player by UUID or name",
+        "tags": [
+          "Players"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "read"
+        }
+      }
+    },
+    "/api/servers/{serverId}/players/known/{uuid}": {
+      "delete": {
+        "operationId": "PlayersController_resetData",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPlayerDataDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reset a player's progress, stats and advancements",
+        "tags": [
+          "Players"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "manage"
+        }
+      }
+    },
     "/api/servers/{serverId}/players/settings": {
       "put": {
         "operationId": "PlayersController_updateSettings",
@@ -14883,6 +15191,382 @@
           }
         ],
         "summary": "Kick an online player",
+        "tags": [
+          "Players"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/players/gamemode": {
+      "post": {
+        "operationId": "PlayersController_gamemode",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GamemodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Command sent"
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the game mode of an online player",
+        "tags": [
+          "Players"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/players/teleport": {
+      "post": {
+        "operationId": "PlayersController_teleport",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeleportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Command sent"
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Teleport an online player",
+        "tags": [
+          "Players"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/players/heal": {
+      "post": {
+        "operationId": "PlayersController_heal",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerNameDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Command sent"
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore the health of an online player",
+        "tags": [
+          "Players"
+        ],
+        "x-access": {
+          "area": "players",
+          "level": "write"
+        }
+      }
+    },
+    "/api/servers/{serverId}/players/feed": {
+      "post": {
+        "operationId": "PlayersController_feed",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerNameDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Command sent"
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fill the hunger bar of an online player",
         "tags": [
           "Players"
         ],
@@ -19370,6 +20054,8 @@
               "SERVER_BUSY",
               "PLAYERS_NEEDS_STOPPED_SERVER",
               "PLAYERS_APPLY_TIMEOUT",
+              "PLAYERS_PLAYER_ONLINE",
+              "PLAYERS_NEEDS_NEWER_VERSION",
               "UNSAFE_LAUNCH_ARGUMENT",
               "VERSIONS_UNAVAILABLE",
               "ASSISTANT_NOT_CONFIGURED",
@@ -25086,6 +25772,19 @@
             "nullable": true,
             "description": "Join time, ms epoch"
           },
+          "health": {
+            "type": "number",
+            "description": "Half hearts, since plugin 1.1.0"
+          },
+          "food": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 20
+          },
+          "level": {
+            "type": "number",
+            "description": "Experience level"
+          },
           "x": {
             "type": "number"
           },
@@ -26641,6 +27340,200 @@
           "source"
         ]
       },
+      "KnownPlayerDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "example": "8667ba71-b85a-4004-af54-457a9734eed7"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Steve"
+          },
+          "savedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "ms epoch of the player file"
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "savedAt"
+        ]
+      },
+      "KnownPlayersPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnownPlayerDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "Matches across all pages"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ]
+      },
+      "PlayerPositionDto": {
+        "type": "object",
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "example": "minecraft:overworld"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "z": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "dimension",
+          "x",
+          "y",
+          "z"
+        ]
+      },
+      "PlayerStatsDto": {
+        "type": "object",
+        "properties": {
+          "playTimeTicks": {
+            "type": "number",
+            "description": "Game ticks, 20 per second"
+          },
+          "deaths": {
+            "type": "number"
+          },
+          "mobKills": {
+            "type": "number"
+          },
+          "playerKills": {
+            "type": "number"
+          },
+          "distanceCm": {
+            "type": "number",
+            "description": "Walked, swum, flown and ridden, in cm"
+          },
+          "jumps": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "playTimeTicks",
+          "deaths",
+          "mobKills",
+          "playerKills",
+          "distanceCm",
+          "jumps"
+        ]
+      },
+      "PlayerDetailsDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "example": "8667ba71-b85a-4004-af54-457a9734eed7"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Steve"
+          },
+          "savedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "ms epoch of the player file"
+          },
+          "gamemode": {
+            "type": "string",
+            "enum": [
+              "survival",
+              "creative",
+              "adventure",
+              "spectator"
+            ],
+            "nullable": true
+          },
+          "health": {
+            "type": "number",
+            "nullable": true,
+            "description": "Half hearts"
+          },
+          "food": {
+            "type": "number",
+            "nullable": true,
+            "maximum": 20
+          },
+          "xpLevel": {
+            "type": "number",
+            "nullable": true
+          },
+          "position": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerPositionDto"
+              }
+            ]
+          },
+          "lastDeath": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerPositionDto"
+              }
+            ]
+          },
+          "stats": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerStatsDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "savedAt",
+          "gamemode",
+          "health",
+          "food",
+          "xpLevel",
+          "position",
+          "lastDeath",
+          "stats"
+        ]
+      },
+      "ResetPlayerDataDto": {
+        "type": "object",
+        "properties": {
+          "deleted": {
+            "type": "number",
+            "description": "Files removed"
+          }
+        },
+        "required": [
+          "deleted"
+        ]
+      },
       "UpdatePlayersSettingsDto": {
         "type": "object",
         "properties": {
@@ -26750,6 +27643,59 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "GamemodeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Player name",
+            "example": "Steve"
+          },
+          "gamemode": {
+            "type": "string",
+            "enum": [
+              "survival",
+              "creative",
+              "adventure",
+              "spectator"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "gamemode"
+        ]
+      },
+      "TeleportDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Player name",
+            "example": "Steve"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "z": {
+            "type": "number"
+          },
+          "dimension": {
+            "type": "string",
+            "description": "Dimension id, the player's current one when omitted",
+            "example": "minecraft:the_nether"
+          }
+        },
+        "required": [
+          "name",
+          "x",
+          "y",
+          "z"
         ]
       },
       "VerifyTotpDto": {

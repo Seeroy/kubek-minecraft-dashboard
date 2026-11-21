@@ -1,4 +1,21 @@
-export type { BanEntry, IpBanEntry, OpEntry, PlayerEntry, PlayerList, PlayersOverview, PlayersSettings, ResolvedPlayer } from "@shared/types/players.types";
+import type { PlayerGamemode } from "@shared/types/players.types";
+
+export type {
+  BanEntry,
+  IpBanEntry,
+  KnownPlayer,
+  KnownPlayersPage,
+  OpEntry,
+  PlayerDetails,
+  PlayerEntry,
+  PlayerGamemode,
+  PlayerList,
+  PlayerPosition,
+  PlayersOverview,
+  PlayersSettings,
+  PlayerStats,
+  ResolvedPlayer,
+} from "@shared/types/players.types";
 
 export interface AddOpRequest {
   name: string;
@@ -27,4 +44,24 @@ export interface KickRequest {
 export interface UpdatePlayersSettingsRequest {
   whitelist?: boolean;
   enforceWhitelist?: boolean;
+}
+
+export interface GamemodeRequest {
+  name: string;
+  gamemode: PlayerGamemode;
+}
+
+export interface TeleportRequest {
+  name: string;
+  x: number;
+  y: number;
+  z: number;
+  /** Namespaced id, the player's current dimension when omitted */
+  dimension?: string;
+}
+
+export interface KnownPlayersParams {
+  page: number;
+  pageSize: number;
+  search?: string;
 }

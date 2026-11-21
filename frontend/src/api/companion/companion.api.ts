@@ -19,6 +19,7 @@ export interface CompanionEventsParams {
   before?: number;
   q?: string;
   limit?: number;
+  uuid?: string;
 }
 
 /** Kubek Companion plugin: install state, live data and in game actions */
@@ -45,6 +46,7 @@ export class CompanionApi {
     if (params.types?.length) searchParams.set("types", params.types.join(","));
     if (params.before) searchParams.set("before", String(params.before));
     if (params.q) searchParams.set("q", params.q);
+    if (params.uuid) searchParams.set("uuid", params.uuid);
     if (params.limit) searchParams.set("limit", String(params.limit));
     return this.authHttp.get<CompanionEventsPage>(`${this.base(serverId)}/events`, { searchParams });
   };

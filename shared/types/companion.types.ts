@@ -84,6 +84,10 @@ export interface CompanionPlayer {
   ping: number | null;
   /** Join time, ms epoch */
   since: number | null;
+  /** Half hearts, missing from plugins before 1.1.0 */
+  health?: number;
+  food?: number;
+  level?: number;
   x?: number;
   y?: number;
   z?: number;

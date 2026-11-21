@@ -8,9 +8,18 @@ import type {
   PlayersOverview,
   ResolvedPlayer,
 } from "@shared/types/players.types";
+import { usesLegacyCommands } from "@shared/players/game-version";
 import type { IUser } from "@shared/types/user.types";
 import { isIP } from "net";
-import { cleanReason, kickCommand } from "./apply/console-commands";
+import {
+  cleanReason,
+  feedCommand,
+  gamemodeCommand,
+  healCommand,
+  kickCommand,
+  LegacyCommandError,
+  teleportCommand,
+} from "./apply/console-commands";
 import { LiveApplier } from "./apply/live.applier";
 import { OfflineApplier } from "./apply/offline.applier";
 import type { PlayerListApplier } from "./apply/player-list.applier";
@@ -18,7 +27,9 @@ import type {
   AddBanDto,
   AddIpBanDto,
   AddOpDto,
+  GamemodeDto,
   KickPlayerDto,
+  TeleportDto,
 } from "./dto/player-requests.dto";
 import type { ListChange } from "./lists/list-codec";
 import { PLAYER_NAME } from "./players.constants";
@@ -36,7 +47,7 @@ const needsStoppedServer = (what: string) =>
     message: `${what} can only be set while the server is stopped`,
   });
 
-/** Whitelist, operators, bans and kicks of one server */
+/** Whitelist, operators, bans and console actions on players of one server */
 @Injectable()
 export class PlayersService {
   private readonly appliers: Record<"live" | "offline", PlayerListApplier>;
@@ -136,10 +147,47 @@ export class PlayersService {
     }));
   }
 
-  async kick(serverId: string, dto: KickPlayerDto): Promise<void> {
+  kick(serverId: string, dto: KickPlayerDto): Promise<void> {
+    return this.send(serverId, () => kickCommand(dto.name, dto.reason));
+  }
+
+  setGamemode(serverId: string, dto: GamemodeDto): Promise<void> {
+    return this.send(serverId, () => gamemodeCommand(dto.name, dto.gamemode));
+  }
+
+  teleport(serverId: string, dto: TeleportDto): Promise<void> {
+    return this.send(serverId, (legacy) =>
+      teleportCommand(dto.name, dto, legacy),
+    );
+  }
+
+  heal(serverId: string, name: string): Promise<void> {
+    return this.send(serverId, (legacy) => healCommand(name, legacy));
+  }
+
+  feed(serverId: string, name: string): Promise<void> {
+    return this.send(serverId, (legacy) => feedCommand(name, legacy));
+  }
+
+  // Can't confirm these, the server only answers in the console
+  private async send(
+    serverId: string,
+    build: (legacy: boolean) => string,
+  ): Promise<void> {
     const context = await this.contexts.load(serverId);
-    const sent =
-      context.live && context.instance.input(kickCommand(dto.name, dto.reason));
+    let command: string;
+    try {
+      command = build(
+        usesLegacyCommands(context.instance.runtime?.gameVersion),
+      );
+    } catch (error) {
+      if (!(error instanceof LegacyCommandError)) throw error;
+      throw new BadRequestException({
+        code: ApiErrorCode.PLAYERS_NEEDS_NEWER_VERSION,
+        message: "This server version can't do that",
+      });
+    }
+    const sent = context.live && context.instance.input(command);
     if (!sent) {
       throw new ConflictException({
         code: ApiErrorCode.SERVER_NOT_RUNNING,

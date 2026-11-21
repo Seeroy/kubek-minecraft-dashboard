@@ -16,6 +16,7 @@ export interface CompanionEventsQuery {
   before?: number;
   /** Substring of the name, uuid, chat message or kick reason */
   q?: string;
+  uuid?: string;
   limit: number;
 }
 
@@ -69,6 +70,10 @@ export class CompanionEventsRepository {
     if (query.before) {
       where.push("id < ?");
       params.push(query.before);
+    }
+    if (query.uuid) {
+      where.push("uuid = ?");
+      params.push(query.uuid.toLowerCase());
     }
     const q = query.q?.trim();
     if (q) {

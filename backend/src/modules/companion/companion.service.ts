@@ -311,6 +311,7 @@ export class CompanionService {
       types?: CompanionEventType[];
       before?: number;
       q?: string;
+      uuid?: string;
       limit?: number;
     },
   ): CompanionEventsPageDto {

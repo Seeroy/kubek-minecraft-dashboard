@@ -6,6 +6,11 @@ export const whatsNewTranslations: TranslationDictionary = {
   gotIt: "Понятно",
   fullChangelog: "Все изменения на GitHub",
   releases: {
+    "4-1-3": {
+      players: "Все игроки, карточка игрока и история входов, по идеям расширения Players от limeskat",
+      playerTools: "Ассистент и MCP умеют искать игроков, смотреть их данные и активность",
+      companion: "Kubek Companion 1.1.0 показывает здоровье, сытость и уровень игроков",
+    },
     "4-1-2": {
       cores: "Ядра NeoForge, Forge и Quilt, моды Fabric на Quilt",
       games: "Типы серверов по играм и онлайн игроков на Bedrock",

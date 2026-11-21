@@ -1,4 +1,5 @@
 import { getErrorMessage } from "@/core/utils/error";
+import { COMPANION_EVENT_TYPES } from "@/modules/companion/dto/companion-responses.dto";
 import { CompanionService } from "@/modules/companion/companion.service";
 import { Injectable } from "@nestjs/common";
 import { AccessArea } from "@shared/access/areas";
@@ -30,6 +31,7 @@ export class CompanionTools implements ToolGroup {
       this.performance(),
       this.lagReport(),
       this.livePlugins(),
+      this.playerActivity(),
       this.broadcast(),
     ];
   }
@@ -109,6 +111,46 @@ export class CompanionTools implements ToolGroup {
         this.call(serverId, async () =>
           json(await this.companion.livePlugins(serverId)),
         ),
+    });
+  }
+
+  // Stored feed, readable while the plugin is offline too
+  private playerActivity() {
+    return defineTool({
+      name: "get_player_activity",
+      description:
+        "Joins, quits, kicks, deaths and chat of one player, newest first, only the kinds enabled in the activity feed. Collected by Kubek Companion",
+      kind: "read",
+      access: [AccessArea.PLAYERS, "read"],
+      serverScoped: true,
+      args: serverArgs({
+        uuid: z
+          .string()
+          .uuid()
+          .describe("Player UUID, get_player or find_players give it"),
+        types: z
+          .array(z.enum(COMPANION_EVENT_TYPES))
+          .optional()
+          .describe("Only these kinds, all when omitted"),
+        before: z
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .describe("nextBefore of the previous page"),
+        limit: z.number().int().min(1).max(100).optional(),
+      }),
+      run: async (_ctx, { serverId, uuid, types, before, limit }) => {
+        if (!this.companion.supports(serverId)) return failure(UNSUPPORTED);
+        return json(
+          this.companion.eventsPage(serverId, {
+            uuid,
+            types,
+            before,
+            limit: limit ?? 50,
+          }),
+        );
+      },
     });
   }
 

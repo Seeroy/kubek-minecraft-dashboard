@@ -62,6 +62,11 @@ import {
   UserPlus,
   UserX,
   type LucideIcon,
+  Drumstick,
+  Gamepad2,
+  Heart,
+  MapPin,
+  RotateCcw,
 } from "lucide-react";
 
 type Look = { icon: LucideIcon; tone: Tone };
@@ -127,6 +132,11 @@ const ACTIONS: Record<string, Look> = {
   "players.ban_ip": { icon: Ban, tone: "red" },
   "players.pardon_ip": { icon: UserCheck, tone: "green" },
   "players.kick": { icon: UserX, tone: "orange" },
+  "players.gamemode": { icon: Gamepad2, tone: "blue" },
+  "players.teleport": { icon: MapPin, tone: "blue" },
+  "players.heal": { icon: Heart, tone: "green" },
+  "players.feed": { icon: Drumstick, tone: "green" },
+  "players.reset_data": { icon: RotateCcw, tone: "red" },
   "players.settings_update": { icon: ListChecks, tone: "blue" },
   "server.command": { icon: Terminal, tone: "gray" },
   "server.properties_update": { icon: Settings, tone: "amber" },

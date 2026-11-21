@@ -1,5 +1,6 @@
 import { CompanionModalsRegistration } from "@/modules/companion/modals";
 import { Players } from "@/modules/players";
+import { PlayersModalsRegistration } from "@/modules/players/modals";
 import { PLAYERS_TABS } from "@/modules/players/lib/players";
 import { tabStaticParams } from "@/shared/lib/routeTabs";
 
@@ -10,6 +11,7 @@ const PlayersPage = () => {
     <div>
       <Players />
       <CompanionModalsRegistration />
+      <PlayersModalsRegistration />
     </div>
   );
 };

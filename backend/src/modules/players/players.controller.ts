@@ -37,16 +37,23 @@ import {
   AddBanDto,
   AddIpBanDto,
   AddOpDto,
+  GamemodeDto,
   KickPlayerDto,
+  KnownPlayersQueryDto,
   PlayerNameDto,
+  TeleportDto,
   UpdatePlayersSettingsDto,
 } from "./dto/player-requests.dto";
 import {
+  KnownPlayersPageDto,
+  PlayerDetailsDto,
   PlayersOverviewDto,
+  ResetPlayerDataDto,
   ResolvedPlayerDto,
 } from "./dto/player-responses.dto";
 import { fromBody, fromParam, playersAudit } from "./players.audit";
 import { PlayersService } from "./players.service";
+import { PlayersDataService } from "./players-data.service";
 import { PlayersSettingsService } from "./players-settings.service";
 
 @ApiTags("Players")
@@ -59,6 +66,7 @@ export class PlayersController {
   constructor(
     private readonly players: PlayersService,
     private readonly settings: PlayersSettingsService,
+    private readonly data: PlayersDataService,
   ) {}
 
   @Get()
@@ -80,6 +88,49 @@ export class PlayersController {
     @Query() query: PlayerNameDto,
   ): Promise<ResolvedPlayerDto> {
     return this.players.resolve(serverId, query.name);
+  }
+
+  @Get("known")
+  @ApiOperation({
+    summary: "Players the server has seen, newest save first, one page",
+  })
+  @RequireAccess(AccessArea.PLAYERS, "read")
+  @ApiOkResponse({ type: KnownPlayersPageDto })
+  @ApiErrorResponses([400, 401, 403, 404])
+  known(
+    @Param("serverId") serverId: string,
+    @Query() query: KnownPlayersQueryDto,
+  ): Promise<KnownPlayersPageDto> {
+    return this.data.list(serverId, query);
+  }
+
+  @Get("known/:id")
+  @ApiOperation({
+    summary: "Saved position, vitals and stats of a player by UUID or name",
+  })
+  @RequireAccess(AccessArea.PLAYERS, "read")
+  @ApiOkResponse({ type: PlayerDetailsDto })
+  @ApiErrorResponses([400, 401, 403, 404])
+  details(
+    @Param("serverId") serverId: string,
+    @Param("id") id: string,
+  ): Promise<PlayerDetailsDto> {
+    return this.data.details(serverId, id);
+  }
+
+  @Delete("known/:uuid")
+  @ApiOperation({
+    summary: "Reset a player's progress, stats and advancements",
+  })
+  @RequireAccess(AccessArea.PLAYERS, "manage")
+  @ApiOkResponse({ type: ResetPlayerDataDto })
+  @ApiErrorResponses([400, 401, 403, 404, 409])
+  @Audit(playersAudit(AuditAction.PLAYERS_RESET_DATA, fromParam.uuid))
+  resetData(
+    @Param("serverId") serverId: string,
+    @Param("uuid") uuid: string,
+  ): Promise<ResetPlayerDataDto> {
+    return this.data.reset(serverId, uuid);
   }
 
   @Put("settings")
@@ -235,5 +286,70 @@ export class PlayersController {
     @Body() dto: KickPlayerDto,
   ): Promise<void> {
     return this.players.kick(serverId, dto);
+  }
+
+  @Post("gamemode")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Change the game mode of an online player" })
+  @RequireAccess(AccessArea.PLAYERS, "write")
+  @ApiNoContentResponse({ description: "Command sent" })
+  @ApiErrorResponses([400, 401, 403, 404, 409])
+  @Audit(
+    playersAudit(AuditAction.PLAYERS_GAMEMODE, fromBody.name, (req) => ({
+      gamemode: (req.body as GamemodeDto).gamemode,
+    })),
+  )
+  gamemode(
+    @Param("serverId") serverId: string,
+    @Body() dto: GamemodeDto,
+  ): Promise<void> {
+    return this.players.setGamemode(serverId, dto);
+  }
+
+  @Post("teleport")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Teleport an online player" })
+  @RequireAccess(AccessArea.PLAYERS, "write")
+  @ApiNoContentResponse({ description: "Command sent" })
+  @ApiErrorResponses([400, 401, 403, 404, 409])
+  @Audit(
+    playersAudit(AuditAction.PLAYERS_TELEPORT, fromBody.name, (req) => {
+      const { x, y, z, dimension } = req.body as TeleportDto;
+      return { x, y, z, dimension };
+    }),
+  )
+  teleport(
+    @Param("serverId") serverId: string,
+    @Body() dto: TeleportDto,
+  ): Promise<void> {
+    return this.players.teleport(serverId, dto);
+  }
+
+  @Post("heal")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Restore the health of an online player" })
+  @RequireAccess(AccessArea.PLAYERS, "write")
+  @ApiNoContentResponse({ description: "Command sent" })
+  @ApiErrorResponses([400, 401, 403, 404, 409])
+  @Audit(playersAudit(AuditAction.PLAYERS_HEAL, fromBody.name))
+  heal(
+    @Param("serverId") serverId: string,
+    @Body() dto: PlayerNameDto,
+  ): Promise<void> {
+    return this.players.heal(serverId, dto.name);
+  }
+
+  @Post("feed")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Fill the hunger bar of an online player" })
+  @RequireAccess(AccessArea.PLAYERS, "write")
+  @ApiNoContentResponse({ description: "Command sent" })
+  @ApiErrorResponses([400, 401, 403, 404, 409])
+  @Audit(playersAudit(AuditAction.PLAYERS_FEED, fromBody.name))
+  feed(
+    @Param("serverId") serverId: string,
+    @Body() dto: PlayerNameDto,
+  ): Promise<void> {
+    return this.players.feed(serverId, dto.name);
   }
 }

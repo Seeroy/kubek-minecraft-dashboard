@@ -3,12 +3,15 @@ import {
   type AddBanRequest,
   type AddIpBanRequest,
   type AddOpRequest,
+  type GamemodeRequest,
   type KickRequest,
+  type KnownPlayersParams,
   type PlayersOverview,
+  type TeleportRequest,
   type UpdatePlayersSettingsRequest,
 } from "@/api";
 import { qk } from "@/shared/queries/query-keys";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function usePlayersOverview(serverId: string | undefined, enabled = true) {
   return useQuery({
@@ -62,4 +65,56 @@ export function useResolvePlayerMutation(serverId: string) {
 
 export function useKickPlayerMutation(serverId: string) {
   return useMutation({ mutationFn: (data: KickRequest) => api.players.kick(serverId, data) });
+}
+
+export function useKnownPlayers(serverId: string, params: KnownPlayersParams, enabled = true) {
+  const search = params.search ?? "";
+  return useQuery({
+    queryKey: qk.players.knownPage(serverId, params.page, params.pageSize, search),
+    queryFn: () => api.players.getKnown(serverId, params),
+    enabled: enabled && !!serverId,
+    placeholderData: keepPreviousData,
+    refetchInterval: 60_000,
+  });
+}
+
+/** By UUID, or by name for an online player */
+export function usePlayerDetails(serverId: string, id: string) {
+  return useQuery({
+    queryKey: qk.players.details(serverId, id),
+    queryFn: () => api.players.getDetails(serverId, id),
+    // Player files are saved every few minutes
+    refetchInterval: 15_000,
+  });
+}
+
+export type PlayerCommand =
+  | { kind: "gamemode"; data: GamemodeRequest }
+  | { kind: "teleport"; data: TeleportRequest }
+  | { kind: "heal"; name: string }
+  | { kind: "feed"; name: string };
+
+const sendCommand = (serverId: string, command: PlayerCommand) => {
+  switch (command.kind) {
+    case "gamemode":
+      return api.players.setGamemode(serverId, command.data);
+    case "teleport":
+      return api.players.teleport(serverId, command.data);
+    case "heal":
+      return api.players.heal(serverId, command.name);
+    case "feed":
+      return api.players.feed(serverId, command.name);
+  }
+};
+
+export function usePlayerCommandMutation(serverId: string) {
+  return useMutation({ mutationFn: (command: PlayerCommand) => sendCommand(serverId, command) });
+}
+
+export function useResetPlayerDataMutation(serverId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (uuid: string) => api.players.resetData(serverId, uuid),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.players.known(serverId) }),
+  });
 }

@@ -114,6 +114,11 @@ export const auditLogTranslations: TranslationDictionary = {
     players_ban_ip: "Ban IP address",
     players_pardon_ip: "Unban IP address",
     players_kick: "Kick player",
+    players_gamemode: "Change game mode",
+    players_teleport: "Teleport player",
+    players_heal: "Heal player",
+    players_feed: "Feed player",
+    players_reset_data: "Reset player progress",
     players_settings_update: "Update whitelist settings",
     server_command: "Console command",
     server_properties_update: "Change server.properties",
@@ -401,11 +406,6 @@ export const auditLogTranslations: TranslationDictionary = {
     save: "Save",
     saved: "Retention saved",
     failed: "Could not save retention",
-  },
-  pagination: {
-    prev: "Previous",
-    next: "Next",
-    range: (from: number, to: number, total: number) => `${from}-${to} of ${total}`,
   },
   empty: {
     title: "No audit entries found",

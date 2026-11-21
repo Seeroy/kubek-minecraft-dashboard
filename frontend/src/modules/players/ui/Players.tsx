@@ -2,7 +2,6 @@
 import { CompanionBanner, useCompanion } from "@/modules/companion";
 import { CompanionPlayerActions } from "@/modules/companion/ui/players/CompanionPlayerActions";
 import { ActivityTab } from "@/modules/companion/ui/players/ActivityTab";
-import { CompanionPlayerDetail } from "@/modules/companion/ui/players/CompanionPlayerDetail";
 import { useServerStore } from "@/modules/server/contexts/server-context";
 import { resolveServerStatus, useServerLive } from "@/modules/server/store/server-statuses.store";
 import type { Server } from "@/modules/server/types";
@@ -12,11 +11,12 @@ import { ApiError } from "@/shared/lib/http";
 import { Button } from "@/shared/ui/button";
 import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
+import { NoServerEmpty } from "@/shared/ui/NoServerEmpty";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Stat, StatStrip } from "@/shared/ui/stat-strip";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { ServerStatus } from "@shared/types/server/server.types";
-import { Ban, Crown, History, ListChecks, Lock, Radio, RotateCw, ServerOff, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
+import { Ban, BookUser, Crown, History, ListChecks, Lock, Radio, RotateCw, ServerOff, TriangleAlert, UsersRound, type LucideIcon } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { usePlayersOverview } from "../api/players.queries";
 import { SAMPLE_PLAYERS_OVERVIEW } from "../data/samples";
@@ -24,12 +24,14 @@ import { usePlayerActions } from "../hooks/usePlayerActions";
 import { usePlayersAccess } from "../hooks/usePlayersAccess";
 import { PLAYERS_TABS, type PlayersTab } from "../lib/players";
 import { BansTab } from "./BansTab";
+import { KnownTab } from "./KnownTab";
 import { OnlineTab } from "./OnlineTab";
 import { OpsTab } from "./OpsTab";
 import { WhitelistTab } from "./WhitelistTab";
 
 const TAB_ICONS: Record<PlayersTab, LucideIcon> = {
   online: Radio,
+  known: BookUser,
   whitelist: ListChecks,
   ops: Crown,
   bans: Ban,
@@ -64,14 +66,7 @@ function ServerPlayers({ server }: { server: Server }) {
 
   // Ping, world and session per online player, only while the plugin reports
   const livePlayers = companion.connected ? companion.live?.stats?.players : undefined;
-  const detailFor = useMemo(() => {
-    if (!livePlayers) return undefined;
-    const byName = new Map(livePlayers.map((p) => [p.name.toLowerCase(), p]));
-    return function detailFor(name: string) {
-      const player = byName.get(name.toLowerCase());
-      return player ? <CompanionPlayerDetail player={player} /> : undefined;
-    };
-  }, [livePlayers]);
+  const live = useMemo(() => livePlayers && new Map(livePlayers.map((p) => [p.name.toLowerCase(), p])), [livePlayers]);
 
   const overview = query.data;
   const busy = state === ServerStatus.STARTING || state === ServerStatus.STOPPING;
@@ -81,6 +76,7 @@ function ServerPlayers({ server }: { server: Server }) {
 
   const counts: Record<PlayersTab, number | undefined> = {
     online: online?.length,
+    known: undefined,
     whitelist: overview?.whitelist.length,
     ops: overview?.ops.length,
     bans: overview && overview.bans.length + overview.ipBans.length,
@@ -98,8 +94,8 @@ function ServerPlayers({ server }: { server: Server }) {
     );
   }
 
-  // Activity has its own data, only the list tabs wait for the overview
-  const listTab = tab !== "online" && tab !== "activity";
+  // These have their own data, only the list tabs wait for the overview
+  const listTab = tab !== "online" && tab !== "known" && tab !== "activity";
 
   return (
     <>
@@ -156,7 +152,11 @@ function ServerPlayers({ server }: { server: Server }) {
           </div>
 
           <TabsContent value="online">
-            <OnlineTab online={online} overview={overview} access={access} actions={actions} detailFor={detailFor} />
+            <OnlineTab serverId={server.id} blueprintId={server.blueprintId} online={online} overview={overview} access={access} actions={actions} live={live} />
+          </TabsContent>
+
+          <TabsContent value="known">
+            <KnownTab serverId={server.id} blueprintId={server.blueprintId} online={online} overview={overview} access={access} actions={actions} />
           </TabsContent>
 
           <TabsContent value="activity">
@@ -216,7 +216,7 @@ export default function Players() {
       ) : (
         <>
           <PageHeader title={t("title")} description={t("description")} />
-          <Unavailable icon={UsersRound} title={t("noServer.title")} description={t("noServer.description")} />
+          <NoServerEmpty icon={UsersRound} className="rounded-lg border border-border bg-card py-14" title={t("noServer.title")} description={t("noServer.description")} />
         </>
       )}
     </div>

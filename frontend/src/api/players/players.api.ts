@@ -1,5 +1,18 @@
 import { authHttp, type AuthHttpClient } from "@/shared/lib/http";
-import type { AddBanRequest, AddIpBanRequest, AddOpRequest, KickRequest, PlayersOverview, ResolvedPlayer, UpdatePlayersSettingsRequest } from "./players.model";
+import type {
+  AddBanRequest,
+  AddIpBanRequest,
+  AddOpRequest,
+  GamemodeRequest,
+  KickRequest,
+  KnownPlayersPage,
+  KnownPlayersParams,
+  PlayerDetails,
+  PlayersOverview,
+  ResolvedPlayer,
+  TeleportRequest,
+  UpdatePlayersSettingsRequest,
+} from "./players.model";
 
 // Every list change answers with the fresh overview
 export class PlayersApi {
@@ -40,6 +53,34 @@ export class PlayersApi {
 
   kick = async (serverId: string, data: KickRequest): Promise<void> => {
     await this.authHttp.post<void>(`${this.base(serverId)}/kick`, { json: data });
+  };
+
+  getKnown = (serverId: string, { page, pageSize, search }: KnownPlayersParams): Promise<KnownPlayersPage> =>
+    this.authHttp.get<KnownPlayersPage>(`${this.base(serverId)}/known`, {
+      searchParams: { page, pageSize, ...(search ? { search } : {}) },
+    });
+
+  /** By UUID, or by name for an online player */
+  getDetails = (serverId: string, id: string): Promise<PlayerDetails> =>
+    this.authHttp.get<PlayerDetails>(`${this.base(serverId)}/known/${encodeURIComponent(id)}`);
+
+  resetData = (serverId: string, uuid: string): Promise<{ deleted: number }> =>
+    this.authHttp.delete<{ deleted: number }>(`${this.base(serverId)}/known/${encodeURIComponent(uuid)}`);
+
+  setGamemode = async (serverId: string, data: GamemodeRequest): Promise<void> => {
+    await this.authHttp.post<void>(`${this.base(serverId)}/gamemode`, { json: data });
+  };
+
+  teleport = async (serverId: string, data: TeleportRequest): Promise<void> => {
+    await this.authHttp.post<void>(`${this.base(serverId)}/teleport`, { json: data });
+  };
+
+  heal = async (serverId: string, name: string): Promise<void> => {
+    await this.authHttp.post<void>(`${this.base(serverId)}/heal`, { json: { name } });
+  };
+
+  feed = async (serverId: string, name: string): Promise<void> => {
+    await this.authHttp.post<void>(`${this.base(serverId)}/feed`, { json: { name } });
   };
 }
 

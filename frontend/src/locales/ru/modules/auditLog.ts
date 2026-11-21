@@ -115,6 +115,11 @@ export const auditLogTranslations: TranslationDictionary = {
     players_ban_ip: "Бан IP-адреса",
     players_pardon_ip: "Разбан IP-адреса",
     players_kick: "Кик игрока",
+    players_gamemode: "Смена режима игры",
+    players_teleport: "Телепорт игрока",
+    players_heal: "Лечение игрока",
+    players_feed: "Игрок накормлен",
+    players_reset_data: "Сброс прогресса игрока",
     players_settings_update: "Настройки белого списка",
     server_command: "Команда в консоль",
     server_properties_update: "Изменение server.properties",
@@ -402,11 +407,6 @@ export const auditLogTranslations: TranslationDictionary = {
     save: "Сохранить",
     saved: "Настройки хранения сохранены",
     failed: "Не удалось сохранить настройки хранения",
-  },
-  pagination: {
-    prev: "Назад",
-    next: "Вперёд",
-    range: (from: number, to: number, total: number) => `${from}-${to} из ${total}`,
   },
   empty: {
     title: "Записи аудита не найдены",

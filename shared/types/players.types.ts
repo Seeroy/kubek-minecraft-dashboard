@@ -52,3 +52,48 @@ export type PlayerUuidSource = "mojang" | "offline";
 export interface ResolvedPlayer extends PlayerEntry {
   source: PlayerUuidSource;
 }
+
+/** A player the server has seen, from usercache.json and the saved player files */
+export interface KnownPlayer {
+  uuid: string;
+  /** null when the usercache has forgotten the name */
+  name: string | null;
+  /** ms epoch of the player file, the server saves it on logout and autosave */
+  savedAt: number | null;
+}
+
+export interface KnownPlayersPage {
+  items: KnownPlayer[];
+  /** Matches across all pages */
+  total: number;
+}
+
+export type PlayerGamemode =
+  "survival" | "creative" | "adventure" | "spectator";
+
+export interface PlayerPosition {
+  dimension: string;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface PlayerStats {
+  playTimeTicks: number;
+  deaths: number;
+  mobKills: number;
+  playerKills: number;
+  distanceCm: number;
+  jumps: number;
+}
+
+/** From the saved files, lags behind an online player */
+export interface PlayerDetails extends KnownPlayer {
+  gamemode: PlayerGamemode | null;
+  health: number | null;
+  food: number | null;
+  xpLevel: number | null;
+  position: PlayerPosition | null;
+  lastDeath: PlayerPosition | null;
+  stats: PlayerStats | null;
+}

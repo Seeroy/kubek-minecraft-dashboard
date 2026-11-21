@@ -8,6 +8,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   MaxLength,
   Min,
@@ -169,6 +170,11 @@ export class CompanionEventsQueryDto {
   @IsString()
   @MaxLength(100)
   q?: string;
+
+  @ApiPropertyOptional({ description: "Events of one player" })
+  @IsOptional()
+  @IsUUID()
+  uuid?: string;
 
   @ApiPropertyOptional({ minimum: 1, maximum: 200, default: 50 })
   @IsOptional()

@@ -69,3 +69,14 @@ describe("CompanionEventsRepository search", () => {
     ).toEqual(["chat"]);
   });
 });
+
+describe("CompanionEventsRepository player filter", () => {
+  test("only events of one uuid, with types", () => {
+    const of = (types?: CompanionEvent["type"][]) =>
+      repo
+        .list("s1", { uuid: "AAAA-1111", types, limit: 50 })
+        .map((e) => e.type);
+    expect(of()).toEqual(["chat", "join"]);
+    expect(of(["join"])).toEqual(["join"]);
+  });
+});

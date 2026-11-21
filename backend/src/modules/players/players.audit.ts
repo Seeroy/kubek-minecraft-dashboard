@@ -16,7 +16,11 @@ const param =
     req.params?.[field] as string | undefined;
 
 export const fromBody = { name: bodyField("name"), ip: bodyField("ip") };
-export const fromParam = { name: param("name"), ip: param("ip") };
+export const fromParam = {
+  name: param("name"),
+  ip: param("ip"),
+  uuid: param("uuid"),
+};
 
 /** Audit meta for a change of one player or address on one server */
 export function playersAudit(

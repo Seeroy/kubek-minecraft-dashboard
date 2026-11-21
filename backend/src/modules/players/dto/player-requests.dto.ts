@@ -1,6 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import type { PlayerGamemode } from "@shared/types/players.types";
 import {
   IsBoolean,
+  IsIn,
+  IsNumber,
   IsInt,
   IsIP,
   IsOptional,
@@ -11,6 +15,15 @@ import {
   Min,
 } from "class-validator";
 import { PLAYER_NAME } from "../players.constants";
+
+const GAMEMODES: PlayerGamemode[] = [
+  "survival",
+  "creative",
+  "adventure",
+  "spectator",
+];
+// World border limit, past it the command fails anyway
+const MAX_COORD = 30_000_000;
 
 export class PlayerNameDto {
   @ApiProperty({ description: "Player name", example: "Steve" })
@@ -88,4 +101,63 @@ export class UpdatePlayersSettingsDto {
   @IsOptional()
   @IsBoolean()
   enforceWhitelist?: boolean;
+}
+
+export class GamemodeDto extends PlayerNameDto {
+  @ApiProperty({ enum: GAMEMODES })
+  @IsIn(GAMEMODES)
+  gamemode!: PlayerGamemode;
+}
+
+export class TeleportDto extends PlayerNameDto {
+  @ApiProperty()
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  @Min(-MAX_COORD)
+  @Max(MAX_COORD)
+  x!: number;
+
+  @ApiProperty()
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  @Min(-4096)
+  @Max(4096)
+  y!: number;
+
+  @ApiProperty()
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  @Min(-MAX_COORD)
+  @Max(MAX_COORD)
+  z!: number;
+
+  @ApiPropertyOptional({
+    description: "Dimension id, the player's current one when omitted",
+    example: "minecraft:the_nether",
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  @Matches(/^[a-z0-9_.-]+:[a-z0-9_./-]+$/, { message: "Invalid dimension" })
+  dimension?: string;
+}
+
+export class KnownPlayersQueryDto {
+  @ApiPropertyOptional({ minimum: 0, default: 0 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  page: number = 0;
+
+  @ApiPropertyOptional({ minimum: 1, maximum: 100, default: 25 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  pageSize: number = 25;
+
+  @ApiPropertyOptional({ description: "Part of a name or UUID" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  search?: string;
 }

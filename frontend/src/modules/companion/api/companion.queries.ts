@@ -36,6 +36,16 @@ export function useCompanionEvents(serverId: string | undefined, types: Companio
   });
 }
 
+export function usePlayerEvents(serverId: string, uuid: string, types: CompanionEventType[] = [], limit = EVENTS_PAGE) {
+  return useInfiniteQuery({
+    queryKey: qk.companion.playerEvents(serverId, uuid, `${types.join(",")}:${limit}`),
+    queryFn: ({ pageParam }) => api.companion.getEvents(serverId, { types, uuid, before: pageParam, limit }),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (page) => page.nextBefore ?? undefined,
+    refetchInterval: 30_000,
+  });
+}
+
 export function useCompanionActivity(serverId: string | undefined, days: number, enabled = true) {
   return useQuery({
     queryKey: qk.companion.activity(serverId ?? "", days),

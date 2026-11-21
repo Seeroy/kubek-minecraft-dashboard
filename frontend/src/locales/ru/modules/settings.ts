@@ -12,7 +12,7 @@ export const settingsTranslations: TranslationDictionary = {
     assistant: "Ассистент",
     users: "Пользователи",
     roles: "Роли",
-    api: "API",
+    api: "API и MCP",
     sessions: "Сессии",
     twofa: "2FA",
     about: "О панели",

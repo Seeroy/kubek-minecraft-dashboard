@@ -28,13 +28,16 @@ export function createServersReadApi(
   };
 }
 
+// A line break would run the rest as a second command
+export const oneLine = (cmd: string) => cmd.replace(/[\r\n]+/g, " ");
+
 export function createServersControlApi(
   servers: ServersService,
 ): Pick<ExtServersApi, "sendCommand" | "start" | "stop"> {
   return {
     sendCommand: async (id, cmd) => {
       const instance = servers.getInstance(id);
-      return instance ? instance.input(cmd) : false;
+      return instance ? instance.input(oneLine(cmd)) : false;
     },
     start: async (id) => {
       await servers.start(id);

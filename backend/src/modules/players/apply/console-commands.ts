@@ -1,4 +1,13 @@
+import type { PlayerGamemode } from "@shared/types/players.types";
 import type { ListChange } from "../lists/list-codec";
+
+export interface TeleportTarget {
+  x: number;
+  y: number;
+  z: number;
+  /** Namespaced id, the current dimension when missing */
+  dimension?: string;
+}
 
 const MAX_REASON = 256;
 
@@ -52,3 +61,36 @@ export function kickCommand(name: string, reason?: string): string {
 export function whitelistToggleCommand(enabled: boolean): string {
   return `whitelist ${enabled ? "on" : "off"}`;
 }
+
+export const gamemodeCommand = (name: string, mode: PlayerGamemode) =>
+  `gamemode ${mode} ${name}`;
+
+// No exponent form, the command parser wants plain numbers
+const coord = (value: number) => String(Math.round(value * 1000) / 1000);
+
+export function teleportCommand(
+  name: string,
+  to: TeleportTarget,
+  legacy = false,
+): string {
+  const tp = `tp ${name} ${coord(to.x)} ${coord(to.y)} ${coord(to.z)}`;
+  if (!to.dimension) return tp;
+  if (legacy) throw new LegacyCommandError();
+  return `execute in ${to.dimension} run ${tp}`;
+}
+
+// Before 1.13 there's no effect give and the ids are numbers
+const effect = (name: string, id: string, legacyId: number, legacy: boolean) =>
+  legacy
+    ? `effect ${name} ${legacyId} 1 10 true`
+    : `effect give ${name} minecraft:${id} 1 10 true`;
+
+// Amplifier 10 is plenty, much higher overflows into damage
+export const healCommand = (name: string, legacy = false) =>
+  effect(name, "instant_health", 6, legacy);
+
+export const feedCommand = (name: string, legacy = false) =>
+  effect(name, "saturation", 23, legacy);
+
+/** The server is too old for this command */
+export class LegacyCommandError extends Error {}

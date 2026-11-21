@@ -1,4 +1,4 @@
-import type { PlayersOverview } from "@/api";
+import type { KnownPlayersPage, PlayersOverview } from "@/api";
 
 // Dashes keep these off the head endpoint, they are never valid Minecraft names
 const player = (i: number, name: string) => ({ uuid: `sample-${i}`, name });
@@ -30,4 +30,9 @@ export const SAMPLE_PLAYERS_OVERVIEW: PlayersOverview = {
     opPermissionLevel: 4,
   },
   live: false,
+};
+
+export const SAMPLE_KNOWN_PAGE: KnownPlayersPage = {
+  items: ["sample-steve", "sample-alex", "sample-builder", "sample-miner", "sample-farmer"].map((name, i) => ({ uuid: `sample-${i}`, name, savedAt: null })),
+  total: 5,
 };

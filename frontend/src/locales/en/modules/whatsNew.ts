@@ -6,6 +6,11 @@ export const whatsNewTranslations: TranslationDictionary = {
   gotIt: "Got it",
   fullChangelog: "Full changelog on GitHub",
   releases: {
+    "4-1-3": {
+      players: "All players, a player card and join history, based on the Players extension by limeskat",
+      playerTools: "The assistant and MCP can find players and read their data and activity",
+      companion: "Kubek Companion 1.1.0 shows player health, food and level",
+    },
     "4-1-2": {
       cores: "NeoForge, Forge and Quilt cores, Fabric mods on Quilt",
       games: "Server types grouped by game, player stats on Bedrock",

@@ -223,6 +223,15 @@ export class CompanionPlayerDto implements CompanionPlayer {
   })
   since!: number | null;
 
+  @ApiPropertyOptional({ description: "Half hearts, since plugin 1.1.0" })
+  health?: number;
+
+  @ApiPropertyOptional({ minimum: 0, maximum: 20 })
+  food?: number;
+
+  @ApiPropertyOptional({ description: "Experience level" })
+  level?: number;
+
   @ApiPropertyOptional()
   x?: number;
 

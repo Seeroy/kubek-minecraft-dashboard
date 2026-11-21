@@ -11,7 +11,7 @@ export const settingsTranslations: TranslationDictionary = {
     assistant: "Assistant",
     users: "Users",
     roles: "Roles",
-    api: "API",
+    api: "API & MCP",
     sessions: "Sessions",
     twofa: "2FA",
     about: "About",

@@ -1,4 +1,6 @@
-export const PLAYERS_TABS = ["online", "whitelist", "ops", "bans", "activity"] as const;
+import type { BanEntry, OpEntry, PlayerEntry, PlayersOverview } from "@/api";
+
+export const PLAYERS_TABS = ["online", "known", "whitelist", "ops", "bans", "activity"] as const;
 
 export type PlayersTab = (typeof PLAYERS_TABS)[number];
 
@@ -14,3 +16,15 @@ export const formatDate = (ms: number) =>
   new Date(ms).toLocaleString(undefined, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export const matchesQuery = (query: string, ...fields: string[]) => !query || fields.some((field) => field.toLowerCase().includes(query));
+
+export interface PlayerListsLookup {
+  ops: Map<string, OpEntry>;
+  whitelist: Map<string, PlayerEntry>;
+  bans: Map<string, BanEntry>;
+}
+
+/** Lists keyed by lowercase name, players can join with any casing */
+export function listsLookup(overview: PlayersOverview | undefined): PlayerListsLookup {
+  const byName = <T extends PlayerEntry>(entries: T[] = []) => new Map(entries.map((entry) => [entry.name.toLowerCase(), entry]));
+  return { ops: byName(overview?.ops), whitelist: byName(overview?.whitelist), bans: byName(overview?.bans) };
+}
