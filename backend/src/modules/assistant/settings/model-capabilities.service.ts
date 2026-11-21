@@ -37,6 +37,7 @@ export class ModelCapabilitiesService {
       reasoning: caps.reasoning,
       reasoningMandatory: caps.reasoningMandatory,
       webSearch: hasWebSearch(kind),
+      contextWindow: caps.contextWindow,
     };
   }
 
@@ -65,7 +66,7 @@ export class ModelCapabilitiesService {
   }
 }
 
-// DeepSeek lists bare ids, its docs say flash reads images and every model thinks
+// DeepSeek lists bare ids, its docs say flash reads images, every model thinks and has a 128K window
 function withKnownModels(
   kind: ProviderKind,
   model: string,
@@ -76,5 +77,6 @@ function withKnownModels(
     vision: caps.vision ?? /flash/i.test(model),
     reasoning: caps.reasoning ?? true,
     reasoningMandatory: caps.reasoningMandatory,
+    contextWindow: caps.contextWindow ?? 128_000,
   };
 }

@@ -193,6 +193,8 @@ export class AssistantCapabilitiesDto {
   @ApiProperty({ type: Boolean, nullable: true }) vision!: boolean | null;
   @ApiProperty({ type: Boolean, nullable: true }) reasoning!: boolean | null;
   @ApiProperty() webSearch!: boolean;
+  @ApiProperty({ type: Number, nullable: true, description: "Context window in tokens" })
+  contextWindow!: number | null;
 }
 
 export class AssistantStatusDto implements AssistantStatus {

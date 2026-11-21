@@ -28,12 +28,17 @@ import { useAssistantPanel } from "../lib/panel-store";
 import { useLiveConversation } from "../lib/stream-store";
 import { FileChip } from "./MessageExtras";
 
+/** What the chat waits on before the user can write again */
+export type ComposerWaiting = false | "action" | "plan" | "question";
+
+const WAITING_HINT = { action: "waiting", plan: "waitingPlan", question: "waitingQuestion" } as const;
+
 interface ComposerProps {
   conversationId: string | null;
   /** Server side running flag, the live store overrides it once events arrive */
   running: boolean;
-  /** A write call waits for a decision */
-  waiting: boolean;
+  /** A write call, a plan or a question waits for the user */
+  waiting: ComposerWaiting;
   initialText: string;
   onStarted: (conversation: IAssistantConversation) => void;
 }
@@ -60,7 +65,7 @@ export function Composer({ conversationId, running, waiting, initialText, onStar
   const webSearch = useAssistantPanel((s) => s.webSearch);
   const setWebSearch = useAssistantPanel((s) => s.setWebSearch);
   const busy = (live.running ?? running) || send.isPending;
-  const blocked = busy || waiting;
+  const blocked = busy || !!waiting;
   // Unknown counts as able, the provider error says otherwise
   const vision = capabilities?.vision !== false;
 
@@ -197,7 +202,7 @@ export function Composer({ conversationId, running, waiting, initialText, onStar
           onPaste={onPaste}
           rows={2}
           maxLength={8000}
-          placeholder={dragging ? t("attach.drop") : waiting ? t("waiting") : t("placeholder")}
+          placeholder={dragging ? t("attach.drop") : waiting ? t(WAITING_HINT[waiting]) : t("placeholder")}
           aria-label={t("placeholder")}
           className="block field-sizing-content max-h-48 min-h-[52px] w-full resize-none bg-transparent px-3.5 pt-3 text-[13px] leading-relaxed outline-none placeholder:text-muted-foreground"
         />

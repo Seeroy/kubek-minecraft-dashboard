@@ -5161,6 +5161,8 @@ export interface components {
             vision: boolean | null;
             reasoning: boolean | null;
             webSearch: boolean;
+            /** @description Context window in tokens */
+            contextWindow: number | null;
         };
         AssistantStatusDto: {
             enabled: boolean;
@@ -5278,7 +5280,7 @@ export interface components {
             name: string;
             args: Record<string, never>;
             /** @enum {string} */
-            kind: "read" | "write";
+            kind: "read" | "write" | "plan" | "ask";
             /** @enum {string} */
             status: "pending" | "running" | "done" | "error" | "rejected";
             serverId: string | null;
@@ -5330,6 +5332,12 @@ export interface components {
             messages: components["schemas"]["MessageDto"][];
             running: boolean;
         };
+        CallResponseDto: {
+            /** @description Picked option labels of a question */
+            selected?: string[];
+            /** @description Free text answer or feedback on a declined plan */
+            text?: string;
+        };
         ConfirmToolCallDto: {
             /** @description Run write tools without asking the user */
             autoApprove?: boolean;
@@ -5338,7 +5346,9 @@ export interface components {
             /** @description Let the model search the web */
             webSearch?: boolean;
             callId: string;
+            /** @description False declines a call or a plan, or skips a question */
             approve: boolean;
+            response?: components["schemas"]["CallResponseDto"];
         };
         FileEntity: {
             /**

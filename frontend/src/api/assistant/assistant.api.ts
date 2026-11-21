@@ -5,6 +5,7 @@ import type {
   AssistantConversationDetail,
   AssistantMessageContext,
   AssistantModelInfo,
+  AssistantCallResponse,
   AssistantRunOptions,
   AssistantPreset,
   AssistantSendResult,
@@ -52,8 +53,14 @@ export class AssistantApi {
       json: { content, ...context, attachments },
     });
 
-  confirm = async (id: string, callId: string, approve: boolean, options: AssistantRunOptions = {}): Promise<void> => {
-    await this.authHttp.post<void>(`assistant/conversations/${id}/confirm`, { json: { callId, approve, ...options } });
+  confirm = async (
+    id: string,
+    callId: string,
+    approve: boolean,
+    options: AssistantRunOptions = {},
+    response?: AssistantCallResponse
+  ): Promise<void> => {
+    await this.authHttp.post<void>(`assistant/conversations/${id}/confirm`, { json: { callId, approve, ...options, response } });
   };
 
   attachment = (id: string, attachmentId: string): Promise<Blob> =>

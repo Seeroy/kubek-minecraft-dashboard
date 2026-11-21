@@ -62,7 +62,7 @@ const CallRow = memo(function CallRow({ call, nested }: { call: AssistantToolCal
       >
         {nested ? <StatusIcon status={call.status} /> : <Wrench className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />}
         <span className="min-w-0 flex-1 truncate">
-          <span className={cn(!nested && "font-medium")}>{label(call.name)}</span>
+          <span className={cn(!nested && "font-medium", call.status === "running" && "text-shimmer")}>{label(call.name)}</span>
           <span className="ml-1.5 text-muted-foreground">{t(`status.${call.status}`)}</span>
         </span>
         {!nested && <StatusIcon status={call.status} />}
@@ -100,7 +100,7 @@ export function ToolCallGroup({ calls }: { calls: AssistantToolCall[] }) {
         <span className="min-w-0 flex-1 truncate">
           {running ? (
             <>
-              <span className="font-medium">{label(running.name)}</span>
+              <span className="text-shimmer font-medium">{label(running.name)}</span>
               <span className="ml-1.5 text-muted-foreground">{t("status.running")}</span>
             </>
           ) : (

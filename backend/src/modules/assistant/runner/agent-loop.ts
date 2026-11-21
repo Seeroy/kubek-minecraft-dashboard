@@ -1,6 +1,9 @@
 import { ASSISTANT_RUN_ERRORS } from "@shared/types/assistant.types";
 import { getErrorMessage } from "@/core/utils/error";
 import type {
+  AssistantCallResponse,
+  AssistantPlan,
+  AssistantQuestion,
   AssistantToolCall,
   AssistantToolPreview,
   AssistantUsage,
@@ -20,13 +23,26 @@ import type {
   StoredToolCall,
 } from "../conversations/messages.repository";
 import { presentMessage, presentToolCall } from "../conversations/message-view";
+import {
+  PLAN_APPROVED,
+  QUESTION_SKIPPED,
+  planDeclined,
+  planNeedsApproval,
+  questionAnswer,
+} from "../tools/chat.tools";
 import { parseToolArgs } from "../tools/tool-schema";
 import type {
   AssistantTool,
   ToolContext,
   ToolResult,
 } from "../tools/tool.types";
-import { DECLINED, buildHistory, hasPending, stepsSinceUser } from "./history";
+import {
+  DECLINED,
+  approvedPlan,
+  buildHistory,
+  hasPending,
+  stepsSinceUser,
+} from "./history";
 
 export interface ToolPort {
   /** Tools tied to a feature are offered only while it is on */
@@ -97,6 +113,11 @@ interface PlannedCall {
   args?: unknown;
 }
 
+export const WAIT_FOR_USER =
+  "Not run, the user has to answer first. Call it again once they have";
+
+const talksToUser = (tool?: AssistantTool) => tool?.kind === "plan" || tool?.kind === "ask";
+
 export const STEP_LIMIT = ASSISTANT_RUN_ERRORS.stepLimit;
 export const STOPPED = ASSISTANT_RUN_ERRORS.stopped;
 
@@ -120,21 +141,37 @@ export class AgentLoop {
     }
   }
 
-  /** Runs or declines a call that waited for the user */
+  /** Runs or declines a call that waited for the user, plans and questions only record the answer */
   async decide(
     run: Pick<LoopRun, "conversationId" | "user" | "signal" | "events">,
     call: StoredToolCall,
     approve: boolean,
+    response?: AssistantCallResponse,
   ): Promise<void> {
     const ctx = this.context(run);
     const tool = this.ports.tools.get(call.name);
     const parsed = tool?.args.safeParse(call.args);
-    if (!approve || !tool || !parsed?.success) {
-      const result = approve ? "The call is no longer valid" : DECLINED;
-      this.update(run, call, {
-        status: approve ? "error" : "rejected",
-        result,
-      });
+    if (!tool || !parsed?.success) {
+      this.update(run, call, approve
+        ? { status: "error", result: "The call is no longer valid" }
+        : { status: "rejected", result: DECLINED });
+      return;
+    }
+    if (tool.kind === "ask") {
+      const answer = approve ? questionAnswer(parsed.data as AssistantQuestion, response) : null;
+      this.update(run, call, answer
+        ? { status: "done", result: JSON.stringify(answer) }
+        : { status: "rejected", result: QUESTION_SKIPPED });
+      return;
+    }
+    if (tool.kind === "plan") {
+      this.update(run, call, approve
+        ? { status: "done", result: PLAN_APPROVED }
+        : { status: "rejected", result: planDeclined(response?.text) });
+      return;
+    }
+    if (!approve) {
+      this.update(run, call, { status: "rejected", result: DECLINED });
       return;
     }
     const running = this.update(run, call, { status: "running" });
@@ -187,11 +224,19 @@ export class AgentLoop {
     }
 
     const ctx = this.context(run);
+    const approved = approvedPlan(history);
     const planned = await Promise.all(
       completion.toolCalls.map((call) =>
-        this.plan(ctx, messageId, call, run.autoApprove ?? false),
+        this.plan(ctx, messageId, call, run.autoApprove ?? false, approved),
       ),
     );
+    // Actions wait until a plan or a question in the same turn is answered
+    if (planned.some((p) => p.stored.status === "pending" && talksToUser(p.tool))) {
+      for (const p of planned) {
+        if (p.tool?.kind !== "write") continue;
+        p.stored = { ...p.stored, status: "error", result: WAIT_FOR_USER, preview: null };
+      }
+    }
     this.save(
       run,
       completion.content,
@@ -233,6 +278,7 @@ export class AgentLoop {
     messageId: string,
     call: StreamedToolCall,
     autoApprove: boolean,
+    approved: AssistantPlan | null,
   ): Promise<PlannedCall> {
     const tool = this.ports.tools.get(call.name);
     const parsed = tool ? parseToolArgs(tool, call.arguments) : null;
@@ -251,7 +297,10 @@ export class AgentLoop {
 
     const denied = this.ports.tools.denyReason(ctx.user, tool, parsed.args);
     if (denied) return { stored: { ...stored, result: denied } };
-    if (tool.kind === "read") {
+    // Status updates of the approved plan apply right away
+    const planUpdate =
+      tool.kind === "plan" && !planNeedsApproval(parsed.args as AssistantPlan, approved);
+    if (tool.kind === "read" || planUpdate) {
       return {
         stored: { ...stored, status: "running" },
         tool,
@@ -263,7 +312,8 @@ export class AgentLoop {
       return {
         stored: {
           ...stored,
-          status: autoApprove ? "running" : "pending",
+          // Plans and questions always wait, auto approve covers actions only
+          status: autoApprove && tool.kind === "write" ? "running" : "pending",
           preview,
         },
         tool,

@@ -94,14 +94,28 @@ describe("capsFromEntry", () => {
         architecture: { input_modalities: ["text", "image"] },
         supported_parameters: ["tools", "reasoning"],
         reasoning: { mandatory: true },
+        context_length: 200000,
       }),
-    ).toEqual({ vision: true, reasoning: true, reasoningMandatory: true });
+    ).toEqual({
+      vision: true,
+      reasoning: true,
+      reasoningMandatory: true,
+      contextWindow: 200000,
+    });
   });
 
   it("reads capabilities and modalities objects", () => {
     expect(
       capsFromEntry({ capabilities: { input: ["text"], reasoning: false } }),
-    ).toEqual({ vision: false, reasoning: false, reasoningMandatory: false });
+    ).toEqual({
+      vision: false,
+      reasoning: false,
+      reasoningMandatory: false,
+      contextWindow: null,
+    });
+    expect(
+      capsFromEntry({ top_provider: { context_length: 32768 } }).contextWindow,
+    ).toBe(32768);
     expect(capsFromEntry({ modalities: { input: ["image"] } }).vision).toBe(
       true,
     );
@@ -112,6 +126,7 @@ describe("capsFromEntry", () => {
       vision: null,
       reasoning: null,
       reasoningMandatory: false,
+      contextWindow: null,
     });
   });
 });

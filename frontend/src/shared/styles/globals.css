@@ -422,6 +422,24 @@
   animation: var(--animate-shimmer);
 }
 
+/* A highlight sweeps over the text while something is in progress */
+@utility text-shimmer {
+  background: linear-gradient(
+      90deg,
+      color-mix(in oklch, currentColor 50%, transparent) 35%,
+      currentColor 50%,
+      color-mix(in oklch, currentColor 50%, transparent) 65%
+    )
+    0 0 / 200% 100%;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2s linear infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
 /* Children fade in one after another, backwards fill leaves no transform behind */
 @utility stagger-enter {
   & > * {

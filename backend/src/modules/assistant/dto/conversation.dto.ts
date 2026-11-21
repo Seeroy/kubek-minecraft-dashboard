@@ -2,6 +2,7 @@ import {
   ASSISTANT_ATTACHMENT_LIMITS,
   ASSISTANT_REASONING_LEVELS,
   type AssistantAttachmentInput,
+  type AssistantCallResponse,
   type AssistantAttachmentKind,
   type AssistantReasoningLevel,
   type IAssistantConversation,
@@ -73,15 +74,37 @@ export class SendMessageDto extends RunOptionsDto {
   serverId?: string;
 }
 
+export class CallResponseDto implements AssistantCallResponse {
+  @ApiPropertyOptional({ type: [String], description: "Picked option labels of a question" })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(6)
+  @IsString({ each: true })
+  @MaxLength(80, { each: true })
+  selected?: string[];
+
+  @ApiPropertyOptional({ maxLength: 2000, description: "Free text answer or feedback on a declined plan" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  text?: string;
+}
+
 export class ConfirmToolCallDto extends RunOptionsDto {
   @ApiProperty()
   @IsString()
   @MaxLength(64)
   callId!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: "False declines a call or a plan, or skips a question" })
   @IsBoolean()
   approve!: boolean;
+
+  @ApiPropertyOptional({ type: CallResponseDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CallResponseDto)
+  response?: CallResponseDto;
 }
 
 export class ConversationDto implements IAssistantConversation {
@@ -96,7 +119,7 @@ export class ToolCallDto {
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
   @ApiProperty({ type: Object }) args!: Record<string, unknown>;
-  @ApiProperty({ enum: ["read", "write"] }) kind!: string;
+  @ApiProperty({ enum: ["read", "write", "plan", "ask"] }) kind!: string;
   @ApiProperty({ enum: ["pending", "running", "done", "error", "rejected"] })
   status!: string;
   @ApiProperty({ type: String, nullable: true }) serverId!: string | null;

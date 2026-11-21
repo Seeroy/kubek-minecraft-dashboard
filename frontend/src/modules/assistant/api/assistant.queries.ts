@@ -3,6 +3,7 @@ import { qk } from "@/shared/queries/query-keys";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import type {
   AssistantAttachmentInput,
+  AssistantCallResponse,
   AssistantConversationDetail,
   AssistantMessageContext,
   AssistantToolCall,
@@ -82,8 +83,8 @@ export function useSendMessage(onStarted: (conversation: IAssistantConversation)
 export function useConfirmCall(conversationId: string) {
   return useMutation({
     // The rest of the run follows the composer switches
-    mutationFn: ({ callId, approve }: { callId: string; approve: boolean }) =>
-      api.assistant.confirm(conversationId, callId, approve, runOptions()),
+    mutationFn: ({ callId, approve, response }: { callId: string; approve: boolean; response?: AssistantCallResponse }) =>
+      api.assistant.confirm(conversationId, callId, approve, runOptions(), response),
     onSuccess: () => assistantStream.setRunning(conversationId, true),
   });
 }

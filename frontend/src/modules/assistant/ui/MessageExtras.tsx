@@ -16,17 +16,22 @@ export function ReasoningBlock({ text, ms, live = false }: { text: string; ms: n
   const { t } = useTranslation("modules.assistant.chat");
   const [open, setOpen] = useState(false);
   const label = live ? t("thinking") : ms ? t("thoughtFor", seconds(ms)) : t("reasoning");
-  // While streaming the last words show under the folded header, so it is visibly alive
-  const tail = live && !open ? text.slice(-200).replace(/\s+/g, " ").trim() : "";
+  // While streaming the last lines show under the folded header, so it is visibly alive
+  const tail = live && !open ? text.slice(-600).trim() : "";
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="grid min-w-0 gap-1.5">
       <CollapsibleTrigger className="group/rsn inline-flex w-fit items-center gap-1.5 rounded-md text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:text-foreground">
         <Brain className={cn("size-3.5", live && "animate-pulse motion-reduce:animate-none")} aria-hidden />
-        {label}
+        <span className={cn(live && "text-shimmer")}>{label}</span>
         <ChevronRight className="size-3 transition-transform group-data-[panel-open]/rsn:rotate-90" aria-hidden />
       </CollapsibleTrigger>
-      {tail && <p className="truncate border-l-2 border-border pl-3 text-xs text-muted-foreground/80">{tail}</p>}
+      {tail && (
+        // Pinned to the bottom so new lines push old ones up and out under the fade
+        <div className="flex max-h-[4.5lh] flex-col justify-end overflow-hidden border-l-2 border-border pl-3 text-xs leading-relaxed text-muted-foreground/80 [mask-image:linear-gradient(to_bottom,transparent,black_45%)]">
+          <p className="break-words whitespace-pre-wrap">{tail}</p>
+        </div>
+      )}
       <CollapsibleContent className="max-h-80 scrollbar-thin overflow-y-auto border-l-2 border-border pl-3 text-xs leading-relaxed break-words whitespace-pre-wrap text-muted-foreground">
         {text}
       </CollapsibleContent>

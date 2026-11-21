@@ -8,8 +8,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import {
+  ASSISTANT_ASK_TOOL,
   ASSISTANT_ATTACHMENT_LIMITS,
   type AssistantAttachmentInput,
+  type AssistantCallResponse,
   type AssistantConversationDetail,
   type AssistantRunOptions,
   type AssistantSendResult,
@@ -21,6 +23,7 @@ import { randomUUID } from "crypto";
 import { titleFrom } from "../runner/context-builder";
 import { AgentRunnerService } from "../runner/agent-runner.service";
 import { hasPending } from "../runner/history";
+import { questionAnswer, questionArgs } from "../tools/chat.tools";
 import { AssistantSettingsService } from "../settings/assistant-settings.service";
 import { ToolRegistryService } from "../tools/tool-registry.service";
 import { ConversationsRepository } from "./conversations.repository";
@@ -121,6 +124,7 @@ export class ConversationsService {
     callId: string,
     approve: boolean,
     options: AssistantRunOptions = {},
+    response?: AssistantCallResponse,
   ): void {
     const conversation = this.require(user, id);
     // A run still in flight is fine, the runner queues the decision behind it
@@ -128,7 +132,22 @@ export class ConversationsService {
     if (!call) throw new NotFoundException("Tool call not found");
     if (call.status !== "pending" || this.runner.isDecided(callId))
       throw busy("This call was already decided");
-    this.runner.decide(user, conversation, call, approve, options);
+    if (approve && call.name === ASSISTANT_ASK_TOOL) {
+      const question = questionArgs.safeParse(call.args);
+      if (question.success && !questionAnswer(question.data, response))
+        throw new BadRequestException("Pick an option or write an answer");
+    }
+    this.runner.decide(user, conversation, call, approve, options, response);
+  }
+
+  /** Question the assistant waits on, a plain message in chat apps answers it */
+  pendingQuestion(user: IUser, id: string): { callId: string } | null {
+    this.require(user, id);
+    const last = this.messages.list(id).at(-1);
+    const call = last?.toolCalls.find(
+      (item) => item.name === ASSISTANT_ASK_TOOL && item.status === "pending",
+    );
+    return call && !this.runner.isDecided(call.id) ? { callId: call.id } : null;
   }
 
   attachment(user: IUser, id: string, attachmentId: string): StoredAttachment {

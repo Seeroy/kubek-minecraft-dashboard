@@ -62,11 +62,11 @@ export class AssistantSettingsController {
       this.rates.usdRub(),
       this.capabilities.resolve(),
     ]);
-    const { vision, reasoning, webSearch } = caps;
+    const { vision, reasoning, webSearch, contextWindow } = caps;
     return {
       ...this.settings.status(),
       usdRub,
-      capabilities: { vision, reasoning, webSearch },
+      capabilities: { vision, reasoning, webSearch, contextWindow },
     };
   }
 

@@ -30,6 +30,7 @@ import { CompanionTools } from "./tools/companion.tools";
 import { PlayersTools } from "./tools/players.tools";
 import { PropertiesTools } from "./tools/properties.tools";
 import { SchedulerTools } from "./tools/scheduler.tools";
+import { ChatTools } from "./tools/chat.tools";
 import { ServersTools } from "./tools/servers.tools";
 import { WebTools } from "./tools/web.tools";
 import {
@@ -49,6 +50,7 @@ const GROUPS = [
   PlayersTools,
   CompanionTools,
   WebTools,
+  ChatTools,
 ];
 
 @Module({

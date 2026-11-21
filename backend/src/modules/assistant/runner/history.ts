@@ -1,4 +1,10 @@
+import {
+  ASSISTANT_ASK_TOOL,
+  ASSISTANT_PLAN_TOOL,
+  type AssistantPlan,
+} from "@shared/types/assistant.types";
 import type { ChatContentPart, ChatMessage } from "../llm/llm.types";
+import { planArgs } from "../tools/chat.tools";
 import type {
   StoredMessage,
   StoredToolCall,
@@ -99,14 +105,38 @@ function userMessage(message: StoredMessage, images: boolean): ChatMessage {
   return { role: "user", content: [{ type: "text", text }, ...parts] };
 }
 
-/** Model turns since the user last wrote */
+// Only plans and questions that went to the user carry a preview, status updates do not
+const answeredByUser = (call: StoredToolCall) =>
+  (call.name === ASSISTANT_PLAN_TOOL || call.name === ASSISTANT_ASK_TOOL) &&
+  call.preview !== null &&
+  (call.status === "done" || call.status === "rejected");
+
+/** Model turns since the user last wrote, an approved plan or an answered question counts as writing */
 export function stepsSinceUser(messages: StoredMessage[]): number {
   let steps = 0;
   for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i].role === "user") break;
+    const message = messages[i];
+    if (message.role === "user" || message.toolCalls.some(answeredByUser)) break;
     steps++;
   }
   return steps;
+}
+
+/** Steps of the plan the user last approved, with the latest statuses */
+export function approvedPlan(messages: StoredMessage[]): AssistantPlan | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const calls = messages[i].toolCalls;
+    for (let j = calls.length - 1; j >= 0; j--) {
+      const call = calls[j];
+      if (call.name !== ASSISTANT_PLAN_TOOL) continue;
+      // A declined or pending plan voids the older one, a malformed call does not
+      if (call.status === "error") continue;
+      if (call.status !== "done") return null;
+      const parsed = planArgs.safeParse(call.args);
+      if (parsed.success) return parsed.data;
+    }
+  }
+  return null;
 }
 
 export function hasPending(messages: StoredMessage[]): boolean {

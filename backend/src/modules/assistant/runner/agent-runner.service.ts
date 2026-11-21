@@ -3,6 +3,7 @@ import { ServersService } from "@/modules/servers/servers.service";
 import { ServerBroadcastService } from "@/ws/services/server-broadcast.service";
 import { Injectable, Logger } from "@nestjs/common";
 import type {
+  AssistantCallResponse,
   AssistantRunOptions,
   IAssistantConversation,
 } from "@shared/types/assistant.types";
@@ -90,19 +91,20 @@ export class AgentRunnerService {
     call: StoredToolCall,
     approve: boolean,
     options: AssistantRunOptions,
+    response?: AssistantCallResponse,
   ): void {
     const current = this.runs.get(conversation.id);
     if (current) {
       this.queued.add(call.id);
       void current.then(() => {
         this.queued.delete(call.id);
-        this.decide(user, conversation, call, approve, options);
+        this.decide(user, conversation, call, approve, options, response);
       });
       return;
     }
     this.background(user, conversation.id, async (signal, events) => {
       const run = await this.runOf(user, conversation, signal, events, options);
-      await this.loop.decide(run, call, approve);
+      await this.loop.decide(run, call, approve, response);
       await this.loop.run(run);
     });
   }

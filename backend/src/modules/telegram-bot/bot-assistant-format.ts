@@ -1,4 +1,7 @@
 import type {
+  AssistantPlan,
+  AssistantPlanStepStatus,
+  AssistantQuestion,
   AssistantToolCall,
   AssistantToolCallStatus,
   AssistantToolPreview,
@@ -26,15 +29,67 @@ export function toolLabel(lang: TelegramLang, name: string): string {
   return label === key ? name : label;
 }
 
-/** One line per call, the message is edited in place as calls finish */
+const STEP_ICON: Record<AssistantPlanStepStatus, string> = {
+  pending: "▫️",
+  in_progress: "⏳",
+  done: "✅",
+  skipped: "⏭",
+};
+
+const planOf = (call: AssistantToolCall) => call.args as unknown as AssistantPlan;
+
+/** One line per call, plan updates fold into one progress line, null when nothing is worth a message */
 export function renderToolLines(
   lang: TelegramLang,
   calls: AssistantToolCall[],
-): string {
-  const lines = calls.map(
-    (call) => `${STATUS_ICON[call.status]} ${escapeHtml(toolLabel(lang, call.name))}`,
-  );
+): string | null {
+  const lines = calls
+    .filter((call) => call.kind === "read" || call.kind === "write")
+    .map((call) => `${STATUS_ICON[call.status]} ${escapeHtml(toolLabel(lang, call.name))}`);
+  const update = calls.findLast((call) => call.kind === "plan" && !call.preview && call.status === "done");
+  const steps = update ? planOf(update).steps ?? [] : [];
+  if (update && steps.length) {
+    const finished = steps.filter((step) => step.status === "done" || step.status === "skipped").length;
+    // Updates may skip the title, the last call that had one names the plan
+    const title = calls.findLast((call) => call.kind === "plan" && planOf(call).title)?.args.title;
+    const name = typeof title === "string" ? title : t(lang, "assistant.tools.update_plan");
+    lines.push(`📋 ${escapeHtml(name)}: ${finished}/${steps.length}`);
+  }
+  if (!lines.length) return null;
   return `<b>${t(lang, "assistant.toolsTitle")}</b>\n${lines.join("\n")}`;
+}
+
+/** Plan that waits for the user, steps as a numbered list */
+export function renderPlanCard(lang: TelegramLang, plan: AssistantPlan): string {
+  const steps = (plan.steps ?? []).map(
+    (step, i) => `${STEP_ICON[step.status] ?? "▫️"} ${i + 1}. ${escapeHtml(step.text)}`,
+  );
+  return [
+    t(lang, "assistant.planTitle"),
+    `<b>${escapeHtml(plan.title ?? "")}</b>`,
+    plan.explanation ? `<i>${escapeHtml(plan.explanation)}</i>` : null,
+    "",
+    ...steps,
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
+}
+
+/** Question card, options go as buttons and a plain reply answers it too */
+export function renderQuestionCard(lang: TelegramLang, question: AssistantQuestion): string {
+  const options = (question.options ?? []).map((option, i) =>
+    option.description
+      ? `${i + 1}. <b>${escapeHtml(option.label)}</b>: ${escapeHtml(option.description)}`
+      : `${i + 1}. <b>${escapeHtml(option.label)}</b>`,
+  );
+  return [
+    t(lang, "assistant.questionTitle"),
+    escapeHtml(question.question ?? ""),
+    options.length ? `\n${options.join("\n")}` : null,
+    `\n<i>${t(lang, options.length ? "assistant.questionHintOptions" : "assistant.questionHint")}</i>`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 const clip = (text: string, limit: number) =>

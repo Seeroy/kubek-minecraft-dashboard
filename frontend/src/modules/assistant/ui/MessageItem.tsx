@@ -10,6 +10,8 @@ import type { ChatSegment } from "../lib/segments";
 import { ConfirmCard } from "./ConfirmCard";
 import { Markdown } from "./Markdown";
 import { MessageAttachments, ReasoningBlock, SourcesList } from "./MessageExtras";
+import { PlanCard } from "./PlanCard";
+import { QuestionCard } from "./QuestionCard";
 import { ToolCallGroup } from "./ToolCallCard";
 
 // Shows on hover, always visible where there is no hover
@@ -76,6 +78,10 @@ export const SegmentView = memo(function SegmentView({ segment, serverName }: Se
       );
     case "confirm":
       return <ConfirmCard conversationId={segment.message.conversationId} call={segment.call} serverName={serverName(segment.call.serverId)} />;
+    case "plan":
+      return <PlanCard conversationId={segment.message.conversationId} call={segment.call} plan={segment.plan} />;
+    case "ask":
+      return <QuestionCard conversationId={segment.message.conversationId} call={segment.call} />;
     case "error":
       return (
         <div className="grid gap-1">

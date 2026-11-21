@@ -96,8 +96,8 @@ export class AssistantController {
     @Param("id") id: string,
     @Body() dto: ConfirmToolCallDto,
   ): void {
-    const { callId, approve, ...options } = dto;
-    this.conversations.confirm(user, id, callId, approve, options);
+    const { callId, approve, response, ...options } = dto;
+    this.conversations.confirm(user, id, callId, approve, options, response);
   }
 
   @Get(":id/attachments/:attachmentId")

@@ -19,6 +19,8 @@ import {
   ASSISTANT_ATTACHMENT_LIMITS,
   ASSISTANT_RUN_ERRORS,
   type AssistantAttachmentInput,
+  type AssistantPlan,
+  type AssistantQuestion,
   type AssistantToolCall,
   type IAssistantMessage,
 } from "@shared/types/assistant.types";
@@ -29,9 +31,12 @@ import { BotAccessService } from "./bot-access.service";
 import {
   chunkText,
   renderConfirmCard,
+  renderPlanCard,
+  renderQuestionCard,
   renderToolLines,
   TELEGRAM_TEXT_LIMIT,
 } from "./bot-assistant-format";
+import { escapeHtml } from "./bot-format";
 import { isUnreachable } from "./bot-reply";
 import type { MyContext } from "./bot-types";
 import { t, type TelegramLang } from "./i18n";
@@ -65,8 +70,8 @@ interface ChatRun {
   thinkingShown: boolean;
   tools: Map<string, AssistantToolCall>;
   toolsMessageId: number | null;
-  /** Card text per pending call, the decision is appended to it */
-  cards: Map<string, string>;
+  /** Card per pending call, the decision is appended to it */
+  cards: Map<string, { text: string; messageId: number | null }>;
   failed: boolean;
   /** Telegram calls go out one after another, in event order */
   queue: Promise<void>;
@@ -156,6 +161,7 @@ export class BotAssistantService {
     }
     const chatId = ctx.chat?.id ?? tgUser.id;
     await this.react(chatId, input.messageId, "👀");
+    if (await this.answerQuestion(ctx, lang, tgUser, user, chatId, input)) return true;
 
     const payload = {
       content: input.text.slice(0, 8000),
@@ -184,6 +190,46 @@ export class BotAssistantService {
 
     this.chats.set(tgUser.id, conversationId);
     this.attach({ chatId, telegramId: tgUser.id, user, lang, conversationId, userMessageId: input.messageId });
+    return true;
+  }
+
+  // A text reply while the assistant waits on a question is the answer to it
+  private async answerQuestion(
+    ctx: MyContext,
+    lang: TelegramLang,
+    tgUser: ITelegramUser,
+    user: IUser,
+    chatId: number,
+    input: BotAssistantInput,
+  ): Promise<boolean> {
+    const conversationId = this.chats.get(tgUser.id);
+    const text = input.text.trim();
+    if (!conversationId || !text || input.attachments?.length) return false;
+    let pending: { callId: string } | null;
+    try {
+      pending = this.conversations.pendingQuestion(user, conversationId);
+    } catch {
+      return false;
+    }
+    if (!pending) return false;
+
+    this.attach({ chatId, telegramId: tgUser.id, user, lang, conversationId, userMessageId: input.messageId });
+    try {
+      this.conversations.confirm(user, conversationId, pending.callId, true, { autoApprove: false }, { text });
+    } catch (err) {
+      await this.react(chatId, input.messageId, "😢");
+      await ctx.reply(this.describeSendError(lang, err));
+      return true;
+    }
+    const run = this.runs.get(conversationId);
+    const card = run?.cards.get(pending.callId);
+    if (run && card?.messageId) {
+      run.cards.delete(pending.callId);
+      const line = escapeHtml(t(lang, "assistant.answered", { answer: text.slice(0, 200) }));
+      await this.bot?.api
+        .editMessageText(chatId, card.messageId, `${card.text}\n\n${line}`, { parse_mode: "HTML" })
+        .catch(() => undefined);
+    }
     return true;
   }
 
@@ -247,7 +293,7 @@ export class BotAssistantService {
     if (run) this.stop(run);
   }
 
-  /** ai:y:<callId>, ai:n:<callId> and ai:stop, the query is answered here */
+  /** ai:y:<callId>, ai:n:<callId>, ai:a:<option>:<callId> and ai:stop, the query is answered here */
   async onCallback(ctx: MyContext, lang: TelegramLang, tgUser: ITelegramUser, rest: string): Promise<void> {
     const user = this.userFor(tgUser);
     const conversationId = this.chats.get(tgUser.id);
@@ -263,10 +309,28 @@ export class BotAssistantService {
       return;
     }
 
-    const [verdict, callId] = rest.split(":");
-    const approve = verdict === "y";
+    const parts = rest.split(":");
+    const verdict = parts[0];
+    const callId = parts.at(-1) ?? "";
+    const call = run?.tools.get(callId);
+    // Options are sent by index, callback data is capped at 64 bytes
+    const picked =
+      verdict === "a" ? (call?.args as AssistantQuestion | undefined)?.options?.[Number(parts[1])]?.label : undefined;
+    if (verdict === "a" && !picked) {
+      await ctx.answerCallbackQuery(t(lang, "assistant.alreadyDecided"));
+      await ctx.editMessageReplyMarkup().catch(() => undefined);
+      return;
+    }
+    const approve = verdict === "y" || verdict === "a";
     try {
-      this.conversations.confirm(user, conversationId, callId, approve, { autoApprove: false });
+      this.conversations.confirm(
+        user,
+        conversationId,
+        callId,
+        approve,
+        { autoApprove: false },
+        picked ? { selected: [picked] } : undefined,
+      );
     } catch (err) {
       await ctx.answerCallbackQuery(
         err instanceof ConflictException || err instanceof NotFoundException
@@ -276,12 +340,14 @@ export class BotAssistantService {
       await ctx.editMessageReplyMarkup().catch(() => undefined);
       return;
     }
-    await ctx.answerCallbackQuery(t(lang, approve ? "assistant.approved" : "assistant.denied"));
+    const verdictLine = picked
+      ? escapeHtml(t(lang, "assistant.answered", { answer: picked }))
+      : t(lang, verdictKey(call?.kind, approve));
+    await ctx.answerCallbackQuery(picked ?? t(lang, verdictKey(call?.kind, approve)));
     const card = run?.cards.get(callId);
-    const verdictLine = t(lang, approve ? "assistant.approved" : "assistant.denied");
     if (card) {
       run?.cards.delete(callId);
-      await ctx.editMessageText(`${card}\n\n${verdictLine}`, { parse_mode: "HTML" }).catch(() => undefined);
+      await ctx.editMessageText(`${card.text}\n\n${verdictLine}`, { parse_mode: "HTML" }).catch(() => undefined);
     } else {
       await ctx.editMessageReplyMarkup().catch(() => undefined);
     }
@@ -461,6 +527,7 @@ export class BotAssistantService {
   private async showTools(run: ChatRun, running = true): Promise<void> {
     if (!this.bot || !run.tools.size) return;
     const text = renderToolLines(run.lang, [...run.tools.values()]);
+    if (!text) return;
     const keyboard = running ? new InlineKeyboard().text(t(run.lang, "assistant.stop"), "ai:stop") : undefined;
     if (run.toolsMessageId) {
       await this.bot.api
@@ -476,17 +543,43 @@ export class BotAssistantService {
 
   private async sendCard(run: ChatRun, call: AssistantToolCall): Promise<void> {
     if (!this.bot) return;
-    const serverName = call.serverId ? this.servers.findById(call.serverId)?.name : undefined;
-    const text = renderConfirmCard(run.lang, call, serverName);
-    run.cards.set(call.id, text);
-    const keyboard = new InlineKeyboard()
-      .text(t(run.lang, "assistant.approve"), `ai:y:${call.id}`)
-      .success()
-      .text(t(run.lang, "assistant.deny"), `ai:n:${call.id}`)
-      .danger();
-    await this.bot.api
+    const { text, keyboard } = this.card(run.lang, call);
+    const sent = await this.bot.api
       .sendMessage(run.chatId, text, { parse_mode: "HTML", reply_markup: keyboard })
-      .catch((err) => this.logger.warn(`Confirmation card failed: ${getErrorMessage(err)}`));
+      .catch((err) => {
+        this.logger.warn(`Confirmation card failed: ${getErrorMessage(err)}`);
+        return null;
+      });
+    run.cards.set(call.id, { text, messageId: sent?.message_id ?? null });
+  }
+
+  private card(lang: TelegramLang, call: AssistantToolCall): { text: string; keyboard: InlineKeyboard } {
+    if (call.kind === "plan") {
+      return {
+        text: renderPlanCard(lang, call.args as unknown as AssistantPlan),
+        keyboard: new InlineKeyboard()
+          .text(t(lang, "assistant.approvePlan"), `ai:y:${call.id}`)
+          .success()
+          .text(t(lang, "assistant.declinePlan"), `ai:n:${call.id}`)
+          .danger(),
+      };
+    }
+    if (call.kind === "ask") {
+      const question = call.args as unknown as AssistantQuestion;
+      const keyboard = new InlineKeyboard();
+      (question.options ?? []).forEach((option, i) => keyboard.text(option.label, `ai:a:${i}:${call.id}`).row());
+      keyboard.text(t(lang, "assistant.skipQuestion"), `ai:n:${call.id}`);
+      return { text: renderQuestionCard(lang, question), keyboard };
+    }
+    const serverName = call.serverId ? this.servers.findById(call.serverId)?.name : undefined;
+    return {
+      text: renderConfirmCard(lang, call, serverName),
+      keyboard: new InlineKeyboard()
+        .text(t(lang, "assistant.approve"), `ai:y:${call.id}`)
+        .success()
+        .text(t(lang, "assistant.deny"), `ai:n:${call.id}`)
+        .danger(),
+    };
   }
 
   private stop(run: ChatRun): void {
@@ -527,4 +620,10 @@ export class BotAssistantService {
     if (error === ASSISTANT_RUN_ERRORS.stepLimit) return t(lang, "assistant.stepLimit");
     return t(lang, "assistant.failed", { error });
   }
+}
+
+function verdictKey(kind: AssistantToolCall["kind"] | undefined, approve: boolean): string {
+  if (kind === "plan") return approve ? "assistant.planApproved" : "assistant.planDeclined";
+  if (kind === "ask") return "assistant.questionSkipped";
+  return approve ? "assistant.approved" : "assistant.denied";
 }

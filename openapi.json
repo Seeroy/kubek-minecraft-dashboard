@@ -22799,12 +22799,18 @@
           },
           "webSearch": {
             "type": "boolean"
+          },
+          "contextWindow": {
+            "type": "number",
+            "nullable": true,
+            "description": "Context window in tokens"
           }
         },
         "required": [
           "vision",
           "reasoning",
-          "webSearch"
+          "webSearch",
+          "contextWindow"
         ]
       },
       "AssistantStatusDto": {
@@ -23246,7 +23252,9 @@
             "type": "string",
             "enum": [
               "read",
-              "write"
+              "write",
+              "plan",
+              "ask"
             ]
           },
           "status": {
@@ -23476,6 +23484,23 @@
           "running"
         ]
       },
+      "CallResponseDto": {
+        "type": "object",
+        "properties": {
+          "selected": {
+            "description": "Picked option labels of a question",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Free text answer or feedback on a declined plan"
+          }
+        }
+      },
       "ConfirmToolCallDto": {
         "type": "object",
         "properties": {
@@ -23501,7 +23526,11 @@
             "type": "string"
           },
           "approve": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "False declines a call or a plan, or skips a question"
+          },
+          "response": {
+            "$ref": "#/components/schemas/CallResponseDto"
           }
         },
         "required": [

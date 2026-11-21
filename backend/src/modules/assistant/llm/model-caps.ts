@@ -3,13 +3,31 @@ export interface ModelCaps {
   reasoning: boolean | null;
   /** Reasoning cannot be switched off, only hidden */
   reasoningMandatory: boolean;
+  contextWindow: number | null;
 }
 
 export const UNKNOWN_CAPS: ModelCaps = {
   vision: null,
   reasoning: null,
   reasoningMandatory: false,
+  contextWindow: null,
 };
+
+// OpenRouter, Groq, Mistral and LM Studio each name the window differently
+const CONTEXT_FIELDS = ["context_length", "context_window", "max_context_length"];
+
+const positive = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Math.round(value)
+    : null;
+
+function contextOf(entry: Record<string, unknown>): number | null {
+  for (const field of CONTEXT_FIELDS) {
+    const value = positive(entry[field]);
+    if (value) return value;
+  }
+  return positive(record(entry.top_provider)?.context_length);
+}
 
 const REASONING_PARAMS = ["reasoning", "include_reasoning", "reasoning_effort"];
 
@@ -45,5 +63,6 @@ export function capsFromEntry(entry: Record<string, unknown>): ModelCaps {
     vision: inputs ? inputs.includes("image") : null,
     reasoning,
     reasoningMandatory: reasoningInfo?.mandatory === true,
+    contextWindow: contextOf(entry),
   };
 }

@@ -180,9 +180,11 @@ export class McpService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // Web search needs the assistant's provider, MCP clients bring their own
+  // Web search needs the assistant's provider, plans and questions need the panel chat
   private available(user: IUser): AssistantTool[] {
-    return this.tools.available(user).filter((tool) => !tool.feature);
+    return this.tools
+      .available(user)
+      .filter((tool) => !tool.feature && (tool.kind === "read" || tool.kind === "write"));
   }
 
   private async call(

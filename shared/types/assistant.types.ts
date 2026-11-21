@@ -60,6 +60,8 @@ export interface AssistantCapabilities {
   reasoning: boolean | null;
   /** The provider has a web search the panel knows how to drive */
   webSearch: boolean;
+  /** Context window in tokens, null when the provider does not list it */
+  contextWindow: number | null;
 }
 
 /** Limits the composer checks before sending, the server checks them again */
@@ -146,7 +148,50 @@ export type AssistantMessageRole = "user" | "assistant";
 
 export type AssistantMessageStatus = "done" | "error";
 
-export type AssistantToolKind = "read" | "write";
+/** Plan and ask are answered by the user in the chat, they never reach MCP */
+export type AssistantToolKind = "read" | "write" | "plan" | "ask";
+
+export const ASSISTANT_PLAN_TOOL = "update_plan";
+export const ASSISTANT_ASK_TOOL = "ask_user";
+
+export type AssistantPlanStepStatus = "pending" | "in_progress" | "done" | "skipped";
+
+export interface AssistantPlanStep {
+  text: string;
+  status: AssistantPlanStepStatus;
+}
+
+/** Arguments of update_plan */
+export interface AssistantPlan {
+  /** Models often leave it out on status updates, the approved plan's title stays */
+  title?: string;
+  explanation?: string;
+  steps: AssistantPlanStep[];
+}
+
+export interface AssistantQuestionOption {
+  label: string;
+  description?: string;
+}
+
+/** Arguments of ask_user */
+export interface AssistantQuestion {
+  question: string;
+  options?: AssistantQuestionOption[];
+  multiple?: boolean;
+}
+
+/** What the user sent back for a question, also the call result as JSON */
+export interface AssistantQuestionAnswer {
+  selected: string[];
+  text: string | null;
+}
+
+/** Extra input with a decision: the answer to a question or feedback on a declined plan */
+export interface AssistantCallResponse {
+  selected?: string[];
+  text?: string;
+}
 
 export type AssistantToolCallStatus =
   "pending" | "running" | "done" | "error" | "rejected";

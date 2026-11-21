@@ -7,6 +7,11 @@ import type {
   StoredMessage,
   ToolCallPatch,
 } from "../conversations/messages.repository";
+import {
+  PLAN_APPROVED,
+  QUESTION_SKIPPED,
+  ChatTools,
+} from "../tools/chat.tools";
 import { toToolSpec } from "../tools/tool-schema";
 import { type AssistantTool, defineTool } from "../tools/tool.types";
 import {
@@ -15,6 +20,7 @@ import {
   type LoopPorts,
   STEP_LIMIT,
   STOPPED,
+  WAIT_FOR_USER,
 } from "./agent-loop";
 import { DECLINED } from "./history";
 
@@ -46,7 +52,11 @@ const write = defineTool({
   },
 });
 
-const TOOLS: Record<string, AssistantTool> = { echo, write };
+const TOOLS: Record<string, AssistantTool> = {
+  echo,
+  write,
+  ...Object.fromEntries(new ChatTools().tools().map((tool) => [tool.name, tool])),
+};
 
 type Reply = ChatCompletion | Error;
 
@@ -71,6 +81,20 @@ const callTool = (name: string, args: unknown): ChatCompletion => ({
   finishReason: "tool_calls",
   usage: null,
   ...NO_EXTRAS,
+});
+
+const callTools = (...calls: [string, unknown][]): ChatCompletion => ({
+  ...callTool("echo", {}),
+  toolCalls: calls.map(([name, args], i) => ({
+    id: `provider-${i}`,
+    name,
+    arguments: JSON.stringify(args),
+  })),
+});
+
+const plan = (...steps: [string, string][]) => ({
+  title: "Update plugins",
+  steps: steps.map(([text, status]) => ({ text, status })),
 });
 
 function harness(replies: Reply[], maxSteps = 8, costOf?: LoopPorts["costOf"]) {
@@ -309,5 +333,89 @@ describe("AgentLoop", () => {
     await h.loop.run(h.run);
     expect(h.store[1].error).toBe(STOPPED);
     expect(h.log.at(-1)).toBe("done:true");
+  });
+
+  it("waits for a new plan to be approved, status updates of it run right away", async () => {
+    written.length = 0;
+    const h = harness(
+      [
+        callTool("update_plan", plan(["Back up", "pending"], ["Update", "pending"])),
+        // Models often drop the title on updates
+        callTool("update_plan", { steps: plan(["Back up", "done"], ["Update", "in_progress"]).steps }),
+        answer("done"),
+      ],
+      // The approval resets the step counter, so two steps are enough
+      2,
+    );
+    await h.loop.run(h.run);
+    expect(h.log).toEqual(["message:pending", "confirm:update_plan", "done:false"]);
+    const proposal = h.store[1].toolCalls[0];
+    expect(proposal.preview).toMatchObject({ type: "summary", title: "Update plugins" });
+
+    // Auto approve covers actions, never the plan
+    await h.loop.decide({ ...h.run }, proposal, true);
+    expect(h.store[1].toolCalls[0]).toMatchObject({ status: "done", result: PLAN_APPROVED });
+    await h.loop.run({ ...h.run, autoApprove: true });
+    expect(h.store[2].toolCalls[0]).toMatchObject({ status: "done", preview: null });
+    expect(h.store.at(-1)).toMatchObject({ content: "done", error: null });
+  });
+
+  it("asks again when the steps change", async () => {
+    const h = harness([
+      callTool("update_plan", plan(["Back up", "pending"])),
+      callTool("update_plan", plan(["Back up", "done"], ["Restart", "pending"])),
+    ]);
+    await h.loop.run(h.run);
+    await h.loop.decide(h.run, h.store[1].toolCalls[0], true);
+    await h.loop.run(h.run);
+    expect(h.store[2].toolCalls[0].status).toBe("pending");
+  });
+
+  it("passes feedback on a declined plan to the model", async () => {
+    const h = harness([callTool("update_plan", plan(["Wipe the world", "pending"])), answer("ok")]);
+    await h.loop.run(h.run);
+    await h.loop.decide(h.run, h.store[1].toolCalls[0], false, { text: "keep the world" });
+    await h.loop.run(h.run);
+    expect(h.requests[1].messages[3]).toMatchObject({
+      role: "tool",
+      content: expect.stringContaining("keep the world"),
+    });
+  });
+
+  it("holds actions back while a plan waits", async () => {
+    written.length = 0;
+    const h = harness([
+      callTools(["update_plan", plan(["Op steve", "pending"])], ["write", { text: "op steve" }]),
+    ]);
+    await h.loop.run({ ...h.run, autoApprove: true });
+    expect(written).toEqual([]);
+    expect(h.store[1].toolCalls.map((c) => [c.status, c.result])).toEqual([
+      ["pending", null],
+      ["error", WAIT_FOR_USER],
+    ]);
+  });
+
+  it("returns the answer to a question as JSON", async () => {
+    const question = { question: "Which server?", options: [{ label: "Lobby" }, { label: "Survival" }] };
+    const h = harness([callTool("ask_user", question), answer("ok")]);
+    await h.loop.run({ ...h.run, autoApprove: true });
+    expect(h.log).toEqual(["message:pending", "confirm:ask_user", "done:false"]);
+
+    // Labels outside the options are dropped, a single choice keeps one
+    await h.loop.decide(h.run, h.store[1].toolCalls[0], true, {
+      selected: ["Survival", "Hub", "Lobby"],
+      text: " the big one ",
+    });
+    expect(JSON.parse(h.store[1].toolCalls[0].result!)).toEqual({
+      selected: ["Survival"],
+      text: "the big one",
+    });
+  });
+
+  it("treats a skipped or empty answer as skipped", async () => {
+    const h = harness([callTool("ask_user", { question: "Why?" })]);
+    await h.loop.run(h.run);
+    await h.loop.decide(h.run, h.store[1].toolCalls[0], true, { text: "  " });
+    expect(h.store[1].toolCalls[0]).toMatchObject({ status: "rejected", result: QUESTION_SKIPPED });
   });
 });
