@@ -2,6 +2,7 @@
 
 import { useServerStatus, useServerStore } from "@/modules/server";
 import { useServerActions } from "@/modules/server/hooks/useServerActions";
+import { isOffline } from "@/modules/server/hooks/useServerMeta";
 import { useServerItemAccess } from "@/modules/sidebar/hooks/useServerItemAccess";
 import { useServersModal } from "@/modules/sidebar/store/servers-modal.store";
 import { useServersListActions } from "@/modules/sidebar/ui/serversList/useServersListActions";
@@ -15,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { toneClass } from "@/shared/ui/tone";
-import { isOffline } from "@/modules/server/hooks/useServerMeta";
 import { ServerStatus } from "@shared/types/server/server.types";
 import {
   Copy,
@@ -48,16 +48,30 @@ export default function ServerControls() {
 
   const stopping = status === ServerStatus.STOPPING;
   // A hung start has to stay stoppable
-  const live = status === ServerStatus.RUNNING || status === ServerStatus.STARTING;
+  const live =
+    status === ServerStatus.RUNNING || status === ServerStatus.STARTING;
   const running = status === ServerStatus.RUNNING;
   const id = selectedServer.id;
-  const hasMenu = access.duplicate || access.rename || access.exportServer || access.kill || access.remove;
+  const hasMenu =
+    access.duplicate ||
+    access.rename ||
+    access.exportServer ||
+    access.kill ||
+    access.remove;
   if (!access.power && !hasMenu) return null;
 
   return (
     <div className="flex items-center gap-1 border-t border-sidebar-border/60 p-1.5 sidebar-mini:border-0 sidebar-mini:px-0 sidebar-mini:pb-0">
       {!access.power ? null : stopping ? (
-        <button type="button" disabled className={cn(actionButton, toneClass.amber, "min-w-0 flex-1 sidebar-mini:gap-0")}>
+        <button
+          type="button"
+          disabled
+          className={cn(
+            actionButton,
+            toneClass.amber,
+            "min-w-0 flex-1 sidebar-mini:gap-0"
+          )}
+        >
           <RotateCw className="animate-spin" />
           <span className="truncate sidebar-mini:hidden">{t("stopping")}</span>
         </button>
@@ -92,7 +106,11 @@ export default function ServerControls() {
           onClick={() => perform("restart")}
           title={t("restartServer")}
           aria-label={t("restartServer")}
-          className={cn(actionButton, toneClass.cyan, "w-8 shrink-0 sidebar-mini:hidden")}
+          className={cn(
+            actionButton,
+            toneClass.cyan,
+            "w-8 shrink-0 sidebar-mini:hidden"
+          )}
         >
           <RotateCw />
         </button>
@@ -108,28 +126,40 @@ export default function ServerControls() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             {access.duplicate && (
-              <DropdownMenuItem onClick={() => listActions.handleDuplicateServer(id)}>
+              <DropdownMenuItem
+                onClick={() => listActions.handleDuplicateServer(id)}
+              >
                 <Copy />
                 {tActions("duplicate")}
               </DropdownMenuItem>
             )}
             {access.rename && (
-              <DropdownMenuItem onClick={() => listActions.handleRenameServer(id)}>
+              <DropdownMenuItem
+                onClick={() => listActions.handleRenameServer(id)}
+              >
                 <Pencil />
                 {tActions("rename")}
               </DropdownMenuItem>
             )}
             {access.exportServer && (
-              <DropdownMenuItem onClick={() => listActions.handleExportServer(id)}>
+              <DropdownMenuItem
+                onClick={() => listActions.handleExportServer(id)}
+              >
                 <Download />
                 {tActions("export")}
               </DropdownMenuItem>
             )}
-            {(access.duplicate || access.rename || access.exportServer) && (access.kill || access.remove) && <DropdownMenuSeparator />}
+            {(access.duplicate || access.rename || access.exportServer) &&
+              (access.kill || access.remove) && <DropdownMenuSeparator />}
             {access.kill && (
               <DropdownMenuItem
                 variant="destructive"
-                disabled={isOffline(status) || pending !== null}
+                disabled={
+                  isOffline(status) ||
+                  (pending !== null &&
+                    pending !== "stop" &&
+                    pending !== "restart")
+                }
                 onClick={() => perform("kill")}
               >
                 <OctagonX />
@@ -137,7 +167,10 @@ export default function ServerControls() {
               </DropdownMenuItem>
             )}
             {access.remove && (
-              <DropdownMenuItem variant="destructive" onClick={() => listActions.handleDeleteServer(id)}>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => listActions.handleDeleteServer(id)}
+              >
                 <Trash2 />
                 {tActions("delete")}
               </DropdownMenuItem>

@@ -8,6 +8,8 @@ export function stripAnsi(input: string): string {
   return input.replace(ANSI_RE, "");
 }
 
+const ERASE_LINE = "\u001B[2K";
+
 /** Line as the console shows it and its plain text */
 export interface NormalizedLine {
   display: string;
@@ -24,6 +26,9 @@ export function normalizeLine(rawLine: string): NormalizedLine | null {
   // A remaining CR is a real in-line repaint, keep only the final paint
   const cr = display.lastIndexOf("\r");
   if (cr >= 0) display = display.slice(cr + 1);
+  // Erase-line hides what was drawn before it, BeamMP redraws its "> " prompt this way
+  const erase = display.lastIndexOf(ERASE_LINE);
+  if (erase >= 0) display = display.slice(erase + ERASE_LINE.length);
 
   const clean = stripAnsi(display).replace(/\s+$/, "");
   if (!clean.trim()) return null;

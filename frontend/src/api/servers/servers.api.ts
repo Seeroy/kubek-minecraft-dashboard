@@ -84,11 +84,12 @@ export class ServersApi {
   start = (id: string): Promise<void> =>
     this.authHttp.post<void>(`servers/${id}/start`);
 
+  // The backend replies only after the process exits, that can take a minute
   stop = (id: string): Promise<void> =>
-    this.authHttp.post<void>(`servers/${id}/stop`);
+    this.authHttp.post<void>(`servers/${id}/stop`, { timeout: false });
 
   restart = (id: string): Promise<void> =>
-    this.authHttp.post<void>(`servers/${id}/restart`);
+    this.authHttp.post<void>(`servers/${id}/restart`, { timeout: false });
 
   kill = (id: string): Promise<void> =>
     this.authHttp.post<void>(`servers/${id}/kill`);

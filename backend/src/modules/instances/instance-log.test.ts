@@ -18,6 +18,18 @@ describe("normalizeLine", () => {
     expect(normalizeLine("50%\r100%")?.display).toBe("100%");
   });
 
+  test("keeps a line painted over the prompt after an erase-line", () => {
+    const raw =
+      "> \u001B[3G\u001B[2K\u001B[0G[21/11/26 06:01:03] [INFO] Listening on :: port 30814\r";
+    expect(normalizeLine(raw)?.clean).toBe(
+      "[21/11/26 06:01:03] [INFO] Listening on :: port 30814",
+    );
+  });
+
+  test("still drops a prompt echo repainted after an erase-line", () => {
+    expect(normalizeLine("\u001B[2K\u001B[0G> exit\r")).toBeNull();
+  });
+
   test("strips ANSI for matching but keeps it for display", () => {
     const line = normalizeLine("\u001b[32mhello\u001b[0m");
     expect(line?.display).toBe("\u001b[32mhello\u001b[0m");
