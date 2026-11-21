@@ -127,6 +127,7 @@ export const AuditAction = {
   NETWORK_SECRET_ROTATE: "network.secret_rotate",
   AUDIT_RETENTION_UPDATE: "audit.retention_update",
   AUDIT_PRUNE: "audit.prune",
+  AUDIT_EXPORT: "audit.export",
   API_KEY_CREATE: "api_key.create",
   API_KEY_UPDATE: "api_key.update",
   API_KEY_DELETE: "api_key.delete",

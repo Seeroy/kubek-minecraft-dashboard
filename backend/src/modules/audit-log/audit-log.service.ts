@@ -62,4 +62,8 @@ export class AuditLogService {
   query(q: AuditLogQuery) {
     return this.repo.query(q);
   }
+
+  iterate(q: AuditLogQuery) {
+    return this.repo.iterate(q);
+  }
 }

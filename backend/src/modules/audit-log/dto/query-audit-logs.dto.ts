@@ -1,10 +1,11 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, OmitType } from "@nestjs/swagger";
 import {
   AUDIT_SOURCES,
   AuditCategory,
   AuditResult,
   type AuditSource,
 } from "@shared/types/audit.types";
+import { AUDIT_EXPORT_FORMATS, type AuditExportFormat } from "../audit-export";
 import { Type } from "class-transformer";
 import {
   IsEnum,
@@ -95,4 +96,14 @@ export class QueryAuditLogsDto {
   @IsInt()
   @Min(0)
   offset?: number = 0;
+}
+
+export class ExportAuditLogsDto extends OmitType(QueryAuditLogsDto, [
+  "limit",
+  "offset",
+] as const) {
+  @ApiProperty({ required: false, enum: AUDIT_EXPORT_FORMATS, default: "json" })
+  @IsOptional()
+  @IsIn(AUDIT_EXPORT_FORMATS)
+  format?: AuditExportFormat = "json";
 }

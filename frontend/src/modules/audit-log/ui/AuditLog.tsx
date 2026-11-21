@@ -24,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useAuditLogsQuery } from "../api/audit-log.queries";
 import { SAMPLE_AUDIT } from "../data/samples";
+import { AuditExportButton } from "./AuditExportButton";
 import { AuditTable } from "./AuditTable";
 import { AUDIT_TABS, type AuditTab } from "../lib/tabs";
 import { RetentionPanel } from "./RetentionPanel";
@@ -231,10 +232,11 @@ export function AuditLog() {
                   {t("filters.reset")}
                 </Button>
               )}
+              <div className="ml-auto" />
+              <AuditExportButton filters={filters} total={query.data?.total ?? 0} />
               <Button
                 variant="outline"
                 size="icon"
-                className="ml-auto"
                 onClick={refresh}
                 disabled={refreshing}
                 aria-label={t("filters.refresh")}

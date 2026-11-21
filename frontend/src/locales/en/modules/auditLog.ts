@@ -149,11 +149,23 @@ export const auditLogTranslations: TranslationDictionary = {
     network_order_update: "Change network order",
     network_secret_rotate: "Rotate forwarding secret",
     audit_retention_update: "Change log retention",
+    audit_export: "Export the log",
     audit_prune: "Log rotation",
     api_key_create: "Create API key",
     api_key_update: "Change API key",
     api_key_delete: "Revoke API key",
     mcp_toggle: "Turn MCP on or off",
+  },
+  export: {
+    button: "Export",
+    label: (n: number) => `${n.toLocaleString()} ${n === 1 ? "entry" : "entries"} matching the filters`,
+    nothing: "No entries match the filters",
+    done: (n: number) => `Log exported: ${n.toLocaleString()} ${n === 1 ? "entry" : "entries"}`,
+    failed: "Couldn't export the log",
+    formats: {
+      json: { title: "JSON", hint: "Every field, for scripts and SIEM" },
+      csv: { title: "CSV", hint: "A table for Excel and Google Sheets" },
+    },
   },
   table: {
     time: "Time",

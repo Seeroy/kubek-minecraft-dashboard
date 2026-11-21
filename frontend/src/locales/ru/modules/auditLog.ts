@@ -151,10 +151,22 @@ export const auditLogTranslations: TranslationDictionary = {
     network_secret_rotate: "Новый секрет форвардинга",
     audit_retention_update: "Изменение хранения журнала",
     audit_prune: "Ротация журнала",
+    audit_export: "Экспорт журнала",
     api_key_create: "Создание API-ключа",
     api_key_update: "Изменение API-ключа",
     api_key_delete: "Отзыв API-ключа",
     mcp_toggle: "Включение или выключение MCP",
+  },
+  export: {
+    button: "Экспорт",
+    label: (n: number) => `${n.toLocaleString()} ${plural(n, ["запись", "записи", "записей"])} по текущим фильтрам`,
+    nothing: "Под фильтры не попала ни одна запись",
+    done: (n: number) => `Журнал выгружен: ${n.toLocaleString()} ${plural(n, ["запись", "записи", "записей"])}`,
+    failed: "Не удалось выгрузить журнал",
+    formats: {
+      json: { title: "JSON", hint: "Все поля, для скриптов и SIEM" },
+      csv: { title: "CSV", hint: "Таблица для Excel и Google Sheets" },
+    },
   },
   table: {
     time: "Время",

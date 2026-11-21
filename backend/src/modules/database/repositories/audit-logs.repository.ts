@@ -54,6 +54,39 @@ export class AuditLogsRepository {
   }
 
   query(q: AuditLogQuery): { items: IAuditLog[]; total: number } {
+    const { sql: whereSql, params } = this.filterWhere(q);
+
+    const countRow = this.sqlite.connection
+      .query(`SELECT COUNT(*) AS total FROM audit_logs ${whereSql}`)
+      .get(...params) as { total: number };
+
+    const limit = q.limit ?? 50;
+    const offset = q.offset ?? 0;
+
+    const rows = this.sqlite.connection
+      .query(
+        `SELECT * FROM audit_logs ${whereSql} ORDER BY createdAt DESC, rowid DESC LIMIT ? OFFSET ?`,
+      )
+      .all(...params, limit, offset);
+
+    return {
+      items: rows.map((r) => this.deserialize(r)),
+      total: Number(countRow?.total ?? 0),
+    };
+  }
+
+  /** Every entry matching the filters, newest first, read row by row */
+  *iterate(q: AuditLogQuery): Generator<IAuditLog> {
+    const { sql: whereSql, params } = this.filterWhere(q);
+    const rows = this.sqlite.connection
+      .query(
+        `SELECT * FROM audit_logs ${whereSql} ORDER BY createdAt DESC, rowid DESC`,
+      )
+      .iterate(...params);
+    for (const row of rows) yield this.deserialize(row);
+  }
+
+  private filterWhere(q: AuditLogQuery) {
     const where: string[] = [];
     const params: (string | number)[] = [];
 
@@ -101,25 +134,7 @@ export class AuditLogsRepository {
       params.push(like, like, like, like, like);
     }
 
-    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-
-    const countRow = this.sqlite.connection
-      .query(`SELECT COUNT(*) AS total FROM audit_logs ${whereSql}`)
-      .get(...params) as { total: number };
-
-    const limit = q.limit ?? 50;
-    const offset = q.offset ?? 0;
-
-    const rows = this.sqlite.connection
-      .query(
-        `SELECT * FROM audit_logs ${whereSql} ORDER BY createdAt DESC, rowid DESC LIMIT ? OFFSET ?`,
-      )
-      .all(...params, limit, offset);
-
-    return {
-      items: rows.map((r) => this.deserialize(r)),
-      total: Number(countRow?.total ?? 0),
-    };
+    return { sql: where.length ? `WHERE ${where.join(" AND ")}` : "", params };
   }
 
   /** Entries a retention would remove: older than before or past the newest keep */

@@ -11,12 +11,14 @@ import {
   Put,
   Query,
   Req,
+  Res,
   UseGuards,
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiProduces,
   ApiTags,
 } from "@nestjs/swagger";
 import { AccessArea } from "@shared/access/areas";
@@ -27,8 +29,9 @@ import {
   type AuditRetention,
   type AuditRetentionState,
 } from "@shared/types/audit.types";
-import type { Request } from "express";
+import type { Request, Response } from "express";
 import { diffChanges } from "./audit-diff";
+import { writeAuditExport } from "./audit-export";
 import { AuditLogService } from "./audit-log.service";
 import { Audit, auditNote } from "./audit.decorator";
 import {
@@ -38,7 +41,10 @@ import {
 } from "./dto/audit-retention.dto";
 import { AuditRetentionService } from "./retention/audit-retention.service";
 import { AuditLogPageDto } from "./dto/audit-log-page.dto";
-import { QueryAuditLogsDto } from "./dto/query-audit-logs.dto";
+import {
+  ExportAuditLogsDto,
+  QueryAuditLogsDto,
+} from "./dto/query-audit-logs.dto";
 
 @ApiTags("Audit Log")
 @ApiBearerAuth()
@@ -74,6 +80,26 @@ export class AuditLogController {
       limit: q.limit ?? 50,
       offset: q.offset ?? 0,
     };
+  }
+
+  @Get("export")
+  @ApiOperation({ summary: "Download every entry matching the filters" })
+  @ApiProduces("application/json", "text/csv")
+  @ApiOkResponse({ description: "JSON array or CSV file, newest first" })
+  @ApiErrorResponses()
+  @RequireAccess(AccessArea.AUDIT, "read")
+  @Audit({
+    action: AuditAction.AUDIT_EXPORT,
+    category: AuditCategory.SETTINGS,
+    resourceType: "audit_log",
+    resolve: ({ req }) => ({ details: { ...req.query } }),
+  })
+  async export(
+    @Query() q: ExportAuditLogsDto,
+    @Res() res: Response,
+  ): Promise<void> {
+    const { format = "json", ...filters } = q;
+    await writeAuditExport(res, this.auditLog.iterate(filters), format);
   }
 
   @Get("retention")
