@@ -9,6 +9,7 @@ import { companionKeys } from "./companion.keys";
 import { configKeys } from "./config.keys";
 import { extensionsKeys } from "./extensions.keys";
 import { filesKeys } from "./files.keys";
+import { googleFontsKeys } from "./google-fonts.keys";
 import { javaKeys } from "./java.keys";
 import { metricsHistoryKeys } from "./metrics-history.keys";
 import { modpacksKeys } from "./modpacks.keys";
@@ -60,6 +61,7 @@ export const qk = {
   preferences: preferencesKeys,
   notifications: notificationsKeys,
   assistant: assistantKeys,
+  googleFonts: googleFontsKeys,
 } as const;
 
 export {
@@ -74,6 +76,7 @@ export {
   configKeys,
   extensionsKeys,
   filesKeys,
+  googleFontsKeys,
   javaKeys,
   metricsHistoryKeys,
   modpacksKeys,

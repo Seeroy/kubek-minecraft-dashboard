@@ -3,6 +3,7 @@
 import type { SupportedLanguage } from "@/locales";
 import { useNotificationSound } from "@/modules/notifications/utils/soundPreference";
 import { useLanguageContext } from "@/shared/context/language-context";
+import { useColorTheme } from "@/shared/hooks/useColorTheme";
 import { useProfileQuery } from "@/shared/queries/auth.queries";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { CopyButton } from "@/shared/ui/CopyButton";
@@ -15,12 +16,13 @@ import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Switch } from "@/shared/ui/switch";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
-import { Bell, CircleUser, FolderSync, Gamepad2, Gauge, Globe, Info, Languages, Monitor, Moon, Network, Palette, Sun } from "lucide-react";
+import { Bell, CircleUser, FolderSync, Gamepad2, Gauge, Globe, Info, Languages, Monitor, Moon, Network, Paintbrush, Palette, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Controller, useWatch, type UseFormReturn } from "react-hook-form";
 import type { MainConfigFormData } from "../validations/schema";
 import { FtpPasswordField } from "./ftp/FtpPasswordField";
 import { SkinNameInput } from "./SkinNameInput";
+import { CustomThemeEditor } from "./theme/CustomThemeEditor";
 import { ThemePicker } from "./ThemePicker";
 
 const MODES = [
@@ -41,6 +43,7 @@ export default function GeneralSettings({ form }: { form: UseFormReturn<MainConf
   // Validation messages are full translation keys
   const { t: tRoot } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const { theme: colorTheme } = useColorTheme();
   const { language, availableLanguages, setLanguage } = useLanguageContext();
   const [soundEnabled, setSoundEnabled] = useNotificationSound();
   const { register, control, formState } = form;
@@ -67,6 +70,11 @@ export default function GeneralSettings({ form }: { form: UseFormReturn<MainConf
         <SettingsField label={t("theme.title")} icon={Palette} wide>
           <ThemePicker />
         </SettingsField>
+        {colorTheme === "custom" && (
+          <SettingsField label={t("theme.editor.title")} icon={Paintbrush} hint={t("theme.editor.hint")} wide>
+            <CustomThemeEditor />
+          </SettingsField>
+        )}
         <SettingsField label={t("theme.mode")} icon={Moon}>
           <ToggleGroup
             variant="segmented"

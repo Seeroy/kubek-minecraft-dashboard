@@ -128,7 +128,7 @@ const EditorModal: React.FC<ModalProps<string | null> & FileEditorProps> = ({ is
             options={{
               minimap: { enabled: false },
               fontSize: 13,
-              fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
+              fontFamily: "var(--font-theme-mono, var(--font-jetbrains-mono)), ui-monospace, monospace",
               wordWrap: "on",
               scrollBeyondLastLine: false,
               automaticLayout: true,

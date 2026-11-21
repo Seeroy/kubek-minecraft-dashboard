@@ -25,8 +25,9 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  /* The custom theme swaps fonts through --font-theme-*, the stock pair is the fallback */
+  --font-sans: var(--font-theme-sans, var(--font-onest)), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-theme-mono, var(--font-jetbrains-mono)), ui-monospace, "SF Mono", Menlo, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
