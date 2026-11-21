@@ -2,7 +2,7 @@
 
 # Build stage: compile the standalone binary for the host arch (works with buildx amd64/arm64)
 # Bun is pinned to the version the lockfiles were made with
-FROM oven/bun:1.4.4-debian AS builder
+FROM oven/bun:1.4.5-debian AS builder
 
 WORKDIR /src
 
