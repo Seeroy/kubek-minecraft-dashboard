@@ -1,7 +1,9 @@
 "use client";
 import type { AuditLogEntry } from "@/api";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { KeyValue, KeyValueItem } from "@/shared/ui/key-value";
+import { Private } from "@/shared/ui/private";
 import type { AuditChange } from "@shared/types/audit.types";
 import type { ReactNode } from "react";
 import { useDetailLabel, useResourceLabel } from "../lib/labels";
@@ -36,6 +38,7 @@ function DataList({ data }: { data: Record<string, unknown> }) {
 
 export function AuditDetails({ entry }: { entry: AuditLogEntry }) {
   const { t } = useTranslation("modules.auditLog");
+  const mask = useStreamerMask();
   const object = useResourceLabel()(entry);
   const changes = (entry.changes ?? []) as AuditChange[];
   // Old entries kept the server inside their data, the column shows it now
@@ -56,10 +59,10 @@ export function AuditDetails({ entry }: { entry: AuditLogEntry }) {
           {entry.apiKeyName && <KeyValueItem label={t("details.apiKey")}>{entry.apiKeyName}</KeyValueItem>}
           <KeyValueItem label={t("details.category")}>{t(`categories.${entry.category}`)}</KeyValueItem>
           <KeyValueItem label="IP">
-            <span className="font-mono">{entry.ip || "—"}</span>
+            <span className="font-mono">{entry.ip ? <Private>{entry.ip}</Private> : "—"}</span>
           </KeyValueItem>
           <KeyValueItem label={t("details.client")}>
-            <span title={entry.userAgent ?? undefined}>{entry.userAgent || "—"}</span>
+            <span title={entry.userAgent ? mask.value(entry.userAgent) : undefined}>{entry.userAgent ? <Private>{entry.userAgent}</Private> : "—"}</span>
           </KeyValueItem>
           <KeyValueItem label={t("details.time")}>{new Date(entry.createdAt).toLocaleString()}</KeyValueItem>
           <KeyValueItem label={t("details.id")}>
@@ -69,7 +72,7 @@ export function AuditDetails({ entry }: { entry: AuditLogEntry }) {
       </Section>
 
       <div className="grid content-start gap-4">
-        {entry.error && <p className="rounded-md border border-danger/25 bg-danger/8 px-3 py-2 font-mono text-xs break-words text-danger">{entry.error}</p>}
+        {entry.error && <p className="rounded-md border border-danger/25 bg-danger/8 px-3 py-2 font-mono text-xs break-words text-danger">{mask.text(entry.error)}</p>}
         {changes.length > 0 && (
           <Section title={t("details.changes")}>
             <AuditChanges changes={changes} resourceType={entry.resourceType} />

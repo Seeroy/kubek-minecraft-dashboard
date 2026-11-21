@@ -11,6 +11,7 @@ import { DataReveal } from "@/shared/ui/data-reveal";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { KeyValue, KeyValueItem } from "@/shared/ui/key-value";
 import { Panel, PanelActions, PanelHead, PanelMeta, PanelTitle } from "@/shared/ui/panel";
+import { Private } from "@/shared/ui/private";
 import { AccessArea } from "@shared/access/areas";
 import { KeyRound, Network as NetworkIcon, Plus, RotateCw, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
@@ -173,7 +174,15 @@ function NetworkPanel({ network }: { network: Network }) {
             <KeyRound className="size-4 text-muted-foreground" />
             <KeyValue className="min-w-48 flex-1">
               <KeyValueItem label={t("secret")}>
-                {network.secret.set ? (network.secret.hint ? t("secretHint", network.secret.hint) : "********") : t("secretNone")}
+                {network.secret.set ? (
+                  network.secret.hint ? (
+                    <Private level="secret">{t("secretHint", network.secret.hint)}</Private>
+                  ) : (
+                    "********"
+                  )
+                ) : (
+                  t("secretNone")
+                )}
               </KeyValueItem>
             </KeyValue>
             {canManage && (

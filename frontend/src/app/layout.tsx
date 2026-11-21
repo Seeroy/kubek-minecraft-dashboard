@@ -1,6 +1,7 @@
 import { colorThemeBootScript } from "@/shared/lib/color-theme";
 import { pageWidthBootScript } from "@/shared/lib/page-width";
 import { sidebarBootScript } from "@/shared/lib/sidebar-layout";
+import { streamerModeBootScript } from "@/shared/lib/streamer-mode";
 import "@/shared/styles/globals.css";
 import type { Viewport } from "next";
 import localFont from "next/font/local";
@@ -46,7 +47,7 @@ export default function RootLayout({
       className={`${onest.variable} ${jetbrainsMono.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: colorThemeBootScript + sidebarBootScript + pageWidthBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: colorThemeBootScript + sidebarBootScript + pageWidthBootScript + streamerModeBootScript }} />
       </head>
       <body>
         <Providers>{children}</Providers>

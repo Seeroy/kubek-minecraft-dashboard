@@ -9,6 +9,7 @@ import { Menu } from "lucide-react";
 import { Suspense } from "react";
 import { useTopbarSlot } from "../store";
 import { Crumbs } from "./Crumbs";
+import { StreamerBadge } from "./StreamerBadge";
 
 export function Topbar() {
   const { t } = useTranslation("modules.sidebar.layout");
@@ -24,6 +25,7 @@ export function Topbar() {
         <Crumbs />
       </Suspense>
       <div ref={setSlot} className="ml-auto flex items-center gap-1" />
+      <StreamerBadge />
       <AssistantButton />
       <InboxBell />
     </header>

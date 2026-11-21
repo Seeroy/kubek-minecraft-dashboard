@@ -3,6 +3,7 @@
 import type { ApiKey } from "@/api";
 import { useNotifications } from "@/modules/notifications";
 import { useModal } from "@/shared/hooks/useModalsManager";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatRelative } from "@/shared/lib/formatRelative";
 import { confirmDialog } from "@/shared/modals";
@@ -12,6 +13,7 @@ import { Button } from "@/shared/ui/button";
 import { CopyButton } from "@/shared/ui/CopyButton";
 import { DataReveal } from "@/shared/ui/data-reveal";
 import { Plate } from "@/shared/ui/plate";
+import { Private } from "@/shared/ui/private";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Switch } from "@/shared/ui/switch";
 import { AccessArea } from "@shared/access/areas";
@@ -46,7 +48,7 @@ function McpSettingsGroup() {
       </SettingsField>
       <SettingsField wide label={t("url")} hint={t("urlHint")}>
         <div className="flex min-w-0 items-center gap-1 rounded-md border border-border bg-subtle py-1 pr-1 pl-3">
-          <code className="min-w-0 flex-1 truncate font-mono text-[12.5px]">{url}</code>
+          <code data-private="basic" className="min-w-0 flex-1 truncate font-mono text-[12.5px]">{url}</code>
           <CopyButton value={url} />
         </div>
       </SettingsField>
@@ -68,6 +70,7 @@ export default function ApiKeysTab() {
   const errorMessage = useAccessErrorMessage();
   const list = keys.data ?? [];
   const relative = (timestamp: number) => formatRelative(timestamp, tc("justNow"));
+  const mask = useStreamerMask();
 
   const confirmRemove = async (key: ApiKey) => {
     const ok = await confirmDialog({
@@ -86,7 +89,7 @@ export default function ApiKeysTab() {
   };
 
   const usage = (key: ApiKey) =>
-    key.lastUsedAt ? t("lastUsed", relative(key.lastUsedAt), key.lastUsedIp ?? t("unknownIp")) : t("neverUsed");
+    key.lastUsedAt ? t("lastUsed", relative(key.lastUsedAt), key.lastUsedIp ? mask.value(key.lastUsedIp) : t("unknownIp")) : t("neverUsed");
 
   return (
     <>
@@ -132,7 +135,9 @@ export default function ApiKeysTab() {
                       <div className="grid min-w-0 flex-1 gap-1.5">
                         <div className="flex min-w-0 flex-wrap items-center gap-2 text-[13.5px] font-medium">
                           <span className="truncate">{key.name}</span>
-                          <code className="font-mono text-[11.5px] text-muted-foreground">{key.prefix}...</code>
+                          <code className="font-mono text-[11.5px] text-muted-foreground">
+                            <Private level="secret">{key.prefix}</Private>...
+                          </code>
                           {key.mcp && <Badge variant="info">MCP</Badge>}
                           {key.servers && <Badge variant="secondary">{t("serversCount", key.servers.length)}</Badge>}
                           {expired ? (

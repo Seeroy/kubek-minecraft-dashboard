@@ -1,5 +1,6 @@
 "use client";
 import { useNotifications } from "@/modules/notifications";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { useAccess } from "@/shared/lib/access";
 import { cn } from "@/shared/lib/cn";
@@ -9,6 +10,7 @@ import { Button } from "@/shared/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Panel } from "@/shared/ui/panel";
 import { Plate } from "@/shared/ui/plate";
+import { Private } from "@/shared/ui/private";
 import { Switch } from "@/shared/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { AccessArea } from "@shared/access/areas";
@@ -43,6 +45,7 @@ export function TasksPanel({ serverId, tasks = [], onEdit, onCreate }: TasksPane
   const { t } = useTranslation("modules.scheduler");
   const { t: tc } = useTranslation("modules.components");
   const { notify } = useNotifications();
+  const mask = useStreamerMask();
   const removeMutation = useDeleteScheduledTaskMutation(serverId);
   const toggleMutation = useToggleScheduledTaskMutation(serverId);
   const runMutation = useRunNowMutation(serverId);
@@ -125,7 +128,12 @@ export function TasksPanel({ serverId, tasks = [], onEdit, onCreate }: TasksPane
                     <div className="min-w-0">
                       <b className="block truncate font-semibold">{task.name}</b>
                       <span className={cn("block truncate text-xs text-muted-foreground", monoDetail.has(task.action) && "font-mono text-[11.5px]")}>
-                        {actionDetail(task, label)}
+                        {/* Webhook URLs often carry a token in the path */}
+                        {task.action === SchedulerActionType.HTTP_WEBHOOK ? (
+                          <Private level="secret">{mask.text(actionDetail(task, label))}</Private>
+                        ) : (
+                          mask.text(actionDetail(task, label))
+                        )}
                       </span>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 "use client";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import { CopyButton } from "@/shared/ui/CopyButton";
@@ -37,6 +38,7 @@ interface SegmentViewProps {
 
 export const SegmentView = memo(function SegmentView({ segment, serverName }: SegmentViewProps) {
   const { t } = useTranslation("modules.assistant.chat");
+  const mask = useStreamerMask();
 
   switch (segment.kind) {
     case "user":
@@ -46,7 +48,7 @@ export const SegmentView = memo(function SegmentView({ segment, serverName }: Se
           {segment.message.content && (
             <div className="group/msg relative">
               <div className="rounded-xl rounded-br-[5px] bg-primary/10 px-3.5 py-2 text-[13px] leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
-                {segment.message.content}
+                {mask.text(segment.message.content)}
               </div>
               <CopyButton value={segment.message.content} title={t("copy")} className={cn(COPY_CLASS, COPY_BELOW, "right-0")} />
             </div>

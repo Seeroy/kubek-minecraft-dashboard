@@ -1,4 +1,5 @@
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { privateKeyLevel } from "@/shared/lib/streamer-mode";
 import type { BlueprintVariable } from "@/shared/types/server-types.types";
 import { DataReveal } from "@/shared/ui/data-reveal";
 import { Input } from "@/shared/ui/input";
@@ -67,6 +68,7 @@ export function VariableControl({ variable, id, label, value, onChange, versions
       id={id}
       type={variable.type === "number" ? "number" : variable.type === "secret" ? "password" : "text"}
       aria-invalid={invalid || undefined}
+      data-private={privateKeyLevel(variable.key) ?? undefined}
       value={value === undefined ? "" : String(value)}
       onChange={(event) => {
         const raw = event.target.value;

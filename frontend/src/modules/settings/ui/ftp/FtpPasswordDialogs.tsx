@@ -6,6 +6,7 @@ import { CopyButton } from "@/shared/ui/CopyButton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { KeyValue, KeyValueItem } from "@/shared/ui/key-value";
 import { Plate } from "@/shared/ui/plate";
+import { Private } from "@/shared/ui/private";
 import { KeyRound } from "lucide-react";
 
 /** New FTP password, shown only once */
@@ -28,7 +29,7 @@ export function FtpPasswordRevealDialog({ login, password, onClose }: { login: s
           <KeyValueItem label={t("login")}>{login}</KeyValueItem>
           <KeyValueItem label={t("password")}>
             <span className="inline-flex items-center gap-1 break-all">
-              {password}
+              <Private level="secret">{password}</Private>
               <CopyButton value={password} title={t("copy")} />
             </span>
           </KeyValueItem>

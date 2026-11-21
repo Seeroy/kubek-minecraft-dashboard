@@ -4,6 +4,7 @@ import { useServerAddress } from "@/shared/hooks/useServerAddress";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { CopyButton } from "@/shared/ui/CopyButton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
+import { Private } from "@/shared/ui/private";
 import { ChevronDown, Globe, House, Network } from "lucide-react";
 import { useMemo, useState } from "react";
 import { InfoCard } from "./InfoCard";
@@ -26,7 +27,7 @@ export function AddressCard({ serverId, blueprintId }: { serverId: string; bluep
     [publicEntry, localEntries, tAddress]
   );
   const active = entries.find((item) => item.entry.host === activeHost) ?? entries.find((item) => item.entry === primary);
-  const text = active?.entry.full ?? (loading ? tAddress("loading") : tAddress("unavailable"));
+  const text = active ? <Private>{active.entry.full}</Private> : loading ? tAddress("loading") : tAddress("unavailable");
 
   const value =
     entries.length > 1 ? (
@@ -40,7 +41,7 @@ export function AddressCard({ serverId, blueprintId }: { serverId: string; bluep
             <DropdownMenuItem key={entry.host} onClick={() => setActiveHost(entry.host)}>
               <Icon />
               <span>{title}</span>
-              <span className="ml-auto font-mono text-[11px] text-muted-foreground">{entry.full}</span>
+              <Private className="ml-auto font-mono text-[11px] text-muted-foreground">{entry.full}</Private>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

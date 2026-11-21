@@ -6,6 +6,7 @@ import { KeyValue, KeyValueItem } from "@/shared/ui/key-value";
 import { toneClass, type Tone } from "@/shared/ui/tone";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import type { IInstanceLog } from "@shared/types/server/instance.types";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import { memo, type ReactNode } from "react";
@@ -60,7 +61,8 @@ function LevelBadge({ tone, solid, children }: { tone: Tone; solid?: boolean; ch
 function KubekLine({ log }: { log: IInstanceLog }) {
   const { t } = useTranslation("modules.console");
   const telegram = log.type === "telegram";
-  const event = describeKubekEvent(log, t, telegram ? "blue" : "purple");
+  const mask = useStreamerMask();
+  const event = describeKubekEvent(log, t, telegram ? "blue" : "purple", mask.text);
   if (!event) return null;
 
   return (
@@ -86,9 +88,11 @@ function KubekLine({ log }: { log: IInstanceLog }) {
 }
 
 export const LogLine = memo(function LogLine({ log }: { log: IInstanceLog }) {
+  const mask = useStreamerMask();
   if (log.type === "kubek" || log.type === "telegram") return <KubekLine log={log} />;
 
-  const line = (log.line ?? "").trim();
+  const raw = (log.line ?? "").trim();
+  const line = mask.text(raw);
 
   if (log.type === "stdin") {
     return (
@@ -115,7 +119,7 @@ export const LogLine = memo(function LogLine({ log }: { log: IInstanceLog }) {
       <Time>{parsed.time}</Time>
       <LevelBadge tone={levelTone[level] ?? "gray"}>{level}</LevelBadge>
       <AnsiText className="text-[length:inherit]">{parsed.message}</AnsiText>
-      {ERROR_LEVELS.has(level) && <ExplainLine line={line} />}
+      {ERROR_LEVELS.has(level) && <ExplainLine line={raw} />}
     </div>
   );
 });

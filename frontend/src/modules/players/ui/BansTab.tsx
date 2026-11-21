@@ -1,6 +1,7 @@
 "use client";
 import type { PlayersOverview } from "@/api";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
 import { Plate } from "@/shared/ui/plate";
@@ -33,6 +34,7 @@ export function BansTab({ serverId, overview, busy, access, actions }: BansTabPr
   const [query, setQuery] = useState("");
   const [reason, setReason] = useState("");
   const search = useDebouncedValue(query.trim().toLowerCase(), 150);
+  const mask = useStreamerMask();
   const { bans, ipBans } = overview;
   const locked = !access.canManage || busy || actions.pending;
 
@@ -83,7 +85,7 @@ export function BansTab({ serverId, overview, busy, access, actions }: BansTabPr
         {rows.map((entry) => (
           <PlayerRow
             key={entry.ip}
-            name={entry.ip}
+            name={mask.value(entry.ip)}
             head={
               <Plate tone="red" size="lg">
                 <Globe />

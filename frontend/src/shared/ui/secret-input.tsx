@@ -50,6 +50,7 @@ export function SecretInput({ secret, onReveal, placeholder, ref, ...props }: Se
       <InputGroupInput
         type={shown ? "text" : "password"}
         className="font-mono"
+        data-private={shown ? "secret" : undefined}
         autoComplete="off"
         placeholder={stored ? savedPlaceholder : placeholder}
         ref={(el) => {

@@ -11,6 +11,7 @@ import { FieldError } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { KeyValue, KeyValueItem } from "@/shared/ui/key-value";
 import { LanguageFlag } from "@/shared/ui/LanguageFlag";
+import { Private } from "@/shared/ui/private";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Switch } from "@/shared/ui/switch";
@@ -22,6 +23,7 @@ import { Controller, useWatch, type UseFormReturn } from "react-hook-form";
 import type { MainConfigFormData } from "../validations/schema";
 import { FtpPasswordField } from "./ftp/FtpPasswordField";
 import { SkinNameInput } from "./SkinNameInput";
+import { StreamerModeSettings } from "./StreamerModeSettings";
 import { CustomThemeEditor } from "./theme/CustomThemeEditor";
 import { ThemePicker } from "./ThemePicker";
 
@@ -126,6 +128,8 @@ export default function GeneralSettings({ form }: { form: UseFormReturn<MainConf
         </SettingsField>
       </SettingsGroup>
 
+      <StreamerModeSettings />
+
       <SettingsGroup tone="cyan" icon={Network} title={t("panel.title")} description={t("panel.description")}>
         <SettingsField label={t("panel.port")} icon={Network} hint={t("panel.portHint")} changed={!!dirtyFields.port} htmlFor="panel-port">
           <Input
@@ -197,7 +201,7 @@ export default function GeneralSettings({ form }: { form: UseFormReturn<MainConf
             <KeyValue className="rounded-md border border-dashed border-border bg-subtle px-4 py-3 [&_dd]:text-left [&_dd]:font-mono [&_dd]:text-[12.5px]">
               <KeyValueItem label={t("ftp.host")}>
                 <span className="inline-flex items-center gap-1">
-                  {host}
+                  <Private>{host}</Private>
                   <CopyButton value={host} title={t("ftp.copyHost")} />
                 </span>
               </KeyValueItem>

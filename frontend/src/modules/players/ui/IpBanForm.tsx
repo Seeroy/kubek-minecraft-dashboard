@@ -44,6 +44,7 @@ export function IpBanForm({ disabled, extra, onSubmit }: IpBanFormProps) {
             aria-invalid={invalid || undefined}
             autoComplete="off"
             spellCheck={false}
+            data-private="basic"
             className="font-mono"
             disabled={disabled}
           />

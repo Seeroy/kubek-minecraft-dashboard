@@ -1,5 +1,6 @@
 import { cn } from "@/shared/lib/cn";
 import { Badge } from "@/shared/ui/badge";
+import { Private } from "@/shared/ui/private";
 import { StatusDot } from "@/shared/ui/status-dot";
 import { toneClass, type Tone } from "@/shared/ui/tone";
 import type { IInstanceLog } from "@shared/types/server/instance.types";
@@ -24,7 +25,7 @@ const statusBadge: Record<ServerStatus, "success" | "secondary" | "warning" | "d
 const exactTime = (timestamp: string) => new Date(timestamp).toLocaleString();
 
 /** Readable line and tooltip details for events Kubek writes into the console */
-export function describeKubekEvent(log: IInstanceLog, t: Translate, accent: Tone): KubekEvent | null {
+export function describeKubekEvent(log: IInstanceLog, t: Translate, accent: Tone, mask: (text: string) => string = (text) => text): KubekEvent | null {
   const event = log.data;
   if (!event) return null;
   const time: [string, ReactNode] = [t("events.details.time"), exactTime(log.timestamp)];
@@ -39,7 +40,7 @@ export function describeKubekEvent(log: IInstanceLog, t: Translate, accent: Tone
       return {
         content: (
           <>
-            {user(event.username)} {muted(t("events.executed"))} <span className="font-medium text-c-green">{event.command}</span>
+            {user(event.username)} {muted(t("events.executed"))} <span className="font-medium text-c-green">{mask(event.command)}</span>
           </>
         ),
         details: [[t("events.details.user"), event.username || "—"], [t("events.details.id"), mono(event.id || "—")], time],
@@ -84,7 +85,7 @@ export function describeKubekEvent(log: IInstanceLog, t: Translate, accent: Tone
         ),
         details: [
           [t("events.details.user"), event.username || "—"],
-          [t("events.details.telegramId"), mono(event.telegramId || "—")],
+          [t("events.details.telegramId"), mono(event.telegramId ? <Private level="secret">{event.telegramId}</Private> : "—")],
           [t("events.details.action"), event.action],
           time,
         ],
@@ -93,7 +94,7 @@ export function describeKubekEvent(log: IInstanceLog, t: Translate, accent: Tone
       return {
         content: (
           <>
-            {user(event.username)} {muted(t("events.broadcast"))} <span className="font-medium text-c-amber">{event.message}</span>
+            {user(event.username)} {muted(t("events.broadcast"))} <span className="font-medium text-c-amber">{mask(event.message)}</span>
           </>
         ),
         details: [[t("events.details.user"), event.username || "—"], [t("events.details.id"), mono(event.id || "—")], time],

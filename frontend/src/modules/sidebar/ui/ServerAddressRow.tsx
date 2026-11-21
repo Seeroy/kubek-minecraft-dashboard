@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { Private } from "@/shared/ui/private";
 import { ChevronDown, Globe, House, Network } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -40,7 +41,7 @@ export default function ServerAddressRow() {
   const active = entries.find((item) => item.entry.host === activeHost) ?? entries.find((item) => item.entry === primary);
   const Icon = active?.icon ?? Network;
   const value: ServerAddressEntry | undefined = active?.entry;
-  const text = value?.full ?? (loading ? t("loading") : t("unavailable"));
+  const text = value ? <Private>{value.full}</Private> : loading ? t("loading") : t("unavailable");
 
   const content = (
     <>
@@ -70,7 +71,7 @@ export default function ServerAddressRow() {
               >
                 <ItemIcon />
                 <span>{title}</span>
-                <span className="ml-auto font-mono text-[11px] text-muted-foreground">{entry.full}</span>
+                <Private className="ml-auto font-mono text-[11px] text-muted-foreground">{entry.full}</Private>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

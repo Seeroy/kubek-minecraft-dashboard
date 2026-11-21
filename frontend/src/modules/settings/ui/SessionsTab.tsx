@@ -1,6 +1,7 @@
 "use client";
 
 import { useNotifications } from "@/modules/notifications";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatRelative } from "@/shared/lib/formatRelative";
 import { Badge } from "@/shared/ui/badge";
@@ -36,6 +37,7 @@ export default function SessionsTab() {
   const { t } = useTranslation("modules.settings.sessions");
   const { t: tc } = useTranslation("modules.components");
   const { notify } = useNotifications();
+  const mask = useStreamerMask();
   const sessions = useSessions();
   const revoke = useRevokeSessionMutation();
   const revokeOthers = useRevokeOtherSessionsMutation();
@@ -77,7 +79,7 @@ export default function SessionsTab() {
                       {session.current && <Badge variant="success">{t("thisDevice")}</Badge>}
                     </div>
                     <div className="truncate text-xs text-muted-foreground">
-                      {t("details", session.ip ?? t("unknown"), relative(session.lastSeenAt), relative(session.createdAt))}
+                      {t("details", session.ip ? mask.value(session.ip) : t("unknown"), relative(session.lastSeenAt), relative(session.createdAt))}
                     </div>
                   </div>
                   {!session.current && (

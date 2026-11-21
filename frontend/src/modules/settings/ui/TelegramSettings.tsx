@@ -1,6 +1,7 @@
 "use client";
 
 import { useNotifications } from "@/modules/notifications";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import { Badge } from "@/shared/ui/badge";
@@ -10,6 +11,7 @@ import { FieldError } from "@/shared/ui/field";
 import { Plate } from "@/shared/ui/plate";
 import { revealConfigSecret, useMainConfig } from "@/shared/queries";
 import { PlayerHead } from "@/shared/ui/player-head";
+import { Private } from "@/shared/ui/private";
 import { SecretInput } from "@/shared/ui/secret-input";
 import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Spinner } from "@/shared/ui/spinner";
@@ -28,6 +30,7 @@ function BotInfo({ tokenSaved }: { tokenSaved: boolean }) {
   // The backend checks the saved token, so the readout follows the stored config
   const info = useBotInfoQuery(tokenSaved);
   const avatar = useBotAvatarQuery(info.data?.id, !!info.data?.hasAvatar);
+  const mask = useStreamerMask("secret");
   const box = "flex min-h-ctl items-center gap-3 rounded-md border border-dashed border-border bg-subtle px-3 py-2";
 
   if (!tokenSaved) return <div className={cn(box, "text-[12.5px] text-muted-foreground")}>{t("noToken")}</div>;
@@ -52,7 +55,12 @@ function BotInfo({ tokenSaved }: { tokenSaved: boolean }) {
       {avatar.data ? (
         // Blob URL, next/image adds nothing here
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={avatar.data} alt={info.data?.name ?? ""} className="size-8 shrink-0 rounded-full object-cover" />
+        <img
+          src={avatar.data}
+          alt={mask.value(info.data?.name ?? "")}
+          data-private="secret"
+          className="size-8 shrink-0 rounded-full object-cover"
+        />
       ) : (
         <Plate tone="green" size="sm">
           <Check />
@@ -60,15 +68,16 @@ function BotInfo({ tokenSaved }: { tokenSaved: boolean }) {
       )}
       <span className="min-w-0">
         <a
-          href={`https://t.me/${info.data?.username}`}
+          // The browser status bar would show the link on hover
+          href={mask.enabled ? undefined : `https://t.me/${info.data?.username}`}
           target="_blank"
           rel="noopener noreferrer"
           className="block truncate text-[13px] font-semibold text-foreground underline-offset-2 hover:underline"
         >
-          @{info.data?.username}
+          <Private level="secret">{`@${info.data?.username}`}</Private>
         </a>
         <span className="block truncate text-xs text-muted-foreground">
-          {t("valid")} · {info.data?.name}
+          {t("valid")} · <Private level="secret">{info.data?.name}</Private>
         </span>
       </span>
     </div>
@@ -80,6 +89,7 @@ function LinkedUsers() {
   const { notify } = useNotifications();
   const linked = useLinkedUsersQuery(true);
   const unlink = useUnlinkUserMutation();
+  const mask = useStreamerMask("secret");
   const users = linked.data ?? [];
 
   if (linked.isLoading) return <div className="p-4 text-[13px] text-muted-foreground">...</div>;
@@ -111,18 +121,19 @@ function LinkedUsers() {
       </TableHeader>
       <TableBody>
         {users.map(({ telegramUser: user, accountName, accountSkinName }) => {
-          const name = user.username
-            ? `@${user.username}`
-            : [user.firstName, user.lastName].filter(Boolean).join(" ") || t("unknown");
+          const known = user.username ? `@${user.username}` : [user.firstName, user.lastName].filter(Boolean).join(" ");
+          const name = known ? mask.value(known) : t("unknown");
           return (
             <TableRow key={user.id}>
               <TableCell>
                 <span className="flex min-w-0 items-center gap-2.5">
                   <PlayerHead name={accountSkinName || accountName} size={30} className="size-[30px] rounded-[7px]" />
-                  <b className="truncate font-semibold">{name}</b>
+                  <b className="truncate font-semibold">{known ? <Private level="secret">{known}</Private> : name}</b>
                 </span>
               </TableCell>
-              <TableCell className="font-mono text-[12.5px]">{user.id}</TableCell>
+              <TableCell className="font-mono text-[12.5px]">
+                <Private level="secret">{user.id}</Private>
+              </TableCell>
               <TableCell className="hidden text-muted-foreground tabular-nums @xl/table:table-cell">
                 {dateFormat.format(new Date(user.linkedAt))}
               </TableCell>

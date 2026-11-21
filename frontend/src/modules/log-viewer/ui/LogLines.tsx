@@ -1,4 +1,5 @@
 "use client";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { cn } from "@/shared/lib/cn";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useEffect, useImperativeHandle, useMemo, useRef, type ReactNode, type Ref } from "react";
@@ -44,6 +45,7 @@ function highlight(text: string, needle: string): ReactNode {
 }
 
 const Line = memo(function Line({ line, number, needle, state, wrap }: { line: ParsedLogLine; number: number; needle: string; state: "hit" | "current" | null; wrap: boolean }) {
+  const mask = useStreamerMask();
   return (
     <div
       className={cn(
@@ -59,7 +61,7 @@ const Line = memo(function Line({ line, number, needle, state, wrap }: { line: P
       <span className={cn("text-[11px] font-semibold tracking-[0.04em] text-muted-foreground max-sm:hidden", LEVEL_CLASS[line.level])}>
         {line.level === "OTHER" ? "" : line.level}
       </span>
-      <span className={cn(LEVEL_CLASS[line.level], wrap && "break-words whitespace-pre-wrap")}>{highlight(line.message, needle)}</span>
+      <span className={cn(LEVEL_CLASS[line.level], wrap && "break-words whitespace-pre-wrap")}>{highlight(mask.text(line.message), needle)}</span>
     </div>
   );
 });

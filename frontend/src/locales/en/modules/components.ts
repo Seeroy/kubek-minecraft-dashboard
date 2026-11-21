@@ -22,6 +22,12 @@ export const componentsTranslations: TranslationDictionary = {
     show: "Show",
     hide: "Hide",
   },
+  streamerMode: {
+    hidden: "Hidden in streamer mode",
+    badgeBasic: "Streamer mode: basic",
+    badgeFull: "Streamer mode: full",
+    badgeHint: "Personal data is hidden. Turn it off at the bottom of the sidebar or in settings",
+  },
   taskStages: {
     kinds: {
       proxy: (name: string) => `Proxy "${name}"`,

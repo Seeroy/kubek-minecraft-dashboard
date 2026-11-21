@@ -8,6 +8,7 @@ import { useAuthStore } from "@/shared/stores/auth-store";
 import { Button } from "@/shared/ui/button";
 import { DataReveal } from "@/shared/ui/data-reveal";
 import { queryLoadError } from "@/shared/ui/load-error";
+import { Private } from "@/shared/ui/private";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { SettingsGroup } from "@/shared/ui/settings";
 import { Spinner } from "@/shared/ui/spinner";
@@ -116,7 +117,7 @@ function StorageRow({ storage, onEdit }: { storage: BackupStorage; onEdit?: () =
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13.5px] font-medium">{storage.name}</div>
         <div className="truncate font-mono text-[12px] text-muted-foreground">
-          {bucket}/{prefix} {endpoint && <span className="opacity-75">@ {endpoint.replace(/^https?:\/\//, "")}</span>}
+          {bucket}/{prefix} {endpoint && <span className="opacity-75">@ <Private>{endpoint.replace(/^https?:\/\//, "")}</Private></span>}
         </div>
       </div>
       {onEdit && (

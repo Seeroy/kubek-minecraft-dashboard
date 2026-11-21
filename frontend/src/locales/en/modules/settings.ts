@@ -93,6 +93,21 @@ export const settingsTranslations: TranslationDictionary = {
       sound: "Notification sound",
       soundHint: "Play a sound for new notifications while the tab is hidden or in the background",
     },
+    streamer: {
+      title: "Streamer mode",
+      description: "Hide personal data for streams and screenshots in this browser",
+      label: "What to hide",
+      levels: {
+        off: "Off",
+        basic: "Basic",
+        full: "Full",
+      },
+      hints: {
+        off: "Everything is shown as is",
+        basic: "Hides what can't be changed after a recording: IP addresses, hosts, server addresses, emails and user agents, in the console and logs too. Keys and tokens stay visible",
+        full: "Also hides secrets: API keys, tokens, passwords, 2FA setup, Telegram chat ids and names. Copy buttons still copy the real value",
+      },
+    },
     panel: {
       title: "Panel configuration",
       description: "Core panel and network settings",

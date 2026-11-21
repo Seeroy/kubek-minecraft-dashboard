@@ -123,6 +123,7 @@ function AssistantForm({ data }: { data: AssistantSettingsResponse }) {
         <Input
           id="assistant-url"
           className="font-mono"
+          data-private="basic"
           value={draft.baseUrl}
           placeholder="http://localhost:11434/v1"
           onChange={(e) => set("baseUrl", e.target.value)}

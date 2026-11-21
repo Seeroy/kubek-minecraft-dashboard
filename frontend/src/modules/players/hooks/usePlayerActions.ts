@@ -1,6 +1,7 @@
 "use client";
 import type { AddBanRequest, AddIpBanRequest, AddOpRequest, UpdatePlayersSettingsRequest } from "@/api";
 import { useNotifications } from "@/modules/notifications";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { confirmDialog } from "@/shared/modals";
 import { Ban, Crown, UserMinus, UserX, type LucideIcon } from "lucide-react";
@@ -22,6 +23,7 @@ export function usePlayerActions(serverId: string) {
   const errorText = usePlayersError();
   const change = usePlayersChangeMutation(serverId);
   const kickMutation = useKickPlayerMutation(serverId);
+  const mask = useStreamerMask();
 
   const ask = ({ destructive, ...options }: Confirm) =>
     confirmDialog({ ...options, cancelText: t("actions.cancel"), variant: destructive ? "destructive" : undefined });
@@ -52,8 +54,8 @@ export function usePlayerActions(serverId: string) {
     run({ kind: "banRemove", name }, t("toasts.banRemove", name));
 
   const pardonIp = async (ip: string) =>
-    (await ask({ title: t("confirm.pardon", ip), description: t("confirm.pardonText"), confirmText: t("actions.pardon"), icon: Ban })) &&
-    run({ kind: "ipBanRemove", ip }, t("toasts.banRemove", ip));
+    (await ask({ title: t("confirm.pardon", mask.value(ip)), description: t("confirm.pardonText"), confirmText: t("actions.pardon"), icon: Ban })) &&
+    run({ kind: "ipBanRemove", ip }, t("toasts.banRemove", mask.value(ip)));
 
   // Bans from the online list skip the form, so they ask first
   const banOnline = async (name: string) =>
@@ -69,7 +71,7 @@ export function usePlayerActions(serverId: string) {
     addToWhitelist: (name: string) => run({ kind: "whitelistAdd", name }, t("toasts.whitelistAdd", name)),
     addOp: (data: AddOpRequest) => run({ kind: "opAdd", data }, t("toasts.opAdd", data.name)),
     ban: (data: AddBanRequest) => run({ kind: "banAdd", data }, t("toasts.banAdd", data.name)),
-    banIp: (data: AddIpBanRequest) => run({ kind: "ipBanAdd", data }, t("toasts.banAdd", data.ip)),
+    banIp: (data: AddIpBanRequest) => run({ kind: "ipBanAdd", data }, t("toasts.banAdd", mask.value(data.ip))),
     updateSettings: (data: UpdatePlayersSettingsRequest) => run({ kind: "settings", data }, t("toasts.settings")),
     removeFromWhitelist,
     removeOp,

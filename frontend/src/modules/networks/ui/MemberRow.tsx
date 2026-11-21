@@ -7,6 +7,7 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
+import { Private } from "@/shared/ui/private";
 import { StatusDot } from "@/shared/ui/status-dot";
 import { ArrowDown, ArrowUp, Unlink } from "lucide-react";
 
@@ -50,7 +51,7 @@ export function MemberRow({ member, isDefault, canUp, canDown, canLeaveTry, busy
           <StatusDot status={status} />
           <span>{tStatus(status)}</span>
           <span className="truncate font-mono text-[11.5px]" title={t("tab.address")}>
-            {member.alias} {member.address}
+            {member.alias} <Private>{member.address}</Private>
           </span>
         </div>
       </div>

@@ -1,4 +1,5 @@
 "use client";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { Tone } from "@/shared/ui/tone";
 import type { INotification, NotificationParamsMap, NotificationSeverity } from "@shared/types/notification.types";
@@ -24,6 +25,7 @@ type Describe = { [K in keyof NotificationParamsMap]: (params: NotificationParam
 export function useDescribeNotification() {
   const { t } = useTranslation("modules.inbox");
   const { t: tRoot } = useTranslation();
+  const mask = useStreamerMask();
 
   return useCallback(
     (notification: INotification): NotificationView => {
@@ -81,8 +83,10 @@ export function useDescribeNotification() {
       const render = describe[notification.kind] as ((params: unknown) => Omit<NotificationView, "tone">) | undefined;
       // A kind added by a newer panel build still gets a row
       const view = render ? render(notification.params) : { title: notification.kind, icon: Info };
-      return { ...view, tone: TONES[notification.severity] };
+      // Sign-in IPs and error texts end up in toasts too
+      const description = view.description && mask.text(view.description);
+      return { ...view, title: mask.text(view.title), description, tone: TONES[notification.severity] };
     },
-    [t, tRoot]
+    [t, tRoot, mask]
   );
 }

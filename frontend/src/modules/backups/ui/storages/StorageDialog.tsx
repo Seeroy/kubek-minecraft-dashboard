@@ -1,6 +1,7 @@
 "use client";
 import { useNotifications } from "@/modules/notifications";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import type { Sensitivity } from "@/shared/lib/streamer-mode";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
@@ -23,6 +24,9 @@ import { presetOf, STORAGE_PRESETS, type StoragePreset } from "./storage-presets
 // Messages are translation keys, the form translates them on display
 const INVALID = "modules.backups.storages.invalid";
 const REQUIRED = "modules.backups.storages.required";
+
+// A self-hosted endpoint points at the user's own host, the key id is part of a credential
+const STORAGE_PRIVATE: Partial<Record<string, Sensitivity>> = { endpoint: "basic", accessKeyId: "secret" };
 
 const schema = (secretStored: boolean) =>
   z.object({
@@ -81,7 +85,7 @@ export default function StorageDialog({ storage, onClose }: { storage?: BackupSt
   const field = (name: keyof StorageForm, label: string, hint?: string) => (
     <Field>
       <FieldLabel htmlFor={`storage-${name}`}>{label}</FieldLabel>
-      <Input id={`storage-${name}`} autoComplete="off" aria-invalid={!!errors[name]} {...form.register(name)} />
+      <Input id={`storage-${name}`} autoComplete="off" aria-invalid={!!errors[name]} data-private={STORAGE_PRIVATE[name]} {...form.register(name)} />
       {hint && <FieldDescription>{hint}</FieldDescription>}
       {errors[name]?.message && <FieldError>{tRoot(errors[name].message)}</FieldError>}
     </Field>

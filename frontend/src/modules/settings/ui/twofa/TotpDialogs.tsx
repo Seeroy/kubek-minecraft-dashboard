@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Field, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Plate } from "@/shared/ui/plate";
+import { Private } from "@/shared/ui/private";
 import { Spinner } from "@/shared/ui/spinner";
 import { Shield, ShieldOff } from "lucide-react";
 import { useState } from "react";
@@ -64,11 +65,13 @@ export function TotpSetupDialog({ setup, onClose }: { setup: TotpSetup; onClose:
           <div className="flex flex-wrap items-center gap-5">
             {/* QR comes inline as a data URL, nothing to optimise */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={setup.qrDataUrl} alt="" className="size-[168px] shrink-0 rounded-[10px] bg-white p-2.5" />
+            <img src={setup.qrDataUrl} alt="" data-private="secret" className="size-[168px] shrink-0 rounded-[10px] bg-white p-2.5" />
             <div className="grid min-w-56 flex-1 gap-3">
               <p className="text-[12.5px] text-muted-foreground">{t("setup.manual")}</p>
               <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-subtle py-1.5 pr-1.5 pl-3 font-mono text-[12.5px]">
-                <span className="flex-1 break-all">{spaced(setup.secret)}</span>
+                <Private level="secret" className="flex-1 break-all">
+                  {spaced(setup.secret)}
+                </Private>
                 <CopyButton value={setup.secret} title={t("setup.copy")} />
               </div>
               <Field>

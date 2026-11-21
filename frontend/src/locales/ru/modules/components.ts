@@ -31,6 +31,12 @@ export const componentsTranslations: TranslationDictionary = {
     show: "Показать",
     hide: "Скрыть",
   },
+  streamerMode: {
+    hidden: "Скрыто в режиме стримера",
+    badgeBasic: "Режим стримера: базовый",
+    badgeFull: "Режим стримера: полный",
+    badgeHint: "Личные данные скрыты. Выключить можно внизу боковой панели или в настройках",
+  },
   taskStages: {
     kinds: {
       proxy: (name: string) => `Прокси "${name}"`,

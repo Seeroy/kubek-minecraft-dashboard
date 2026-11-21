@@ -1,8 +1,11 @@
 "use client";
 import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { formatBytes } from "@/shared/lib/bytesToGb";
 import { cn } from "@/shared/lib/cn";
+import { privateKeyLevel } from "@/shared/lib/streamer-mode";
+import { Private } from "@/shared/ui/private";
 import { useAccessValueLabel, useDetailLabel } from "../lib/labels";
 
 const LIST_LIMIT = 12;
@@ -16,12 +19,15 @@ function BlueprintName({ id }: { id: string }) {
 
 function Scalar({ value, name }: { value: string | number; name?: string }) {
   const accessValue = useAccessValueLabel();
+  const mask = useStreamerMask();
+  const sensitivity = name ? privateKeyLevel(name) : null;
+  if (sensitivity) return <Private level={sensitivity}>{String(value)}</Private>;
   if (name === "blueprintId") return <BlueprintName id={String(value)} />;
   if (name === "size" && typeof value === "number") return <>{formatBytes(value)}</>;
   if (isTimestamp(name, value)) return <>{new Date(value).toLocaleString()}</>;
   const access = accessValue(name, String(value));
   if (access) return <>{access}</>;
-  return <>{String(value)}</>;
+  return <>{mask.text(String(value))}</>;
 }
 
 /** Chips for a list, long ones are cut with a count of the rest */

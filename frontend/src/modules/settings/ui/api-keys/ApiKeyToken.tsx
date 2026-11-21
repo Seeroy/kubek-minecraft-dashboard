@@ -1,8 +1,10 @@
 "use client";
 
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { API_URL } from "@/shared/lib/http/api-url";
 import { CopyButton } from "@/shared/ui/CopyButton";
+import { Private } from "@/shared/ui/private";
 import { AlertTriangle } from "lucide-react";
 
 export function apiUrl(path: string): string {
@@ -10,11 +12,17 @@ export function apiUrl(path: string): string {
 }
 
 function Snippet({ label, value }: { label: string; value: string }) {
+  // The key itself is a secret, the panel address in the examples is basic
+  const hideHost = useStreamerMask().enabled;
+  const shown = hideHost ? value.split(window.location.host).join("***") : value;
+
   return (
     <div className="grid min-w-0 gap-1.5">
       <span className="text-[12.5px] font-medium text-muted-foreground">{label}</span>
       <div className="relative min-w-0">
-        <pre className="rounded-md border border-border bg-subtle py-2.5 pr-10 pl-3 font-mono text-[12px] leading-relaxed break-all whitespace-pre-wrap">{value}</pre>
+        <pre className="rounded-md border border-border bg-subtle py-2.5 pr-10 pl-3 font-mono text-[12px] leading-relaxed break-all whitespace-pre-wrap">
+          <Private level="secret">{shown}</Private>
+        </pre>
         <CopyButton value={value} className="absolute top-1.5 right-1.5" />
       </div>
     </div>

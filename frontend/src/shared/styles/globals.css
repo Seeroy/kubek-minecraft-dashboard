@@ -15,6 +15,10 @@
 /* Pages kept at the readable width instead of the whole content area */
 @custom-variant page-contained (&:where(.page-contained, .page-contained *));
 
+/* The classes land on <html> before first paint */
+@custom-variant streamer (&:where(.streamer-mode, .streamer-mode *));
+@custom-variant streamer-full (&:where(.streamer-full, .streamer-full *));
+
 /* Collapsed icon-only sidebar, desktop only */
 @custom-variant sidebar-mini {
   @media (width >= 48rem) {
@@ -532,4 +536,23 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* Unlayered so no utility undoes it */
+:is(.streamer-mode [data-private="basic"], .streamer-full [data-private="secret"]) {
+  filter: blur(5px);
+  user-select: none;
+}
+
+:is(.streamer-mode img[data-private="basic"], .streamer-full img[data-private="secret"]) {
+  filter: blur(14px);
+}
+
+/* Fields keep crisp borders, only the typed text is smudged */
+:is(.streamer-mode :is(input, textarea)[data-private="basic"], .streamer-full :is(input, textarea)[data-private="secret"]) {
+  filter: none;
+  color: transparent;
+  text-shadow: 0 0 9px var(--foreground);
+  caret-color: var(--foreground);
+  user-select: auto;
 }

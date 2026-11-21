@@ -88,6 +88,7 @@ function Params({ serverId, state, set, headersError, onHeadersChange }: ActionF
                 type="url"
                 className="font-mono"
                 placeholder="https://example.com/hook"
+                data-private="secret"
                 value={state.webhookUrl}
                 onChange={(e) => set("webhookUrl", e.target.value)}
               />
@@ -101,6 +102,7 @@ function Params({ serverId, state, set, headersError, onHeadersChange }: ActionF
                 rows={3}
                 className="font-mono text-xs"
                 aria-invalid={headersError}
+                data-private="secret"
                 value={state.webhookHeaders}
                 onChange={(e) => onHeadersChange(e.target.value)}
               />

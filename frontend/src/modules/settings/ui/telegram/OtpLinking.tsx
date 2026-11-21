@@ -2,9 +2,11 @@
 
 import { useSocketApi } from "@/shared/context/socket-context";
 import { useNow } from "@/shared/hooks/useNow";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
 import { Meter } from "@/shared/ui/meter";
+import { Private } from "@/shared/ui/private";
 import { Spinner } from "@/shared/ui/spinner";
 import { WsTelegramEventTypes } from "@shared/types/ws/server-events.types";
 import { Zap } from "lucide-react";
@@ -29,6 +31,7 @@ export function OtpLinking({ botUsername }: { botUsername?: string }) {
   const [otp, setOtp] = useState<Otp | null>(null);
   const [asking, setAsking] = useState(false);
   const now = useNow();
+  const mask = useStreamerMask("secret");
 
   useEffect(() => {
     // Countdown pings carry no code, the expiry is enough to count down locally
@@ -47,11 +50,11 @@ export function OtpLinking({ botUsername }: { botUsername?: string }) {
       {otp && left > 0 ? (
         <div className="tone-cyan grid gap-2">
           <div className="rounded-md bg-tone/10 px-4 py-3 text-center font-mono text-[26px] font-semibold tracking-[0.3em] text-tone">
-            {otp.code}
+            <Private level="secret">{otp.code}</Private>
           </div>
           <p className="text-[12.5px] text-muted-foreground">
             {t("expiresIn")} <b className="font-semibold text-foreground tabular-nums">{clock(left)}</b> ·{" "}
-            {botUsername ? t("sendTo", `@${botUsername}`) : t("sendToBot")}
+            {botUsername ? t("sendTo", mask.value(`@${botUsername}`)) : t("sendToBot")}
           </p>
           <Meter value={(left / total) * 100} tone="cyan" aria-label={`${t("expiresIn")} ${clock(left)}`} />
         </div>

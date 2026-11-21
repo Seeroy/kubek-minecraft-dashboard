@@ -1,4 +1,5 @@
 "use client";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { CopyButton } from "@/shared/ui/CopyButton";
 import { memo, type ComponentProps } from "react";
@@ -70,11 +71,12 @@ const components: Components = {
 
 /** Assistant answer, raw HTML in the text is dropped */
 export const Markdown = memo(function Markdown({ text }: { text: string }) {
+  const mask = useStreamerMask();
   return (
     // anywhere, unlike break-word, also shrinks min width, so a long URL wraps instead of widening the chat
     <div className="min-w-0 text-[13px] leading-relaxed [overflow-wrap:anywhere]">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} skipHtml>
-        {text}
+        {mask.text(text)}
       </ReactMarkdown>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 import type { AuditLogEntry } from "@/api";
+import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { cn } from "@/shared/lib/cn";
 import { Badge } from "@/shared/ui/badge";
@@ -7,6 +8,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Plate } from "@/shared/ui/plate";
 import { PlayerHead } from "@/shared/ui/player-head";
 import { Pagination } from "@/shared/ui/pagination";
+import { Private } from "@/shared/ui/private";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { AuditResult } from "@shared/types/audit.types";
 import { ChevronRight, Cpu, ScrollText } from "lucide-react";
@@ -26,6 +28,7 @@ interface AuditTableProps {
 
 function Who({ entry }: { entry: AuditLogEntry }) {
   const { t } = useTranslation("modules.auditLog.sources");
+  const mask = useStreamerMask();
   if (entry.source === "system") {
     return (
       <span className="flex min-w-0 items-center gap-2">
@@ -43,7 +46,7 @@ function Who({ entry }: { entry: AuditLogEntry }) {
       {entry.source === "telegram" && <Badge variant="info">TG</Badge>}
       {entry.source === "assistant" && <Badge variant="info">AI</Badge>}
       {(entry.source === "api" || entry.source === "mcp") && (
-        <Badge variant="warning" title={[entry.apiKeyName, entry.source === "mcp" ? entry.userAgent : null].filter(Boolean).join(", ") || undefined}>
+        <Badge variant="warning" title={[entry.apiKeyName, entry.source === "mcp" && entry.userAgent ? mask.value(entry.userAgent) : null].filter(Boolean).join(", ") || undefined}>
           {entry.source === "mcp" ? "MCP" : "API"}
         </Badge>
       )}
@@ -160,7 +163,7 @@ export function AuditTable({ items, total, page, pageSize, onPage }: AuditTableP
                   <TableCell>
                     <Badge variant={entry.result === AuditResult.SUCCESS ? "success" : "destructive"}>{t(`results.${entry.result}`)}</Badge>
                   </TableCell>
-                  <TableCell className="hidden truncate font-mono text-xs text-muted-foreground @4xl/table:table-cell">{entry.ip || "—"}</TableCell>
+                  <TableCell className="hidden truncate font-mono text-xs text-muted-foreground @4xl/table:table-cell">{entry.ip ? <Private>{entry.ip}</Private> : "—"}</TableCell>
                 </TableRow>
                 {expanded && (
                   <TableRow className="hover:bg-transparent">

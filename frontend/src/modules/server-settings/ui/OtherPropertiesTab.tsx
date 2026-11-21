@@ -1,5 +1,6 @@
 "use client";
 import { useTranslation } from "@/shared/hooks/useTranslation";
+import { privateKeyLevel } from "@/shared/lib/streamer-mode";
 import { Button } from "@/shared/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Input } from "@/shared/ui/input";
@@ -94,6 +95,7 @@ export function OtherPropertiesTab({ draft }: { draft: SettingsDraft }) {
                     onChange={(e) => draft.setProperty(key, e.target.value)}
                     className="h-7 font-mono text-xs"
                     aria-label={key}
+                    data-private={privateKeyLevel(key) ?? undefined}
                   />
                 </TableCell>
                 <TableCell className="w-12">
