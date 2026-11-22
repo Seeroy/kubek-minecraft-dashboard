@@ -65,7 +65,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       mustBeStopped: "Stop the server before changing its core",
       confirmTitle: "Change server core?",
       confirmDescription:
-        "The selected core will be downloaded and the server.jar replaced. Your worlds and configs are kept, but plugins/mods may be incompatible with the new core.",
+        "The selected core will be downloaded and the server.jar replaced. Your worlds and configs are kept, but plugins/mods may be incompatible with the new core",
       confirmAction: "Download & apply",
       cancel: "Cancel",
       started: "Core change started",
@@ -78,19 +78,31 @@ export const serverSettingsTranslations: TranslationDictionary = {
     noServerSelected: "No server selected",
     title: "Java Configuration",
     description: "Select Java version or use system Java",
+    requires: (version: string, java: number) => `${version} needs Java ${java}`,
+    javaVersion: "Java Version",
+  },
+  coreParams: {
+    title: "Core parameters",
+    description: "Memory and JVM launch flags",
     memory: "Memory (Xmx)",
     memoryHint: (free: string) => `Maximum JVM heap. Free on the host: ${free} GB`,
     memoryHintNoHost: "Maximum JVM heap",
     initialMemory: "Initial memory (Xms), MB",
     initialMemoryHint: "Heap the JVM reserves at start",
-    arguments: "Startup arguments",
-    argumentsHint: "Extra JVM flags",
-    presets: {
-      aikar: "Aikar flags",
-      minimal: "Minimal",
+    aikar: {
+      label: "Aikar flags",
+      description: "A tuned G1GC flag set for a stable server. Recommended for most servers",
     },
-    requires: (version: string, java: number) => `${version} needs Java ${java}`,
-    javaVersion: "Java Version",
+    proxyFlags: {
+      label: "Proxy flags",
+      description: "The recommended G1GC set for Velocity and Waterfall, Aikar's flags are made for game servers",
+    },
+    utf8: {
+      label: "UTF-8 output",
+      description: "Turn on if the console shows question marks or garbled text instead of letters. Usually needed on Windows",
+    },
+    arguments: "Startup arguments",
+    argumentsHint: "All JVM flags in full, the switches above add and remove their own. The panel adds memory and file.encoding itself",
   },
   information: {
     serverInformation: {

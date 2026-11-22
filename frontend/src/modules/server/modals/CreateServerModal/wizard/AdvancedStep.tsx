@@ -15,7 +15,7 @@ import { Activity, Code, Container, FileText, Folder, type LucideIcon, Play, Sli
 import type { ReactNode } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { WizardValues } from "./buildBlueprintSchema";
-import { buildJvmArgs, splitArgs } from "./jvm";
+import { buildJvmArgs, isProxyBlueprint, splitArgs } from "./jvm";
 import { WizardField, WizardSection } from "./WizardField";
 
 const MB = 1024 * 1024;
@@ -70,6 +70,8 @@ export function AdvancedStep({ form, blueprint, dockerAvailable }: AdvancedStepP
 
   const hasMemory = blueprint.variables.some((v) => v.key === "XMX");
   const hasJvmArgs = blueprint.variables.some((v) => v.key === "JVM_ARGS");
+  const proxy = isProxyBlueprint(blueprint);
+  const flagsText = proxy ? "proxyFlags" : "aikar";
   const xms = Number(variables?.XMS);
   const xmx = Number(variables?.XMX);
   const sliderMax = ramTotal ? Math.max(SLIDER_STEP * 2, Math.floor(ramTotal / MB / SLIDER_STEP) * SLIDER_STEP) : SLIDER_FALLBACK_MAX;
@@ -124,7 +126,7 @@ export function AdvancedStep({ form, blueprint, dockerAvailable }: AdvancedStepP
       )}
 
       <WizardSection icon={SlidersHorizontal} tone="purple" title={t("launch")}>
-        {hasJvmArgs && <SwitchRow icon={Zap} label={t("aikar.label")} description={t("aikar.description")} checked={aikar} onChange={set("aikar")} />}
+        {hasJvmArgs && <SwitchRow icon={Zap} label={t(`${flagsText}.label`)} description={t(`${flagsText}.description`)} checked={aikar} onChange={set("aikar")} />}
         {blueprint.dockerCapable && (
           <SwitchRow
             icon={Container}
@@ -188,7 +190,7 @@ export function AdvancedStep({ form, blueprint, dockerAvailable }: AdvancedStepP
                 <b className="font-medium text-foreground">
                   -Xms{Number.isFinite(xms) ? xms : 0}M -Xmx{Number.isFinite(xmx) ? xmx : 0}M
                 </b>{" "}
-                {buildJvmArgs({ maxMemoryMb: Number.isFinite(xmx) ? xmx : 0, useAikarFlags: aikar && hasJvmArgs, extraArguments: splitArgs(extraArgs) }).join(" ")}
+                {buildJvmArgs({ maxMemoryMb: Number.isFinite(xmx) ? xmx : 0, useAikarFlags: aikar && hasJvmArgs, proxy, extraArguments: splitArgs(extraArgs) }).join(" ")}
               </pre>
             </WizardField>
           )}

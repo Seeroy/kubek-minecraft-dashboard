@@ -34,6 +34,8 @@ export interface BlueprintSummary {
   ports: PortSpec[];
   configFiles: ConfigFileSpec[];
   features: BlueprintFeature[];
+  /** Manifest tags, "proxy" marks Velocity-like cores */
+  tags?: string[];
   /** Status query protocol, minecraft-java or minecraft-bedrock for bundled types */
   queryProtocol?: string;
   source: "bundled" | "installed";

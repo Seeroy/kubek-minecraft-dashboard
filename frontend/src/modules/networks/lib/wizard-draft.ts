@@ -1,3 +1,4 @@
+import { PROXY_FLAGS } from "@/modules/server/modals/CreateServerModal/wizard/jvm";
 import { NEW_BACKEND_REF, type ForwardingMode, type NetworkCandidates, type NetworkWizardProps, type VelocitySettings } from "@/api";
 
 export const WIZARD_STEPS = ["proxy", "backends", "velocity", "options", "review", "apply"] as const;
@@ -187,6 +188,8 @@ export function toWizardProps(draft: WizardDraft, aikarArgs: (memory: number) =>
             port: port(draft.proxyPort),
             memory: draft.proxyMemory,
             runtime: runtime(draft.proxyDocker),
+            // Aikar's set is for game servers, the proxy gets its own
+            jvmArgs: PROXY_FLAGS.join(" "),
           },
         }),
     backendIds: draft.backendIds,

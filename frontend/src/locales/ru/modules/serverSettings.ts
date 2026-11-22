@@ -66,7 +66,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       mustBeStopped: "Остановите сервер перед сменой ядра",
       confirmTitle: "Сменить ядро сервера?",
       confirmDescription:
-        "Выбранное ядро будет загружено, а server.jar заменён. Миры и конфиги сохранятся, но плагины/моды могут быть несовместимы с новым ядром.",
+        "Выбранное ядро будет загружено, а server.jar заменён. Миры и конфиги сохранятся, но плагины/моды могут быть несовместимы с новым ядром",
       confirmAction: "Загрузить и применить",
       cancel: "Отмена",
       started: "Смена ядра запущена",
@@ -79,19 +79,31 @@ export const serverSettingsTranslations: TranslationDictionary = {
     noServerSelected: "Сервер не выбран",
     title: "Конфигурация Java",
     description: "Выберите версию Java или используйте системную Java",
+    requires: (version: string, java: number) => `${version} требует Java ${java}`,
+    javaVersion: "Версия Java",
+  },
+  coreParams: {
+    title: "Параметры ядра",
+    description: "Память и флаги запуска JVM",
     memory: "Память (Xmx)",
     memoryHint: (free: string) => `Максимум кучи JVM. Свободно на хосте: ${free} ГБ`,
     memoryHintNoHost: "Максимум кучи JVM",
     initialMemory: "Начальная память (Xms), МБ",
     initialMemoryHint: "Сколько JVM резервирует при старте",
-    arguments: "Аргументы запуска",
-    argumentsHint: "Дополнительные флаги JVM",
-    presets: {
-      aikar: "Флаги Aikar",
-      minimal: "Минимальные",
+    aikar: {
+      label: "Флаги Aikar",
+      description: "Оптимизированный набор флагов G1GC для стабильной работы сервера. Рекомендуется для большинства серверов",
     },
-    requires: (version: string, java: number) => `${version} требует Java ${java}`,
-    javaVersion: "Версия Java",
+    proxyFlags: {
+      label: "Флаги для прокси",
+      description: "Рекомендованный набор G1GC для Velocity и Waterfall, флаги Aikar рассчитаны на игровые серверы",
+    },
+    utf8: {
+      label: "Вывод в UTF-8",
+      description: "Включите, если в консоли вместо русских букв знаки вопроса или кракозябры. Обычно нужно на Windows",
+    },
+    arguments: "Аргументы запуска",
+    argumentsHint: "Все флаги JVM целиком, переключатели выше добавляют и убирают свои. Память и file.encoding панель подставляет сама",
   },
   information: {
     serverInformation: {
@@ -182,7 +194,7 @@ export const serverSettingsTranslations: TranslationDictionary = {
       spawnAnimals: "Спавнить животных",
       spawnAnimalsDescription: "Коровы, свиньи, курицы и т.д",
       spawnMonsters: "Спавнить монстров",
-      spawnMonstersDescription: "Зомби, скелеты, криперы и т. д.",
+      spawnMonstersDescription: "Зомби, скелеты, криперы и другие",
       spawnNpcs: "Спавнить NPC",
       spawnNpcsDescription: "Деревенские жители",
     },

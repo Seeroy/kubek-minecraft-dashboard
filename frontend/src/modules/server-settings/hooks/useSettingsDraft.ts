@@ -20,8 +20,10 @@ import { PROPERTY_TAB, type SettingsTab } from "../lib/schema";
 type VariableValue = string | number | boolean;
 type RestartOnError = { enabled: boolean; attempts: number };
 
+// Have their own controls, kept out of the generic variables list
+export const RUNTIME_VARIABLES = new Set(["JAVA_VERSION", "JAVA_PATH", "XMX", "XMS", "JVM_ARGS"]);
 // Edited on the Java tab, every other variable belongs to General
-export const JAVA_VARIABLES = new Set(["JAVA_VERSION", "JAVA_PATH", "XMX", "XMS", "JVM_ARGS"]);
+const JAVA_TAB_VARIABLES = new Set(["JAVA_VERSION", "JAVA_PATH"]);
 const DEFAULT_RESTART: RestartOnError = { enabled: false, attempts: 3 };
 
 /**
@@ -120,7 +122,7 @@ export function useSettingsDraft(server: Server) {
     const result: Partial<Record<SettingsTab, number>> = {};
     const bump = (tab: SettingsTab) => (result[tab] = (result[tab] ?? 0) + 1);
     for (const key of [...Object.keys(props), ...removed]) bump(PROPERTY_TAB[key] ?? "other");
-    for (const key of Object.keys(variables)) bump(JAVA_VARIABLES.has(key) ? "java" : "general");
+    for (const key of Object.keys(variables)) bump(JAVA_TAB_VARIABLES.has(key) ? "java" : "general");
     if (name !== null) bump("general");
     if (restart !== null) bump("general");
     return result;
@@ -201,6 +203,7 @@ export function useSettingsDraft(server: Server) {
     nameChanged: name !== null,
     restartChanged: restart !== null,
     variableChanged: (key: string) => key in variables,
+    savedVariable: (key: string): VariableValue | undefined => saved.variables[key],
     setName,
     setRestart,
     setVariable,

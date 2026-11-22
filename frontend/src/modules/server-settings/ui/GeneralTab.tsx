@@ -13,8 +13,9 @@ import { Switch } from "@/shared/ui/switch";
 import { AccessArea } from "@shared/access/areas";
 import { Hash, Image, KeyRound, List, RefreshCw, RotateCw, Server as ServerIcon, Sliders, Tag, ToggleLeft, Type, Upload, type LucideIcon } from "lucide-react";
 import type { BlueprintVariable } from "@/shared/types/server-types.types";
-import { JAVA_VARIABLES, type SettingsDraft } from "../hooks/useSettingsDraft";
+import { RUNTIME_VARIABLES, type SettingsDraft } from "../hooks/useSettingsDraft";
 import { useServerIconUpload } from "../hooks/useServerIconUpload";
+import { CoreParamsGroup } from "./CoreParamsGroup";
 import { ServerCoreGroup } from "./ServerCoreGroup";
 
 function variableIcon(variable: BlueprintVariable): LucideIcon {
@@ -32,9 +33,9 @@ export function GeneralTab({ server, draft }: { server: Server; draft: SettingsD
   const blueprint = useBlueprint(server.blueprintId);
   const restart = draft.values.restartOnError;
 
-  // Version is fixed once the core is provisioned, Java and memory live on their own tab
+  // Version is fixed once the core is provisioned, Java and memory have their own groups
   const variables = (blueprint?.variables ?? []).filter(
-    (v) => v.userEditable !== false && v.editableAfterInstall !== false && !JAVA_VARIABLES.has(v.key) && v.options?.from !== "versions"
+    (v) => v.userEditable !== false && v.editableAfterInstall !== false && !RUNTIME_VARIABLES.has(v.key) && v.options?.from !== "versions"
   );
 
   return (
@@ -78,6 +79,8 @@ export function GeneralTab({ server, draft }: { server: Server; draft: SettingsD
           ))}
         </SettingsGroup>
       )}
+
+      <CoreParamsGroup server={server} draft={draft} />
 
       <SettingsGroup tone="green" icon={RefreshCw} title={t("autoRestartSettings.title")} description={t("autoRestartSettings.description")}>
         <SettingsField

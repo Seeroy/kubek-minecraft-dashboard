@@ -74,6 +74,9 @@ export class ServerTypeDto {
   @ApiProperty({ description: "Optional blueprint features" })
   features: BlueprintFeature[];
 
+  @ApiProperty({ description: "Manifest tags, \"proxy\" marks Velocity-like cores", type: [String], example: ["minecraft", "java", "proxy"] })
+  tags: string[];
+
   @ApiProperty({
     required: false,
     description: "Status query protocol",

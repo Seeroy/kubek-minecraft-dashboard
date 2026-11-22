@@ -29,20 +29,39 @@ export function buildAikarFlags(maxMemoryMb: number): string[] {
   ];
 }
 
+/** Velocity's recommended flags, Aikar's set is tuned for game servers and not for proxies */
+export const PROXY_FLAGS = [
+  "-XX:+AlwaysPreTouch",
+  "-XX:+ParallelRefProcEnabled",
+  "-XX:+UnlockExperimentalVMOptions",
+  "-XX:+UseG1GC",
+  "-XX:G1HeapRegionSize=4M",
+  "-XX:MaxInlineLevel=15",
+];
+
+/** Proxy set for proxies, Aikar's for everything else */
+export const buildTunedFlags = (maxMemoryMb: number, proxy: boolean): string[] =>
+  proxy ? PROXY_FLAGS : buildAikarFlags(maxMemoryMb);
+
+export const isProxyBlueprint = (blueprint: { tags?: string[] } | undefined) => !!blueprint?.tags?.includes("proxy");
+
 export interface JvmArgsInput {
   maxMemoryMb: number;
   useAikarFlags: boolean;
+  /** Takes the proxy set instead of Aikar's */
+  proxy?: boolean;
   extraArguments: string[];
 }
 
-/** Aikar's GC flags (when enabled) then custom args verbatim */
+/** Tuned GC flags (when enabled) then custom args verbatim */
 export function buildJvmArgs({
   maxMemoryMb,
   useAikarFlags,
+  proxy = false,
   extraArguments,
 }: JvmArgsInput): string[] {
   return [
-    ...(useAikarFlags ? buildAikarFlags(maxMemoryMb) : []),
+    ...(useAikarFlags ? buildTunedFlags(maxMemoryMb, proxy) : []),
     ...extraArguments,
   ];
 }

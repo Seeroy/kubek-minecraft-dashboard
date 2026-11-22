@@ -93,6 +93,7 @@ export class ServerTypesController {
         ports: b.manifest.ports,
         configFiles: b.manifest.configFiles ?? [],
         features: b.manifest.features ?? [],
+        tags: b.manifest.tags ?? [],
         queryProtocol: b.manifest.query?.protocol,
         source: b.source,
       }));

@@ -154,6 +154,10 @@ export const newServerModalTranslations: TranslationDictionary = {
       label: "Aikar flags",
       description: "Tuned G1GC flags for a stable server. Recommended for most servers",
     },
+    proxyFlags: {
+      label: "Proxy flags",
+      description: "The recommended G1GC set for Velocity and Waterfall, Aikar's flags are made for game servers",
+    },
     docker: {
       label: "Run in Docker",
       beta: "Beta",

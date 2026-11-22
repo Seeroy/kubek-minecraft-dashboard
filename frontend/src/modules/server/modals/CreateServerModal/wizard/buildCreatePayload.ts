@@ -1,7 +1,7 @@
 import type { CreateServerDto } from "@/api";
 import type { BlueprintSummary } from "@/shared/types/server-types.types";
 import { primaryPort, type WizardValues } from "./buildBlueprintSchema";
-import { buildJvmArgs, splitArgs } from "./jvm";
+import { buildJvmArgs, isProxyBlueprint, splitArgs } from "./jvm";
 
 interface CreatePayloadOptions {
   docker: boolean;
@@ -16,6 +16,7 @@ export function buildCreatePayload(blueprint: BlueprintSummary, values: WizardVa
     merged.JVM_ARGS = buildJvmArgs({
       maxMemoryMb: Number(values.variables.XMX) || 0,
       useAikarFlags: values.aikar,
+      proxy: isProxyBlueprint(blueprint),
       extraArguments: splitArgs(values.extraArgs),
     }).join(" ");
   }
