@@ -83,6 +83,7 @@ export const en = {
     changed: "✅ Language updated.",
   },
   buttons: {
+    openRelease: "🔗 Open release",
     prev: "◀️ Prev",
     next: "Next ▶️",
     refresh: "🔄 Refresh",
@@ -181,6 +182,8 @@ export const en = {
       `☁️ Storage <b>${p.name}</b> is unreachable\n<code>${p.error}</code>`,
     locked: (p: { ip: string; minutes: number }) =>
       `⛔ Too many failed sign-in attempts from <code>${p.ip}</code>. Attempts are blocked for ${p.minutes} min`,
+    updateAvailable: (p: { version: string; current: string }) =>
+      `🆕 Kubek <b>${p.version}</b> is out, you have ${p.current}`,
   },
   statusValues: {
     running: "🟢 Running",

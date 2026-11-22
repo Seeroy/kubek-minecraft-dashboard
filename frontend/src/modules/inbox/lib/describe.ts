@@ -4,7 +4,7 @@ import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { Tone } from "@/shared/ui/tone";
 import type { INotification, NotificationParamsMap, NotificationSeverity } from "@shared/types/notification.types";
 import { TaskType } from "@shared/types/task.types";
-import { ArchiveX, CircleCheck, CloudOff, Gauge, Info, CircleX, LogIn, type LucideIcon, Power, ServerCrash, ShieldAlert, TriangleAlert } from "lucide-react";
+import { ArchiveX, CircleArrowUp, CircleCheck, CloudOff, Gauge, Info, CircleX, LogIn, type LucideIcon, Power, ServerCrash, ShieldAlert, TriangleAlert } from "lucide-react";
 import { useCallback } from "react";
 
 export interface NotificationView {
@@ -14,6 +14,10 @@ export interface NotificationView {
   tone: Tone;
   /** Server to open when the row is clicked */
   serverId?: string;
+  /** Page to open instead when there is no server */
+  href?: string;
+  /** Outside page offered as a toast button */
+  link?: { label: string; url: string };
 }
 
 const TONES: Record<NotificationSeverity, Tone> = { info: "primary", success: "green", warning: "amber", error: "red" };
@@ -77,6 +81,13 @@ export function useDescribeNotification() {
           title: t("kinds.locked"),
           description: t("kinds.lockedText", p.ip ?? "?", Math.ceil(p.retryAfterSec / 60)),
           icon: ShieldAlert,
+        }),
+        "panel.update_available": (p) => ({
+          title: t("kinds.updateAvailable", p.version),
+          description: t("kinds.updateAvailableText", p.currentVersion),
+          icon: CircleArrowUp,
+          href: "/panel-settings/about",
+          link: { label: t("kinds.openRelease"), url: p.url },
         }),
       };
 

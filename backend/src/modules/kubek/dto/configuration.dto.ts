@@ -97,6 +97,14 @@ export class ServerStatsSettingsDto {
 }
 
 /** Full Kubek configuration object */
+export class ListenInfoDto {
+  @ApiProperty({ description: "Port the panel listens on now", example: 8000 })
+  port: number;
+
+  @ApiProperty({ description: "Whether the PORT env sets it, the port setting is ignored then", example: false })
+  fromEnv: boolean;
+}
+
 export class ConfigurationDto {
   @ApiProperty({
     description: "Whether the Minecraft EULA has been accepted",
@@ -162,4 +170,10 @@ export class ConfigurationDto {
     required: false,
   })
   secrets?: ConfigSecretsDto;
+
+  @ApiProperty({
+    description: "Port the panel listens on now, a changed port applies after restart",
+    type: ListenInfoDto,
+  })
+  listen: ListenInfoDto;
 }

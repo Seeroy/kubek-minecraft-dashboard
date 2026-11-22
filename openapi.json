@@ -21921,6 +21921,18 @@
               "type": "string"
             }
           },
+          "tags": {
+            "description": "Manifest tags, \"proxy\" marks Velocity-like cores",
+            "example": [
+              "minecraft",
+              "java",
+              "proxy"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "queryProtocol": {
             "type": "string",
             "description": "Status query protocol",
@@ -21941,6 +21953,7 @@
           "ports",
           "configFiles",
           "features",
+          "tags",
           "source"
         ]
       },
@@ -28190,6 +28203,25 @@
           "telegramBot.token"
         ]
       },
+      "ListenInfoDto": {
+        "type": "object",
+        "properties": {
+          "port": {
+            "type": "number",
+            "description": "Port the panel listens on now",
+            "example": 8000
+          },
+          "fromEnv": {
+            "type": "boolean",
+            "description": "Whether the PORT env sets it, the port setting is ignored then",
+            "example": false
+          }
+        },
+        "required": [
+          "port",
+          "fromEnv"
+        ]
+      },
       "ConfigurationDto": {
         "type": "object",
         "properties": {
@@ -28270,6 +28302,14 @@
                 "$ref": "#/components/schemas/ConfigSecretsDto"
               }
             ]
+          },
+          "listen": {
+            "description": "Port the panel listens on now, a changed port applies after restart",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ListenInfoDto"
+              }
+            ]
           }
         },
         "required": [
@@ -28279,7 +28319,8 @@
           "subnetsAccessRestriction",
           "telegramBot",
           "port",
-          "configVersion"
+          "configVersion",
+          "listen"
         ]
       },
       "ModpackWarningDto": {

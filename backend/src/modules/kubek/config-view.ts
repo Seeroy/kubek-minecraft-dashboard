@@ -1,6 +1,7 @@
 import type { FTPService, IConfiguration } from "@/core/types/config";
+import { listenInfo } from "@/core/utils/configEarly";
 import { resolveSecret, secretHint } from "@/core/utils/secrets";
-import type { ConfigSecrets } from "@shared/types/configs/mainConfig.types";
+import type { ConfigSecrets, ListenInfo } from "@shared/types/configs/mainConfig.types";
 
 type SecretSection = "telegramBot";
 
@@ -16,11 +17,12 @@ export const SECRET_PATHS: string[] = SECRET_FIELDS.map((field) => field.path);
 // assistant and auditRetention have their own endpoints
 export const INTERNAL_KEYS = [
   "twofaSetupSecret",
+  "updateNotifiedVersion",
   "assistant",
   "auditRetention",
 ];
 
-export type ConfigView = IConfiguration & { secrets: ConfigSecrets };
+export type ConfigView = IConfiguration & { secrets: ConfigSecrets; listen: ListenInfo };
 
 /** Config as returned by the API: secrets blanked and described in `secrets` */
 export function toConfigView(config: IConfiguration): ConfigView {
@@ -34,7 +36,7 @@ export function toConfigView(config: IConfiguration): ConfigView {
     secrets[path] = secretHint(holder?.[key] as string | undefined);
     if (holder) view[section] = { ...holder, [key]: "" } as never;
   }
-  return { ...view, secrets };
+  return { ...view, secrets, listen: { ...listenInfo() } };
 }
 
 export const isSecretPath = (path: string): path is keyof ConfigSecrets =>

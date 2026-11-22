@@ -19,6 +19,14 @@ export interface IPanelSettings {
 export interface IMainConfig extends IPanelSettings {
   /** Secret fields come back blank, their state is described here */
   secrets: ConfigSecrets;
+  /** Port the panel listens on now, a changed port applies after restart */
+  listen: ListenInfo;
+}
+
+export interface ListenInfo {
+  port: number;
+  /** Set by the PORT env, the port setting is ignored then */
+  fromEnv: boolean;
 }
 
 export interface ConfigSecrets {

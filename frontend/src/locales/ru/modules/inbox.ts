@@ -43,6 +43,9 @@ export const inboxTranslations: TranslationDictionary = {
     storageUnreachable: (name: string) => `Хранилище "${name}" недоступно`,
     locked: "Попытки входа заблокированы",
     lockedText: (ip: string, minutes: number) => `Слишком много неудачных попыток с ${ip}, блокировка на ${minutes} мин`,
+    updateAvailable: (version: string) => `Вышел Kubek ${version}`,
+    updateAvailableText: (current: string) => `У вас ${current}, что нового во вкладке "О панели"`,
+    openRelease: "Открыть релиз",
   },
   tasks: {
     server_create: "Создание сервера",

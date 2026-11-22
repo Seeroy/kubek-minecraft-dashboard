@@ -1,6 +1,6 @@
 import { BadResponseFilter } from "@/core/middlewares/badResponseFilter";
 import { validationPipe } from "@/core/middlewares/validationPipe";
-import { readPortBeforeNestInit } from "@/core/utils/configEarly";
+import { resolvePortBeforeNestInit } from "@/core/utils/configEarly";
 import { LoggerAddon } from "@/core/utils/logger";
 import { Startup } from "@/core/utils/startup";
 import { NestFactory } from "@nestjs/core";
@@ -21,7 +21,7 @@ async function bootstrap() {
   Startup.initTerminal();
 
   // Port must be read before Nest init so listen() can use it
-  const configuredPort = readPortBeforeNestInit();
+  const port = await resolvePortBeforeNestInit();
 
   // Run the intro to completion before Nest boots
   await Startup.runIntro();
@@ -82,8 +82,8 @@ async function bootstrap() {
 
   app.enableCors();
 
-  await app.listen(process.env.PORT ?? configuredPort);
-  await Startup.serverStarted(configuredPort);
+  await app.listen(port);
+  await Startup.serverStarted(port);
 
   // Check for updates -> background
   void Startup.checkForUpdates();

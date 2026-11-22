@@ -114,6 +114,8 @@ export const settingsTranslations: TranslationDictionary = {
       description: "Основные настройки панели и сетевая конфигурация",
       port: "Порт панели",
       portHint: "Порт, на котором будет доступна панель",
+      portFromEnv: (port: number) => `Задан переменной окружения PORT (${port}), меняется там`,
+      portRestart: (port: number) => `Панель сейчас работает на порту ${port}, новый порт заработает после перезапуска панели`,
       serverStats: "Замер нагрузки серверов",
       serverStatsHint: "CPU и RAM каждого сервера на дашборде и в мониторинге. На слабом ПК можно отключить, также через переменную окружения",
     },
@@ -133,7 +135,7 @@ export const settingsTranslations: TranslationDictionary = {
       create: "Создать",
       passwordReset: "Новый пароль FTP создан",
       copyHost: "Скопировать хост",
-      hint: "Подключайтесь через FileZilla, WinSCP или Cyberduck. Файлы организованы по ID сервера.",
+      hint: "Подключайтесь через FileZilla, WinSCP или Cyberduck. Файлы организованы по ID сервера",
       reveal: {
         title: "FTP-пароль",
         description: "Скопируйте его сейчас, больше он показан не будет",
@@ -623,7 +625,7 @@ export const settingsTranslations: TranslationDictionary = {
     },
     primary: {
       label: "Основной способ",
-      hint: "Используется по умолчанию при входе. Доступно, когда включены оба способа.",
+      hint: "Используется по умолчанию при входе. Доступно, когда включены оба способа",
     },
     notifications: {
       title: "Уведомления",

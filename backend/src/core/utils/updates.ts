@@ -10,6 +10,8 @@ export interface UpdateCheckResult {
   updateAvailable: boolean;
   latestVersion: string;
   releaseNotes: string;
+  /** Release page on GitHub, empty when the check failed */
+  releaseUrl: string;
 }
 
 /**
@@ -51,7 +53,7 @@ export async function checkForUpdates(): Promise<UpdateCheckResult> {
         "https://api.github.com/repos/Seeroy/kubek-minecraft-dashboard/releases/latest",
         { timeout: 6000 },
       )
-      .json<{ tag_name: string; body?: string }>();
+      .json<{ tag_name: string; body?: string; html_url?: string }>();
 
     const latestVersion = latestRelease.tag_name.replace(/^v/, "");
     const releaseNotes = latestRelease.body || "No release notes available.";
@@ -62,6 +64,7 @@ export async function checkForUpdates(): Promise<UpdateCheckResult> {
       updateAvailable,
       latestVersion,
       releaseNotes,
+      releaseUrl: latestRelease.html_url ?? "",
     };
   } catch (error) {
     // GitHub being unreachable
@@ -81,6 +84,7 @@ export async function checkForUpdates(): Promise<UpdateCheckResult> {
       updateAvailable: false,
       latestVersion: currentVersion,
       releaseNotes: "",
+      releaseUrl: "",
     };
   }
 }

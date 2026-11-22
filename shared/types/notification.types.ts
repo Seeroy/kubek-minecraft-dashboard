@@ -38,6 +38,7 @@ export interface NotificationParamsMap {
     storageName: string;
     error: string;
   };
+  "panel.update_available": { version: string; currentVersion: string; url: string };
 }
 
 export interface TaskNotificationParams {
@@ -135,6 +136,11 @@ export const NOTIFICATION_KINDS: Record<NotificationKind, NotificationKindSpec> 
   "auth.locked": {
     category: NotificationCategory.SECURITY,
     severity: "warning",
+    inbox: true,
+  },
+  "panel.update_available": {
+    category: NotificationCategory.SYSTEM,
+    severity: "info",
     inbox: true,
   },
 };

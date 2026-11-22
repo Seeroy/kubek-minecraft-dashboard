@@ -82,6 +82,7 @@ export const ru: typeof en = {
     changed: "✅ Язык обновлён.",
   },
   buttons: {
+    openRelease: "🔗 Открыть релиз",
     prev: "◀️ Назад",
     next: "Вперёд ▶️",
     refresh: "🔄 Обновить",
@@ -176,6 +177,8 @@ export const ru: typeof en = {
       `☁️ Хранилище <b>${p.name}</b> недоступно\n<code>${p.error}</code>`,
     locked: (p) =>
       `⛔ Слишком много неудачных попыток входа с <code>${p.ip}</code>. Попытки заблокированы на ${p.minutes} мин`,
+    updateAvailable: (p) =>
+      `🆕 Вышел Kubek <b>${p.version}</b>, у вас ${p.current}`,
   },
   statusValues: {
     running: "🟢 Запущен",

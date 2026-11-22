@@ -58,6 +58,8 @@ export interface AppEventMap {
   "companion.events": { serverId: string; events: CompanionEvent[] };
   /** TPS stayed low for a while */
   "server.low_tps": { serverId: string; serverName: string; tps: number };
+  /** Once per release, the version is remembered in the config */
+  "panel.update_available": { version: string; currentVersion: string; url: string };
 }
 
 export type AppEventName = keyof AppEventMap;

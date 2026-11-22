@@ -4616,6 +4616,15 @@ export interface components {
             /** @description Optional blueprint features */
             features: string[];
             /**
+             * @description Manifest tags, "proxy" marks Velocity-like cores
+             * @example [
+             *       "minecraft",
+             *       "java",
+             *       "proxy"
+             *     ]
+             */
+            tags: string[];
+            /**
              * @description Status query protocol
              * @example minecraft-java
              */
@@ -7005,6 +7014,18 @@ export interface components {
         ConfigSecretsDto: {
             "telegramBot.token": components["schemas"]["SecretHintDto"];
         };
+        ListenInfoDto: {
+            /**
+             * @description Port the panel listens on now
+             * @example 8000
+             */
+            port: number;
+            /**
+             * @description Whether the PORT env sets it, the port setting is ignored then
+             * @example false
+             */
+            fromEnv: boolean;
+        };
         ConfigurationDto: {
             /**
              * @description Whether the Minecraft EULA has been accepted
@@ -7044,6 +7065,8 @@ export interface components {
             serverRuntime?: "auto" | "native" | "docker";
             /** @description State of secret fields, which come back blank */
             secrets?: components["schemas"]["ConfigSecretsDto"];
+            /** @description Port the panel listens on now, a changed port applies after restart */
+            listen: components["schemas"]["ListenInfoDto"];
         };
         ModpackWarningDto: {
             /** @enum {string} */

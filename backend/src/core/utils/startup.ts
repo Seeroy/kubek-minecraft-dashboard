@@ -24,6 +24,7 @@ export class Startup {
     updateAvailable: boolean;
     latestVersion: string;
     releaseNotes?: string;
+    releaseUrl?: string;
   } | null = null;
   // Printed after Nest logs so it doesn't get lost among them
   private static defaultAdminPassword: string | null = null;

@@ -93,11 +93,16 @@ function InboxBody({ inbox, unreadOnly, onNavigate }: { inbox: ReturnType<typeof
     );
   }
 
-  const open = (notification: INotification, serverId?: string) => {
+  const open = (notification: INotification, { serverId, href }: { serverId?: string; href?: string }) => {
     if (!notification.readAt) markRead.mutate(notification.id);
-    if (!serverId) return;
-    selectServer(serverId);
-    router.push("/console");
+    if (serverId) {
+      selectServer(serverId);
+      router.push("/console");
+    } else if (href) {
+      router.push(href);
+    } else {
+      return;
+    }
     onNavigate();
   };
 
@@ -113,7 +118,7 @@ function InboxBody({ inbox, unreadOnly, onNavigate }: { inbox: ReturnType<typeof
                   key={notification.id}
                   notification={notification}
                   view={view}
-                  onOpen={() => open(notification, view.serverId)}
+                  onOpen={() => open(notification, view)}
                   onRemove={() => remove.mutate(notification.id)}
                 />
               );

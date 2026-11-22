@@ -4,7 +4,9 @@ import type { SupportedLanguage } from "@/locales";
 import { useNotificationSound } from "@/modules/notifications/utils/soundPreference";
 import { useLanguageContext } from "@/shared/context/language-context";
 import { useColorTheme } from "@/shared/hooks/useColorTheme";
+import { useMainConfig } from "@/shared/queries";
 import { useProfileQuery } from "@/shared/queries/auth.queries";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { CopyButton } from "@/shared/ui/CopyButton";
 import { FieldError } from "@/shared/ui/field";
@@ -17,7 +19,7 @@ import { SettingsField, SettingsGroup } from "@/shared/ui/settings";
 import { Switch } from "@/shared/ui/switch";
 import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
-import { Bell, CircleUser, FolderSync, Gamepad2, Gauge, Globe, Info, Languages, Monitor, Moon, Network, Paintbrush, Palette, Sun } from "lucide-react";
+import { Bell, CircleUser, FolderSync, Gamepad2, Gauge, Globe, Info, Languages, Monitor, Moon, Network, Paintbrush, Palette, RotateCw, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Controller, useWatch, type UseFormReturn } from "react-hook-form";
 import type { MainConfigFormData } from "../validations/schema";
@@ -52,6 +54,10 @@ export default function GeneralSettings({ form }: { form: UseFormReturn<MainConf
   const { errors, dirtyFields } = formState;
   const [ftpEnabled, ftpPort] = useWatch({ control, name: ["ftpd.enabled", "ftpd.port"] });
   const username = useProfileQuery().data?.username;
+  const savedConfig = useMainConfig().data;
+  const listen = savedConfig?.listen;
+  // The port is read once at startup, a saved change waits for a restart
+  const portPending = !!listen && !listen.fromEnv && savedConfig?.port !== listen.port;
   // The panel and FTP share a host, the address in the bar is what the user reaches
   const host = typeof window === "undefined" ? "" : window.location.hostname;
   const error = (message: string | undefined) => (message ? <FieldError>{tRoot(message)}</FieldError> : null);
@@ -131,16 +137,29 @@ export default function GeneralSettings({ form }: { form: UseFormReturn<MainConf
       <StreamerModeSettings />
 
       <SettingsGroup tone="cyan" icon={Network} title={t("panel.title")} description={t("panel.description")}>
-        <SettingsField label={t("panel.port")} icon={Network} hint={t("panel.portHint")} changed={!!dirtyFields.port} htmlFor="panel-port">
+        <SettingsField
+          label={t("panel.port")}
+          icon={Network}
+          hint={listen?.fromEnv ? t("panel.portFromEnv", listen.port) : t("panel.portHint")}
+          changed={!!dirtyFields.port}
+          htmlFor="panel-port"
+        >
           <Input
             id="panel-port"
             type="number"
             className="font-mono"
             placeholder="8080"
+            disabled={listen?.fromEnv}
             aria-invalid={!!errors.port}
             {...register("port", { setValueAs: toOptionalNumber })}
           />
           {error(errors.port?.message)}
+          {portPending && (
+            <Alert>
+              <RotateCw />
+              <AlertDescription>{t("panel.portRestart", listen.port)}</AlertDescription>
+            </Alert>
+          )}
         </SettingsField>
         <SettingsField
           label={t("panel.serverStats")}
@@ -180,7 +199,11 @@ export default function GeneralSettings({ form }: { form: UseFormReturn<MainConf
           />
         </SettingsField>
 
-        <div className="col-span-full grid gap-5 transition-opacity aria-disabled:opacity-45 md:grid-cols-[1fr_140px]" aria-disabled={!ftpEnabled}>
+        {/* Shared rows keep both inputs level when only the password has a hint */}
+        <div
+          className="col-span-full grid gap-5 transition-opacity aria-disabled:opacity-45 md:grid-cols-[1fr_140px] md:grid-rows-[auto_auto_auto] md:gap-y-2 md:[&>[data-slot=settings-field]]:row-span-3 md:[&>[data-slot=settings-field]]:grid-rows-subgrid"
+          aria-disabled={!ftpEnabled}
+        >
           <FtpPasswordField enabled={!!ftpEnabled} />
           <SettingsField label={t("ftp.port")} icon={Network} changed={!!dirtyFields.ftpd?.port} htmlFor="ftp-port">
             <Input

@@ -10,7 +10,7 @@ import type {
   NotificationParamsMap,
 } from "@shared/types/notification.types";
 import { ServerStatus } from "@shared/types/server/server.types";
-import { Bot, type InlineKeyboard } from "grammy";
+import { Bot, InlineKeyboard } from "grammy";
 import {
   escapeHtml,
   renderTaskNotification,
@@ -91,6 +91,11 @@ const RENDERERS: { [K in NotificationKind]?: Renderer<K> } = {
       ip: escapeHtml(p.ip ?? "?"),
       minutes: Math.ceil(p.retryAfterSec / 60),
     }),
+  "panel.update_available": (lang, p) =>
+    t(lang, "notify.updateAvailable", {
+      version: escapeHtml(p.version),
+      current: escapeHtml(p.currentVersion),
+    }),
 };
 
 // Actions offered right under an alert, each callback checks access again
@@ -107,6 +112,8 @@ const KEYBOARDS: {
     p.op === "create" && p.backupId
       ? backupRetryKeyboard(lang, p.backupId)
       : undefined,
+  "panel.update_available": (lang, p) =>
+    new InlineKeyboard().url(t(lang, "buttons.openRelease"), p.url),
 };
 
 /** Delivers notifications to the Telegram chat linked to a panel user */

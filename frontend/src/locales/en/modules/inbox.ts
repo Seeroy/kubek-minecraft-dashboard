@@ -42,6 +42,9 @@ export const inboxTranslations: TranslationDictionary = {
     storageUnreachable: (name: string) => `Storage "${name}" is unreachable`,
     locked: "Sign-in attempts blocked",
     lockedText: (ip: string, minutes: number) => `Too many failed attempts from ${ip}, blocked for ${minutes} min`,
+    updateAvailable: (version: string) => `Kubek ${version} is out`,
+    updateAvailableText: (current: string) => `You have ${current}, see what's new in the About tab`,
+    openRelease: "Open release",
   },
   tasks: {
     server_create: "Server creation",

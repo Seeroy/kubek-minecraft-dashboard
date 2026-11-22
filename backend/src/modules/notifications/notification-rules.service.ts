@@ -56,6 +56,13 @@ export class NotificationRulesService implements OnModuleInit {
     this.events.on("backup.operation", (e) => this.onBackupOperation(e));
     this.events.on("storage.unreachable", (e) => this.onStorageUnreachable(e));
     this.events.on("server.low_tps", (e) => this.onLowTps(e));
+    this.events.on("panel.update_available", (params) =>
+      this.notifications.notify({
+        kind: "panel.update_available",
+        params,
+        audience: { area: AccessArea.PANEL, level: "manage" },
+      }),
+    );
   }
 
   // Dedup lives in CompanionAlertsService, one event per bad stretch

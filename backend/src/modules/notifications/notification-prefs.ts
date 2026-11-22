@@ -12,6 +12,7 @@ const CHANNEL_DEFAULTS: Record<NotificationChannel, NotificationCategory[]> = {
     NotificationCategory.SERVERS,
     NotificationCategory.BACKUPS,
     NotificationCategory.SECURITY,
+    NotificationCategory.SYSTEM,
   ],
 };
 

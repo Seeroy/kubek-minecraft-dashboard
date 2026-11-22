@@ -113,6 +113,8 @@ export const settingsTranslations: TranslationDictionary = {
       description: "Core panel and network settings",
       port: "Panel port",
       portHint: "The port the panel listens on",
+      portFromEnv: (port: number) => `Set by the PORT environment variable (${port}), change it there`,
+      portRestart: (port: number) => `The panel runs on port ${port} now, the new port works after a panel restart`,
       serverStats: "Server load sampling",
       serverStatsHint: "CPU and RAM of every server on the dashboard and in monitoring. Turn it off on a weak host, or with the environment variable",
     },
@@ -132,7 +134,7 @@ export const settingsTranslations: TranslationDictionary = {
       create: "Create",
       passwordReset: "New FTP password created",
       copyHost: "Copy host",
-      hint: "Connect with FileZilla, WinSCP or Cyberduck. Files are grouped by server ID.",
+      hint: "Connect with FileZilla, WinSCP or Cyberduck. Files are grouped by server ID",
       reveal: {
         title: "FTP password",
         description: "Copy it now, it won't be shown again",
@@ -621,7 +623,7 @@ export const settingsTranslations: TranslationDictionary = {
     },
     primary: {
       label: "Primary method",
-      hint: "Used by default at sign-in. Available when both methods are on.",
+      hint: "Used by default at sign-in. Available when both methods are on",
     },
     notifications: {
       title: "Notifications",

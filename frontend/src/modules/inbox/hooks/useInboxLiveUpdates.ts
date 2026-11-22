@@ -11,6 +11,7 @@ import { WsTaskEventsTypes } from "@shared/types/ws/task-events.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent } from "react";
+import { api } from "@/api";
 import { useMarkReadMutation } from "../api/inbox.queries";
 import { useDescribeNotification } from "../lib/describe";
 import { useInboxPopover } from "../lib/inbox-popover";
@@ -50,6 +51,21 @@ const BACKUP_TASKS = new Set<string>([TaskType.BACKUP_CREATE, TaskType.BACKUP_RE
 // Backup fail from a task we watched is already on screen
 const WATCHED_BACKUP_MS = 10 * 60_000;
 
+// Toasted once per user: read on the server, remembered here until that lands
+const ONCE_KINDS = new Set<string>(["panel.update_available"]);
+const ONCE_STORAGE_KEY = "kubek:toastedOnce";
+
+function takeOnce(id: string): boolean {
+  try {
+    const seen: string[] = JSON.parse(localStorage.getItem(ONCE_STORAGE_KEY) ?? "[]");
+    if (seen.includes(id)) return false;
+    localStorage.setItem(ONCE_STORAGE_KEY, JSON.stringify([...seen, id].slice(-20)));
+  } catch {
+    // Blocked storage, the read mark on the server still keeps it to one
+  }
+  return true;
+}
+
 /** Kinds other notifiers already show, crashes and errors */
 function toastedElsewhere(notification: INotification, watchedBackups: Map<string, number>) {
   switch (notification.kind) {
@@ -83,16 +99,35 @@ export function useInboxLiveUpdates() {
     if (document.hidden || useInboxPopover.getState().open) return;
     if (!passesToastLevel(readInboxToastLevel(), notification.severity)) return;
     if (toastedElsewhere(notification, watchedBackups)) return;
+    const once = ONCE_KINDS.has(notification.kind);
+    if (once && (notification.readAt || !takeOnce(notification.id))) return;
 
     const view = describe(notification);
     const serverId = view.serverId;
+    const link = view.link;
     notify({
       title: view.title,
       message: view.description,
       type: TOAST_TYPES[notification.severity],
       icon: view.icon,
       duration: TOAST_MS,
+      actions: link
+        ? [
+            {
+              label: link.label,
+              onClick: () => {
+                markRead.mutate(notification.id);
+                window.open(link.url, "_blank", "noopener");
+              },
+            },
+          ]
+        : undefined,
       onClick: () => {
+        if (!serverId && view.href) {
+          markRead.mutate(notification.id);
+          router.push(view.href);
+          return;
+        }
         if (!serverId) {
           useInboxPopover.getState().setOpen(true);
           return;
@@ -102,6 +137,7 @@ export function useInboxLiveUpdates() {
         router.push(notification.kind === "backup.failed" ? "/backups" : "/console");
       },
     });
+    if (once) markRead.mutate(notification.id);
   });
 
   useEffect(() => {
@@ -118,6 +154,12 @@ export function useInboxLiveUpdates() {
 
     subscribe(WsNotificationEventTypes.NEW, onNotification);
     subscribe(WsTaskEventsTypes.TASK_UPDATE, onTask);
+    // A one time notice that came while the panel was closed pops up on the next visit
+    void api.notifications
+      .list({ unread: true, limit: 50 })
+      .then((page) => page.items.find((item) => ONCE_KINDS.has(item.kind)))
+      .then((pending) => pending && toast(pending, watchedBackups))
+      .catch(() => {});
     return () => {
       unsubscribe(WsNotificationEventTypes.NEW, onNotification);
       unsubscribe(WsTaskEventsTypes.TASK_UPDATE, onTask);
