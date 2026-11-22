@@ -50,7 +50,6 @@ backend/logs
 docs
 *.md
 LICENSE
-header.png
 openapi.json
 install.sh
 docker-compose.yml

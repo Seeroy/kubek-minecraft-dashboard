@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="header.png" alt="Kubek" width="45%" style="border-radius: 8px;" />
+<img src=".github/assets/header.png" alt="Kubek" width="45%" style="border-radius: 8px;" />
 
 **A self-hosted control panel for Minecraft servers.**
 
