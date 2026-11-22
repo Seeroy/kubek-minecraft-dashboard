@@ -62,7 +62,7 @@ export const backupsTranslations: TranslationDictionary = {
   },
   confirm: {
     restoreTitle: (name: string) => `Restore "${name}"?`,
-    restoreText: "The server files will be replaced with the backup contents. Files the backup left out stay as they are. This cannot be undone.",
+    restoreText: "The server files will be replaced with the backup contents. Files the backup left out stay as they are. This cannot be undone",
     deleteTitle: (name: string) => `Delete "${name}"?`,
     deleteText: (size: string) => `Every copy of the backup (${size}), including the ones in remote storages, will be deleted permanently.`,
   },
@@ -232,7 +232,7 @@ export const backupsTranslations: TranslationDictionary = {
     },
     delete: "Delete",
     deleteTitle: (name: string) => `Delete storage "${name}"?`,
-    deleteText: "Servers using it stop uploading. Copies already in the bucket are not touched.",
+    deleteText: "Servers using it stop uploading. Copies already in the bucket are not touched",
     inUse: "Delete its backup copies first",
     preset: "Provider",
     presets: {

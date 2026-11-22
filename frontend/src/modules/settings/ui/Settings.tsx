@@ -32,6 +32,7 @@ import TwoFactorTab from "./TwoFactorTab";
 import UserManagement from "./UserManagement";
 
 type ConfigTab = "general" | "security" | "telegram";
+const CONFIG_TABS: Record<ConfigTab, true> = { general: true, security: true, telegram: true };
 
 const BackupStoragesSettings = lazy(() => import("@/modules/backups/ui/storages/BackupStoragesSettings").then((m) => ({ default: m.BackupStoragesSettings })));
 
@@ -123,7 +124,14 @@ export default function Settings() {
         </div>
 
         {/* The skeleton gets its own throwaway form so the real one never registers sample fields */}
-        <DataReveal id={`settings-config-${active}`} data={config.form} loading={config.loading} sample={sampleForm}>
+        {/* Empty on other tabs, it would add a second gap */}
+        <DataReveal
+          id={`settings-config-${active}`}
+          data={config.form}
+          loading={config.loading}
+          sample={sampleForm}
+          className={active in CONFIG_TABS ? undefined : "hidden"}
+        >
           {(form) => (
             <>
               <TabsContent value="general">

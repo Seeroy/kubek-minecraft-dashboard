@@ -50,7 +50,7 @@ export const authTranslations: TranslationDictionary = {
     errors: {
       rateLimited: (wait: string) => `Слишком много попыток. Повторите через ${wait}`,
       invalidCode: "Неверный код",
-      locked: "Слишком много попыток. Запрос заблокирован, начните заново.",
+      locked: "Слишком много попыток. Запрос заблокирован, начните заново",
       telegramDenied: "Вход отклонён в Telegram",
       expired: "Время на подтверждение истекло",
       switchFailed: "Не удалось переключить метод",

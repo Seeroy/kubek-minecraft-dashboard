@@ -7,7 +7,7 @@ import { useAuthStore } from "@/shared/stores/auth-store";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { Button } from "@/shared/ui/button";
-import { DataReveal } from "@/shared/ui/data-reveal";
+import { DataReveal, useCachedReveal } from "@/shared/ui/data-reveal";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Panel } from "@/shared/ui/panel";
@@ -21,7 +21,7 @@ import { AccessArea } from "@shared/access/areas";
 import { AlertTriangle, Archive, CircleCheck, CircleX, Layers, LogIn, RotateCw, ScrollText, Search, Server, X, type LucideIcon } from "lucide-react";
 import { qk } from "@/shared/queries/query-keys";
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useAuditLogsQuery } from "../api/audit-log.queries";
 import { SAMPLE_AUDIT } from "../data/samples";
 import { AuditExportButton } from "./AuditExportButton";
@@ -31,20 +31,19 @@ import { RetentionPanel } from "./RetentionPanel";
 
 const PAGE_SIZE = 25;
 const ALL = "all";
-const DAY_MS = 86_400_000;
 
 const PERIODS = ["today", "week", "month", "all"] as const;
 type Period = (typeof PERIODS)[number];
 
-/** Start of the period in ms, computed once per change so the query key stays stable */
+/** Counted from midnight so the query key and its cache hold all day */
 function periodStart(period: Period) {
   if (period === "all") return undefined;
-  if (period === "today") {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    return start.getTime();
-  }
-  return Date.now() - (period === "week" ? 7 : 30) * DAY_MS;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  if (period === "today") return start.getTime();
+  // Today and the 6 or 29 days before
+  start.setDate(start.getDate() - (period === "week" ? 6 : 29));
+  return start.getTime();
 }
 
 function StatCell({ icon: Icon, tone, value, label }: { icon: LucideIcon; tone: Tone; value: number | undefined; label: string }) {
@@ -137,6 +136,9 @@ export function AuditLog() {
     [debouncedSearch, category, server, result, period.from, page]
   );
   const query = useAuditLogsQuery(filters);
+  // Cached rows skip the skeleton, stagger them in instead
+  const tablePanel = useRef<HTMLElement>(null);
+  useCachedReveal(tablePanel, !query.isLoading && query.data !== undefined, "tbody > tr");
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   // The stats above count from the same log, so they refresh too
@@ -193,7 +195,7 @@ export function AuditLog() {
         <TabsContent value="log" className="grid gap-4">
           <Stats from={period.from} />
 
-          <Panel>
+          <Panel ref={tablePanel}>
             <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
               <InputGroup className="w-full sm:max-w-96 sm:flex-1">
                 <InputGroupAddon>

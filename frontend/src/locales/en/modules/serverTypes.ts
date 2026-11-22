@@ -45,7 +45,7 @@ export const serverTypesTranslations: TranslationDictionary = {
   notice: {
     title: "Blueprint code runs without isolation",
     description:
-      "Installed blueprints run their code inside the panel process with no sandbox. Install them only from trusted sources. Installing is limited to administrators.",
+      "Installed blueprints run their code inside the panel process with no sandbox. Install them only from trusted sources. Installing is limited to administrators",
   },
   upload: {
     title: "Upload a .kbp or .json blueprint",

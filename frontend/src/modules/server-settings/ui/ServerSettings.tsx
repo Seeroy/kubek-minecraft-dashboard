@@ -14,8 +14,9 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { SaveBar } from "@/shared/ui/settings";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
-import { BookMarked, Coffee, Earth, GamepadDirectional, Network, Plug, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints, type LucideIcon } from "lucide-react";
-import { Fragment, useRef } from "react";
+import { BookMarked, Coffee, Earth, GamepadDirectional, Network, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints } from "lucide-react";
+import LogoMark from "@/shared/ui/logo-mark";
+import { Fragment, useRef, type ComponentType } from "react";
 import { CompanionSettingsTab } from "@/modules/companion/ui/settings/CompanionSettingsTab";
 import { NetworkTab } from "@/modules/networks/ui/NetworkTab";
 import { useSettingsDraft } from "../hooks/useSettingsDraft";
@@ -27,7 +28,7 @@ import { OtherPropertiesTab } from "./OtherPropertiesTab";
 import { PropertyGroups } from "./PropertyGroups";
 
 
-const TABS: { id: SettingsTab; icon: LucideIcon; separatorBefore?: boolean }[] = [
+const TABS: { id: SettingsTab; icon: ComponentType<{ className?: string }>; separatorBefore?: boolean }[] = [
   { id: "general", icon: ServerIcon },
   { id: "java", icon: Coffee },
   { id: "information", icon: BookMarked, separatorBefore: true },
@@ -36,7 +37,7 @@ const TABS: { id: SettingsTab; icon: LucideIcon; separatorBefore?: boolean }[] =
   { id: "network", icon: Network },
   { id: "other", icon: RectangleEllipsis },
   { id: "velocity", icon: Waypoints, separatorBefore: true },
-  { id: "companion", icon: Plug, separatorBefore: true },
+  { id: "companion", icon: LogoMark, separatorBefore: true },
 ];
 
 function ServerSettingsForm({ server }: { server: Server }) {

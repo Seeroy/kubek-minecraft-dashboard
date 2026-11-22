@@ -246,8 +246,8 @@
   --accent-foreground: oklch(0.35 0.13 265);
   --destructive: oklch(0.64 0.21 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.005 250);
-  --input: oklch(0.94 0.005 250);
+  --border: oklch(0.94 0.004 250);
+  --input: oklch(0.95 0.004 250);
   --ring: oklch(0.61 0.19 265);
 
   --success: oklch(0.62 0.15 155);
@@ -290,10 +290,10 @@
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.945 0.015 265);
   --sidebar-accent-foreground: oklch(0.35 0.13 265);
-  --sidebar-border: oklch(0.91 0.005 250);
+  --sidebar-border: oklch(0.93 0.004 250);
   --sidebar-ring: oklch(0.61 0.19 265);
 
-  --elevation-sm: 0 1px 2px 0 oklch(0 0 0 / 0.06), 0 1px 3px -1px oklch(0 0 0 / 0.04);
+  --elevation-sm: 0 1px 1px oklch(0 0 0 / 0.025), 0 4px 10px -6px oklch(0 0 0 / 0.06);
   --elevation-pop: 0 16px 32px -8px oklch(0 0 0 / 0.14), 0 6px 12px -4px oklch(0 0 0 / 0.08);
   --elevation-card: var(--elevation-sm);
   --elevation-card-lg: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
@@ -328,8 +328,8 @@
   --accent-foreground: oklch(0.88 0.05 260);
   --destructive: oklch(0.68 0.2 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.1);
+  --border: oklch(1 0 0 / 0.05);
+  --input: oklch(1 0 0 / 0.07);
   --ring: oklch(0.68 0.185 265);
 
   --success: oklch(0.74 0.16 155);
@@ -368,13 +368,12 @@
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.27 0.05 265);
   --sidebar-accent-foreground: oklch(0.9 0.05 260);
-  --sidebar-border: oklch(1 0 0 / 0.07);
+  --sidebar-border: oklch(1 0 0 / 0.045);
   --sidebar-ring: oklch(0.68 0.185 265);
 
-  --elevation-sm: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+  --elevation-sm: 0 1px 1px oklch(0 0 0 / 0.25), 0 4px 10px -6px oklch(0 0 0 / 0.4);
   --elevation-pop: 0 20px 40px -10px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(1 0 0 / 0.06);
-  /* Cards sit on borders alone in the dark theme */
-  --elevation-card: none;
+  --elevation-card: var(--elevation-sm);
   --elevation-card-lg: none;
   --elevation-segment: 0 1px 2px oklch(0 0 0 / 0.4);
   --btn-primary-shadow:

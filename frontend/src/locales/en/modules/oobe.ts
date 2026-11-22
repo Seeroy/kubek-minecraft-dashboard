@@ -29,7 +29,7 @@ export const oobeTranslations: TranslationDictionary = {
     upcoming: "Next",
     optional: "Optional",
     version: (version: string) => `Kubek ${version} · first run`,
-    hint: "Everything can be changed later in Panel settings.",
+    hint: "Everything can be changed later in Panel settings",
   },
   navigation: {
     back: "Back",
@@ -99,7 +99,7 @@ export const oobeTranslations: TranslationDictionary = {
   server: {
     optional: {
       title: "This step is optional",
-      description: "You can skip it and create a server at any time later, the wizard walks you through every setting.",
+      description: "You can skip it and create a server at any time later, the wizard walks you through every setting",
     },
     intro: {
       title: "Create your first server",
@@ -108,7 +108,7 @@ export const oobeTranslations: TranslationDictionary = {
     },
     creating: (name: string) => `Creating "${name}"...`,
     created: "Created",
-    createdHint: "The server shows up in the list once you enter the panel. Start it with the Start button in the sidebar.",
+    createdHint: "The server shows up in the list once you enter the panel. Start it with the Start button in the sidebar",
     failed: "Could not create the server",
     retry: "Try again",
     open: "Show progress",

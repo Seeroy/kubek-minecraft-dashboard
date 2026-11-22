@@ -157,6 +157,17 @@ export function useTabReveal(root: RefObject<HTMLElement | null>, active: string
   }, [root, active]);
 }
 
+/** Rows cached on mount come in one by one like after the skeleton, runs once */
+export function useCachedReveal(root: RefObject<HTMLElement | null>, cached: boolean, items: string) {
+  const first = useRef({ cached, items });
+
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (!first.current.cached || !el || prefersReducedMotion()) return;
+    revealItems([...el.querySelectorAll<HTMLElement>(first.current.items)]);
+  }, [root]);
+}
+
 /** Short fade when the content behind the same view changes, e.g. another folder */
 export function useSwapFade(target: RefObject<HTMLElement | null>, key: string | undefined) {
   const last = useRef(key);

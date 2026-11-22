@@ -67,7 +67,8 @@ export default function SideBar() {
           <Navigation />
         </Suspense>
 
-        <div className="grid shrink-0 gap-3 border-t border-sidebar-border p-3 sidebar-mini:p-2">
+        {/* Bottom padding matches the gap above the logo */}
+        <div className="grid shrink-0 gap-3 border-t border-sidebar-border px-3 pt-3 pb-[7px] sidebar-mini:p-2">
           <HostMetrics />
           <SidebarUser />
         </div>

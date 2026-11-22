@@ -25,7 +25,7 @@ export const extensionsTranslations: TranslationDictionary = {
   notice: {
     title: "Extension code runs without isolation",
     description:
-      "Installed extensions run inside the panel process with no sandbox. Install them only from trusted sources. Installing is limited to administrators.",
+      "Installed extensions run inside the panel process with no sandbox. Install them only from trusted sources. Installing is limited to administrators",
   },
   upload: {
     title: "Upload a .kubekext package",

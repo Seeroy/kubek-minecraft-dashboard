@@ -74,10 +74,10 @@ export const catalogTranslations: TranslationDictionary = {
     title: (name: string) => `Install ${name}?`,
     titleUpdate: (name: string) => `Update ${name}?`,
     description: (author: string, version: string, size: string) => `By ${author}, version ${version}, ${size}`,
-    notOurs: "This package comes from the community, not from the Kubek team.",
-    review: "The Kubek team reviews the source code only when the catalog entry is added or updated, CI checks that the package is valid.",
-    noSandbox: "The code runs inside the panel process with no sandbox and gets access to it.",
-    risk: "You install it at your own risk.",
+    notOurs: "This package comes from the community, not from the Kubek team",
+    review: "The Kubek team reviews the source code only when the catalog entry is added or updated, CI checks that the package is valid",
+    noSandbox: "The code runs inside the panel process with no sandbox and gets access to it",
+    risk: "You install it at your own risk",
     sourceAt: (repo: string, commit: string) => `${repo} code at commit ${commit}`,
     sourceRepo: (repo: string) => `${repo} code`,
     accept: "I understand the risks and install it at my own risk",
@@ -87,6 +87,6 @@ export const catalogTranslations: TranslationDictionary = {
   },
   blocked: {
     title: (n: number) => (n === 1 ? "1 installed package was pulled from the catalog" : `${n} installed packages were pulled from the catalog`),
-    hint: "Packages get pulled for malicious code or dangerous bugs. Better remove them.",
+    hint: "Packages get pulled for malicious code or dangerous bugs. Better remove them",
   },
 };

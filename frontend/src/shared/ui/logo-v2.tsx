@@ -10,7 +10,8 @@ const sizeMap: Record<
 > = {
   sm: { image: 22, text: "text-lg", offset: "-mb-[4px]" },
   md: { image: 28, text: "text-2xl", offset: "" },
-  lg: { image: 38, text: "text-3xl", offset: "" },
+  // Lifts the letters to the middle of the mark
+  lg: { image: 38, text: "text-3xl", offset: "mb-1" },
   xl: { image: 52, text: "text-5xl", offset: "" },
 };
 
