@@ -1,10 +1,12 @@
 <div align="center">
 
-<img src="header.png" alt="Kubek" width="75%" style="border-radius: 8px;" />
+<img src="header.png" alt="Kubek" width="45%" style="border-radius: 8px;" />
 
 **A self-hosted control panel for Minecraft servers.**
 
 Run all of your servers from one web UI: create them, tweak their configs, watch them, install plugins and mods, manage files and backups, and keep an eye on the console
+
+<img src=".github/assets/demo.gif" alt="Kubek in action: console, command palette, plugin install, theme switch, AI assistant and the create server wizard" width="720" />
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/seeroy/kubek-minecraft-dashboard?logo=docker&label=pulls)](https://hub.docker.com/r/seeroy/kubek-minecraft-dashboard)
 [![Image Size](https://img.shields.io/docker/image-size/seeroy/kubek-minecraft-dashboard/latest?logo=docker&label=image)](https://hub.docker.com/r/seeroy/kubek-minecraft-dashboard)
@@ -13,7 +15,7 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 
 **English** · [Русский](README.ru.md)
 
-[Features](#-features) · [Roles & access](#-roles--access-levels-rbac) · [Extensions](#-extensions--blueprints-for-developers) · [Quick start](#-quick-start) · [Migrating](#-migrating-from-a-previous-version-1x---3x) · [Configuration](#-configuration) · [Build from source](#-build-from-source) · [API reference ↗](https://rest.wiki/?https://raw.githubusercontent.com/Seeroy/kubek-minecraft-dashboard/refs/heads/main/openapi.json)
+[Features](#-features) · [AI assistant](#-ai-assistant) · [Roles & access](#-roles--access-levels-rbac) · [Extensions](#-extensions--blueprints-for-developers) · [Quick start](#-quick-start) · [Migrating](#-migrating-from-a-previous-version-1x---3x) · [Configuration](#-configuration) · [Build from source](#-build-from-source) · [API reference ↗](https://rest.wiki/?https://raw.githubusercontent.com/Seeroy/kubek-minecraft-dashboard/refs/heads/main/openapi.json)
 
 </div>
 
@@ -28,18 +30,25 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 - Start, stop, restart and type console commands, with output streamed live over WebSocket
 - Duplicate a server, export it to a single file, or import one back. Sort servers into folders, and delete several at once when you're cleaning up
 - New servers go through a short setup flow, and the matching Java runtime is downloaded automatically
+- Modpacks install straight from Modrinth or from a `.mrpack` file, mods included
+- Velocity networks: set up a proxy and its backend servers together, forwarding secret and all
+- Each server runs as a host process or in its own Docker container, picked once at creation
+- Launch options in one place: memory, Aikar's flags (a separate tuned set for Velocity and Waterfall), UTF-8 console output and the full JVM line if you want to edit it by hand
 
 ### Plugins & mods
 
 - Search and install plugins (Bukkit/Spigot/Paper) and Fabric mods directly from Modrinth
 - A badge shows up when something is out of date; updating is one click
 - Dependencies are pulled in automatically, and there's a dependency tree so you can see what dragged in what
+- Got a jar that isn't on Modrinth? Upload it
 
 ### Monitoring & diagnostics
 
 - Per-server CPU, RAM and player counts in real time + host-level stats (CPU, memory, disks)
 - Historical CPU/RAM charts, so you can look back instead of only at the current moment
 - Player list with names, avatars and online status, read over the game's own query protocol (Java Query, Bedrock, Valve A2S and more through gamedig)
+- One directory of every player across your servers, with a player card and quick actions
+- The optional **Kubek Companion** plugin (Paper, Spigot, Purpur, Folia) adds TPS, lag sources, player ping and activity. Players won't notice it
 - Log analysis catches the usual suspects — out of memory, port already in use, corrupt world, plugin/mod crashes, the wrong Java version — and the diagnostics panel offers a fix where it can
 
 ### Files, console & backups
@@ -47,25 +56,40 @@ Run all of your servers from one web UI: create them, tweak their configs, watch
 - File manager with a Monaco editor (the one VS Code uses), drag-and-drop uploads, and archive create/extract
 - Live console with command input and smart suggestions + separate viewer for older logs
 - Create and restore backups of a single world or the whole server
+- Retention policies per server or panel wide, with copies sent to S3 compatible storage. Pinned backups are never cleaned up
 
 ### Automation
 
 - **Scheduler** — run things on a cron, on a simple interval, or just once at a set time. An action can be start/stop/restart, a console command, a backup, or an outgoing webhook. There's a cron preview and a per-task run history so you can tell what actually fired
 - **Telegram bot** — notifications and remote control: OTP login, server controls, and even a create-server wizard
+- **Notification center** — crashes, low TPS, failed backups, finished tasks, new sign-ins and new panel versions land in the panel inbox, and each category can go to Telegram as well
 
 ### Access control
 
 - Multiple accounts with per-feature permissions (see [Roles & access levels](#-roles--access-levels-rbac) below) and optional per-server access
 - Two-factor auth — a TOTP app or a tap-to-approve prompt in Telegram — and a list of your active sessions that you can revoke individually
-- An audit log of who did what, searchable and filterable
+- An audit log of who did what, searchable, filterable and exportable
+- API keys for your scripts, plus a built-in MCP server so AI agents can work with the panel under the same permissions
 
 ### Make it yours
 
 - A dashboard you can rearrange: drag-and-drop widgets for your servers, host resources, diagnostics and backups
 - A command palette for jumping around from the keyboard
-- Server types are described by **blueprints**, and a panel **extension system** can bolt on new features, UI, event handlers and even its own permissions
+- Color themes, your own theme editor, and a streamer mode that hides personal data on screen
+- Server types are described by **blueprints**, and a panel **extension system** can bolt on new features, UI, event handlers and even its own permissions. Both install in a couple of clicks from a catalog on GitHub
 - Optional built-in FTP server
 - Full English and Russian throughout
+
+---
+
+## 🤖 AI assistant
+
+A chat built into the panel that knows your servers. It reads consoles, logs, configs and metrics on its own, and anything that would change a server waits for your confirmation first
+
+- Works with OpenAI, Gemini, DeepSeek, Mistral, Groq, OpenRouter, a local Ollama or LM Studio, or any OpenAI compatible endpoint
+- Plans multi step tasks, asks when something is unclear, takes screenshots and files as attachments and can search the web
+- Ask it about a problem right from the diagnostics panel or a console line, or chat with it in the Telegram bot
+- Access is a permission like any other: view to use it, manage to set up providers and keys
 
 ---
 
@@ -123,7 +147,7 @@ Two SDKs with starter templates get you going in minutes:
 curl -fsSL https://raw.githubusercontent.com/Seeroy/kubek-minecraft-dashboard/main/install.sh | bash
 ```
 
-It detects your system and either downloads the native binary or sets up Docker. Then open **http://localhost:8000**.
+It detects your system and either downloads the native binary or sets up Docker. Then open **http://localhost:8000**. If that port is taken on the first run, Kubek moves up to the first free one (up to 8010) and keeps it
 
 <details>
 <summary>Install script options</summary>
@@ -140,14 +164,6 @@ curl -fsSL .../install.sh | bash -s -- --dir /opt/kubek --version v4.1.2 --no-ru
 ```
 
 </details>
-
-### Docker Compose (builds from source)
-
-```bash
-git clone https://github.com/Seeroy/kubek-minecraft-dashboard.git
-cd kubek-minecraft-dashboard
-docker compose up -d
-```
 
 ### Docker (prebuilt image)
 
@@ -192,15 +208,13 @@ After a successful import the old files are renamed to `*.migrated-backup` and m
 
 | Variable           | Default | Description                                                                                        |
 | ------------------ | ------- | -------------------------------------------------------------------------------------------------- |
-| `PORT`             | `8000`  | Web panel port (HTTP + WebSocket)                                                                  |
+| `PORT`             | `8000`  | Web panel port (HTTP + WebSocket). Without it the first run takes the first free port from 8000 to 8010, later it can be changed in panel settings |
 | `FTP_PORT`         | `21`    | Built-in FTP server port (when enabled)                                                            |
 | `TZ`               | `UTC`   | Container timezone                                                                                 |
 | `TRUST_PROXY`      | `0`     | Number of reverse proxies in front of Kubek, see [Behind a reverse proxy](#behind-a-reverse-proxy) |
 | `TRUST_CLOUDFLARE` | `0`     | Take the client IP from Cloudflare, see [Behind a reverse proxy](#behind-a-reverse-proxy)          |
 
-On first launch a setup wizard creates your admin account and shows password in logs
-
-> Tip: admin password shows only once. If you forgot to remember it - delete database and start from scratch
+On first launch Kubek creates the `kubek` admin account and prints its password to the console. It's shown only once, so save it right away. After you sign in, a short setup wizard walks you through the rest
 
 ### Data & persistence
 
@@ -236,12 +250,17 @@ Each Minecraft server uses its own port (`25565` by default). Publish each one i
 
 ### Running servers in Docker
 
-Servers can run as Docker containers (`itzg/minecraft-server`) instead of host processes. The bundled cores are dual-capable: the same blueprint runs native or in Docker, and the panel freezes the choice per server at creation.
+<details>
+<summary>Servers can run as Docker containers instead of host processes</summary>
+
+Servers can run as Docker containers (`itzg/minecraft-server`) instead of host processes. The bundled cores are dual-capable: the same blueprint runs native or in Docker, and the panel freezes the choice per server at creation
 
 - Mount the host docker socket into the panel (`/var/run/docker.sock`, see `docker-compose.yml`) or set `DOCKER_HOST`
 - The `serverRuntime` setting controls the default: `auto` (Docker when the daemon is up, else native), `native`, or `docker`
 - Each server keeps using `./servers/<id>` on disk, bind-mounted into the container at `/data`, so files, logs, backups and plugins work unchanged. File ownership is handled via `PUID`/`PGID`
 - The daemon is the host's, so when the panel itself runs in Docker the server data path must match between host and panel container (see the note in `docker-compose.yml`)
+
+</details>
 
 ---
 
@@ -260,6 +279,12 @@ bun install
 bun run build                 # all platforms → dist/
 bun run build --platform linux # one platform only
 bun run build --platform native # current arch (used by Docker)
+```
+
+Or run it with Docker Compose, which builds the image from this checkout:
+
+```bash
+docker compose up -d
 ```
 
 Or build the Docker image yourself:
