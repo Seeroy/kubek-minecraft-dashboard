@@ -16,6 +16,7 @@ import { Toggle } from "@/shared/ui/toggle";
 import { ToggleGroup } from "@/shared/ui/toggle-group";
 import { AccessArea } from "@shared/access/areas";
 import type { InstalledPluginView } from "@shared/types/plugins";
+import { useCompanionInstall } from "@/modules/companion/hooks/useCompanionInstall";
 import { Download, Puzzle, Search, SearchX, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getContentKind } from "../content-kind";
@@ -50,9 +51,15 @@ export function InstalledView({ kind, server, items = [], onOpenCatalog }: Insta
   const canUpdate = useAccess([AccessArea.CONTENT, "write"], server.id);
   const canRemove = useAccess([AccessArea.CONTENT, "manage"], server.id);
   const [filter, setFilter] = useState<Filter>("all");
+  const { t: tCompanion } = useTranslation("modules.companion.plugins");
+  const companion = useCompanionInstall(server.id);
 
-  // Kubek Companion updates from GitHub through its own row, not with the Modrinth batch
-  const updates = useMemo(() => items.filter((item) => FILTERS.updates(item) && item.type === "modrinth"), [items]);
+  // Kubek Companion updates from GitHub, not with the Modrinth batch
+  const updates = useMemo(
+    () => items.filter((item) => FILTERS.updates(item) && (item.type === "modrinth" || item.type === "companion")),
+    [items]
+  );
+  const updateName = (item: InstalledPluginView) => (item.type === "companion" ? tCompanion("name") : displayName(item));
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter(
@@ -75,6 +82,10 @@ export function InstalledView({ kind, server, items = [], onOpenCatalog }: Insta
   // Each update reports through its own task notification
   const updateAll = () => {
     for (const item of updates) {
+      if (item.type === "companion") {
+        void companion.install();
+        continue;
+      }
       updateMutation.mutate({ recordId: item.id, payload: { versionId: item.latestVersion!.id, dependencies: [], reinstall: true } });
     }
   };
@@ -109,10 +120,10 @@ export function InstalledView({ kind, server, items = [], onOpenCatalog }: Insta
           </Plate>
           <span className="min-w-0 flex-1 truncate">
             <b className="font-semibold">{tc("updates", updates.length)}</b>
-            <span className="text-muted-foreground"> · {updates.map(displayName).join(", ")}</span>
+            <span className="text-muted-foreground"> · {updates.map(updateName).join(", ")}</span>
           </span>
           {canUpdate && (
-            <Button size="sm" variant="outline" disabled={updateMutation.isPending} onClick={updateAll}>
+            <Button size="sm" variant="outline" disabled={updateMutation.isPending || companion.pending} onClick={updateAll}>
               <Download />
               {tc("updateAll")}
             </Button>
@@ -160,7 +171,7 @@ export function InstalledView({ kind, server, items = [], onOpenCatalog }: Insta
                 <TableHead className="hidden w-48 @xl/table:table-cell">{tc("headers.status")}</TableHead>
                 <TableHead className="hidden w-52 @4xl/table:table-cell">{tc("headers.file")}</TableHead>
                 <TableHead className="hidden w-28 @3xl/table:table-cell">{tc("headers.installed")}</TableHead>
-                <TableHead className="w-20" />
+                <TableHead className="w-28" />
               </TableRow>
             </TableHeader>
             <TableBody>
