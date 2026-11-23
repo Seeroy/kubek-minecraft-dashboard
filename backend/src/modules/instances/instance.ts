@@ -1,3 +1,5 @@
+import type { ServerPort } from "@kubekpanel/extension-sdk";
+import { rconCommand } from "@/modules/server-types/runtime/rcon-client";
 import { ApiErrorCode } from "@/core/errors/error-codes";
 import type { ServerLocksService } from "@/core/locks/server-locks.service";
 import { ConflictException } from "@nestjs/common";
@@ -37,6 +39,7 @@ import { InstanceConsole } from "./instance-console";
 import { InstanceDiagnostics } from "./instance-diagnostics";
 import {
   LaunchCommandBuilder,
+  type RconStopPlan,
   type LaunchTarget,
 } from "./launch-command-builder";
 import { ServerPropertiesFile } from "./server-properties-file";
@@ -98,6 +101,8 @@ export class ServerInstance implements IInstance {
   private exitRequested = false;
   // Removed from the registry, don't restart it
   private disposed = false;
+  // A detection.crash line was printed during this run
+  private crashLineSeen = false;
 
   private readonly serverEventsService: ServerEventsService;
   private readonly serversRepo: ServersRepository;
@@ -191,7 +196,10 @@ export class ServerInstance implements IInstance {
     this.companion.detach();
     this.console.close();
 
-    const crashed = exitCode != null && exitCode > 1 && exitCode !== 127;
+    const crashed =
+      (exitCode != null && exitCode > 1 && exitCode !== 127) ||
+      (this.crashLineSeen && !this.exitRequested);
+    this.crashLineSeen = false;
     this.updateStatus(crashed ? ServerStatus.CRASHED : ServerStatus.STOPPED);
 
     this.serverEventsService.emitServerStopped(this.serverId, {
@@ -204,7 +212,8 @@ export class ServerInstance implements IInstance {
     if (crashed) {
       this.writeLog({
         type: "kubek",
-        data: { type: "stop", exitCode, causedBy: "crashed" },
+        // A crash line can come with an exit that has no code
+        data: { type: "stop", exitCode: exitCode ?? -1, causedBy: "crashed" },
       });
 
       this.serverEventsService.emitServerCrashed(this.serverId, {
@@ -288,6 +297,7 @@ export class ServerInstance implements IInstance {
   // Finished output line, already in the log
   private onLine(line: string): void {
     const status = this.status.detect(line);
+    if (status === ServerStatus.CRASHED) this.crashLineSeen = true;
     if (status) this.updateStatus(status);
     this.diagnostics.check(line);
   }
@@ -370,8 +380,11 @@ export class ServerInstance implements IInstance {
     this.memoryLimitMb = xmx > 0 ? xmx : undefined;
 
     let command: string;
+    let cwd = getServerPath(this.serverId);
+    // Docker gets variable env through the container config
+    let env: Record<string, string> = {};
     if (kind === "docker") {
-      command = this.launcher.dockerCommand();
+      command = this.launcher.dockerCommand(target, scope);
       this.serverRuntime = await this.launcher.dockerRuntime(
         target,
         scope,
@@ -380,15 +393,18 @@ export class ServerInstance implements IInstance {
       );
     } else {
       command = await this.launcher.nativeCommand(target, scope);
+      cwd = await this.launcher.nativeCwd(target, scope);
+      env = this.launcher.launchEnv(target, scope);
       this.serverRuntime = new ProcessRuntime();
     }
 
+    this.crashLineSeen = false;
     this.serverRuntime.onStdout((chunk) => this.onData(chunk));
     this.serverRuntime.onExit((code) => this.onClose(code));
     await this.serverRuntime.start({
-      cwd: getServerPath(this.serverId),
+      cwd,
       command,
-      env: { [COMPANION_TOKEN_ENV]: this.companion.issueToken() },
+      env: { ...env, [COMPANION_TOKEN_ENV]: this.companion.issueToken() },
     });
 
     this.console.attach(this.serverRuntime);
@@ -460,6 +476,8 @@ export class ServerInstance implements IInstance {
     const method = this.launcher.stopMethod(this.launchTarget());
     if (method.type === "command") {
       this.input(method.value, byUser);
+    } else if (method.type === "rcon") {
+      void this.stopThroughRcon(method);
     } else {
       // Honor the blueprint signal instead of always SIGKILL
       void this.serverRuntime.stop(method);
@@ -470,6 +488,17 @@ export class ServerInstance implements IInstance {
       () => void this.serverRuntime?.kill(),
       method.timeoutSec,
     );
+  }
+
+  private async stopThroughRcon(plan: RconStopPlan): Promise<void> {
+    try {
+      if (!Number.isInteger(plan.port) || plan.port <= 0) throw new Error("no RCON port");
+      await rconCommand(plan, plan.command);
+      this.writeLog(`[kubek] Sent "${plan.command}" over RCON`);
+    } catch (error) {
+      this.writeLog(`[kubek] RCON stop failed (${getErrorMessage(error)}), sending SIGTERM`);
+      await this.serverRuntime?.stop({ type: "signal", signal: "SIGTERM", timeoutSec: plan.timeoutSec });
+    }
   }
 
   /** Runs in a container, survives a panel restart */
@@ -495,7 +524,7 @@ export class ServerInstance implements IInstance {
     if (this.startedAt) this.runtime.startedAt = this.startedAt;
 
     try {
-      const result = await provider.query({ host: "127.0.0.1", port });
+      const result = await provider.query({ host: this.queryHost(), port });
       if (!result) {
         return false;
       }
@@ -523,6 +552,18 @@ export class ServerInstance implements IInstance {
     }
   }
 
+  /** blueprint query.host with substitutions, loopback by default */
+  private queryHost(): string {
+    const host = this.blueprint?.query?.host?.trim();
+    if (!host) return "127.0.0.1";
+    const scope = this.blueprintResolver.buildScope(this.blueprint!, {
+      serverId: this.serverId,
+      serverName: this.config.name,
+      variables: this.config.variables,
+    });
+    return this.blueprintResolver.substitute(host, scope).trim() || "127.0.0.1";
+  }
+
   /** Resolve the query port: server.properties for minecraft, else the blueprint port */
   private async resolveQueryPort(): Promise<number | undefined> {
     const spData = await this.readServerProperties();
@@ -539,6 +580,36 @@ export class ServerInstance implements IInstance {
       );
     }
     return this.port;
+  }
+
+  /** Ports for extensions, server.properties wins for the primary one like in queries */
+  async resolvePorts(): Promise<ServerPort[]> {
+    const fromProperties = propertyPort(
+      (await this.readServerProperties())?.["server-port"],
+    );
+    if (!this.blueprint) {
+      const port = fromProperties ?? this.port;
+      return port ? [{ key: "game", port, protocol: "tcp", primary: true }] : [];
+    }
+    const scope = this.blueprintResolver.buildScope(this.blueprint, {
+      serverId: this.serverId,
+      variables: this.config.variables,
+    });
+    const ports = this.blueprint.ports;
+    const primaryIndex = Math.max(
+      0,
+      ports.findIndex((spec) => spec.primary),
+    );
+    return ports.map((spec, index) => {
+      const primary = index === primaryIndex;
+      const port = Number(scope[spec.key] ?? spec.default);
+      return {
+        key: spec.key,
+        protocol: spec.protocol,
+        primary,
+        port: primary && fromProperties ? fromProperties : port,
+      };
+    });
   }
 
   async readServerProperties(): Promise<Record<string, string> | null> {

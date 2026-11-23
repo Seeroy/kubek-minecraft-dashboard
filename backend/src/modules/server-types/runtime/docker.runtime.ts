@@ -44,6 +44,7 @@ export interface DockerRuntimeOptions {
   env: string[];
   /** "25565/tcp" -> [{ HostPort: "25565" }] */
   portBindings: Record<string, PortBinding[]>;
+  /** default true */
   stdinOpen?: boolean;
   /** in-container command, usually empty since the image entrypoint starts the server */
   command?: string;
@@ -89,8 +90,9 @@ export class DockerRuntime implements IServerRuntime {
     await this.removeStale();
 
     const cmd = this.opts.command?.trim()
-      ? this.opts.command.trim().split(/\s+/)
+      ? splitCommandLine(this.opts.command)
       : undefined;
+    const stdinOpen = this.opts.stdinOpen !== false;
 
     this.container = await api.createContainer({
       name: this.opts.containerName,
@@ -99,7 +101,7 @@ export class DockerRuntime implements IServerRuntime {
       Env: this.mergeEnv(spec.env),
       WorkingDir: this.opts.workdir,
       User: this.opts.user,
-      OpenStdin: !!this.opts.stdinOpen,
+      OpenStdin: stdinOpen,
       StdinOnce: false,
       Tty: false,
       Labels: this.opts.labels,
@@ -122,7 +124,7 @@ export class DockerRuntime implements IServerRuntime {
       },
     });
 
-    await this.attachStdin(!!this.opts.stdinOpen);
+    await this.attachStdin(stdinOpen);
     await this.container.start();
     this.running = true;
 
@@ -416,6 +418,38 @@ export class DockerRuntime implements IServerRuntime {
     for (const port of Object.keys(this.opts.portBindings)) out[port] = {};
     return out;
   }
+}
+
+/** Split a command into argv like sh would, quotes group words, nothing is expanded */
+export function splitCommandLine(command: string): string[] {
+  const args: string[] = [];
+  let current = "";
+  let quote: '"' | "'" | null = null;
+  let started = false;
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+    if (quote) {
+      if (ch === quote) quote = null;
+      else if (ch === "\\" && quote === '"' && i + 1 < command.length)
+        current += command[++i];
+      else current += ch;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      started = true;
+    } else if (ch === "\\" && i + 1 < command.length) {
+      current += command[++i];
+      started = true;
+    } else if (/\s/.test(ch)) {
+      if (started) args.push(current);
+      current = "";
+      started = false;
+    } else {
+      current += ch;
+      started = true;
+    }
+  }
+  if (started) args.push(current);
+  return args;
 }
 
 // Container env comes as KEY=VALUE strings

@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import type { CatalogSource } from "@shared/types/catalog.types";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsOptional } from "class-validator";
+import { IsBoolean, IsOptional, Matches } from "class-validator";
 
 export class CatalogQueryDto {
   @ApiProperty({
@@ -12,6 +12,36 @@ export class CatalogQueryDto {
   @Transform(({ value }) => value === true || value === "true" || value === "1")
   @IsBoolean()
   refresh?: boolean;
+}
+
+export class CatalogReadmeQueryDto {
+  @ApiProperty({ required: false, description: "Panel language, README.<lang>.md wins over README.md", example: "ru" })
+  @IsOptional()
+  @Matches(/^[a-z]{2}$/)
+  lang?: string;
+}
+
+export class CatalogReadmeDto {
+  @ApiProperty({
+    type: "object",
+    additionalProperties: { type: "string" },
+    description: 'Language to url, "default" is README.md',
+  })
+  files: Record<string, string>;
+
+  @ApiProperty({ nullable: true, type: String, description: "GitHub folder the README links are relative to" })
+  base: string | null;
+}
+
+export class CatalogReadmeResponseDto {
+  @ApiProperty()
+  markdown: string;
+
+  @ApiProperty({ description: '"default" when there is no README for the asked language' })
+  lang: string;
+
+  @ApiProperty({ nullable: true, type: String })
+  base: string | null;
 }
 
 export class CatalogDownloadDto {
@@ -91,6 +121,9 @@ class CatalogItemDto {
 
   @ApiProperty({ nullable: true, type: String, description: "ISO date" })
   updatedAt: string | null;
+
+  @ApiProperty({ required: false, nullable: true, type: CatalogReadmeDto })
+  readme?: CatalogReadmeDto | null;
 
   @ApiProperty({ description: "engines.kubek matches this panel" })
   compatible: boolean;

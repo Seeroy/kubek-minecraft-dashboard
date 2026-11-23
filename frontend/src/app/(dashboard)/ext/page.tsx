@@ -11,7 +11,7 @@ const ExtRouteInner = () => {
   const params = useSearchParams();
   const view = params.get("view") ?? "";
   const slug = view.split("/").filter(Boolean);
-  return <ExtensionPage slug={slug} />;
+  return <ExtensionPage slug={slug} tab={params.get("tab")} />;
 };
 
 const ExtRoutePage = () => (

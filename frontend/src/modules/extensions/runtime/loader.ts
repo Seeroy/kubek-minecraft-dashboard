@@ -10,8 +10,14 @@ import { loadIcons } from "./icons";
  */
 const moduleCache = new Map<string, Promise<KubekFrontendModule | undefined>>();
 
-async function loadModule(bundleUrl: string): Promise<KubekFrontendModule | undefined> {
-  const [code, icons] = await Promise.all([api.extensions.fetchAsset(bundleUrl), loadIcons()]);
+export interface LoadOptions {
+  /** fetch without the session, for bundles the login page shows */
+  public?: boolean;
+}
+
+async function loadModule(bundleUrl: string, options: LoadOptions): Promise<KubekFrontendModule | undefined> {
+  const fetchCode = options.public ? api.extensions.fetchPublicAsset : api.extensions.fetchAsset;
+  const [code, icons] = await Promise.all([fetchCode(bundleUrl), loadIcons()]);
   if (window.Kubek) window.Kubek.icons = icons;
   const blob = new Blob([code], { type: "text/javascript" });
   const url = URL.createObjectURL(blob);
@@ -23,10 +29,12 @@ async function loadModule(bundleUrl: string): Promise<KubekFrontendModule | unde
   }
 }
 
-export function loadExtensionModule(bundleUrl: string): Promise<KubekFrontendModule | undefined> {
+export function loadExtensionModule(bundleUrl: string, options: LoadOptions = {}): Promise<KubekFrontendModule | undefined> {
   let pending = moduleCache.get(bundleUrl);
   if (!pending) {
-    pending = loadModule(bundleUrl);
+    pending = loadModule(bundleUrl, options);
+    // A failed fetch should not stick for the whole session
+    pending.catch(() => moduleCache.delete(bundleUrl));
     moduleCache.set(bundleUrl, pending);
   }
   return pending;
@@ -35,9 +43,10 @@ export function loadExtensionModule(bundleUrl: string): Promise<KubekFrontendMod
 /** Resolve a named component exported by an extension's KubekFrontendModule */
 export async function loadExtensionComponent<P extends object = Record<string, unknown>>(
   bundleUrl: string,
-  name: string
+  name: string,
+  options: LoadOptions = {}
 ): Promise<ComponentType<P>> {
-  const mod = await loadExtensionModule(bundleUrl);
+  const mod = await loadExtensionModule(bundleUrl, options);
   const component = mod?.components?.[name];
   if (!component) throw new Error(`Component "${name}" not found in extension bundle`);
   return component as ComponentType<P>;

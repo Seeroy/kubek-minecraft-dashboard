@@ -47,6 +47,10 @@ export class ModrinthContentApi {
       this.buildUrl("installed", serverId)
     );
 
+  /** Known pending updates, the server answers without asking Modrinth */
+  countUpdates = (serverId: string): Promise<{ count: number }> =>
+    this.authHttp.get<{ count: number }>(this.buildUrl("updates", serverId));
+
   install = (payload: InstallContentPayload): Promise<ContentTaskRef> =>
     this.authHttp.post<ContentTaskRef>(`${this.basePath}/install`, {
       json: payload,

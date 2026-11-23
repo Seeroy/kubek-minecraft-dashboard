@@ -63,6 +63,17 @@ export class NotificationRulesService implements OnModuleInit {
         audience: { area: AccessArea.PANEL, level: "manage" },
       }),
     );
+    this.events.on("content.updates_available", (params) =>
+      this.notifications.notify({
+        kind: "content.updates_available",
+        params,
+        audience: {
+          serverId: params.serverId,
+          area: AccessArea.CONTENT,
+          level: "write",
+        },
+      }),
+    );
   }
 
   // Dedup lives in CompanionAlertsService, one event per bad stretch
@@ -88,6 +99,10 @@ export class NotificationRulesService implements OnModuleInit {
       serverId: task.meta?.serverId,
       serverName: task.meta?.serverName,
       pluginName: task.meta?.pluginName,
+      title:
+        task.type === TaskType.EXTENSION
+          ? (task.meta?.title ?? `${task.meta?.extensionName}: ${task.meta?.extensionTask}`)
+          : undefined,
       error: task.error?.message,
     };
     this.notifications.notify({

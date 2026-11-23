@@ -50,6 +50,7 @@ export function launchVariableKeys(
   const templates = [
     startup?.command,
     ...Object.values(startup?.commandByPlatform ?? {}),
+    blueprint.dockerProfile?.command,
   ].filter((t): t is string => typeof t === "string");
   const used = new Set<string>();
   for (const template of templates) {

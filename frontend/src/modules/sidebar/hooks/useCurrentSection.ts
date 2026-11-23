@@ -1,6 +1,6 @@
 "use client";
 
-import { useExtensionSidebarItems } from "@/modules/extensions";
+import { extensionHref, useExtensionSidebarItems } from "@/modules/extensions";
 import { allNavigation, serverScopedRoutes } from "@/modules/sidebar/data/navigation";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { sectionPath } from "@/shared/lib/routeTabs";
@@ -33,11 +33,16 @@ export function useCurrentSection(): CurrentSection | null {
   }
 
   const view = searchParams.get("view");
-  const extension = view
-    ? extensionItems.find((entry) => entry.href === `/ext?view=${view}`)
-    : undefined;
+  const href = view ? extensionHref(view, searchParams.get("tab")) : null;
+  const extension = href ? extensionItems.find((entry) => entry.href === href) : undefined;
   if (extension) {
-    return { key: extension.href, label: t(extension.label), icon: extension.icon, serverScoped: false };
+    const label = t(extension.label);
+    return {
+      key: extension.href,
+      label: label.startsWith("NOT TRANSLATED") ? extension.label : label,
+      icon: extension.icon,
+      serverScoped: extension.group === "server",
+    };
   }
 
   return null;

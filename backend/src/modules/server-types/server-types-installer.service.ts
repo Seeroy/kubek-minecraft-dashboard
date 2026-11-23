@@ -12,6 +12,7 @@ import os from "os";
 import { join } from "path";
 import { ServerTypesRegistry } from "./server-types-registry.service";
 import type { LoadedBlueprint } from "./server-types.types";
+import { ResolverRunner } from "./versions/resolver-runner.service";
 
 /**
  * Installs and removes user blueprints under ./blueprints. Accepts a flat .json manifest or a
@@ -19,7 +20,10 @@ import type { LoadedBlueprint } from "./server-types.types";
  */
 @Injectable()
 export class ServerTypesInstaller {
-  constructor(private readonly registry: ServerTypesRegistry) {}
+  constructor(
+    private readonly registry: ServerTypesRegistry,
+    private readonly resolvers: ResolverRunner,
+  ) {}
 
   async installFromFile(file: Express.Multer.File): Promise<LoadedBlueprint> {
     return this.installFromBuffer(
@@ -61,6 +65,7 @@ export class ServerTypesInstaller {
       fs.rmSync(dest, { recursive: true, force: true });
       fs.cpSync(staged.dir, dest, { recursive: true });
 
+      this.resolvers.invalidate(dest);
       this.registry.reload();
       const loaded = this.registry.get(staged.manifest.id);
       if (!loaded)
@@ -78,6 +83,7 @@ export class ServerTypesInstaller {
     if (loaded.source !== "installed") {
       throw new BadRequestException("Bundled blueprints cannot be removed");
     }
+    this.resolvers.invalidate(loaded.dir);
     fs.rmSync(loaded.dir, { recursive: true, force: true });
     this.registry.reload();
     return { id };

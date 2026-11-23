@@ -46,6 +46,11 @@ export const inboxTranslations: TranslationDictionary = {
     updateAvailable: (version: string) => `Вышел Kubek ${version}`,
     updateAvailableText: (current: string) => `У вас ${current}, что нового во вкладке "О панели"`,
     openRelease: "Открыть релиз",
+    contentUpdates: {
+      plugins: (name: string, count: number) => `Обновления плагинов на "${name}": ${count}`,
+      mods: (name: string, count: number) => `Обновления модов на "${name}": ${count}`,
+      more: (names: string, rest: number) => `${names} и ещё ${rest}`,
+    },
   },
   tasks: {
     server_create: "Создание сервера",
@@ -95,6 +100,7 @@ export const inboxTranslations: TranslationDictionary = {
       backups: { title: "Бэкапы", description: "Бэкапы по расписанию и выгрузка" },
       security: { title: "Безопасность", description: "Входы и блокировки" },
       system: { title: "Система", description: "Обновления и обслуживание панели" },
+      content: { title: "Плагины и моды", description: "Новые версии установленных плагинов и модов, проверка раз в 12 часов" },
     },
   },
 };

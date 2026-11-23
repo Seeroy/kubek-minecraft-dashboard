@@ -25,6 +25,9 @@ import type { LoadedBlueprint, ResolveScope } from "./server-types.types";
 import { SteamCmdService } from "./steamcmd/steamcmd.service";
 import { VersionResolverService } from "./versions/version-resolver.service";
 
+const DOWNLOAD_URL_TOKEN = /\{\{\s*DOWNLOAD_URL\s*\}\}/;
+const JAVA_BIN_TOKEN = /\{\{\s*JAVA_BIN\s*\}\}/;
+
 export interface InstallOptions {
   /**
    * Skip writeFile/template steps whose target already exists
@@ -67,16 +70,23 @@ export class InstallPipeline {
     });
 
     // Docker installs pull the image instead of fetching Java and a jar, container runs them itself
-    if (server.runtimeKind === "docker") {
-      for (const step of this.dockerInstallSteps(manifest)) {
-        await this.runStep(step, blueprint, dir, scope, taskId, opts);
-      }
-    } else {
+    const docker = server.runtimeKind === "docker";
+    if (docker) {
+      await this.dockerService.assertAvailable();
+      this.dockerService.assertProfileUsable(manifest);
+    }
+    const steps = docker
+      ? this.dockerInstallSteps(manifest)
+      : manifest.install.steps;
+    const text = JSON.stringify(steps);
+    if (!docker || JAVA_BIN_TOKEN.test(text)) {
       await this.ensureJava(blueprint, scope, taskId, server);
+    }
+    if (DOWNLOAD_URL_TOKEN.test(text)) {
       pinned = await this.resolveDownloadUrl(blueprint, scope);
-      for (const step of manifest.install.steps) {
-        await this.runStep(step, blueprint, dir, scope, taskId, opts);
-      }
+    }
+    for (const step of steps) {
+      await this.runStep(step, blueprint, dir, scope, taskId, opts);
     }
 
     // Minecraft bootstrap: drop the default favicon when the blueprint targets minecraft
@@ -148,10 +158,7 @@ export class InstallPipeline {
     scope: ResolveScope,
   ): Promise<Record<string, string>> {
     const pinned: Record<string, string> = {};
-    const needsUrl = blueprint.manifest.install.steps.some(
-      (s) => s.type === "download" && s.url.includes("{{DOWNLOAD_URL}}"),
-    );
-    if (!needsUrl || blueprint.manifest.versions.kind === "none") return pinned;
+    if (blueprint.manifest.versions.kind === "none") return pinned;
 
     const version = String(scope.GAME_VERSION ?? "");
     const spec = await this.versions.resolveDownload(blueprint, version, scope);
@@ -193,6 +200,7 @@ export class InstallPipeline {
         );
         // Preserve user-edited files when re-provisioning an existing server
         if (opts.skipExistingFiles && fs.existsSync(target)) return;
+        fs.mkdirSync(path.dirname(target), { recursive: true });
         fs.writeFileSync(target, this.resolver.substitute(step.content, scope));
         return;
       }
@@ -214,10 +222,12 @@ export class InstallPipeline {
           blueprint.dir,
           this.resolver.substitute(step.src, scope),
         );
-        fs.writeFileSync(
-          target,
-          this.resolver.substitute(fs.readFileSync(src, "utf-8"), scope),
+        const content = this.resolver.substitute(
+          fs.readFileSync(src, "utf-8"),
+          scope,
         );
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, content);
         return;
       }
       case "dockerPull":
@@ -227,7 +237,9 @@ export class InstallPipeline {
       case "steamcmd":
         return this.runSteamCmd(step, dir, scope, taskId);
       default:
-        throw new Error(`Unsupported install step: ${step.type}`);
+        throw new Error(
+          `Unsupported install step: ${(step as { type: string }).type}`,
+        );
     }
   }
 
@@ -253,6 +265,7 @@ export class InstallPipeline {
       dir,
       this.resolver.substitute(step.dest, scope),
     );
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
     if (taskId) {
       this.tasks.updateTask(taskId, {
         step: TaskSteps.DOWNLOADING_CORE,
@@ -269,7 +282,10 @@ export class InstallPipeline {
       },
     });
 
-    if (step.unpack || scope.__downloadUnpack) {
+    // The resolver unpack flag is about its own file only
+    const resolvedUnpack =
+      !!scope.__downloadUnpack && DOWNLOAD_URL_TOKEN.test(step.url);
+    if (step.unpack || resolvedUnpack) {
       // Broken download fails the install instead of an empty server
       try {
         await unpack(dest, dir, { deleteAfter: true });
@@ -292,6 +308,9 @@ export class InstallPipeline {
     const template =
       step.commandByPlatform?.[process.platform as KubekPlatform] ??
       step.command;
+    if (!template) {
+      throw new Error(`Install command has no variant for ${process.platform}`);
+    }
     assertCommandValuesSafe(template, scope);
     const command = this.resolver.substitute(template, scope);
     if (taskId) {

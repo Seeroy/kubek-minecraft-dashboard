@@ -5,6 +5,12 @@ import type { LoadedBlueprint, ResolveScope } from "../server-types.types";
 import { HttpEngine } from "./http-engine.service";
 import { ResolverRunner } from "./resolver-runner.service";
 
+/** Version id with its display label, null when the source has none */
+export interface LabeledVersion {
+  id: string;
+  label: string | null;
+}
+
 /**
  * Entry point for version resolution. Dispatches on blueprint.versions.kind to the HTTP engine,
  * the versions.ts runner, or the static/none paths
@@ -21,6 +27,15 @@ export class VersionResolverService {
     blueprint: LoadedBlueprint,
     scope?: ResolveScope,
   ): Promise<string[]> {
+    const entries = await this.listLabeledVersions(blueprint, scope);
+    return entries.map((e) => e.id);
+  }
+
+  /** Same list with labels, the http engine has none */
+  async listLabeledVersions(
+    blueprint: LoadedBlueprint,
+    scope?: ResolveScope,
+  ): Promise<LabeledVersion[]> {
     const spec = blueprint.manifest.versions;
     const baseScope = scope ?? this.resolver.buildScope(blueprint.manifest);
 
@@ -28,9 +43,11 @@ export class VersionResolverService {
       case "none":
         return [];
       case "static":
-        return spec.versions.map((v) => v.id);
-      case "http":
-        return this.httpEngine.listVersions(spec.list, baseScope);
+        return spec.versions.map(labeled);
+      case "http": {
+        const ids = await this.httpEngine.listVersions(spec.list, baseScope);
+        return ids.map((id) => ({ id, label: null }));
+      }
       case "resolver": {
         const resolver =
           blueprint.resolver ??
@@ -38,7 +55,7 @@ export class VersionResolverService {
         const entries = await resolver.listVersions(
           this.runner.buildContext(baseScope),
         );
-        return entries.map((e) => e.id);
+        return entries.map(labeled);
       }
     }
   }
@@ -93,4 +110,9 @@ export class VersionResolverService {
         );
     }
   }
+}
+
+function labeled(entry: VersionEntry): LabeledVersion {
+  const label = typeof entry.label === "string" && entry.label.trim();
+  return { id: String(entry.id), label: label || null };
 }

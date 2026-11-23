@@ -45,6 +45,7 @@ function Who({ entry }: { entry: AuditLogEntry }) {
       <span className="truncate">{entry.username}</span>
       {entry.source === "telegram" && <Badge variant="info">TG</Badge>}
       {entry.source === "assistant" && <Badge variant="info">AI</Badge>}
+      {entry.source === "extension" && <Badge variant="info">EXT</Badge>}
       {(entry.source === "api" || entry.source === "mcp") && (
         <Badge variant="warning" title={[entry.apiKeyName, entry.source === "mcp" && entry.userAgent ? mask.value(entry.userAgent) : null].filter(Boolean).join(", ") || undefined}>
           {entry.source === "mcp" ? "MCP" : "API"}

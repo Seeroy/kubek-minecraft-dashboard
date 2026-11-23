@@ -1,6 +1,6 @@
 "use client";
 import { Badge } from "@/shared/ui/badge";
-import { useExtensionSidebarItems } from "@/modules/extensions";
+import { useExtensionSidebarItems, type ExtensionSidebarItem } from "@/modules/extensions";
 import { useServerStore } from "@/modules/server";
 import { useBlueprint } from "@/modules/server-types/api/server-types.queries";
 import { useUpdateCheckQuery } from "@/modules/settings/api/about.queries";
@@ -13,6 +13,7 @@ import {
 import { useCurrentSection } from "@/modules/sidebar/hooks/useCurrentSection";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { meetsAccess } from "@/shared/lib/access";
+import { useContentUpdatesCount } from "@/shared/queries";
 import { routeAllowedByBlueprint } from "@/shared/lib/serverRestrictions";
 import { useAuthStore } from "@/shared/stores/auth-store";
 import { useSidebarStore } from "@/shared/stores/sidebar-store";
@@ -26,6 +27,8 @@ import { UpdateIndicator } from "./UpdateIndicator";
 
 // Nav item that surfaces the "update available" indicator
 const PANEL_SETTINGS_HREF = "/panel-settings";
+const PLUGINS_HREF = "/plugins";
+const MODS_HREF = "/mods";
 
 function GroupLabel({ children }: { children: string }) {
   return (
@@ -58,6 +61,21 @@ export default function Navigation() {
   const hasUpdate =
     useUpdateCheckQuery(can(AccessArea.PANEL, "manage")).data?.updateAvailable ?? false;
 
+  // Plugin and mod updates of the selected server, found by the background check
+  const contentRoute = (href: string) => {
+    const item = navigation.find((entry) => entry.href === href);
+    return (
+      !!user &&
+      !!item &&
+      !!selectedServer &&
+      (!serverBlueprint || routeAllowedByBlueprint(href, serverBlueprint)) &&
+      meetsAccess(user, item.access, selectedServer.id)
+    );
+  };
+  const pluginUpdates = useContentUpdatesCount("plugin", selectedServer?.id, contentRoute(PLUGINS_HREF)).data ?? 0;
+  const modUpdates = useContentUpdatesCount("mod", selectedServer?.id, contentRoute(MODS_HREF)).data ?? 0;
+  const contentUpdates: Record<string, number> = { [PLUGINS_HREF]: pluginUpdates, [MODS_HREF]: modUpdates };
+
   if (!user) {
     return (
       <nav className="min-h-0 flex-1 space-y-1 overflow-hidden p-3" aria-busy="true">
@@ -78,7 +96,25 @@ export default function Navigation() {
     ? navigation.filter((item) => serverScopedRoutes.has(item.href) && allowed(item))
     : [];
   const adminItems = adminNavigation.filter(allowed);
-  const visibleExtensions = extensionItems.filter((item) => canAccessItem(item.permission));
+  const allowedExtensions = extensionItems.filter((item) => canAccessItem(item.permission));
+  const visibleExtensions = allowedExtensions.filter((item) => item.group === "main");
+  const serverExtensions = selectedServer ? allowedExtensions.filter((item) => item.group === "server") : [];
+  const adminExtensions = allowedExtensions.filter((item) => item.group === "admin");
+
+  const extensionLabel = (key: string) => {
+    const text = tGlobal(key);
+    return text.startsWith("NOT TRANSLATED") ? key : text;
+  };
+  const renderExtension = (item: ExtensionSidebarItem) => (
+    <NavLink
+      key={item.href}
+      href={item.href}
+      icon={item.icon}
+      label={extensionLabel(item.label)}
+      isActive={activeKey === item.href}
+      onClick={closeDrawer}
+    />
+  );
 
   const renderItem = (item: NavItem) => {
     const label = t(item.nameKey);
@@ -96,6 +132,8 @@ export default function Navigation() {
         badge={
           item.href === PANEL_SETTINGS_HREF && hasUpdate ? (
             <UpdateIndicator label={t("navigation.updateAvailable")} />
+          ) : contentUpdates[item.href] ? (
+            <UpdateIndicator label={t("navigation.contentUpdates", contentUpdates[item.href])} />
           ) : item.beta ? (
             <Badge variant="warning" className="ml-auto flex-none!">
               {t("navigation.beta")}
@@ -113,29 +151,27 @@ export default function Navigation() {
     >
       {panelItems.map(renderItem)}
 
-      {serverItems.length > 0 && (
+      {serverItems.length + serverExtensions.length > 0 && (
         <>
           <GroupLabel>{t("navigation.server")}</GroupLabel>
           {serverItems.map(renderItem)}
+          {serverExtensions.map(renderExtension)}
         </>
       )}
 
       {visibleExtensions.length > 0 && (
         <div className="mt-1">
-        {visibleExtensions.map((item) => (
-          <NavLink
-            key={item.href}
-            href={item.href}
-            icon={item.icon}
-            label={tGlobal(item.label)}
-            isActive={activeKey === item.href}
-            onClick={closeDrawer}
-          />
-        ))}
+        {visibleExtensions.map(renderExtension)}
         </div>
       )}
 
-      <AdminNavigationSection items={adminItems} title={t("navigation.administration")} renderItem={renderItem} />
+      <AdminNavigationSection
+        items={adminItems}
+        title={t("navigation.administration")}
+        renderItem={renderItem}
+        extra={adminExtensions.length > 0 ? adminExtensions.map(renderExtension) : undefined}
+        extraActive={adminExtensions.some((item) => item.href === activeKey)}
+      />
     </nav>
   );
 }

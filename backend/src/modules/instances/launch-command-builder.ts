@@ -1,3 +1,4 @@
+import { isInside, isRealInside } from "@/core/utils/paths";
 import { getServerPath } from "@/core/utils/serverPath";
 import { blueprintStopTimeoutSec } from "@/core/utils/stopTimeout";
 import type { NetworksRepository } from "@/modules/database/repositories/networks.repository";
@@ -20,12 +21,23 @@ import {
   publishHostIp,
 } from "@/modules/server-types/runtime/port-bindings";
 import type { StopMethod } from "@/modules/server-types/runtime/runtime.interface";
+
+/** RCON stop, the instance runs it itself and falls back to SIGTERM */
+export interface RconStopPlan {
+  type: "rcon";
+  command: string;
+  host: string;
+  port: number;
+  password: string;
+  timeoutSec?: number;
+}
 import type { ResolveScope } from "@/modules/server-types/server-types.types";
 import type {
   KubekBlueprintManifest,
   KubekPlatform,
 } from "@kubekpanel/blueprint-sdk";
 import type { IServer } from "@shared/types/server/server.types";
+import fs from "fs";
 import path from "path";
 
 export interface LaunchCommandBuilderDeps {
@@ -100,16 +112,62 @@ export class LaunchCommandBuilder {
     return blueprintResolver.substitute(command, scope);
   }
 
+  /** Variable and port values for their declared env names */
+  launchEnv(
+    { blueprint }: LaunchTarget,
+    scope: ResolveScope,
+  ): Record<string, string> {
+    const env: Record<string, string> = {};
+    for (const v of blueprint?.variables ?? []) {
+      const value = scope[v.key];
+      if (v.env && value !== undefined) env[v.env] = String(value);
+    }
+    for (const p of blueprint?.ports ?? []) {
+      if (p.env) env[p.env] = String(scope[p.key] ?? p.default);
+    }
+    return env;
+  }
+
+  /** Native launch folder, startup.workingDir inside the server folder */
+  async nativeCwd(
+    { serverId, blueprint }: LaunchTarget,
+    scope: ResolveScope,
+  ): Promise<string> {
+    const serverDir = path.resolve(getServerPath(serverId));
+    const workingDir = blueprint?.startup?.workingDir;
+    if (!workingDir) return serverDir;
+    const relative = this.deps.blueprintResolver.substitute(workingDir, scope);
+    const cwd = path.resolve(serverDir, relative);
+    if (
+      !isInside(serverDir, cwd) ||
+      !(await isRealInside(serverDir, cwd, true))
+    ) {
+      throw new Error(
+        `startup.workingDir leaves the server folder: ${relative}`,
+      );
+    }
+    fs.mkdirSync(cwd, { recursive: true });
+    return cwd;
+  }
+
   /**
-   * In-container command, for now left empty
+   * In-container command: dockerProfile.command, or startup.command for docker-only
+   * blueprints. Empty starts the image as is
    */
-  dockerCommand(): string {
-    return "";
+  dockerCommand({ blueprint }: LaunchTarget, scope: ResolveScope): string {
+    const template =
+      blueprint?.dockerProfile?.command ??
+      (blueprint?.runtime.kind === "docker"
+        ? blueprint.startup?.command
+        : undefined);
+    if (!template?.trim()) return "";
+    assertCommandValuesSafe(template, scope);
+    return this.deps.blueprintResolver.substitute(template, scope);
   }
 
   /** Build a DockerRuntime from the blueprint docker profile */
   async dockerRuntime(
-    { serverId, blueprint }: LaunchTarget,
+    { serverId, config, blueprint }: LaunchTarget,
     scope: ResolveScope,
     command: string,
     memoryLimitMb: number | undefined,
@@ -120,15 +178,27 @@ export class LaunchCommandBuilder {
     }
     const { dockerService, blueprintResolver } = this.deps;
     await dockerService.assertAvailable();
+    dockerService.assertProfileUsable(blueprint);
 
     const image = blueprintResolver.substitute(profile.image, scope);
-    const env = Object.entries(profile.env).map(
-      ([k, v]) => `${k}=${blueprintResolver.substitute(v, scope)}`,
-    );
+    // Profile env wins over variable and port env with the same name
+    const envMap = this.launchEnv({ serverId, config, blueprint }, scope);
+    for (const [k, v] of Object.entries(profile.env)) {
+      envMap[k] = blueprintResolver.substitute(v, scope);
+    }
+    const env = Object.entries(envMap).map(([k, v]) => `${k}=${v}`);
 
     const mounts = profile.mounts?.length
       ? profile.mounts
       : [{ host: "{{SERVER_DIR}}", container: "/data" }];
+    const dataMount =
+      mounts.find((m) => /^\{\{\s*SERVER_DIR\s*\}\}$/.test(m.host.trim())) ??
+      mounts[0];
+    const workdir = this.containerWorkdir(
+      dataMount?.container ?? "/data",
+      blueprint.startup?.workingDir,
+      scope,
+    );
     const binds: string[] = [];
     for (const m of mounts) {
       const host = blueprintResolver.substitute(m.host, scope);
@@ -144,14 +214,14 @@ export class LaunchCommandBuilder {
       containerName: containerNameFor(serverId),
       user: profile.user,
       binds,
-      workdir: "/data",
+      workdir,
       env,
       portBindings: buildPortBindings(
         blueprint.ports,
         scope,
         this.publishHostIp(serverId),
       ),
-      stdinOpen: profile.stdinOpen,
+      stdinOpen: profile.stdinOpen ?? true,
       command,
       labels: containerLabels(
         serverId,
@@ -160,6 +230,25 @@ export class LaunchCommandBuilder {
       ),
       memoryBytes: containerMemoryBytes(memoryLimitMb),
     });
+  }
+
+  /** Server folder mount plus startup.workingDir, kept inside the mount */
+  private containerWorkdir(
+    base: string,
+    workingDir: string | undefined,
+    scope: ResolveScope,
+  ): string {
+    if (!workingDir) return base;
+    const relative = this.deps.blueprintResolver.substitute(workingDir, scope);
+    const root = path.posix.resolve(base);
+    const workdir = path.posix.resolve(root, relative.replace(/\\/g, "/"));
+    const prefix = root.endsWith("/") ? root : `${root}/`;
+    if (workdir !== root && !workdir.startsWith(prefix)) {
+      throw new Error(
+        `startup.workingDir leaves the server folder: ${relative}`,
+      );
+    }
+    return workdir;
   }
 
   /** Runtime for an already running container, only the name matters */
@@ -174,7 +263,8 @@ export class LaunchCommandBuilder {
   }
 
   /** Stop method from the blueprint stop spec, docker prefers its own profile stop */
-  stopMethod({ config, blueprint }: LaunchTarget): StopMethod {
+  stopMethod(target: LaunchTarget): StopMethod | RconStopPlan {
+    const { config, blueprint } = target;
     const stop =
       (config.runtimeKind === "docker"
         ? blueprint?.dockerProfile?.stop
@@ -182,6 +272,22 @@ export class LaunchCommandBuilder {
     const timeoutSec = blueprintStopTimeoutSec(stop?.timeoutSec);
     if (stop?.type === "command")
       return { type: "command", value: stop.value, timeoutSec };
+    if (stop?.type === "rcon") {
+      const scope = this.scope(target);
+      const ref = (r: { value: string | number } | { fromVariable: string }) =>
+        "value" in r ? String(r.value) : String(scope[r.fromVariable] ?? "");
+      const host = stop.host
+        ? this.deps.blueprintResolver.substitute(stop.host, scope).trim()
+        : "";
+      return {
+        type: "rcon",
+        command: stop.command,
+        host: host || "127.0.0.1",
+        port: parseInt(ref(stop.port), 10),
+        password: ref(stop.password),
+        timeoutSec,
+      };
+    }
     if (stop?.type.startsWith("signal:")) {
       return {
         type: "signal",
@@ -189,7 +295,8 @@ export class LaunchCommandBuilder {
         timeoutSec,
       };
     }
-    return { type: "signal", signal: "SIGKILL" };
+    // An unknown type gets a graceful signal, the stop timeout still kills
+    return { type: "signal", signal: "SIGTERM", timeoutSec };
   }
 
   /** Velocity backends go on loopback, so players have to use the proxy */

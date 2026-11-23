@@ -7,17 +7,20 @@ import { Search } from "lucide-react";
 import { Fragment, useMemo, useState, type KeyboardEvent } from "react";
 import { useCommandActions } from "../hooks/useCommandActions";
 import { useCommandPalette } from "../hooks/useCommandPalette";
+import { useExtensionCommandActions } from "../hooks/useExtensionCommandActions";
 import { fuzzyScore } from "../lib/fuzzy";
 import type { CommandAction, CommandGroup } from "../types/command.types";
 import CommandItem from "./CommandItem";
 
-const GROUP_ORDER: CommandGroup[] = ["navigation", "servers", "actions"];
+const GROUP_ORDER: CommandGroup[] = ["navigation", "servers", "actions", "extension"];
 
 export default function CommandPalette() {
   const open = useCommandPalette((s) => s.open);
   const setOpen = useCommandPalette((s) => s.setOpen);
   const { t } = useTranslation("modules.commandPalette");
-  const actions = useCommandActions();
+  const panelActions = useCommandActions();
+  const extensionActions = useExtensionCommandActions(open);
+  const actions = useMemo(() => [...panelActions, ...extensionActions], [panelActions, extensionActions]);
 
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -105,10 +108,11 @@ export default function CommandPalette() {
             <div className="py-6 text-center text-[13px] text-muted-foreground">{t("empty")}</div>
           ) : (
             results.map((action, index) => {
-              const showHeader = !isSearching && (index === 0 || results[index - 1].group !== action.group);
+              const prev = results[index - 1];
+              const showHeader = !isSearching && (index === 0 || prev.group !== action.group || prev.groupLabel !== action.groupLabel);
               return (
                 <Fragment key={action.id}>
-                  {showHeader && <div className={menuLabel}>{t(`groups.${action.group}`)}</div>}
+                  {showHeader && <div className={menuLabel}>{action.groupLabel ?? t(`groups.${action.group}`)}</div>}
                   <CommandItem
                     action={action}
                     active={index === activeIndex}

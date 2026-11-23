@@ -93,6 +93,11 @@ export class TasksService {
       });
     } else if (updated.status === TaskStatus.CANCELLED) {
       this.events.emit("task.finished", { task: updated });
+      this.bus.publish("task.completed", {
+        taskId: id,
+        status: "cancelled",
+        result: updated.meta,
+      });
     }
 
     return updated;

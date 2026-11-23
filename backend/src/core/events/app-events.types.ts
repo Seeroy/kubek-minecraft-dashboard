@@ -5,6 +5,7 @@ import type {
   CompanionStats,
 } from "@shared/types/companion.types";
 import type { ServerStatus } from "@shared/types/server/server.types";
+import type { ContentUpdatesParams } from "@shared/types/notification.types";
 import type { ITask } from "@shared/types/task.types";
 
 /** Internal domain events, not exposed to extensions */
@@ -60,6 +61,8 @@ export interface AppEventMap {
   "server.low_tps": { serverId: string; serverName: string; tps: number };
   /** Once per release, the version is remembered in the config */
   "panel.update_available": { version: string; currentVersion: string; url: string };
+  /** Background check found new plugin or mod builds, once per build */
+  "content.updates_available": ContentUpdatesParams;
 }
 
 export type AppEventName = keyof AppEventMap;

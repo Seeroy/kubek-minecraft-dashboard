@@ -8,7 +8,10 @@ import {
 } from "@/modules/modrinth/content-installer";
 import { resolveDependencies } from "@/modules/modrinth/dependency-resolver";
 import { ModrinthClient } from "@/modules/modrinth/modrinth-client.service";
-import { InstalledContentReader } from "@/modules/modrinth/installed-content-reader";
+import {
+  type ContentUpdate,
+  InstalledContentReader,
+} from "@/modules/modrinth/installed-content-reader";
 import { ServerTypesRegistry } from "@/modules/server-types/server-types-registry.service";
 import { TasksService } from "@/modules/tasks/tasks.service";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
@@ -85,6 +88,8 @@ export abstract class ModrinthContentService {
   protected readonly logger: Logger;
   protected readonly installer: ContentInstaller;
   private readonly installedReader: InstalledContentReader;
+  // Last known updates per server, from the background check or the installed list
+  private readonly pendingUpdates = new Map<string, ContentUpdate[]>();
 
   protected constructor(
     protected readonly serversRepository: ServersRepository,
@@ -145,11 +150,58 @@ export abstract class ModrinthContentService {
 
   async listInstalled(serverId: string): Promise<InstalledPluginView[]> {
     const server = this.requireServer(serverId);
-    return this.installedReader.read(
+    const items = await this.installedReader.read(
       serverId,
       this.contentRepository.findByServer(serverId),
       this.config.resolveGameVersion?.(server),
     );
+    this.pendingUpdates.set(
+      serverId,
+      items.flatMap((item) =>
+        item.type === "modrinth" && item.hasUpdate && item.latestVersion
+          ? [
+              {
+                recordId: item.id,
+                projectId: item.projectId,
+                installedVersionId: item.versionId,
+                latestVersionId: item.latestVersion.id,
+                title: item.metadata?.title,
+              },
+            ]
+          : [],
+      ),
+    );
+    return items;
+  }
+
+  /** Slow update check for the background job, pauses between Modrinth requests */
+  async checkUpdates(
+    serverId: string,
+    pauseMs: number,
+  ): Promise<ContentUpdate[]> {
+    const server = this.serversRepository.findById(serverId);
+    if (!server) return [];
+    const records = this.contentRepository.findByServer(serverId);
+    const updates = await this.installedReader.findUpdates(
+      records,
+      this.config.resolveGameVersion?.(server),
+      pauseMs,
+    );
+    this.pendingUpdates.set(serverId, updates);
+    return updates;
+  }
+
+  /** Known updates that still apply, an updated or removed record drops out */
+  async countUpdates(serverId: string): Promise<number> {
+    const pending = this.pendingUpdates.get(serverId);
+    if (!pending?.length) return 0;
+    const records = new Map(
+      this.contentRepository.findByServer(serverId).map((r) => [r.id, r]),
+    );
+    return pending.filter(
+      (update) =>
+        records.get(update.recordId)?.versionId === update.installedVersionId,
+    ).length;
   }
 
   async installPlugin(

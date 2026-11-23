@@ -1,3 +1,4 @@
+import { VersionText } from "@/modules/server-types/ui/VersionText";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { privateKeyLevel } from "@/shared/lib/streamer-mode";
 import type { BlueprintVariable } from "@/shared/types/server-types.types";
@@ -20,14 +21,17 @@ interface VariableControlProps {
   onChange: (value: string | number | boolean) => void;
   versions?: string[];
   versionsLoading?: boolean;
+  /** Display labels of versions by id */
+  versionLabels?: ReadonlyMap<string, string>;
   invalid?: boolean;
   /** Render short static lists as a segmented control */
   segmented?: boolean;
 }
 
-export function VariableControl({ variable, id, label, value, onChange, versions = [], versionsLoading, invalid, segmented }: VariableControlProps) {
+export function VariableControl({ variable, id, label, value, onChange, versions = [], versionsLoading, versionLabels, invalid, segmented }: VariableControlProps) {
   const { t } = useTranslation("modules.newServerModal.blueprint");
-  const options = variable.options?.from === "versions" ? versions : variable.options?.from === "static" ? variable.options.values.map(String) : null;
+  const isVersions = variable.options?.from === "versions";
+  const options = isVersions ? versions : variable.options?.from === "static" ? variable.options.values.map(String) : null;
 
   if (options) {
     const control = (list: string[]) =>
@@ -42,18 +46,22 @@ export function VariableControl({ variable, id, label, value, onChange, versions
       ) : (
         <Select value={String(value ?? "")} onValueChange={(next) => next != null && onChange(next)}>
           <SelectTrigger id={id} className="w-full" aria-invalid={invalid || undefined}>
-            <SelectValue placeholder={variable.options?.from === "versions" ? t("selectVersion") : t("selectOption", label)} />
+            <SelectValue placeholder={isVersions ? t("selectVersion") : t("selectOption", label)}>
+              {isVersions && versionLabels?.size
+                ? (selected: string) => (selected ? <VersionText id={selected} label={versionLabels.get(selected)} /> : t("selectVersion"))
+                : undefined}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {list.map((option) => (
               <SelectItem key={option} value={option}>
-                {option}
+                {isVersions ? <VersionText id={option} label={versionLabels?.get(option)} /> : option}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       );
-    if (variable.options?.from !== "versions") return control(options);
+    if (!isVersions) return control(options);
     return (
       <DataReveal id={`variable-${id}`} data={options} loading={versionsLoading} sample={SAMPLE_VERSIONS}>
         {control}

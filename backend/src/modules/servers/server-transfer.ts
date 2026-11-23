@@ -89,7 +89,7 @@ export class ServerTransfer implements OnModuleDestroy {
       ownerId,
     );
 
-    this.factory.broadcastServersList();
+    this.factory.announceCreated(cloned);
 
     this.runDuplicateCopy(source.id, cloned, taskId);
 
@@ -368,7 +368,7 @@ export class ServerTransfer implements OnModuleDestroy {
       ownerId,
     );
 
-    this.factory.broadcastServersList();
+    this.factory.announceCreated(created);
 
     this.runImportMove(extractDir, created, taskId);
 

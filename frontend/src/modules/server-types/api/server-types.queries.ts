@@ -1,5 +1,5 @@
 import { api } from "@/api";
-import type { BlueprintSummary } from "@/shared/types/server-types.types";
+import type { BlueprintSummary, VersionOption } from "@/shared/types/server-types.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { qk } from "@/shared/queries/query-keys";
@@ -25,13 +25,32 @@ export function useBlueprint(
   );
 }
 
+export const blueprintVersionOptions = (blueprintId: string) => ({
+  queryKey: qk.serverTypes.versionOptions(blueprintId),
+  queryFn: () => api.serverTypes.getVersionOptions(blueprintId),
+});
+
+const versionIds = (list: VersionOption[]) => list.map((v) => v.id);
+
+const versionLabels = (list: VersionOption[]) =>
+  new Map(list.flatMap((v) => (v.label ? [[v.id, v.label] as const] : [])));
+
 /** Versions offered by a blueprint, resolved through its version engine */
 export function useBlueprintVersions(blueprintId: string | undefined) {
   return useQuery({
-    queryKey: qk.serverTypes.versions(blueprintId ?? ""),
-    queryFn: () => api.serverTypes.getVersions(blueprintId!),
+    ...blueprintVersionOptions(blueprintId ?? ""),
     enabled: !!blueprintId,
+    select: versionIds,
   });
+}
+
+/** Display labels of a blueprint's versions by id, shares the cache with useBlueprintVersions */
+export function useBlueprintVersionLabels(blueprintId: string | undefined): ReadonlyMap<string, string> | undefined {
+  return useQuery({
+    ...blueprintVersionOptions(blueprintId ?? ""),
+    enabled: !!blueprintId,
+    select: versionLabels,
+  }).data;
 }
 
 export function useInstallBlueprintMutation() {

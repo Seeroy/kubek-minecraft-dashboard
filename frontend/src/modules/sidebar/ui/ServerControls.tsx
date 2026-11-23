@@ -1,5 +1,6 @@
 "use client";
 
+import { SlotMounts, useExtensionSlotMounts } from "@/modules/extensions";
 import { useServerStatus, useServerStore } from "@/modules/server";
 import { useServerActions } from "@/modules/server/hooks/useServerActions";
 import { isOffline } from "@/modules/server/hooks/useServerMeta";
@@ -43,6 +44,7 @@ export default function ServerControls() {
   const setServersModalOpen = useServersModal((s) => s.setOpen);
   const listActions = useServersListActions(setServersModalOpen);
   const access = useServerItemAccess(selectedServer?.id);
+  const toolbarMounts = useExtensionSlotMounts("server.toolbar");
 
   if (!selectedServer) return null;
 
@@ -58,7 +60,7 @@ export default function ServerControls() {
     access.exportServer ||
     access.kill ||
     access.remove;
-  if (!access.power && !hasMenu) return null;
+  if (!access.power && !hasMenu && !toolbarMounts.length) return null;
 
   return (
     <div className="flex items-center gap-1 border-t border-sidebar-border/60 p-1.5 sidebar-mini:border-0 sidebar-mini:px-0 sidebar-mini:pb-0">
@@ -114,6 +116,12 @@ export default function ServerControls() {
         >
           <RotateCw />
         </button>
+      )}
+
+      {toolbarMounts.length > 0 && (
+        <div className="flex shrink-0 items-center gap-1 sidebar-mini:hidden">
+          <SlotMounts mounts={toolbarMounts} context={{ serverId: id }} loading={null} />
+        </div>
       )}
 
       {hasMenu && (

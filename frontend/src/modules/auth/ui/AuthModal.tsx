@@ -1,6 +1,7 @@
 "use client";
 
 import { api, type TwoFactorMethod, type UserProfile } from "@/api";
+import { LoginFooterSlot } from "@/modules/extensions/ui/LoginFooterSlot";
 import { formatWait, useRetryLock } from "@/shared/hooks/useRetryLock";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { qk } from "@/shared/queries/query-keys";
@@ -230,6 +231,8 @@ export default function AuthModal() {
                 </AnimatePresence>
               </form>
             )}
+
+            <LoginFooterSlot />
           </motion.div>
         </div>
       </div>

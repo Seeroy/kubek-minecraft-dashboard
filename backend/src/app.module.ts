@@ -22,6 +22,7 @@ import { MetricsHistoryModule } from "@/modules/metrics-history/metrics-history.
 import { LegacyMigrationModule } from "@/modules/migration/legacy-migration.module";
 import { ModpacksModule } from "@/modules/modpacks/modpacks.module";
 import { NetworksModule } from "@/modules/networks/networks.module";
+import { ContentUpdatesModule } from "@/modules/content-updates/content-updates.module";
 import { ModsModule } from "@/modules/mods/mods.module";
 import { NotificationsModule } from "@/modules/notifications/notifications.module";
 import { PermissionsModule } from "@/modules/permissions/permissions.module";
@@ -66,6 +67,7 @@ import { APP_GUARD } from "@nestjs/core";
     PluginsModule,
     CompanionModule,
     ModsModule,
+    ContentUpdatesModule,
     ModpacksModule,
     NetworksModule,
     TelegramBotModule,

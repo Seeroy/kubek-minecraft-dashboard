@@ -95,4 +95,13 @@ export const serverTypesTranslations: TranslationDictionary = {
     updated: (name: string) => `Server type ${name} updated`,
     removed: (name: string) => `Server type ${name} removed`,
   },
+  missingFeature: {
+    title: {
+      console: "This server type has no console",
+      backups: "This server type has no backups",
+      files: "This server type has no file manager",
+    },
+    description: (server: string) => `${server} runs on a server type that does not offer this page`,
+    switchTo: (server: string) => `Switch to ${server}`,
+  },
 };

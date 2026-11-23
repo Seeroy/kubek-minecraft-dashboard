@@ -1,5 +1,7 @@
 import { ApiErrorResponses } from "@/core/decorators/api-error-responses.decorator";
-import { Audit } from "@/modules/audit-log/audit.decorator";
+import { Audit, auditNote } from "@/modules/audit-log/audit.decorator";
+import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
+import { Public } from "@/modules/auth/decorators/public.decorator";
 import { RequireAccess } from "@/modules/auth/decorators/require-access.decorator";
 import { AdminGuard } from "@/modules/auth/guards/admin.guard";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
@@ -15,6 +17,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   Req,
   Res,
@@ -37,16 +40,24 @@ import {
 import { AccessArea } from "@shared/access/areas";
 import { AuditAction, AuditCategory } from "@shared/types/audit.types";
 import type { CatalogExtensionIndexItem } from "@shared/types/catalog.types";
+import type { IUser } from "@shared/types/user.types";
 import type { Request, Response } from "express";
 import { CatalogService } from "../catalog/catalog.service";
 import {
   CatalogExtensionsResponseDto,
   CatalogQueryDto,
+  CatalogReadmeQueryDto,
+  CatalogReadmeResponseDto,
 } from "../catalog/dto/catalog.dto";
+import { actorOf } from "./context/ext-audit";
 import {
+  ExtensionCommandDto,
   ExtensionRegistryEntryDto,
+  ExtensionSettingsDto,
   ExtensionSummaryDto,
+  SaveExtensionSettingsDto,
 } from "./dto/extension-responses.dto";
+import { ExtensionCommands } from "./extension-commands.service";
 import { ExtensionManager } from "./extension-manager.service";
 
 @ApiTags("Extensions")
@@ -57,6 +68,7 @@ export class ExtensionsController {
   constructor(
     private readonly manager: ExtensionManager,
     private readonly catalog: CatalogService,
+    private readonly commands: ExtensionCommands,
   ) {}
 
   @Get()
@@ -84,6 +96,91 @@ export class ExtensionsController {
     return this.manager.frontendRegistry();
   }
 
+  @Get("login-slots")
+  @Public()
+  @ApiOperation({
+    summary: "Active extensions with a login.footer slot, readable before login",
+  })
+  @ApiOkResponse({
+    type: [ExtensionRegistryEntryDto],
+    description: "Registry entries with only the login.footer slots",
+  })
+  @ApiErrorResponses([500])
+  loginSlots(): ExtensionRegistryEntryDto[] {
+    return this.manager.loginSlots();
+  }
+
+  @Get("login-slots/:id/bundle.js")
+  @Public()
+  @ApiOperation({ summary: "Frontend bundle of a login.footer extension" })
+  @ApiProduces("text/javascript")
+  @ApiOkResponse({ description: "ESM bundle" })
+  @ApiErrorResponses([404])
+  loginBundle(@Param("id") id: string, @Res() res: Response): void {
+    const file = this.manager.loginBundle(id);
+    if (!file) throw new NotFoundException("Asset not found");
+    res.type("text/javascript").sendFile(file);
+  }
+
+  @Get("commands")
+  @ApiOperation({ summary: "Extension commands the user may run" })
+  @ApiOkResponse({ type: [ExtensionCommandDto] })
+  @ApiErrorResponses([401])
+  listCommands(@CurrentUser() user: IUser): ExtensionCommandDto[] {
+    return this.commands.list(user);
+  }
+
+  @Post(":id/commands/:commandId/run")
+  @HttpCode(204)
+  @ApiOperation({ summary: "Run an extension command" })
+  @Audit({
+    action: AuditAction.EXTENSION_ACTION,
+    category: AuditCategory.SETTINGS,
+    resourceType: "extension",
+    resolve: ({ req }) => ({ details: { command: req.params.commandId } }),
+    resolveError: ({ req }) => ({ details: { command: req.params.commandId } }),
+  })
+  @ApiNoContentResponse({ description: "Command finished" })
+  @ApiErrorResponses([401, 403, 404, 500])
+  async runCommand(
+    @Param("id") id: string,
+    @Param("commandId") commandId: string,
+    @CurrentUser() user: IUser,
+    @Req() req: Request,
+  ): Promise<void> {
+    await this.commands.run(id, commandId, user, actorOf(user, req));
+  }
+
+  @Get(":id/settings")
+  @ApiOperation({ summary: "Settings form of an extension" })
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  @ApiOkResponse({ type: ExtensionSettingsDto })
+  @ApiErrorResponses([401, 403, 404])
+  settings(@Param("id") id: string): ExtensionSettingsDto {
+    return this.manager.settings(id);
+  }
+
+  @Put(":id/settings")
+  @ApiOperation({ summary: "Save extension settings" })
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  @Audit({
+    action: AuditAction.EXTENSION_CONFIG,
+    category: AuditCategory.SETTINGS,
+    resourceType: "extension",
+  })
+  @ApiOkResponse({ type: ExtensionSettingsDto })
+  @ApiErrorResponses([400, 401, 403, 404])
+  saveSettings(
+    @Param("id") id: string,
+    @Body() body: SaveExtensionSettingsDto,
+    @Req() req: Request,
+  ): ExtensionSettingsDto {
+    const { view, changed } = this.manager.saveSettings(id, body.values);
+    // Values may be secrets, the journal names the settings only
+    auditNote(req, { details: { keys: changed } });
+    return view;
+  }
+
   @Get("catalog")
   @ApiOperation({
     summary: "Extensions from the KubekPanel/extensions catalog",
@@ -102,6 +199,18 @@ export class ExtensionsController {
       installed,
       q.refresh,
     );
+  }
+
+  @Get("catalog/:id/readme")
+  @ApiOperation({ summary: "README of a catalog item in the panel language" })
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  @ApiOkResponse({ type: CatalogReadmeResponseDto })
+  @ApiErrorResponses([401, 403, 404, 502])
+  catalogReadme(
+    @Param("id") id: string,
+    @Query() q: CatalogReadmeQueryDto,
+  ): Promise<CatalogReadmeResponseDto> {
+    return this.catalog.readme("extensions", id, q.lang);
   }
 
   @Post("catalog/:id/install")

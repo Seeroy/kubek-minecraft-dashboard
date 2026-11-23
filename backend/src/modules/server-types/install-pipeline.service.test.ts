@@ -109,6 +109,8 @@ let customJava: string | null;
 let dockerAvailable: boolean;
 let pulled: string[];
 let downloadVars: Record<string, string> | undefined;
+let downloadPath: string | undefined;
+let downloadUnpack: boolean | undefined;
 let steamApps: { step: object; dir: string }[];
 let pipeline: InstallPipeline;
 
@@ -189,6 +191,8 @@ beforeEach(() => {
   dockerAvailable = true;
   pulled = [];
   downloadVars = undefined;
+  downloadPath = undefined;
+  downloadUnpack = undefined;
   steamApps = [];
   docker = dockerWith("img:latest", []);
 
@@ -215,7 +219,8 @@ beforeEach(() => {
     fake<VersionResolverService>({
       resolveDownload: (_bp, version) =>
         Promise.resolve({
-          url: url(`/core-${version}.jar`),
+          url: url(downloadPath ?? `/core-${version}.jar`),
+          unpack: downloadUnpack,
           vars: downloadVars,
         }),
     }),
@@ -235,6 +240,10 @@ beforeEach(() => {
           ? Promise.resolve()
           : Promise.reject(new Error("Docker is not reachable")),
       getDocker: () => docker,
+      assertProfileUsable: (m) => {
+        if (m.dockerProfile?.platforms?.includes("linux/s390x"))
+          throw new Error("built for linux/s390x");
+      },
     }),
     fake<SteamCmdService>({
       installApp: (step, dir, onProgress?: (p: SteamCmdProgress) => void) => {
@@ -292,6 +301,26 @@ describe("InstallPipeline file steps", () => {
     );
   });
 
+  test("writeFile and template create missing parent folders", async () => {
+    fs.writeFileSync(
+      path.join(blueprintDir, "cfg.tpl"),
+      "name={{SERVER_NAME}}",
+    );
+    const m = steps(
+      { type: "writeFile", path: "config/a/b.txt", content: "{{MOTD}}" },
+      { type: "template", src: "cfg.tpl", dest: "config/c/d.cfg" },
+    );
+
+    await pipeline.run(loaded(m), server());
+
+    expect(fs.readFileSync(serverFile("config", "a", "b.txt"), "utf8")).toBe(
+      "welcome",
+    );
+    expect(fs.readFileSync(serverFile("config", "c", "d.cfg"), "utf8")).toBe(
+      "name=My server",
+    );
+  });
+
   test("chmod applies to a file an earlier step wrote", async () => {
     const m = steps(
       { type: "writeFile", path: "start.sh", content: "#!/bin/sh" },
@@ -341,7 +370,12 @@ describe("InstallPipeline file steps", () => {
   test("an unsupported step fails the install and later steps never run", async () => {
     const m = steps(
       { type: "writeFile", path: "before.txt", content: "1" },
-      { type: "script", shell: "sh", inline: "echo hi" },
+      // Old manifests can still carry it, validation rejects them on load
+      {
+        type: "script",
+        shell: "sh",
+        inline: "echo hi",
+      } as unknown as InstallStep,
       { type: "writeFile", path: "after.txt", content: "2" },
     );
 
@@ -436,6 +470,40 @@ describe("InstallPipeline downloads", () => {
       "jar from /core-1.21.4.jar",
     );
     expect(stepsSeen()).toContain(TaskSteps.DOWNLOADING_CORE);
+  });
+
+  test("the resolver unpack flag only applies to the resolved download", async () => {
+    downloadPath = "/core.zip";
+    downloadUnpack = true;
+    const m = manifest({
+      versions: { kind: "static", versions: [] },
+      install: {
+        steps: [
+          { type: "download", url: url("/extra.zip"), dest: "extra.zip" },
+          { type: "download", url: "{{DOWNLOAD_URL}}", dest: "core.zip" },
+        ],
+      },
+    });
+
+    await pipeline.run(loaded(m), server());
+
+    expect(fs.existsSync(serverFile("extra.zip"))).toBe(true);
+    expect(fs.existsSync(serverFile("core.zip"))).toBe(false);
+    expect(fs.existsSync(serverFile("libraries", "lib.jar"))).toBe(true);
+  });
+
+  test("a download into a missing folder creates it", async () => {
+    const m = steps({
+      type: "download",
+      url: url("/mod.jar"),
+      dest: "mods/extra/mod.jar",
+    });
+
+    await pipeline.run(loaded(m), server());
+
+    expect(
+      fs.readFileSync(serverFile("mods", "extra", "mod.jar"), "utf8"),
+    ).toBe("jar from /mod.jar");
   });
 
   test("an archive download is unpacked into the server folder and removed", async () => {
@@ -579,6 +647,58 @@ describe("InstallPipeline docker", () => {
     await pipeline.run(loaded(m), server({ runtimeKind: "docker" }));
 
     expect(fs.readFileSync(serverFile("docker.txt"), "utf8")).toBe("My server");
+    expect(pulled).toEqual([]);
+  });
+
+  test("profile steps get DOWNLOAD_URL and JAVA_BIN like native ones", async () => {
+    const m = dockerCore({
+      image: "img:latest",
+      env: {},
+      install: [
+        { type: "download", url: "{{DOWNLOAD_URL}}", dest: "server.jar" },
+        { type: "writeFile", path: "java.txt", content: "{{JAVA_BIN}}" },
+      ],
+    });
+    m.versions = { kind: "static", versions: [] };
+    m.variables.push(
+      { key: "GAME_VERSION", type: "string", options: { from: "versions" } },
+      { key: "JAVA_VERSION", type: "number", default: 21 },
+    );
+
+    await pipeline.run(
+      loaded(m),
+      server({ runtimeKind: "docker", variables: { GAME_VERSION: "1.20" } }),
+    );
+
+    expect(fs.readFileSync(serverFile("server.jar"), "utf8")).toBe(
+      "jar from /core-1.20.jar",
+    );
+    expect(fs.readFileSync(serverFile("java.txt"), "utf8")).toBe(
+      path.resolve("/opt/java21/bin/java"),
+    );
+  });
+
+  test("docker installs skip managed java when no step needs it", async () => {
+    managedJava = null;
+    const m = dockerCore({ image: "img:latest", env: {} });
+    m.variables.push({ key: "JAVA_VERSION", type: "number", default: 21 });
+
+    await pipeline.run(loaded(m), server({ runtimeKind: "docker" }));
+
+    expect(javaInstalls).toEqual([]);
+    expect(pulled).toEqual(["img:latest"]);
+  });
+
+  test("a profile image built for another platform stops the install", async () => {
+    const m = dockerCore({
+      image: "img:latest",
+      env: {},
+      platforms: ["linux/s390x"],
+    });
+
+    await expect(
+      pipeline.run(loaded(m), server({ runtimeKind: "docker" })),
+    ).rejects.toThrow("built for linux/s390x");
     expect(pulled).toEqual([]);
   });
 

@@ -6,6 +6,7 @@ interface CompiledDetection {
   starting: RegExp[];
   running: RegExp[];
   stopping: RegExp[];
+  crash: RegExp[];
 }
 
 // Fallback patterns for legacy servers
@@ -22,6 +23,7 @@ const LEGACY_DETECTION: CompiledDetection = {
     /ALL SYSTEMS STARTED SUCCESSFULLY/i,
   ],
   stopping: [/Stopping (the )?server/i, /Saving worlds/i, /Saving players/i],
+  crash: [],
 };
 
 /** Build status patterns from the blueprint, falling back to legacy mc patterns */
@@ -36,6 +38,7 @@ function compileDetection(
     starting: compile(d.starting),
     running: compile(d.running),
     stopping: compile(d.stopping),
+    crash: compile(d.crash),
   };
 }
 
@@ -47,10 +50,12 @@ export class StatusDetector {
     this.detection = compileDetection(blueprint);
   }
 
-  /** Status of one line, starting > running > stopping */
+  /** Status of one line, crashed > starting > running > stopping */
   detect(line: string): ServerStatus | null {
     const trimmed = line.trim();
     if (!trimmed) return null;
+    if (this.detection.crash.some((re) => re.test(trimmed)))
+      return ServerStatus.CRASHED;
     if (this.detection.starting.some((re) => re.test(trimmed)))
       return ServerStatus.STARTING;
     if (this.detection.running.some((re) => re.test(trimmed)))

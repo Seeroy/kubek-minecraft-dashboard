@@ -2,9 +2,9 @@
 import { useStreamerMask } from "@/shared/hooks/useStreamerMode";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import type { Tone } from "@/shared/ui/tone";
-import type { INotification, NotificationParamsMap, NotificationSeverity } from "@shared/types/notification.types";
+import type { INotification, NotificationParamsMap, NotificationSeverity, TaskNotificationParams } from "@shared/types/notification.types";
 import { TaskType } from "@shared/types/task.types";
-import { ArchiveX, CircleArrowUp, CircleCheck, CloudOff, Gauge, Info, CircleX, LogIn, type LucideIcon, Power, ServerCrash, ShieldAlert, TriangleAlert } from "lucide-react";
+import { ArchiveX, CircleArrowUp, PackageCheck, CircleCheck, CloudOff, Gauge, Info, CircleX, LogIn, type LucideIcon, Power, ServerCrash, ShieldAlert, TriangleAlert } from "lucide-react";
 import { useCallback } from "react";
 
 export interface NotificationView {
@@ -14,7 +14,7 @@ export interface NotificationView {
   tone: Tone;
   /** Server to open when the row is clicked */
   serverId?: string;
-  /** Page to open instead when there is no server */
+  /** Page to open, after selecting the server when there is one */
   href?: string;
   /** Outside page offered as a toast button */
   link?: { label: string; url: string };
@@ -33,23 +33,31 @@ export function useDescribeNotification() {
 
   return useCallback(
     (notification: INotification): NotificationView => {
-      const taskLabel = (type: string) => t(KNOWN_TASKS.has(type) ? `tasks.${type.replace(".", "_")}` : "tasks.other");
+      // Extension tasks bring their own title or type, the exact fields depend on the backend
+      const taskLabel = (p: TaskNotificationParams) => {
+        const extra = p as TaskNotificationParams & { title?: string; taskTitle?: string; extType?: string; meta?: { title?: string; type?: string } };
+        const own = extra.taskTitle || extra.title || extra.meta?.title;
+        if (own) return own;
+        const known = KNOWN_TASKS.has(p.taskType) ? t(`tasks.${p.taskType.replace(".", "_")}`) : null;
+        if (known && !known.startsWith("NOT TRANSLATED")) return known;
+        return extra.extType || extra.meta?.type || t("tasks.other");
+      };
       const errorTitle = (type: string) => tRoot(`modules.diagnostics.errors.${type}.title`);
 
       const describe: Describe = {
         "task.succeeded": (p) => ({
-          title: t("kinds.taskSucceeded", taskLabel(p.taskType)),
+          title: t("kinds.taskSucceeded", taskLabel(p)),
           description: p.serverName,
           icon: CircleCheck,
           serverId: p.serverId,
         }),
         "task.failed": (p) => ({
-          title: t("kinds.taskFailed", taskLabel(p.taskType)),
+          title: t("kinds.taskFailed", taskLabel(p)),
           description: [p.serverName, p.error].filter(Boolean).join(": "),
           icon: CircleX,
           serverId: p.serverId,
         }),
-        "task.cancelled": (p) => ({ title: t("kinds.taskCancelled", taskLabel(p.taskType)), description: p.serverName, icon: CircleX, serverId: p.serverId }),
+        "task.cancelled": (p) => ({ title: t("kinds.taskCancelled", taskLabel(p)), description: p.serverName, icon: CircleX, serverId: p.serverId }),
         "server.crashed": (p) => ({
           title: t("kinds.serverCrashed", p.serverName),
           description: t("kinds.serverCrashedText"),
@@ -89,6 +97,17 @@ export function useDescribeNotification() {
           href: "/panel-settings/about",
           link: { label: t("kinds.openRelease"), url: p.url },
         }),
+        "content.updates_available": (p) => {
+          const rest = p.count - p.names.length;
+          const names = p.names.join(", ");
+          return {
+            title: t(`kinds.contentUpdates.${p.kind}`, p.serverName, p.count),
+            description: rest > 0 ? t("kinds.contentUpdates.more", names, rest) : names || undefined,
+            icon: PackageCheck,
+            serverId: p.serverId,
+            href: p.kind === "mods" ? "/mods" : "/plugins",
+          };
+        },
       };
 
       const render = describe[notification.kind] as ((params: unknown) => Omit<NotificationView, "tone">) | undefined;

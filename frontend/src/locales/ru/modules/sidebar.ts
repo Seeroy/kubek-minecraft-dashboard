@@ -24,6 +24,7 @@ export const sidebarTranslations: TranslationDictionary = {
     administration: "Администрирование",
     locked: "Нет доступа",
     updateAvailable: "Доступно обновление панели",
+    contentUpdates: (count: number) => `Обновления: ${count}`,
   },
   layout: {
     mainNav: "Основная навигация",

@@ -1,5 +1,9 @@
-import type { KubekExtensionManifest } from "@kubekpanel/extension-sdk";
+import type {
+  KubekExtensionManifest,
+  SettingField,
+} from "@kubekpanel/extension-sdk";
 import { ApiProperty } from "@nestjs/swagger";
+import { IsObject } from "class-validator";
 
 /** An installed extension record as returned by the management API */
 export class ExtensionSummaryDto {
@@ -90,4 +94,63 @@ export class ExtensionRegistryEntryDto {
     description: "Bundled locale dictionaries by language",
   })
   locales: any;
+}
+
+/** A command an extension registered, as the command palette lists it */
+export class ExtensionCommandDto {
+  @ApiProperty({ description: "Extension id" })
+  extId: string;
+
+  @ApiProperty({ description: "Extension display name" })
+  extName: string;
+
+  @ApiProperty({ description: "Command id inside the extension" })
+  id: string;
+
+  @ApiProperty({ description: "Title to show" })
+  title: string;
+
+  @ApiProperty({ required: false, description: "Lucide icon name" })
+  icon?: string;
+
+  @ApiProperty({
+    required: false,
+    description: "Extension permission needed to run it",
+  })
+  permission?: string;
+}
+
+/** Settings form of an extension, secret values are never included */
+export class ExtensionSettingsDto {
+  @ApiProperty({
+    type: "array",
+    items: { type: "object", additionalProperties: true },
+    description: "settingsSchema fields from the manifest",
+  })
+  schema: SettingField[];
+
+  @ApiProperty({
+    type: Object,
+    additionalProperties: true,
+    description: "Every non secret field, saved value or the default, null when neither",
+  })
+  values: Record<string, unknown>;
+
+  @ApiProperty({
+    type: Object,
+    additionalProperties: { type: "boolean" },
+    description: "Secret fields and whether a value is saved",
+  })
+  secrets: Record<string, boolean>;
+}
+
+export class SaveExtensionSettingsDto {
+  @ApiProperty({
+    type: Object,
+    additionalProperties: true,
+    description:
+      'Field values by key. Secrets: a non empty string sets, null clears, missing or "" keeps. null on other fields resets to the default',
+  })
+  @IsObject()
+  values: Record<string, unknown>;
 }

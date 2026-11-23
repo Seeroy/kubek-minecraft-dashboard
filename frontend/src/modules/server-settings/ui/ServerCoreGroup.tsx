@@ -1,6 +1,7 @@
 "use client";
 import type { Server } from "@/modules/server";
 import { iconType } from "@/modules/server-types/lib/blueprint";
+import { VersionText } from "@/modules/server-types/ui/VersionText";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { confirmDialog } from "@/shared/modals";
 import { BlueprintIcon } from "@/shared/ui/BlueprintIcon";
@@ -61,7 +62,11 @@ export function ServerCoreGroup({ server }: { server: Server }) {
         <SettingsField label={t("version")} icon={Tag}>
           <Select value={core.version} onValueChange={(v) => v && core.setVersion(String(v))} disabled={disabled || core.versionsLoading}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder={core.versionsLoading ? t("loadingVersions") : t("chooseVersion")} />
+              <SelectValue placeholder={core.versionsLoading ? t("loadingVersions") : t("chooseVersion")}>
+                {core.versionLabels?.size
+                  ? (value: string | undefined) => (value ? <VersionText id={value} label={core.versionLabels?.get(value)} /> : t("chooseVersion"))
+                  : undefined}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-64">
               {core.versions.length === 0 ? (
@@ -69,7 +74,7 @@ export function ServerCoreGroup({ server }: { server: Server }) {
               ) : (
                 core.versions.map((v) => (
                   <SelectItem key={v} value={v}>
-                    {v}
+                    <VersionText id={v} label={core.versionLabels?.get(v)} />
                   </SelectItem>
                 ))
               )}

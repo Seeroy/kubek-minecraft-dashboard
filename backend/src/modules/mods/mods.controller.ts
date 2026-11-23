@@ -10,7 +10,10 @@ import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { BearerAuthGuard } from "@/modules/auth/guards/bearer.guard";
 import { ServerAccessGuard } from "@/modules/auth/guards/server-access.guard";
 import { InstallPluginDto } from "@/modules/plugins/dto/install-plugin.dto";
-import { InstalledContentDto } from "@/modules/plugins/dto/installed-content.dto";
+import {
+  ContentUpdatesCountDto,
+  InstalledContentDto,
+} from "@/modules/plugins/dto/installed-content.dto";
 import {
   ModrinthProjectDto,
   ModrinthSearchResponseDto,
@@ -106,6 +109,22 @@ export class ModsController {
     @Param("serverId") serverId: string,
   ): Promise<InstalledContentDto[]> {
     return this.modsService.listInstalled(serverId);
+  }
+
+  @Get("updates/:serverId")
+  @ApiOperation({
+    summary: "Count mods with an update",
+    description: "Known from the background check or the last installed list, no Modrinth request",
+  })
+  @RequireAccess(AccessArea.CONTENT, "read")
+  @CheckServerAccess("serverId")
+  @ApiParam({ name: "serverId", description: "Server ID" })
+  @ApiOkResponse({ type: ContentUpdatesCountDto })
+  @ApiErrorResponses()
+  async countUpdates(
+    @Param("serverId") serverId: string,
+  ): Promise<ContentUpdatesCountDto> {
+    return { count: await this.modsService.countUpdates(serverId) };
   }
 
   @Post("install")

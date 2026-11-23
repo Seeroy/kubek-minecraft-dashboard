@@ -1,5 +1,6 @@
 "use client";
 import { CompanionConsoleCard } from "@/modules/companion/ui/CompanionConsoleCard";
+import { ExtensionSlot } from "@/modules/extensions";
 import { OnlinePlayerMenu } from "@/modules/players/ui/OnlinePlayerMenu";
 import { formatDuration } from "@/shared/lib/formatDuration";
 import { useNow } from "@/shared/hooks/useNow";
@@ -89,8 +90,9 @@ export function ConsoleRail({ serverId, blueprintId, status, version, players, s
   const fill = players?.max ? (players.online / players.max) * 100 : 0;
 
   return (
-    <aside className="grid content-start gap-2">
+    <aside className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-2">
       <AddressCard serverId={serverId} blueprintId={blueprintId} />
+      <ExtensionSlot name="server.sidebar" context={{ serverId }} />
       <InfoCard icon={Tag} tone="purple" label={t("version")} value={version} />
 
       <Popover>

@@ -40,6 +40,14 @@ export const catalogTranslations: TranslationDictionary = {
     incompatibleHint: (range: string) => `Нужна версия Kubek ${range}`,
   },
   fromVersion: (version: string) => `(у вас ${version})`,
+  tabs: {
+    overview: "Обзор",
+    readme: "README",
+  },
+  readme: {
+    failed: "Не удалось загрузить README",
+    retry: "Повторить",
+  },
   details: {
     info: "Информация",
     version: "Версия",

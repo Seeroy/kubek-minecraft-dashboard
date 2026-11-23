@@ -106,6 +106,7 @@ export function ServerTypesCatalog({ view, canInstall }: { view: CatalogLayout; 
   return (
     <CatalogBrowser
       id="blueprints"
+      kind="blueprints"
       query={catalog}
       view={view}
       icon={Boxes}

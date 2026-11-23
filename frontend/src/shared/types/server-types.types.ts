@@ -40,3 +40,9 @@ export interface BlueprintSummary {
   queryProtocol?: string;
   source: "bundled" | "installed";
 }
+
+/** One version from GET /api/server-types/:id/versions/labeled, label is null when the engine has none */
+export interface VersionOption {
+  id: string;
+  label: string | null;
+}

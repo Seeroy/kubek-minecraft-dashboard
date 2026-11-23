@@ -78,6 +78,7 @@ let registry: TestRegistry;
 let tasks: TasksService;
 let dockerUp: boolean;
 let broadcastLists: IServer[][];
+let createdEvents: string[];
 let install: (server: IServer) => Promise<void>;
 let factory: ServersFactory;
 
@@ -102,6 +103,7 @@ beforeEach(() => {
   registry.add(manifest());
   dockerUp = false;
   broadcastLists = [];
+  createdEvents = [];
   install = (server) => {
     fs.writeFileSync(path.join(serverDir(server.id), "server.jar"), "core");
     return Promise.resolve();
@@ -123,6 +125,9 @@ beforeEach(() => {
       emitServerList: (servers) => {
         broadcastLists.push(servers);
       },
+      emitServerCreated: (server) => {
+        createdEvents.push(server.id);
+      },
     }),
     registry,
     new BlueprintResolver(),
@@ -133,7 +138,10 @@ beforeEach(() => {
       },
     }),
     config,
-    fake<DockerService>({ available: () => dockerUp }),
+    fake<DockerService>({
+      available: () => dockerUp,
+      profileUsable: (m: { dockerProfile?: unknown }) => !!m.dockerProfile,
+    }),
   );
 });
 
@@ -185,6 +193,7 @@ describe("ServersFactory create", () => {
       result: { serverId: server.id },
     });
     expect(broadcastLists.at(-1)?.map((s) => s.name)).toEqual(["alpha"]);
+    expect(createdEvents).toEqual([server.id]);
   });
 
   test("the task type can be overridden", async () => {

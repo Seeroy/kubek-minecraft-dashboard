@@ -19,5 +19,9 @@ export function toExtUser(user: IUser): ExtUser {
     username: user.username,
     isAdmin: user.isAdmin,
     permissions: extPermissionsOf(user),
+    servers:
+      user.isAdmin || !user.serversRestrict?.enabled
+        ? "all"
+        : [...user.serversRestrict.allowed],
   };
 }

@@ -34,6 +34,22 @@ export interface CatalogItemBase {
   download: CatalogDownload;
   /** ISO date of that commit */
   updatedAt: string | null;
+  /** Missing in indexes built before READMEs were published */
+  readme?: CatalogReadme | null;
+}
+
+export interface CatalogReadme {
+  /** Language to url, "default" is README.md */
+  files: Record<string, string>;
+  /** GitHub folder the README links are relative to */
+  base: string | null;
+}
+
+export interface CatalogReadmeResponse {
+  markdown: string;
+  /** What was picked, "default" when there is no README for the asked language */
+  lang: string;
+  base: string | null;
 }
 
 export interface CatalogBlueprintIndexItem extends CatalogItemBase {

@@ -33,6 +33,8 @@ export enum TaskType {
   NETWORK_CREATE = "network.create",
   NETWORK_UPDATE = "network.update",
   MODPACK_INSPECT = "modpack.inspect",
+  /** Work an extension started through ctx.tasks, see TaskMeta.extension* */
+  EXTENSION = "extension.task",
 }
 
 export enum TaskSteps {
@@ -62,6 +64,12 @@ export interface TaskMeta {
   versionName?: string;
   backupId?: string;
   javaVersion?: string;
+  extensionId?: string;
+  extensionName?: string;
+  /** The type the extension passed to ctx.tasks.create */
+  extensionTask?: string;
+  /** Label the extension gave the task */
+  title?: string;
 }
 
 export type TaskStageStatus = "pending" | "running" | "done" | "failed";

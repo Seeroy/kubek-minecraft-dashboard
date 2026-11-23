@@ -88,4 +88,16 @@ describe("StatusDetector", () => {
     expect(detector.last(["boot", "ready", "chat"])).toBe(ServerStatus.RUNNING);
     expect(detector.last(["chat"])).toBeUndefined();
   });
+
+  test("crash patterns win over the other lists", () => {
+    const detector = new StatusDetector(
+      fake<KubekBlueprintManifest>({
+        detection: { running: ["tick"], crash: ["crashed during tick"] },
+      }),
+    );
+    expect(detector.detect("Server crashed during tick")).toBe(
+      ServerStatus.CRASHED,
+    );
+    expect(detector.detect("tick 5")).toBe(ServerStatus.RUNNING);
+  });
 });

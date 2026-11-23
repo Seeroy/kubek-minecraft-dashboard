@@ -8,11 +8,9 @@ import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { join, resolve } from "path";
 import { isInside } from "@/core/utils/paths";
 import { getVersion, satisfiesKubekVersion } from "@/core/utils/updates";
+import { validateManifest } from "./blueprint-validator";
 import { BUNDLED_BLUEPRINTS } from "./bundled";
 import type { LoadedBlueprint } from "./server-types.types";
-
-const SUPPORTED_VERSION_KINDS = ["none", "static", "http", "resolver"];
-const SUPPORTED_RUNTIME_KINDS = ["native", "docker"];
 
 /**
  * Holds bundled and user-installed blueprints
@@ -106,15 +104,8 @@ export class ServerTypesRegistry implements OnModuleInit {
 
   /** Structural + compatibility checks; returns a list of problems (empty = valid) */
   validate(manifest: KubekBlueprintManifest): string[] {
-    const errors: string[] = [];
-    if (!manifest.id) errors.push("missing id");
-    if (!manifest.name) errors.push("missing name");
-    if (!SUPPORTED_RUNTIME_KINDS.includes(manifest.runtime?.kind)) {
-      errors.push(`unsupported runtime.kind: ${manifest.runtime?.kind}`);
-    }
-    if (!SUPPORTED_VERSION_KINDS.includes(manifest.versions?.kind)) {
-      errors.push(`unsupported versions.kind: ${manifest.versions?.kind}`);
-    }
+    const errors = validateManifest(manifest);
+    if (typeof manifest !== "object" || manifest === null) return errors;
     if (
       manifest.engines?.kubek &&
       !satisfiesKubekVersion(manifest.engines.kubek)

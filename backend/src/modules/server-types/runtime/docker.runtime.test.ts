@@ -3,7 +3,11 @@ import { fake } from "@/testing/fake";
 import { Logger } from "@nestjs/common";
 import type Docker from "dockerode";
 import type { Container, ContainerInspectInfo } from "dockerode";
-import { DockerRuntime } from "./docker.runtime";
+import {
+  DockerRuntime,
+  type DockerRuntimeOptions,
+  splitCommandLine,
+} from "./docker.runtime";
 import type { DockerService } from "./docker.service";
 
 const inspectInfo = (running: boolean) =>
@@ -131,5 +135,64 @@ describe("DockerRuntime error handling", () => {
     await runtime["removeStale"]();
 
     expect(warnings).toEqual([]);
+  });
+});
+
+describe("DockerRuntime start", () => {
+  async function created(opts: Partial<DockerRuntimeOptions>) {
+    let config: Record<string, unknown> = {};
+    const container = fake<Container>({
+      attach: () => Promise.reject(new Error("no hijack here")),
+      start: () => Promise.resolve(),
+      wait: () => new Promise(() => {}),
+      logs: () => Promise.reject(dockerError(404)),
+    });
+    const docker = fake<DockerService>({
+      getDocker: () =>
+        fake<Docker>({
+          getContainer: () =>
+            fake<Container>({
+              inspect: () => Promise.reject(dockerError(404)),
+            }),
+          createContainer: (c: Record<string, unknown>) => {
+            config = c;
+            return Promise.resolve(container);
+          },
+        }),
+    });
+    const runtime = new DockerRuntime(docker, {
+      image: "img",
+      containerName: "kubek-srv",
+      binds: [],
+      env: [],
+      portBindings: {},
+      ...opts,
+    });
+    await runtime.start({ cwd: "", command: "", env: {} });
+    return config;
+  }
+
+  test("stdin is open unless the profile turns it off", async () => {
+    expect((await created({})).OpenStdin).toBe(true);
+    expect((await created({ stdinOpen: false })).OpenStdin).toBe(false);
+  });
+
+  test("the command becomes Cmd with quoted words kept together", async () => {
+    const config = await created({ command: `--motd "Hello world" -x` });
+    expect(config.Cmd).toEqual(["--motd", "Hello world", "-x"]);
+    expect((await created({})).Cmd).toBeUndefined();
+  });
+});
+
+describe("splitCommandLine", () => {
+  test("splits like a shell without expanding anything", () => {
+    expect(splitCommandLine("  a  b ")).toEqual(["a", "b"]);
+    expect(splitCommandLine(`sh -c "echo $HOME && ls"`)).toEqual([
+      "sh",
+      "-c",
+      "echo $HOME && ls",
+    ]);
+    expect(splitCommandLine(`'it''s' "" x\\ y`)).toEqual(["its", "", "x y"]);
+    expect(splitCommandLine(`"say \\"hi\\""`)).toEqual(['say "hi"']);
   });
 });

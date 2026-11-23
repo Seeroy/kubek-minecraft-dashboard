@@ -8,6 +8,8 @@ export class TasksEventsService {
   constructor(private readonly broadcast: ServerBroadcastService) {}
 
   emitTaskUpdate(task: ITask) {
+    // Extension tasks started outside a request have no owner to tell
+    if (!task.ownerId) return;
     this.broadcast.emitToRoom(
       `user:${task.ownerId}`,
       WsTaskEventsTypes.TASK_UPDATE,
@@ -16,6 +18,7 @@ export class TasksEventsService {
   }
 
   emitTaskDone(task: ITask) {
+    if (!task.ownerId) return;
     this.broadcast.emitToRoom(
       `user:${task.ownerId}`,
       WsTaskEventsTypes.TASK_DONE,
@@ -24,6 +27,7 @@ export class TasksEventsService {
   }
 
   emitTaskFailed(task: ITask) {
+    if (!task.ownerId) return;
     this.broadcast.emitToRoom(
       `user:${task.ownerId}`,
       WsTaskEventsTypes.TASK_FAILED,

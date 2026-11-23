@@ -97,7 +97,7 @@ function InboxBody({ inbox, unreadOnly, onNavigate }: { inbox: ReturnType<typeof
     if (!notification.readAt) markRead.mutate(notification.id);
     if (serverId) {
       selectServer(serverId);
-      router.push("/console");
+      router.push(href ?? "/console");
     } else if (href) {
       router.push(href);
     } else {

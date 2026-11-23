@@ -96,4 +96,13 @@ export const serverTypesTranslations: TranslationDictionary = {
     updated: (name: string) => `Тип сервера ${name} обновлён`,
     removed: (name: string) => `Тип сервера ${name} удалён`,
   },
+  missingFeature: {
+    title: {
+      console: "У этого типа сервера нет консоли",
+      backups: "У этого типа сервера нет бэкапов",
+      files: "У этого типа сервера нет файлового менеджера",
+    },
+    description: (server: string) => `${server} работает на типе сервера, где этой страницы нет`,
+    switchTo: (server: string) => `Перейти на ${server}`,
+  },
 };

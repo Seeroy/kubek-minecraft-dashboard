@@ -243,7 +243,7 @@ export class FileManagerService {
       await fs.mkdir(dir, { recursive: true });
 
       await fs.writeFile(safePath, data);
-      this.bus.publish("file.changed", { serverId, path: filePath });
+      this.changed(serverId, filePath);
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to write file: ${error.message}`,
@@ -267,6 +267,7 @@ export class FileManagerService {
 
     try {
       await fs.unlink(safePath);
+      this.changed(serverId, filePath);
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to delete file: ${error.message}`,
@@ -288,6 +289,7 @@ export class FileManagerService {
     try {
       // Use recursive option to delete non-empty directories
       await fs.rm(safePath, { recursive: true, force: true });
+      this.changed(serverId, directoryPath);
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to delete directory: ${error.message}`,
@@ -316,6 +318,8 @@ export class FileManagerService {
 
     try {
       await fs.rename(safeOldPath, safeNewPath);
+      this.changed(serverId, oldPath);
+      this.changed(serverId, join(oldPath, "..", newName));
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to rename: ${error.message}`,
@@ -341,6 +345,7 @@ export class FileManagerService {
 
     try {
       await fs.mkdir(newDirPath, { recursive: true });
+      this.changed(serverId, join(parentPath, name));
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to create directory: ${error.message}`,
@@ -368,6 +373,7 @@ export class FileManagerService {
       try {
         await fs.mkdir(safeDirPath, { recursive: true });
         await placeUpload(file, filePath);
+        this.changed(serverId, join(directoryPath, file.originalname));
       } catch (error) {
         throw new InternalServerErrorException(
           `Failed to upload file: ${error.message}`,
@@ -376,5 +382,9 @@ export class FileManagerService {
     } finally {
       await removeUpload(file);
     }
+  }
+
+  private changed(serverId: string, path: string): void {
+    this.bus.publish("file.changed", { serverId, path });
   }
 }

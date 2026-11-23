@@ -106,10 +106,6 @@ export class BackupCreatorService {
     };
     const release = this.locks.acquire(dto.serverId, "backup");
     this.backups.create(record);
-    this.bus.publish("backup.created", {
-      serverId: record.serverId,
-      backupId: record.id,
-    });
 
     const serverName =
       this.servers.findById(dto.serverId)?.name ?? dto.serverId;
@@ -158,6 +154,10 @@ export class BackupCreatorService {
       );
     }
     await this.afterCreate(record, actor, progress);
+    this.bus.publish("backup.created", {
+      serverId: record.serverId,
+      backupId: record.id,
+    });
     progress(100, "Backup completed");
   }
 

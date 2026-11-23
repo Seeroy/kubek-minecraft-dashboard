@@ -106,7 +106,7 @@ function ServerConsole({ server }: { server: Server }) {
         />
       </TooltipProvider>
 
-      <div className="grid content-start gap-4 lg:min-h-0 lg:overflow-y-auto">
+      <div className="grid min-w-0 content-start gap-4 lg:min-h-0 lg:overflow-y-auto">
         <ConsoleRail
           serverId={server.id}
           blueprintId={server.blueprintId}

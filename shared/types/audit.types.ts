@@ -19,6 +19,7 @@ export const AUDIT_SOURCES = [
   "assistant",
   "api",
   "mcp",
+  "extension",
 ] as const;
 
 export type AuditSource = (typeof AUDIT_SOURCES)[number];
@@ -63,6 +64,13 @@ export const AuditAction = {
   EXTENSION_ENABLE: "extension.enable",
   EXTENSION_DISABLE: "extension.disable",
   EXTENSION_DELETE: "extension.delete",
+  // What an extension did itself or on a user's click inside its UI
+  EXTENSION_ACTION: "extension.action",
+  EXTENSION_PROCESS: "extension.process",
+  EXTENSION_SERVER_COMMAND: "extension.server_command",
+  EXTENSION_SERVER_START: "extension.server_start",
+  EXTENSION_SERVER_STOP: "extension.server_stop",
+  EXTENSION_CONFIG: "extension.config",
   BACKUP_CREATE: "backup.create",
   BACKUP_RESTORE: "backup.restore",
   BACKUP_DELETE: "backup.delete",

@@ -28,7 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type SettingsTab = "general" | "java" | "information" | "gameplay" | "world" | "network" | "other" | "velocity" | "companion";
+export type SettingsTab = "general" | "java" | "information" | "gameplay" | "world" | "network" | "other" | "velocity" | "companion" | "configs";
 
 // Labels and hints are keys under modules.serverSettings
 type FieldBase = { key: string; label: string; icon: LucideIcon };

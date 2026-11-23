@@ -184,6 +184,14 @@ export const en = {
       `⛔ Too many failed sign-in attempts from <code>${p.ip}</code>. Attempts are blocked for ${p.minutes} min`,
     updateAvailable: (p: { version: string; current: string }) =>
       `🆕 Kubek <b>${p.version}</b> is out, you have ${p.current}`,
+    contentUpdates: {
+      plugins: (p: { name: string; count: number; list: string }) =>
+        `🔄 <b>${p.name}</b>: plugin updates available (${p.count})\n${p.list}`,
+      mods: (p: { name: string; count: number; list: string }) =>
+        `🔄 <b>${p.name}</b>: mod updates available (${p.count})\n${p.list}`,
+      more: (p: { names: string; rest: number }) =>
+        `${p.names} and ${p.rest} more`,
+    },
   },
   statusValues: {
     running: "🟢 Running",

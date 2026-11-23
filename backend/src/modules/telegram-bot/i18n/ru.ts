@@ -179,6 +179,13 @@ export const ru: typeof en = {
       `⛔ Слишком много неудачных попыток входа с <code>${p.ip}</code>. Попытки заблокированы на ${p.minutes} мин`,
     updateAvailable: (p) =>
       `🆕 Вышел Kubek <b>${p.version}</b>, у вас ${p.current}`,
+    contentUpdates: {
+      plugins: (p) =>
+        `🔄 <b>${p.name}</b>: есть обновления плагинов (${p.count})\n${p.list}`,
+      mods: (p) =>
+        `🔄 <b>${p.name}</b>: есть обновления модов (${p.count})\n${p.list}`,
+      more: (p) => `${p.names} и ещё ${p.rest}`,
+    },
   },
   statusValues: {
     running: "🟢 Запущен",

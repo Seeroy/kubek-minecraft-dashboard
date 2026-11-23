@@ -2,8 +2,10 @@ import { authHttp, type AuthHttpClient } from "@/shared/lib/http";
 import type {
   BlueprintSummary,
   CatalogBlueprint,
+  CatalogReadmeResponse,
   CatalogResponse,
   ServerTypeInstallResponse,
+  VersionOption,
 } from "./server-types.model";
 
 export class ServerTypesApi {
@@ -17,6 +19,21 @@ export class ServerTypesApi {
       `server-types/${encodeURIComponent(id)}/versions`
     );
 
+  getLabeledVersions = (id: string): Promise<VersionOption[]> =>
+    this.authHttp.get<VersionOption[]>(
+      `server-types/${encodeURIComponent(id)}/versions/labeled`
+    );
+
+  // Older backends only have the plain list
+  getVersionOptions = async (id: string): Promise<VersionOption[]> => {
+    try {
+      return await this.getLabeledVersions(id);
+    } catch {
+      const ids = await this.getVersions(id);
+      return ids.map((version) => ({ id: version, label: null }));
+    }
+  };
+
   /** Install a blueprint from an uploaded .kbp/.json file */
   install = (file: File): Promise<ServerTypeInstallResponse> => {
     const formData = new FormData();
@@ -28,6 +45,9 @@ export class ServerTypesApi {
 
   catalog = (refresh = false): Promise<CatalogResponse<CatalogBlueprint>> =>
     this.authHttp.get<CatalogResponse<CatalogBlueprint>>(`server-types/catalog${refresh ? "?refresh=true" : ""}`);
+
+  catalogReadme = (id: string, lang: string): Promise<CatalogReadmeResponse> =>
+    this.authHttp.get<CatalogReadmeResponse>(`server-types/catalog/${encodeURIComponent(id)}/readme?lang=${lang}`);
 
   // Downloads on the server can take a while on a slow link
   installFromCatalog = (id: string): Promise<ServerTypeInstallResponse> =>

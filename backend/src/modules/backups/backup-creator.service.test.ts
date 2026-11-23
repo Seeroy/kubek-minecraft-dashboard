@@ -65,3 +65,50 @@ describe("backup create server id", () => {
     );
   });
 });
+
+describe("backup.created for extensions", () => {
+  function runner(track: () => Promise<number>) {
+    const published: unknown[] = [];
+    const service = new BackupCreatorService(
+      fake<BackupsRepository>({ update: () => {} }),
+      fake<BackupCopiesService>(),
+      fake<LocalBackupStore>(),
+      fake<WorldSaveService>(),
+      fake<BackupTransferService>(),
+      fake<BackupRetentionService>({ apply: async () => {} }),
+      fake<BackupPolicyService>({
+        forServer: () => ({ remote: {} }) as never,
+      }),
+      fake<BackupOperations>({ track: track as never }),
+      fake<TasksService>(),
+      fake<ServersService>(),
+      fake<ServerLocksService>(),
+      fake<ExtensionEventBus>({
+        publish: (event: string, payload: unknown) => {
+          published.push({ event, payload });
+        },
+      }),
+    );
+    const run = (service as unknown as {
+      run: (record: unknown, actor: unknown, progress: () => void) => Promise<void>;
+    }).run.bind(service);
+    const record = { id: "b1", serverId: "s1", name: "b" };
+    return { published, go: () => run(record, { trigger: "user", userId: null }, () => {}) };
+  }
+
+  test("fires once the archive is done", async () => {
+    const { published, go } = runner(async () => 1);
+    await go();
+    expect(published).toEqual([
+      { event: "backup.created", payload: { serverId: "s1", backupId: "b1" } },
+    ]);
+  });
+
+  test("a failed backup fires nothing", async () => {
+    const { published, go } = runner(async () => {
+      throw new Error("disk full");
+    });
+    await expect(go()).rejects.toThrow();
+    expect(published).toEqual([]);
+  });
+});

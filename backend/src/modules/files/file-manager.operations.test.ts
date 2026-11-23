@@ -572,3 +572,29 @@ describe("uploadFile", () => {
     expect(existsSync(join(root, "outside", "evil.txt"))).toBe(false);
   });
 });
+
+describe("file.changed for extensions", () => {
+  const paths = () =>
+    published
+      .filter((p) => p.event === "file.changed")
+      .map((p) => (p.payload as { path: string }).path);
+
+  test("every change made through the panel is reported", async () => {
+    put("a.txt");
+    put("old.txt");
+    mkdirSync(join(server, "gone"));
+    await files.deleteFile("srv", "a.txt");
+    await files.renameFile("srv", "old.txt", "new.txt");
+    await files.createDirectory("srv", "", "made");
+    await files.deleteDirectory("srv", "gone");
+    await files.uploadFile("srv", "up", upload("u.txt"));
+    expect(paths()).toEqual(["a.txt", "old.txt", "new.txt", "made", "gone", "up/u.txt"]);
+  });
+
+  test("a refused change reports nothing", async () => {
+    put("taken.txt");
+    await files.uploadFile("srv", "", upload("taken.txt")).catch(() => {});
+    await files.deleteFile("srv", "missing.txt").catch(() => {});
+    expect(paths()).toEqual([]);
+  });
+});

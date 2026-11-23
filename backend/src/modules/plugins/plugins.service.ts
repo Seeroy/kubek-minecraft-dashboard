@@ -54,6 +54,17 @@ export class PluginsService extends ModrinthContentService {
     });
   }
 
+  /** Counts an outdated companion jar too, the installed list marks it the same way */
+  async countUpdates(serverId: string): Promise<number> {
+    const count = await super.countUpdates(serverId);
+    const installed = await this.companionInstaller.detect(serverId);
+    if (!installed) return count;
+    const latest = await this.companionInstaller.latest();
+    return this.companionInstaller.isOutdated(installed, latest)
+      ? count + 1
+      : count;
+  }
+
   /** The companion jar shows up as its own row with GitHub release info */
   async listInstalled(serverId: string): Promise<InstalledPluginView[]> {
     const items = await super.listInstalled(serverId);

@@ -1,6 +1,7 @@
 "use client";
 import OOBE from "@/modules/oobe";
 import { NavProgress, Sidebar } from "@/modules/sidebar";
+import { BlueprintRouteGate } from "@/modules/server-types/ui/BlueprintRouteGate";
 import { RouteAccessGate } from "@/modules/sidebar/ui/RouteAccessGate";
 import { SocketStatusBar } from "@/modules/sockets";
 import { Topbar } from "@/modules/topbar";
@@ -34,7 +35,9 @@ const AppLayout = ({
               {/* bottom gap lives on the page root, main's padding is lost once content overflows this h-full box */}
               <div className="mx-auto h-full *:pb-8 page-contained:max-w-[1248px]">
                 <ContentView>
-                  <RouteAccessGate>{children}</RouteAccessGate>
+                  <RouteAccessGate>
+                    <BlueprintRouteGate>{children}</BlueprintRouteGate>
+                  </RouteAccessGate>
                 </ContentView>
               </div>
             </main>

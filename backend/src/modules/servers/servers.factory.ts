@@ -100,7 +100,8 @@ export class ServersFactory {
       this.configService.get("serverRuntime") ?? "auto";
     if (setting === "docker") return requireDocker("serverRuntime is docker");
     if (setting === "native") return "native";
-    return hasProfile && available ? "docker" : "native";
+    // A profile whose image has no build for this daemon falls back to native
+    return available && this.dockerService.profileUsable(manifest) ? "docker" : "native";
   }
 
   /**
@@ -145,7 +146,7 @@ export class ServersFactory {
       ownerId,
     );
 
-    this.broadcastServersList();
+    this.announceCreated(server);
 
     // Fire-and-forget: createServer marks the task FAILED on error and rethrows
     void this.createServer(blueprint, server, taskId, customCoreFile, options)
@@ -241,5 +242,11 @@ export class ServersFactory {
   broadcastServersList(): void {
     const servers = this.servers.findAll();
     this.serverEventsService.emitServerList(servers);
+  }
+
+  /** A server was created, imported or duplicated */
+  announceCreated(server: IServer): void {
+    this.broadcastServersList();
+    this.serverEventsService.emitServerCreated(server);
   }
 }

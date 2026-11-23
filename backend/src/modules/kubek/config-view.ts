@@ -18,6 +18,7 @@ export const SECRET_PATHS: string[] = SECRET_FIELDS.map((field) => field.path);
 export const INTERNAL_KEYS = [
   "twofaSetupSecret",
   "updateNotifiedVersion",
+  "contentUpdatesNotified",
   "assistant",
   "auditRetention",
 ];

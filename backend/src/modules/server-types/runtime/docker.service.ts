@@ -1,10 +1,12 @@
 import { ConfigRepository } from "@/modules/database/repositories/config.repository";
+import type { KubekBlueprintManifest } from "@kubekpanel/blueprint-sdk";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import Docker from "dockerode";
 import os from "os";
 import path from "path";
 import type { ContainerRow } from "./container-reconcile";
+import { daemonPlatform, dockerPlatformMatches } from "./docker-platform";
 import {
   isInsideContainer,
   mapByHostDataDir,
@@ -36,6 +38,7 @@ export class DockerService implements OnModuleInit {
   private availability?: { ok: boolean; at: number };
   private mapping?: HostMapping;
   private cachedPanelId?: string;
+  private cachedPlatform?: string;
 
   constructor(private readonly config: ConfigRepository) {}
 
@@ -66,7 +69,44 @@ export class DockerService implements OnModuleInit {
       this.logger.log(`Docker daemon ${ok ? "available" : "unavailable"}`);
     }
     this.availability = { ok, at: now };
+    if (ok && !this.cachedPlatform) await this.loadPlatform();
     return ok;
+  }
+
+  private async loadPlatform(): Promise<void> {
+    try {
+      const info = (await this.docker.info()) as {
+        OSType?: string;
+        Architecture?: string;
+      };
+      this.cachedPlatform = daemonPlatform(info.OSType, info.Architecture);
+    } catch {
+      // unknown platform lets every image through
+    }
+  }
+
+  /** Daemon platform like linux/amd64, undefined until the daemon answered */
+  platform(): string | undefined {
+    return this.cachedPlatform;
+  }
+
+  /** Blueprint has a docker profile whose image platforms fit this daemon */
+  profileUsable(manifest: KubekBlueprintManifest): boolean {
+    const profile = manifest.dockerProfile;
+    if (!profile) return false;
+    return dockerPlatformMatches(profile.platforms, this.cachedPlatform);
+  }
+
+  /** Throw a clear error when the profile image is not built for this daemon */
+  assertProfileUsable(manifest: KubekBlueprintManifest): void {
+    if (this.profileUsable(manifest)) return;
+    if (!manifest.dockerProfile) {
+      throw new Error(`Blueprint ${manifest.id} has no docker profile`);
+    }
+    throw new Error(
+      `The docker image of ${manifest.id} is built for ${manifest.dockerProfile.platforms?.join(", ")}, ` +
+        `this Docker daemon is ${this.cachedPlatform}`,
+    );
   }
 
   /** Throw a clear error when a docker action is attempted without a reachable daemon */

@@ -32,6 +32,7 @@ RUN apt-get update \
       curl \
       procps \
       tini \
+      openssh-client \
  && if [ "$TARGETARCH" = "amd64" ]; then \
       apt-get install -y --no-install-recommends lib32gcc-s1 lib32stdc++6; \
     fi \

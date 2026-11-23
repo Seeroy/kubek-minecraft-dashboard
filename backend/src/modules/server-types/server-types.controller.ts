@@ -40,10 +40,13 @@ import { CatalogService } from "../catalog/catalog.service";
 import {
   CatalogBlueprintsResponseDto,
   CatalogQueryDto,
+  CatalogReadmeQueryDto,
+  CatalogReadmeResponseDto,
 } from "../catalog/dto/catalog.dto";
 import {
   ServerTypeDto,
   ServerTypeInstallResponseDto,
+  ServerTypeVersionDto,
 } from "./dto/server-type.dto";
 import { DockerService } from "./runtime/docker.service";
 import { ServerTypesInstaller } from "./server-types-installer.service";
@@ -72,11 +75,15 @@ export class ServerTypesController {
   @ApiErrorResponses([401, 403])
   @RequireAccess(AccessArea.SERVERS, "write")
   list(): ServerTypeDto[] {
-    // Hide docker-only blueprints when the daemon is down, dual-capable ones still run native
+    // Hide docker-only blueprints the daemon can't run, dual-capable ones still run native
     const dockerAvailable = this.docker.available();
     return this.registry
       .listValid()
-      .filter((b) => dockerAvailable || b.manifest.runtime.kind !== "docker")
+      .filter(
+        (b) =>
+          b.manifest.runtime.kind !== "docker" ||
+          (dockerAvailable && this.docker.profileUsable(b.manifest)),
+      )
       .map((b) => ({
         id: b.manifest.id,
         name: b.manifest.name,
@@ -88,7 +95,7 @@ export class ServerTypesController {
         version: b.manifest.version,
         platforms: b.manifest.platforms,
         runtimeKind: b.manifest.runtime.kind,
-        dockerCapable: !!b.manifest.dockerProfile,
+        dockerCapable: this.docker.profileUsable(b.manifest),
         variables: b.manifest.variables,
         ports: b.manifest.ports,
         configFiles: b.manifest.configFiles ?? [],
@@ -122,6 +129,18 @@ export class ServerTypesController {
       installed,
       q.refresh,
     );
+  }
+
+  @Get("catalog/:id/readme")
+  @ApiOperation({ summary: "README of a catalog item in the panel language" })
+  @RequireAccess(AccessArea.INTEGRATIONS, "manage")
+  @ApiOkResponse({ type: CatalogReadmeResponseDto })
+  @ApiErrorResponses([401, 403, 404, 502])
+  catalogReadme(
+    @Param("id") id: string,
+    @Query() q: CatalogReadmeQueryDto,
+  ): Promise<CatalogReadmeResponseDto> {
+    return this.catalog.readme("blueprints", id, q.lang);
   }
 
   @Post("catalog/:id/install")
@@ -165,21 +184,23 @@ export class ServerTypesController {
   @ApiErrorResponses([401, 403, 404, 502])
   @RequireAccess(AccessArea.SERVERS, "write")
   async versionsFor(@Param("id") id: string): Promise<string[]> {
-    const blueprint = this.registry.get(id);
-    if (!blueprint) throw new NotFoundException(`Unknown blueprint: ${id}`);
-    try {
-      return await this.versions.listVersions(blueprint);
-    } catch (error) {
-      if (error instanceof HttpException) throw error;
-      // Versions come from upstream APIs, if they fail it's not on us
-      const reason = getErrorMessage(error);
-      throw new BadGatewayException({
-        code: ApiErrorCode.VERSIONS_UNAVAILABLE,
-        message: `Failed to list versions: ${reason}`,
-        // Shown in the UI as the reason
-        details: [{ field: "versions", message: reason }],
-      });
-    }
+    const blueprint = this.findBlueprint(id);
+    return this.upstream(() => this.versions.listVersions(blueprint));
+  }
+
+  @Get(":id/versions/labeled")
+  @ApiOperation({ summary: "List versions offered by a blueprint with labels" })
+  @ApiOkResponse({
+    type: [ServerTypeVersionDto],
+    description: "Available versions, label is null when unknown",
+  })
+  @ApiErrorResponses([401, 403, 404, 502])
+  @RequireAccess(AccessArea.SERVERS, "write")
+  async labeledVersionsFor(
+    @Param("id") id: string,
+  ): Promise<ServerTypeVersionDto[]> {
+    const blueprint = this.findBlueprint(id);
+    return this.upstream(() => this.versions.listLabeledVersions(blueprint));
   }
 
   @Post()
@@ -227,5 +248,27 @@ export class ServerTypesController {
   })
   remove(@Param("id") id: string): void {
     this.installer.remove(id);
+  }
+
+  private findBlueprint(id: string) {
+    const blueprint = this.registry.get(id);
+    if (!blueprint) throw new NotFoundException(`Unknown blueprint: ${id}`);
+    return blueprint;
+  }
+
+  // Versions come from upstream APIs, if they fail it's not on us
+  private async upstream<T>(list: () => Promise<T>): Promise<T> {
+    try {
+      return await list();
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      const reason = getErrorMessage(error);
+      throw new BadGatewayException({
+        code: ApiErrorCode.VERSIONS_UNAVAILABLE,
+        message: `Failed to list versions: ${reason}`,
+        // Shown in the UI as the reason
+        details: [{ field: "versions", message: reason }],
+      });
+    }
   }
 }

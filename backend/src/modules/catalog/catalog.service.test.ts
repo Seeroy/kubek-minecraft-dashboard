@@ -40,8 +40,18 @@ const index = {
   kind: "blueprint",
   generatedAt: "2026-11-20T00:00:00.000Z",
   items: [
-    item("com.a.one", "1.2.0"),
-    item("com.a.two", "1.0.0"),
+    item("com.a.one", "1.2.0", {
+      readme: {
+        files: {
+          default: "https://kubekpanel.github.io/blueprints/readme/com.a.one.md",
+          ru: "https://kubekpanel.github.io/blueprints/readme/com.a.one.ru.md",
+        },
+        base: "https://github.com/someone/repo/blob/abc/",
+      },
+    }),
+    item("com.a.two", "1.0.0", {
+      readme: { files: { default: "https://evil.example/readme.md" }, base: null },
+    }),
     item("com.a.bad", "1.0.0"),
   ],
   blocked: [{ id: "com.a.bad", reason: "steals tokens" }],
@@ -59,6 +69,7 @@ beforeEach(() => {
       return indexDown
         ? new Response("", { status: 503 })
         : Response.json(index);
+    if (url.includes("/readme/")) return new Response(`# ${url.split("/").pop()}`);
     return new Response(body);
   }) as unknown as typeof fetch;
 });
@@ -134,5 +145,21 @@ describe("CatalogService", () => {
     await expect(service.download("blueprints", "com.a.nope")).rejects.toThrow(
       "is not in the catalog",
     );
+  });
+
+  test("README in the panel language, README.md otherwise", async () => {
+    const service = new CatalogService();
+    expect(await service.readme("blueprints", "com.a.one", "ru")).toEqual({
+      markdown: "# com.a.one.ru.md",
+      lang: "ru",
+      base: "https://github.com/someone/repo/blob/abc/",
+    });
+    expect((await service.readme("blueprints", "com.a.one", "de")).markdown).toBe("# com.a.one.md");
+  });
+
+  test("README only from the catalog site", async () => {
+    const service = new CatalogService();
+    await expect(service.readme("blueprints", "com.a.two")).rejects.toThrow("outside the catalog");
+    await expect(service.readme("blueprints", "com.a.nope")).rejects.toThrow("has no README");
   });
 });

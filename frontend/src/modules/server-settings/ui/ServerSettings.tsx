@@ -14,7 +14,7 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { SaveBar } from "@/shared/ui/settings";
 import { Tabs, TabsContent, TabsCount, TabsList, TabsSeparator, TabsTrigger } from "@/shared/ui/tabs";
 import { AccessArea } from "@shared/access/areas";
-import { BookMarked, Coffee, Earth, GamepadDirectional, Network, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints } from "lucide-react";
+import { BookMarked, Coffee, Earth, FileCog, GamepadDirectional, Network, RectangleEllipsis, RotateCw, Server as ServerIcon, ServerOff, TriangleAlert, Waypoints } from "lucide-react";
 import LogoMark from "@/shared/ui/logo-mark";
 import { Fragment, useRef, type ComponentType } from "react";
 import { CompanionSettingsTab } from "@/modules/companion/ui/settings/CompanionSettingsTab";
@@ -22,6 +22,7 @@ import { NetworkTab } from "@/modules/networks/ui/NetworkTab";
 import { useSettingsDraft } from "../hooks/useSettingsDraft";
 import type { SettingsTab } from "../lib/schema";
 import { SERVER_SETTINGS_TABS } from "../lib/tabs";
+import { ConfigFilesTab } from "./ConfigFilesTab";
 import { GeneralTab } from "./GeneralTab";
 import { JavaTab } from "./JavaTab";
 import { OtherPropertiesTab } from "./OtherPropertiesTab";
@@ -38,6 +39,7 @@ const TABS: { id: SettingsTab; icon: ComponentType<{ className?: string }>; sepa
   { id: "other", icon: RectangleEllipsis },
   { id: "velocity", icon: Waypoints, separatorBefore: true },
   { id: "companion", icon: LogoMark, separatorBefore: true },
+  { id: "configs", icon: FileCog, separatorBefore: true },
 ];
 
 function ServerSettingsForm({ server }: { server: Server }) {
@@ -48,9 +50,11 @@ function ServerSettingsForm({ server }: { server: Server }) {
   const [tab, changeTab] = useRouteTab<SettingsTab>("/server-settings", SERVER_SETTINGS_TABS, "general");
   const canWrite = useAccess([AccessArea.SETTINGS, "write"], server.id);
   const canSeeNetwork = useAccess([AccessArea.NETWORKS, "read"]);
+  const canReadFiles = useAccess([AccessArea.FILES, "read"], server.id);
 
   // The blueprint decides which tabs this core supports
-  const allowed = (id: SettingsTab) => (id !== "velocity" || canSeeNetwork) && (!blueprint || settingsTabAllowedByBlueprint(id, blueprint));
+  const allowed = (id: SettingsTab) =>
+    (id !== "velocity" || canSeeNetwork) && (id !== "configs" || canReadFiles) && (!blueprint || settingsTabAllowedByBlueprint(id, blueprint));
   const tabs = TABS.filter((item) => allowed(item.id));
   const active = tabs.some((item) => item.id === tab) ? tab : "general";
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -82,6 +86,11 @@ function ServerSettingsForm({ server }: { server: Server }) {
         // Saved on its own, not part of the server.properties draft
         <TabsContent value="companion">
           <CompanionSettingsTab serverId={server.id} />
+        </TabsContent>
+      ) : active === "configs" ? (
+        // Files are saved one by one through the files API
+        <TabsContent value="configs">
+          <ConfigFilesTab server={server} />
         </TabsContent>
       ) : draft.loadFailed ? (
         <Empty className="rounded-lg border border-border bg-card py-14">

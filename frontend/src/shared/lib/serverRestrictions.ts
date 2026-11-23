@@ -1,4 +1,4 @@
-import type { BlueprintSummary } from "@/shared/types/server-types.types";
+import type { BlueprintFeature, BlueprintSummary } from "@/shared/types/server-types.types";
 
 /**
  * Decide whether a server-settings tab is available from the server's blueprint
@@ -23,6 +23,8 @@ export function settingsTabAllowedByBlueprint(
       return bp.id === "com.kubek.velocity";
     case "companion":
       return bp.features.includes("plugins:modrinth");
+    case "configs":
+      return bp.configFiles.length > 0;
     default:
       return true;
   }
@@ -44,9 +46,25 @@ export function routeAllowedByBlueprint(
       return bp.variables.some((v) => v.key === "JAVA_VERSION");
     case "/players":
       return playerListsAllowed(bp);
-    default:
-      return true;
+    default: {
+      const feature = BASE_FEATURE_ROUTES[href];
+      return feature ? baseFeatureAllowed(bp, feature) : true;
+    }
   }
+}
+
+/** Pages every server had before blueprints declared features */
+export const BASE_FEATURE_ROUTES: Partial<Record<string, BaseFeature>> = {
+  "/console": "console",
+  "/backups": "backups",
+  "/files": "files",
+};
+
+export type BaseFeature = Extract<BlueprintFeature, "console" | "backups" | "files">;
+
+// An empty features list comes from blueprints made before features existed, they keep everything
+export function baseFeatureAllowed(bp: BlueprintSummary, feature: BaseFeature): boolean {
+  return bp.features.length === 0 || bp.features.includes(feature);
 }
 
 // Proxies have no server.properties

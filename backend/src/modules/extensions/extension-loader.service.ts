@@ -1,4 +1,5 @@
 import { safeId } from "@/core/utils/safeId";
+import { isInside } from "@/core/utils/paths";
 import { Injectable } from "@nestjs/common";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -12,17 +13,19 @@ const EXT_ROOT = resolve("extensions");
  */
 @Injectable()
 export class ExtensionLoader {
+  root = EXT_ROOT;
+
   /** Absolute directory an extension lives in */
   dir(extId: string): string {
-    return join(EXT_ROOT, safeId(extId));
+    return join(this.root, safeId(extId));
   }
 
-  async load(extId: string, entry: string): Promise<KubekBackendModule> {
+  /** The token changes per install, so an update imports fresh code and the same install reuses it */
+  async load(extId: string, entry: string, token?: string): Promise<KubekBackendModule> {
     const file = join(this.dir(extId), entry);
     if (!existsSync(file)) throw new Error(`backend entry not found: ${entry}`);
 
-    // cache-bust so a reinstalled extension re-imports fresh
-    const imported = await import(`${file}?t=${this.token(extId)}`);
+    const imported = await import(`${file}?t=${encodeURIComponent(token ?? safeId(extId))}`);
     const mod = imported.default ?? imported;
     if (typeof mod.activate !== "function") {
       throw new Error("backend entry must export an activate(ctx) function");
@@ -30,8 +33,12 @@ export class ExtensionLoader {
     return { activate: mod.activate, deactivate: mod.deactivate };
   }
 
-  /** Stable per-extension import token so repeated loads in one boot share a module instance */
-  private token(extId: string): string {
-    return safeId(extId);
+  /** Drops cached modules of the extension, files the entry imports would stay stale otherwise */
+  forget(extId: string): void {
+    const dir = this.dir(extId);
+    for (const key of Object.keys(require.cache)) {
+      const path = key.split("?")[0];
+      if (isInside(dir, path)) delete require.cache[key];
+    }
   }
 }

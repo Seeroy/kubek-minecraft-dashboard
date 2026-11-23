@@ -2,6 +2,7 @@ import { CatalogModule } from "@/modules/catalog/catalog.module";
 import { ServersModule } from "@/modules/servers/servers.module";
 import { Global, Module } from "@nestjs/common";
 import { ContextFactory } from "./context/context.factory";
+import { ExtensionCommands } from "./extension-commands.service";
 import { ExtensionDispatchController } from "./extension-dispatch.controller";
 import { ExtensionEventBus } from "./extension-event-bus.service";
 import { ExtensionLoader } from "./extension-loader.service";
@@ -23,6 +24,7 @@ import { InProcessHost } from "./isolation/in-process.host";
     ContextFactory,
     InProcessHost,
     ExtensionManager,
+    ExtensionCommands,
   ],
   exports: [ExtensionEventBus, ExtensionRegistry],
 })

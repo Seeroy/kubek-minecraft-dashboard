@@ -17,13 +17,110 @@ export class HttpEngine {
 
   /** Run a step and return the extracted value (array for lists, scalar for single lookups) */
   async run(step: HttpStep, scope: ResolveScope): Promise<unknown> {
+    return (await this.runChain(step, scope)).result;
+  }
+
+  /** Extract versions list as strings */
+  async listVersions(step: HttpStep, scope: ResolveScope): Promise<string[]> {
+    const result = await this.run(step, scope);
+    if (!Array.isArray(result)) return [];
+    return result.map((v) => String(v));
+  }
+
+  /** Resolve a single download URL, from a list the newest by the last step's sort */
+  async resolveDownload(step: HttpStep, scope: ResolveScope): Promise<string> {
+    const { result, step: last } = await this.runChain(step, scope);
+    const url = Array.isArray(result)
+      ? last.sort?.endsWith("-asc")
+        ? result[result.length - 1]
+        : result[0]
+      : result;
+    return String(url ?? "");
+  }
+
+  /** Runs a step and its then chain, returns the result with the step that made it */
+  private async runChain(
+    step: HttpStep,
+    scope: ResolveScope,
+  ): Promise<{ result: unknown; step: HttpStep }> {
     const platformScope = step.platform
       ? { ...scope, ...platformVars() }
       : scope;
 
-    const url = this.resolver.substitute(step.request.url, platformScope);
-    const headers = this.substituteRecord(step.request.headers, platformScope);
-    const query = this.substituteRecord(step.request.query, platformScope);
+    let result = await this.fetchSelected(step, platformScope);
+
+    if (step.filter && Array.isArray(result)) {
+      result = result.filter((item) => evalFilter(step.filter!, item));
+    }
+    if (step.map && Array.isArray(result)) {
+      result = result.map((item) => pickField(item, step.map!));
+    }
+    if (step.sort && Array.isArray(result)) {
+      result = sortValues(result as string[], step.sort);
+    }
+
+    if (step.then) {
+      // Newest element: first of a descending list, last of anything else
+      const prev = Array.isArray(result)
+        ? step.sort?.endsWith("-desc")
+          ? result[0]
+          : result[result.length - 1]
+        : result;
+      const nextScope = { ...platformScope, prev: prev as string | number };
+      // terminal { url } form: build the final string, do not fetch it
+      if ("url" in step.then && !("request" in step.then)) {
+        return {
+          result: this.resolver.substitute(step.then.url, nextScope),
+          step,
+        };
+      }
+      return this.runChain(step.then as HttpStep, nextScope);
+    }
+
+    return { result, step };
+  }
+
+  /** Request and select, following paginate.nextSelect while pages keep coming */
+  private async fetchSelected(
+    step: HttpStep,
+    scope: ResolveScope,
+  ): Promise<unknown> {
+    let url = this.resolver.substitute(step.request.url, scope);
+    const paginate = step.paginate;
+    if (!paginate) {
+      const page = await this.request(step, url, scope, true);
+      return this.select(step.select, page.data, page.headers, scope);
+    }
+
+    const maxPages = Math.min(Math.max(paginate.max ?? 10, 1), MAX_PAGES);
+    const seen = new Set<string>();
+    let items: unknown[] | undefined;
+    for (let page = 0; page < maxPages; page++) {
+      seen.add(url);
+      const res = await this.request(step, url, scope, page === 0);
+      const selected = this.select(step.select, res.data, res.headers, scope);
+      if (!Array.isArray(selected)) return items ?? selected;
+      items = [...(items ?? []), ...selected];
+      if (!selected.length) break;
+
+      const next = this.nextPageUrl(paginate.nextSelect, res, url, scope);
+      if (!next || seen.has(next)) break;
+      url = next;
+    }
+    return items ?? [];
+  }
+
+  private async request(
+    step: HttpStep,
+    url: string,
+    scope: ResolveScope,
+    withQuery: boolean,
+  ): Promise<{ data: unknown; headers: Record<string, string> }> {
+    const headers = this.substituteRecord(step.request.headers, scope);
+    // Next page URLs carry their own query string
+    const query = withQuery
+      ? this.substituteRecord(step.request.query, scope)
+      : undefined;
 
     const method = step.request.method ?? "GET";
     const hasBody = step.request.body !== undefined && method !== "GET";
@@ -49,44 +146,28 @@ export class HttpEngine {
     } catch {
       // keep raw text for text-regex selectors
     }
-
-    let result = this.select(step.select, data, resHeaders, platformScope);
-
-    if (step.filter && Array.isArray(result)) {
-      result = result.filter((item) => evalFilter(step.filter!, item));
-    }
-    if (step.map && Array.isArray(result)) {
-      result = result.map((item) => pickField(item, step.map!));
-    }
-    if (step.sort && Array.isArray(result)) {
-      result = sortValues(result as string[], step.sort);
-    }
-
-    if (step.then) {
-      const prev = Array.isArray(result) ? result[result.length - 1] : result;
-      const nextScope = { ...platformScope, prev: prev as string | number };
-      // terminal { url } form: build the final string, do not fetch it
-      if ("url" in step.then && !("request" in step.then)) {
-        return this.resolver.substitute(step.then.url, nextScope);
-      }
-      return this.run(step.then as HttpStep, nextScope);
-    }
-
-    return result;
+    return { data, headers: resHeaders };
   }
 
-  /** Extract versions list as strings */
-  async listVersions(step: HttpStep, scope: ResolveScope): Promise<string[]> {
-    const result = await this.run(step, scope);
-    if (!Array.isArray(result)) return [];
-    return result.map((v) => String(v));
-  }
-
-  /** Resolve a single download URL */
-  async resolveDownload(step: HttpStep, scope: ResolveScope): Promise<string> {
-    const result = await this.run(step, scope);
-    const url = Array.isArray(result) ? result[0] : result;
-    return String(url ?? "");
+  /** Next page from the selector, a Link header gives its rel="next" target */
+  private nextPageUrl(
+    nextSelect: string,
+    res: { data: unknown; headers: Record<string, string> },
+    current: string,
+    scope: ResolveScope,
+  ): string | null {
+    const selected = this.select(nextSelect, res.data, res.headers, scope);
+    if (typeof selected !== "string" || !selected.trim()) return null;
+    let next: string | undefined = selected;
+    if (nextSelect.startsWith("header:") && /rel="?next"?/.test(selected)) {
+      next = /<([^>]+)>\s*;[^,]*rel="?next"?/.exec(selected)?.[1];
+      if (!next) return null;
+    }
+    try {
+      return new URL(next.trim(), current).href;
+    } catch {
+      return null;
+    }
   }
 
   private substituteRecord(
@@ -125,6 +206,9 @@ export class HttpEngine {
     return data;
   }
 }
+
+/** Upper bound for paginate.max */
+const MAX_PAGES = 50;
 
 /** Platform substitution values for {{os}} / {{arch}} */
 function platformVars(): ResolveScope {

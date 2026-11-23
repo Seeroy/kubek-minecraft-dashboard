@@ -32,7 +32,10 @@ import {
 import { AuditAction } from "@shared/types/audit.types";
 import type { IUser } from "@shared/types/user.types";
 import { InstallPluginDto } from "./dto/install-plugin.dto";
-import { InstalledContentDto } from "./dto/installed-content.dto";
+import {
+  ContentUpdatesCountDto,
+  InstalledContentDto,
+} from "./dto/installed-content.dto";
 import {
   ModrinthProjectDto,
   ModrinthSearchResponseDto,
@@ -106,6 +109,22 @@ export class PluginsController {
     @Param("serverId") serverId: string,
   ): Promise<InstalledContentDto[]> {
     return this.pluginsService.listInstalled(serverId);
+  }
+
+  @Get("updates/:serverId")
+  @ApiOperation({
+    summary: "Count plugins with an update",
+    description: "Known from the background check or the last installed list, no Modrinth request",
+  })
+  @RequireAccess(AccessArea.CONTENT, "read")
+  @CheckServerAccess("serverId")
+  @ApiParam({ name: "serverId", description: "Server ID" })
+  @ApiOkResponse({ type: ContentUpdatesCountDto })
+  @ApiErrorResponses()
+  async countUpdates(
+    @Param("serverId") serverId: string,
+  ): Promise<ContentUpdatesCountDto> {
+    return { count: await this.pluginsService.countUpdates(serverId) };
   }
 
   @Post("install")

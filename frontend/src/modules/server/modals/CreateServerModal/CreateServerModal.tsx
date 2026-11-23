@@ -160,6 +160,7 @@ export function CreateServerModal({ isOpen, onClose }: ModalProps) {
                 blueprint={blueprint}
                 versionVarKey={selection.versionVarKey}
                 versions={selection.versions}
+                versionLabels={selection.versionLabels}
                 versionsLoading={selection.versionsLoading}
                 versionsError={selection.versionsError}
                 javaResolving={javaResolving}

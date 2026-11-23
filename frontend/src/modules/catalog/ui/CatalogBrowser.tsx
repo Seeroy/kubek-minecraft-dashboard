@@ -25,6 +25,7 @@ import {
   sortItems,
 } from "../lib/catalog";
 import { CatalogItemCard } from "./CatalogItemCard";
+import type { CatalogKind } from "../api/readme.queries";
 import { CatalogItemDialog } from "./CatalogItemDialog";
 import { CatalogItemRow } from "./CatalogItemRow";
 import { CommunityInstallDialog } from "./CommunityInstallDialog";
@@ -41,6 +42,7 @@ interface CatalogQuery<T> {
 interface CatalogBrowserProps<T extends CatalogEntry> {
   /** Remembers the skeleton shape, unique per section */
   id: string;
+  kind: CatalogKind;
   query: CatalogQuery<T>;
   view: CatalogLayout;
   icon: LucideIcon;
@@ -55,7 +57,7 @@ interface CatalogBrowserProps<T extends CatalogEntry> {
   install?: (item: T) => Promise<unknown>;
 }
 
-export function CatalogBrowser<T extends CatalogEntry>({ id, query, view, icon: Icon, repo, sample, marks, searchText, details, install }: CatalogBrowserProps<T>) {
+export function CatalogBrowser<T extends CatalogEntry>({ id, kind, query, view, icon: Icon, repo, sample, marks, searchText, details, install }: CatalogBrowserProps<T>) {
   const { t } = useTranslation("modules.catalog");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<CatalogFilter>("all");
@@ -223,6 +225,7 @@ export function CatalogBrowser<T extends CatalogEntry>({ id, query, view, icon: 
       </a>
 
       <CatalogItemDialog
+        kind={kind}
         item={viewing}
         icon={Icon}
         marks={viewing ? marks(viewing) : []}

@@ -14,6 +14,7 @@ export const commandPaletteTranslations = {
     navigation: "Navigation",
     servers: "Servers",
     actions: "Actions",
+    extension: "Extensions",
   },
   actions: {
     start: "Start server",
@@ -22,5 +23,9 @@ export const commandPaletteTranslations = {
     kill: "Force stop",
     createBackup: "Create backup",
     createServer: "Create server",
+  },
+  extensionCommand: {
+    done: (title: string) => `Command "${title}" done`,
+    failed: (title: string) => `Command "${title}" failed`,
   },
 };

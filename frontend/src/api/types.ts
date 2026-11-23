@@ -872,6 +872,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/server-types/catalog/{id}/readme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** README of a catalog item in the panel language */
+        get: operations["ServerTypesController_catalogReadme"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/server-types/catalog/{id}/install": {
         parameters: {
             query?: never;
@@ -898,6 +915,23 @@ export interface paths {
         };
         /** List versions offered by a blueprint */
         get: operations["ServerTypesController_versionsFor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/server-types/{id}/versions/labeled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List versions offered by a blueprint with labels */
+        get: operations["ServerTypesController_labeledVersionsFor"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1909,6 +1943,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plugins/updates/{serverId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count plugins with an update
+         * @description Known from the background check or the last installed list, no Modrinth request
+         */
+        get: operations["PluginsController_countUpdates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plugins/install": {
         parameters: {
             query?: never;
@@ -2207,6 +2261,26 @@ export interface paths {
         };
         /** List installed mods for server */
         get: operations["ModsController_listInstalled"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mods/updates/{serverId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count mods with an update
+         * @description Known from the background check or the last installed list, no Modrinth request
+         */
+        get: operations["ModsController_countUpdates"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3478,6 +3552,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/extensions/login-slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active extensions with a login.footer slot, readable before login */
+        get: operations["ExtensionsController_loginSlots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/extensions/login-slots/{id}/bundle.js": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Frontend bundle of a login.footer extension */
+        get: operations["ExtensionsController_loginBundle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/extensions/commands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Extension commands the user may run */
+        get: operations["ExtensionsController_listCommands"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/extensions/{id}/commands/{commandId}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run an extension command */
+        post: operations["ExtensionsController_runCommand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/extensions/{id}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settings form of an extension */
+        get: operations["ExtensionsController_settings"];
+        /** Save extension settings */
+        put: operations["ExtensionsController_saveSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/extensions/catalog": {
         parameters: {
             query?: never;
@@ -3487,6 +3647,23 @@ export interface paths {
         };
         /** Extensions from the KubekPanel/extensions catalog */
         get: operations["ExtensionsController_catalogList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/extensions/catalog/{id}/readme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** README of a catalog item in the panel language */
+        get: operations["ExtensionsController_catalogReadme"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3779,7 +3956,7 @@ export interface components {
              * @description Source of the action
              * @enum {string}
              */
-            source: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp";
+            source: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp" | "extension";
             /** @description API key the request came with */
             apiKeyId?: string | null;
             /** @description API key name when the action happened */
@@ -4599,7 +4776,7 @@ export interface components {
              */
             runtimeKind: string;
             /**
-             * @description Whether this blueprint can run in Docker (has a docker profile)
+             * @description Whether this blueprint can run in Docker (has a docker profile built for this daemon platform)
              * @example true
              */
             dockerCapable: boolean;
@@ -4649,6 +4826,14 @@ export interface components {
             /** @description Package size in bytes */
             size: number;
         };
+        CatalogReadmeDto: {
+            /** @description Language to url, "default" is README.md */
+            files: {
+                [key: string]: string;
+            };
+            /** @description GitHub folder the README links are relative to */
+            base: string | null;
+        };
         CatalogBlueprintDto: {
             id: string;
             name: string;
@@ -4672,6 +4857,7 @@ export interface components {
             download: components["schemas"]["CatalogDownloadDto"];
             /** @description ISO date */
             updatedAt: string | null;
+            readme?: components["schemas"]["CatalogReadmeDto"] | null;
             /** @description engines.kubek matches this panel */
             compatible: boolean;
             installedVersion: string | null;
@@ -4698,6 +4884,12 @@ export interface components {
             stale: boolean;
             items: components["schemas"]["CatalogBlueprintDto"][];
         };
+        CatalogReadmeResponseDto: {
+            markdown: string;
+            /** @description "default" when there is no README for the asked language */
+            lang: string;
+            base: string | null;
+        };
         ServerTypeInstallResponseDto: {
             /**
              * @description Blueprint id
@@ -4714,6 +4906,18 @@ export interface components {
              * @example true
              */
             valid: boolean;
+        };
+        ServerTypeVersionDto: {
+            /**
+             * @description Version id
+             * @example 1.21.4
+             */
+            id: string;
+            /**
+             * @description Label from the blueprint, null when the source has none
+             * @example 1.21.4 (latest)
+             */
+            label: string | null;
         };
         SystemInfoDto: {
             /**
@@ -5224,7 +5428,7 @@ export interface components {
              * @description Type of task
              * @enum {string}
              */
-            type: "server.create" | "server.changeCore" | "server.duplicate" | "server.import" | "server.export" | "server.create_modpack" | "server.start" | "server.stop" | "server.restart" | "plugin.install" | "plugin.update" | "plugin.remove" | "mod.install" | "mod.update" | "mod.remove" | "backup.create" | "backup.restore" | "backup.delete" | "backup.upload" | "java.install" | "files.delete" | "files.archive" | "files.extract" | "network.create" | "network.update" | "modpack.inspect";
+            type: "server.create" | "server.changeCore" | "server.duplicate" | "server.import" | "server.export" | "server.create_modpack" | "server.start" | "server.stop" | "server.restart" | "plugin.install" | "plugin.update" | "plugin.remove" | "mod.install" | "mod.update" | "mod.remove" | "backup.create" | "backup.restore" | "backup.delete" | "backup.upload" | "java.install" | "files.delete" | "files.archive" | "files.extract" | "network.create" | "network.update" | "modpack.inspect" | "extension.task";
             /**
              * @description Current status of task
              * @enum {string}
@@ -5992,6 +6196,10 @@ export interface components {
             hasUpdate: boolean;
             /** @description Latest available version */
             latestVersion?: components["schemas"]["InstalledContentVersionSummaryDto"];
+        };
+        ContentUpdatesCountDto: {
+            /** @description Installed items with a newer compatible version */
+            count: number;
         };
         InstallPluginDependencyDto: {
             /** @description Modrinth project id of the dependency */
@@ -7373,7 +7581,7 @@ export interface components {
             /** @example task.failed */
             kind: string;
             /** @enum {string} */
-            category: "tasks" | "servers" | "backups" | "security" | "system";
+            category: "tasks" | "servers" | "backups" | "security" | "system" | "content";
             /** @enum {string} */
             severity: "info" | "success" | "warning" | "error";
             /** @description Kind specific params */
@@ -7388,7 +7596,7 @@ export interface components {
         };
         NotificationPrefsDto: {
             /**
-             * @description Category to channel switches, categories: tasks, servers, backups, security, system; channels: inbox, telegram
+             * @description Category to channel switches, categories: tasks, servers, backups, security, system, content; channels: inbox, telegram
              * @example {
              *       "tasks": {
              *         "inbox": true,
@@ -7502,6 +7710,40 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        ExtensionCommandDto: {
+            /** @description Extension id */
+            extId: string;
+            /** @description Extension display name */
+            extName: string;
+            /** @description Command id inside the extension */
+            id: string;
+            /** @description Title to show */
+            title: string;
+            /** @description Lucide icon name */
+            icon?: string;
+            /** @description Extension permission needed to run it */
+            permission?: string;
+        };
+        ExtensionSettingsDto: {
+            /** @description settingsSchema fields from the manifest */
+            schema: {
+                [key: string]: unknown;
+            }[];
+            /** @description Every non secret field, saved value or the default, null when neither */
+            values: {
+                [key: string]: unknown;
+            };
+            /** @description Secret fields and whether a value is saved */
+            secrets: {
+                [key: string]: boolean;
+            };
+        };
+        SaveExtensionSettingsDto: {
+            /** @description Field values by key. Secrets: a non empty string sets, null clears, missing or "" keeps. null on other fields resets to the default */
+            values: {
+                [key: string]: unknown;
+            };
+        };
         CatalogExtensionDto: {
             id: string;
             name: string;
@@ -7525,6 +7767,7 @@ export interface components {
             download: components["schemas"]["CatalogDownloadDto"];
             /** @description ISO date */
             updatedAt: string | null;
+            readme?: components["schemas"]["CatalogReadmeDto"] | null;
             /** @description engines.kubek matches this panel */
             compatible: boolean;
             installedVersion: string | null;
@@ -7587,7 +7830,7 @@ export interface operations {
                 /** @description Entries about one server */
                 serverId?: string;
                 result?: "success" | "failed";
-                source?: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp";
+                source?: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp" | "extension";
                 /** @description Entries made with one API key */
                 apiKeyId?: string;
                 /** @description Matches username, resource name, action or key name */
@@ -7665,7 +7908,7 @@ export interface operations {
                 /** @description Entries about one server */
                 serverId?: string;
                 result?: "success" | "failed";
-                source?: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp";
+                source?: "panel" | "telegram" | "system" | "assistant" | "api" | "mcp" | "extension";
                 /** @description Entries made with one API key */
                 apiKeyId?: string;
                 /** @description Matches username, resource name, action or key name */
@@ -10897,6 +11140,62 @@ export interface operations {
             };
         };
     };
+    ServerTypesController_catalogReadme: {
+        parameters: {
+            query?: {
+                /** @description Panel language, README.<lang>.md wins over README.md */
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogReadmeResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     ServerTypesController_installFromCatalog: {
         parameters: {
             query?: never;
@@ -10976,6 +11275,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": string[];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ServerTypesController_labeledVersionsFor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Available versions, label is null when unknown */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerTypeVersionDto"][];
                 };
             };
             401: {
@@ -14643,6 +14996,68 @@ export interface operations {
             };
         };
     };
+    PluginsController_countUpdates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentUpdatesCountDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     PluginsController_install: {
         parameters: {
             query?: never;
@@ -15751,6 +16166,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InstalledContentDto"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ModsController_countUpdates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server ID */
+                serverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentUpdatesCountDto"];
                 };
             };
             400: {
@@ -20402,6 +20879,244 @@ export interface operations {
             };
         };
     };
+    ExtensionsController_loginSlots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Registry entries with only the login.footer slots */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtensionRegistryEntryDto"][];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_loginBundle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ESM bundle */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/javascript": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_listCommands: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtensionCommandDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_runCommand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                commandId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Command finished */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtensionSettingsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_saveSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveExtensionSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtensionSettingsDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
     ExtensionsController_catalogList: {
         parameters: {
             query?: {
@@ -20431,6 +21146,62 @@ export interface operations {
                 };
             };
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+        };
+    };
+    ExtensionsController_catalogReadme: {
+        parameters: {
+            query?: {
+                /** @description Panel language, README.<lang>.md wins over README.md */
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogReadmeResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBodyDto"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

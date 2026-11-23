@@ -1,4 +1,4 @@
-import { useBlueprints, useBlueprintVersions } from "@/modules/server-types/api/server-types.queries";
+import { useBlueprints, useBlueprintVersionLabels, useBlueprintVersions } from "@/modules/server-types/api/server-types.queries";
 import { useSystemInfoQuery } from "@/modules/system-monitoring/api/system-monitoring.queries";
 import type { BlueprintSummary, KubekPlatform } from "@/shared/types/server-types.types";
 import { useEffect, useEffectEvent, useMemo, type RefObject } from "react";
@@ -36,6 +36,7 @@ export function useBlueprintSelection({ form, schemaRef, freePort }: UseBlueprin
 
   const versionVarKey = selectedBlueprint?.variables.find((v) => v.options?.from === "versions")?.key;
   const versions = useBlueprintVersions(versionVarKey ? blueprintId : undefined);
+  const versionLabels = useBlueprintVersionLabels(versionVarKey ? blueprintId : undefined);
 
   const selectBlueprint = (bp: BlueprintSummary) => {
     const { schema, defaults } = buildBlueprintForm(bp);
@@ -68,6 +69,7 @@ export function useBlueprintSelection({ form, schemaRef, freePort }: UseBlueprin
     selectBlueprint,
     versionVarKey,
     versions: versions.data,
+    versionLabels,
     versionsLoading: versions.isLoading,
     versionsError: versions.error,
     dockerAvailable: !!system.data?.dockerAvailable,

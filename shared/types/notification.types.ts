@@ -4,6 +4,7 @@ export enum NotificationCategory {
   BACKUPS = "backups",
   SECURITY = "security",
   SYSTEM = "system",
+  CONTENT = "content",
 }
 
 export enum NotificationChannel {
@@ -39,6 +40,17 @@ export interface NotificationParamsMap {
     error: string;
   };
   "panel.update_available": { version: string; currentVersion: string; url: string };
+  "content.updates_available": ContentUpdatesParams;
+}
+
+export interface ContentUpdatesParams {
+  serverId: string;
+  serverName: string;
+  kind: "plugins" | "mods";
+  /** Every pending update, not only the new ones */
+  count: number;
+  /** A few titles to show, the rest is count minus these */
+  names: string[];
 }
 
 export interface TaskNotificationParams {
@@ -48,6 +60,8 @@ export interface TaskNotificationParams {
   serverName?: string;
   pluginName?: string;
   error?: string;
+  /** Extension tasks have no fixed label, the title comes with them */
+  title?: string;
 }
 
 export type NotificationKind = keyof NotificationParamsMap;
@@ -140,6 +154,11 @@ export const NOTIFICATION_KINDS: Record<NotificationKind, NotificationKindSpec> 
   },
   "panel.update_available": {
     category: NotificationCategory.SYSTEM,
+    severity: "info",
+    inbox: true,
+  },
+  "content.updates_available": {
+    category: NotificationCategory.CONTENT,
     severity: "info",
     inbox: true,
   },

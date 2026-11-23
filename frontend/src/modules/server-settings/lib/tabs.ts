@@ -10,4 +10,5 @@ export const SERVER_SETTINGS_TABS = [
   "other",
   "velocity",
   "companion",
+  "configs",
 ] as const satisfies readonly SettingsTab[];

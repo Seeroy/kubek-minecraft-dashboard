@@ -17,6 +17,8 @@ import type { DockerRuntime } from "@/modules/server-types/runtime/docker.runtim
 import type { IServerRuntime } from "@/modules/server-types/runtime/runtime.interface";
 import type { CompanionHub } from "@/modules/companion/link/companion-link";
 import { fake } from "@/testing/fake";
+import type { KubekBlueprintManifest } from "@kubekpanel/blueprint-sdk";
+import type { LoadedBlueprint } from "@/modules/server-types/server-types.types";
 import type { IInstanceLog } from "@shared/types/server/instance.types";
 import { type IServer, ServerStatus } from "@shared/types/server/server.types";
 import { ServerInstance, type ServerInstanceDeps } from "./instance";
@@ -60,13 +62,16 @@ let row: IServer;
 let runtimes: FakeRuntime[];
 let log: IInstanceLog[];
 
-function makeInstance(restartOnError: IServer["restartOnError"]) {
+function makeInstance(
+  restartOnError: IServer["restartOnError"],
+  blueprint?: KubekBlueprintManifest,
+) {
   row = {
     id: "srv",
     name: "srv",
     status: ServerStatus.STOPPED,
     restartOnError,
-    blueprintId: "",
+    blueprintId: blueprint ? "bp" : "",
     runtimeKind: "docker",
     variables: {},
   };
@@ -88,7 +93,10 @@ function makeInstance(restartOnError: IServer["restartOnError"]) {
       findById: (id) => (id === row.id ? row : null),
       update: (_id, data) => (row = { ...row, ...data }),
     }),
-    blueprintRegistry: fake<ServerTypesRegistry>({ get: () => undefined }),
+    blueprintRegistry: fake<ServerTypesRegistry>({
+      get: () =>
+        blueprint ? fake<LoadedBlueprint>({ manifest: blueprint }) : undefined,
+    }),
     queryRegistry: fake<QueryRegistry>({ get: () => null }),
     blueprintResolver: fake<BlueprintResolver>(),
     locks: fake<ServerLocksService>({ holder: () => null }),
@@ -96,6 +104,7 @@ function makeInstance(restartOnError: IServer["restartOnError"]) {
     launcher: fake<LaunchCommandBuilder>({
       scope: () => ({}),
       dockerCommand: () => "",
+      launchEnv: () => ({}),
       dockerRuntime: () => {
         const runtime = new FakeRuntime();
         runtimes.push(runtime);
@@ -219,5 +228,43 @@ describe("ServerInstance restartOnError", () => {
     await instance.start();
     await wait();
     expect(runtimes).toHaveLength(2);
+  });
+
+  test("a crash line makes a normal exit count as a crash", async () => {
+    const instance = makeInstance(
+      { enabled: true, attempts: 3 },
+      fake<KubekBlueprintManifest>({
+        detection: { running: ["^ready$"], crash: ["Exception in tick loop"] },
+      }),
+    );
+    await instance.start();
+    instance["onData"]("ready\n");
+    expect(row.status).toBe(ServerStatus.RUNNING);
+    instance["onData"]("java.lang.Error: Exception in tick loop\n");
+    expect(row.status).toBe(ServerStatus.CRASHED);
+    runtimes[0].exit(0);
+    expect(row.status).toBe(ServerStatus.CRASHED);
+
+    await wait();
+    expect(runtimes).toHaveLength(2);
+
+    // the flag is per run, a clean exit after a restart is a stop
+    runtimes[1].exit(0);
+    expect(row.status).toBe(ServerStatus.STOPPED);
+  });
+
+  test("a crash line before a requested stop is not a crash", async () => {
+    const instance = makeInstance(
+      { enabled: true, attempts: 3 },
+      fake<KubekBlueprintManifest>({ detection: { crash: ["boom"] } }),
+    );
+    await instance.start();
+    instance["onData"]("boom\n");
+    const stopped = instance.stop();
+    runtimes[0].exit(0);
+    await stopped;
+    await wait();
+    expect(row.status).toBe(ServerStatus.STOPPED);
+    expect(runtimes).toHaveLength(1);
   });
 });

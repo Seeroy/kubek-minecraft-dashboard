@@ -18,6 +18,7 @@ interface BasicsStepProps {
   blueprint: BlueprintSummary;
   versionVarKey: string | undefined;
   versions: string[] | undefined;
+  versionLabels: ReadonlyMap<string, string> | undefined;
   versionsLoading: boolean;
   /** Why the version list failed, shown under the version field */
   versionsError: unknown;
@@ -30,7 +31,7 @@ interface BasicsStepProps {
 }
 
 export function BasicsStep(props: BasicsStepProps) {
-  const { form, blueprint, versionVarKey, versions, versionsLoading, versionsError, javaResolving, recommendedJava, docker, portOwner, freePort } = props;
+  const { form, blueprint, versionVarKey, versions, versionLabels, versionsLoading, versionsError, javaResolving, recommendedJava, docker, portOwner, freePort } = props;
   const { t } = useTranslation("modules.newServerModal");
   // Validation messages are full translation keys
   const { t: tRoot } = useTranslation();
@@ -118,6 +119,7 @@ export function BasicsStep(props: BasicsStepProps) {
                   value={variables?.[variable.key]}
                   onChange={(value) => setVariable(variable.key, value)}
                   versions={isVersion ? versions : undefined}
+                  versionLabels={isVersion ? versionLabels : undefined}
                   versionsLoading={isVersion && versionsLoading}
                   invalid={!!errors.variables?.[variable.key]}
                   segmented

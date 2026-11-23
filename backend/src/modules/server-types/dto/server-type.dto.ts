@@ -54,7 +54,7 @@ export class ServerTypeDto {
 
   @ApiProperty({
     description:
-      "Whether this blueprint can run in Docker (has a docker profile)",
+      "Whether this blueprint can run in Docker (has a docker profile built for this daemon platform)",
     example: true,
   })
   dockerCapable: boolean;
@@ -104,4 +104,18 @@ export class ServerTypeInstallResponseDto {
     example: true,
   })
   valid: boolean;
+}
+
+/** One version of a blueprint with its display label */
+export class ServerTypeVersionDto {
+  @ApiProperty({ description: "Version id", example: "1.21.4" })
+  id: string;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: "Label from the blueprint, null when the source has none",
+    example: "1.21.4 (latest)",
+  })
+  label: string | null;
 }

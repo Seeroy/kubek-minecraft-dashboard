@@ -26,6 +26,11 @@ let root: string;
 let server: string;
 let tasks: TasksService;
 let service: FilesTasksService;
+let published: { event: string; payload: unknown }[];
+const changed = () =>
+  published
+    .filter((p) => p.event === "file.changed")
+    .map((p) => (p.payload as { path: string }).path);
 
 function put(relative: string, content = "x") {
   const full = join(server, relative);
@@ -40,7 +45,12 @@ beforeEach(() => {
   server = join(root, "servers", "srv");
   mkdirSync(server, { recursive: true });
 
-  const bus = fake<ExtensionEventBus>({ publish: () => {} });
+  published = [];
+  const bus = fake<ExtensionEventBus>({
+    publish: (event: string, payload: unknown) => {
+      published.push({ event, payload });
+    },
+  });
   tasks = new TasksService(
     fake<TasksEventsService>({
       emitTaskUpdate: () => {},
@@ -50,7 +60,7 @@ beforeEach(() => {
     bus,
     fake<AppEventsService>({ emit: () => {} }),
   );
-  service = new FilesTasksService(tasks, new FileBatchService());
+  service = new FilesTasksService(tasks, new FileBatchService(), bus);
 });
 
 afterEach(() => {
@@ -78,6 +88,7 @@ describe("FilesTasksService", () => {
     expect(done.status).toBe(TaskStatus.SUCCESS);
     expect(done.progress).toBe(100);
     expect(readdirSync(server)).toEqual([]);
+    expect(changed()).toEqual(["a.txt", "world"]);
   });
 
   test("a delete task that misses a file fails with the summary", async () => {
@@ -126,6 +137,7 @@ describe("FilesTasksService", () => {
     expect(extracted.status).toBe(TaskStatus.SUCCESS);
     expect(extracted.result).toEqual({ extractPath: "" });
     expect(readFileSync(join(server, "plugins", "a.yml"), "utf8")).toBe("a: 1");
+    expect(changed()).toEqual(["plugins-backup.zip", ""]);
   });
 
   test("a failed extract ends the task with the error message", async () => {

@@ -4,12 +4,15 @@ import { formatRelative } from "@/shared/lib/formatRelative";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { GithubMark } from "@/shared/ui/GithubMark";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { TriangleAlert, User, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import type { CatalogKind } from "../api/readme.queries";
 import { type CatalogEntry, type CatalogMark, formatSize, repoUrl, sourceUrl } from "../lib/catalog";
 import { CatalogAction } from "./CatalogAction";
 import { SourceBadge } from "./CatalogBadges";
 import { CatalogIcon } from "./CatalogIcon";
+import { CatalogReadme } from "./CatalogReadme";
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { day: "2-digit", month: "short", year: "numeric" });
 
@@ -38,7 +41,10 @@ export function CatalogFact({ label, children, wide }: { label: ReactNode; child
 
 const linkClass = "text-primary hover:underline";
 
+type DialogTab = "overview" | "readme";
+
 interface CatalogItemDialogProps<T extends CatalogEntry> {
+  kind: CatalogKind;
   item: T | null;
   icon: LucideIcon;
   marks: CatalogMark[];
@@ -50,12 +56,17 @@ interface CatalogItemDialogProps<T extends CatalogEntry> {
 }
 
 /** Everything the index knows about a package, so there is no need to open GitHub */
-export function CatalogItemDialog<T extends CatalogEntry>({ item, icon, marks, details, installing, onInstall, onClose }: CatalogItemDialogProps<T>) {
+export function CatalogItemDialog<T extends CatalogEntry>({ kind, item, icon, marks, details, installing, onInstall, onClose }: CatalogItemDialogProps<T>) {
   const { t } = useTranslation("modules.catalog");
   // Keeps the content while the close animation plays
   const [last, setLast] = useState(item);
-  if (item && item !== last) setLast(item);
+  const [tab, setTab] = useState<DialogTab>("overview");
+  if (item && item !== last) {
+    if (item.id !== last?.id) setTab("overview");
+    setLast(item);
+  }
   const shown = item ?? last;
+  const hasReadme = !!shown?.readme && Object.keys(shown.readme.files).length > 0;
   const warnings = marks.filter((mark) => mark.warning);
 
   return (
@@ -82,72 +93,86 @@ export function CatalogItemDialog<T extends CatalogEntry>({ item, icon, marks, d
             </DialogHeader>
 
             <DialogBody className="grid gap-5">
-              <p className="leading-relaxed whitespace-pre-line text-muted-foreground">{shown.description}</p>
-
-              {warnings.length > 0 && (
-                <ul className="tone-amber grid gap-2 rounded-lg border border-tone/25 bg-tone/9 px-3.5 py-3">
-                  {warnings.map((mark) => (
-                    <li key={mark.key} className="grid grid-cols-[16px_minmax(0,1fr)] gap-2">
-                      <TriangleAlert className="mt-0.5 size-3.5 text-tone" />
-                      <span>
-                        <b className="font-medium">{mark.label}</b>
-                        {mark.title && <span className="block text-[12.5px] text-muted-foreground">{mark.title}</span>}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              {hasReadme && (
+                <Tabs value={tab} onValueChange={(value) => setTab(value as DialogTab)}>
+                  <TabsList>
+                    <TabsTrigger value="overview">{t("tabs.overview")}</TabsTrigger>
+                    <TabsTrigger value="readme">{t("tabs.readme")}</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               )}
+              {hasReadme && tab === "readme" ? (
+                <CatalogReadme kind={kind} id={shown.id} active={!!item} />
+              ) : (
+                <>
+                <p className="leading-relaxed whitespace-pre-line text-muted-foreground">{shown.description}</p>
 
-              {details}
+                {warnings.length > 0 && (
+                  <ul className="tone-amber grid gap-2 rounded-lg border border-tone/25 bg-tone/9 px-3.5 py-3">
+                    {warnings.map((mark) => (
+                      <li key={mark.key} className="grid grid-cols-[16px_minmax(0,1fr)] gap-2">
+                        <TriangleAlert className="mt-0.5 size-3.5 text-tone" />
+                        <span>
+                          <b className="font-medium">{mark.label}</b>
+                          {mark.title && <span className="block text-[12.5px] text-muted-foreground">{mark.title}</span>}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
-              <CatalogSection title={t("details.info")}>
-                <CatalogFacts>
-                  <CatalogFact label={t("details.version")}>
-                    <span className="font-mono">{shown.version}</span>
-                    {shown.installedVersion && <span className="text-muted-foreground"> {t("fromVersion", shown.installedVersion)}</span>}
-                  </CatalogFact>
-                  <CatalogFact label={t("details.kubek")}>
-                    <span className={shown.compatible ? "font-mono" : "font-mono text-warn"}>{shown.engines.kubek || t("details.any")}</span>
-                  </CatalogFact>
-                  <CatalogFact label={t("details.updated")}>
-                    {shown.updatedAt ? (
-                      <span title={formatRelative(new Date(shown.updatedAt).getTime(), t("justNow"))}>{dateFormat.format(new Date(shown.updatedAt))}</span>
-                    ) : (
-                      "-"
-                    )}
-                  </CatalogFact>
-                  <CatalogFact label={t("license")}>{shown.license ?? t("details.noLicense")}</CatalogFact>
-                  <CatalogFact label={t("details.size")}>{formatSize(shown.download.size)}</CatalogFact>
-                  <CatalogFact label={t("details.id")}>
-                    <span className="font-mono" title={shown.id}>
-                      {shown.id}
-                    </span>
-                  </CatalogFact>
-                  <CatalogFact label={t("details.repo")}>
-                    <a href={repoUrl(shown)} target="_blank" rel="noreferrer" className={linkClass}>
-                      {shown.repo}
-                    </a>
-                  </CatalogFact>
-                  {shown.commit && (
-                    <CatalogFact label={t("details.commit")}>
-                      <a
-                        href={`https://github.com/${shown.repo}/tree/${shown.commit}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`font-mono ${linkClass}`}
-                        title={t("commitHint")}
-                      >
-                        {shown.commit.slice(0, 12)}
+                {details}
+
+                <CatalogSection title={t("details.info")}>
+                  <CatalogFacts>
+                    <CatalogFact label={t("details.version")}>
+                      <span className="font-mono">{shown.version}</span>
+                      {shown.installedVersion && <span className="text-muted-foreground"> {t("fromVersion", shown.installedVersion)}</span>}
+                    </CatalogFact>
+                    <CatalogFact label={t("details.kubek")}>
+                      <span className={shown.compatible ? "font-mono" : "font-mono text-warn"}>{shown.engines.kubek || t("details.any")}</span>
+                    </CatalogFact>
+                    <CatalogFact label={t("details.updated")}>
+                      {shown.updatedAt ? (
+                        <span title={formatRelative(new Date(shown.updatedAt).getTime(), t("justNow"))}>{dateFormat.format(new Date(shown.updatedAt))}</span>
+                      ) : (
+                        "-"
+                      )}
+                    </CatalogFact>
+                    <CatalogFact label={t("license")}>{shown.license ?? t("details.noLicense")}</CatalogFact>
+                    <CatalogFact label={t("details.size")}>{formatSize(shown.download.size)}</CatalogFact>
+                    <CatalogFact label={t("details.id")}>
+                      <span className="font-mono" title={shown.id}>
+                        {shown.id}
+                      </span>
+                    </CatalogFact>
+                    <CatalogFact label={t("details.repo")}>
+                      <a href={repoUrl(shown)} target="_blank" rel="noreferrer" className={linkClass}>
+                        {shown.repo}
                       </a>
                     </CatalogFact>
-                  )}
-                  <CatalogFact label="SHA-256" wide>
-                    <span className="font-mono text-[12px] text-muted-foreground" title={shown.download.sha256}>
-                      {shown.download.sha256}
-                    </span>
-                  </CatalogFact>
-                </CatalogFacts>
-              </CatalogSection>
+                    {shown.commit && (
+                      <CatalogFact label={t("details.commit")}>
+                        <a
+                          href={`https://github.com/${shown.repo}/tree/${shown.commit}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={`font-mono ${linkClass}`}
+                          title={t("commitHint")}
+                        >
+                          {shown.commit.slice(0, 12)}
+                        </a>
+                      </CatalogFact>
+                    )}
+                    <CatalogFact label="SHA-256" wide>
+                      <span className="font-mono text-[12px] text-muted-foreground" title={shown.download.sha256}>
+                        {shown.download.sha256}
+                      </span>
+                    </CatalogFact>
+                  </CatalogFacts>
+                </CatalogSection>
+                </>
+              )}
             </DialogBody>
 
             <DialogFooter className="sm:justify-between">

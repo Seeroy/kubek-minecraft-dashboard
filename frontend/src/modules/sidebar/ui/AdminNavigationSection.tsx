@@ -10,17 +10,20 @@ interface AdminNavigationSectionProps {
   items: NavItem[];
   title: string;
   renderItem: (item: NavItem) => ReactNode;
+  /** extension items placed after the panel ones */
+  extra?: ReactNode;
+  extraActive?: boolean;
 }
 
 /** Collapsible "Administration" group, always expanded in the collapsed sidebar */
-export function AdminNavigationSection({ items, title, renderItem }: AdminNavigationSectionProps) {
+export function AdminNavigationSection({ items, title, renderItem, extra, extraActive }: AdminNavigationSectionProps) {
   const pathname = usePathname();
-  const hasActive = items.some((item) => item.href === sectionPath(pathname));
+  const hasActive = !!extraActive || items.some((item) => item.href === sectionPath(pathname));
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
   // Follow the route until the user toggles the group themselves
   const open = userOpen ?? hasActive;
 
-  if (items.length === 0) return null;
+  if (items.length === 0 && !extra) return null;
 
   return (
     <div>
@@ -38,7 +41,10 @@ export function AdminNavigationSection({ items, title, renderItem }: AdminNaviga
         data-open={open || undefined}
         className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-250 ease-smooth data-open:grid-rows-[1fr] sidebar-mini:grid-rows-[1fr]"
       >
-        <div className="-ml-3 min-h-0 overflow-hidden pl-3">{items.map(renderItem)}</div>
+        <div className="-ml-3 min-h-0 overflow-hidden pl-3">
+          {items.map(renderItem)}
+          {extra}
+        </div>
       </div>
     </div>
   );

@@ -67,6 +67,9 @@ import {
   Heart,
   MapPin,
   RotateCcw,
+  Cpu,
+  SquareTerminal,
+  MousePointerClick,
 } from "lucide-react";
 
 type Look = { icon: LucideIcon; tone: Tone };
@@ -108,6 +111,12 @@ const ACTIONS: Record<string, Look> = {
   "extension.enable": { icon: Puzzle, tone: "purple" },
   "extension.disable": { icon: Puzzle, tone: "gray" },
   "extension.delete": { icon: Trash2, tone: "red" },
+  "extension.action": { icon: MousePointerClick, tone: "purple" },
+  "extension.process": { icon: Cpu, tone: "purple" },
+  "extension.server_command": { icon: SquareTerminal, tone: "purple" },
+  "extension.server_start": { icon: Play, tone: "green" },
+  "extension.server_stop": { icon: Square, tone: "red" },
+  "extension.config": { icon: SlidersHorizontal, tone: "purple" },
   "backup.create": { icon: Archive, tone: "cyan" },
   "backup.restore": { icon: Archive, tone: "amber" },
   "backup.delete": { icon: Trash2, tone: "red" },

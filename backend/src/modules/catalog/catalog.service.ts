@@ -13,6 +13,7 @@ import type {
   CatalogItemBase,
   CatalogItemState,
   CatalogKind,
+  CatalogReadmeResponse,
   CatalogResponse,
 } from "@shared/types/catalog.types";
 import { createHash } from "node:crypto";
@@ -23,6 +24,7 @@ const DEFAULT_BASE_URL = "https://kubekpanel.github.io";
 const CACHE_MS = 10 * 60_000;
 const INDEX_TIMEOUT_MS = 10_000;
 const DOWNLOAD_TIMEOUT_MS = 60_000;
+const README_MAX_BYTES = 256 * 1024;
 // Same as the upload limits for each kind
 const MAX_PACKAGE_BYTES: Record<CatalogKind, number> = {
   blueprints: 25 * 1024 * 1024,
@@ -51,6 +53,7 @@ export class CatalogService {
   private readonly logger = new Logger(CatalogService.name);
   private readonly cache = new Map<CatalogKind, Cached>();
   private readonly pending = new Map<CatalogKind, Promise<Cached>>();
+  private readonly readmes = new Map<string, { markdown: string; fetchedAt: number }>();
 
   private baseUrl(): string {
     return (process.env.KUBEK_CATALOG_URL ?? DEFAULT_BASE_URL).replace(
@@ -123,6 +126,38 @@ export class CatalogService {
 
     const filename = decodeURIComponent(url.pathname.split("/").pop() || id);
     return { buffer, filename, item };
+  }
+
+  /** README in the panel language, README.md when there is none */
+  async readme(
+    kind: CatalogKind,
+    id: string,
+    lang?: string,
+  ): Promise<CatalogReadmeResponse> {
+    const { cached } = await this.index(kind, false);
+    const item = cached.index.items.find((i) => i.id === id);
+    const files = item?.readme?.files ?? {};
+    const picked = lang && files[lang] ? lang : files.default ? "default" : Object.keys(files)[0];
+    if (!item || !picked) throw new NotFoundException(`${id} has no README`);
+
+    // Only files next to the index, an entry can't point the panel anywhere else
+    const url = new URL(files[picked]!);
+    if (url.protocol !== "https:" || url.origin !== new URL(this.baseUrl()).origin)
+      throw this.unavailable(`${id} README is outside the catalog`);
+
+    const hit = this.readmes.get(url.href);
+    if (hit && Date.now() - hit.fetchedAt < CACHE_MS)
+      return { markdown: hit.markdown, lang: picked, base: item.readme?.base ?? null };
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(INDEX_TIMEOUT_MS) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const markdown = (await this.readLimited(res, README_MAX_BYTES)).toString("utf8");
+      this.readmes.set(url.href, { markdown, fetchedAt: Date.now() });
+      return { markdown, lang: picked, base: item.readme?.base ?? null };
+    } catch (error) {
+      if (hit) return { markdown: hit.markdown, lang: picked, base: item.readme?.base ?? null };
+      throw this.unavailable(getErrorMessage(error));
+    }
   }
 
   private state(

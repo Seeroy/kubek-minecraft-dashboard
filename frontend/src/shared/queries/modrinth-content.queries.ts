@@ -16,6 +16,17 @@ export function useInstalledContent(kind: ContentKind, serverId: string | undefi
   });
 }
 
+/** Pending updates for the sidebar badge, refreshed with the installed list */
+export function useContentUpdatesCount(kind: ContentKind, serverId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: keysFor(kind).updates(serverId ?? ""),
+    queryFn: () => contentApi(kind).countUpdates(serverId!),
+    enabled: enabled && !!serverId,
+    staleTime: 5 * 60_000,
+    select: (data) => data.count,
+  });
+}
+
 export function useAvailableContentInfinite(
   kind: ContentKind,
   { pageSize, ...params }: Omit<ContentSearchParams, "offset" | "limit"> & { pageSize: number }

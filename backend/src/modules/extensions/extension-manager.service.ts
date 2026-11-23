@@ -1,3 +1,4 @@
+import { ApiErrorCode } from "@/core/errors/error-codes";
 import { UNPACK_LIMITS, unpackArchive } from "@/core/utils/archives";
 import { getErrorMessage } from "@/core/utils/error";
 import { isInside } from "@/core/utils/paths";
@@ -14,24 +15,32 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnApplicationShutdown,
   OnModuleInit,
 } from "@nestjs/common";
 import fs from "node:fs";
 import os from "node:os";
+import { randomUUID } from "node:crypto";
 import { join, resolve } from "node:path";
 import { ContextFactory, ContextSinks } from "./context/context.factory";
 import { ExtensionLoader } from "./extension-loader.service";
 import { ExtensionRegistry } from "./extension-registry.service";
+import {
+  applySettings,
+  CONFIG_KEY,
+  type SettingsView,
+  viewSettings,
+} from "./extension-settings";
 import { ExtensionValidator } from "./extension-validator.service";
 import type {
   ExtensionRecord,
   KubekBackendModule,
-  LoadedExtension,
 } from "./extensions.types";
 import { InProcessHost } from "./isolation/in-process.host";
 
-const EXT_ROOT = resolve("extensions");
 const MANIFEST_FILE = "kubek-extension.json";
+const BUNDLE = "frontend/dist/index.js";
+const LOGIN_SLOT = "login.footer";
 
 const ICON_MIME: Record<string, string> = {
   png: "image/png",
@@ -42,8 +51,14 @@ const ICON_MIME: Record<string, string> = {
  * install/remove packages, and apply consent/enable/disable
  */
 @Injectable()
-export class ExtensionManager implements OnModuleInit {
+export class ExtensionManager
+  implements OnModuleInit, OnApplicationShutdown
+{
   private readonly logger = new Logger(ExtensionManager.name);
+  // The table has no error column, the last activation error lives here
+  private readonly errors = new Map<string, string>();
+  // Set per install so an update imports its new backend code
+  private readonly importTokens = new Map<string, string>();
 
   constructor(
     private readonly repo: ExtensionsRepository,
@@ -60,11 +75,7 @@ export class ExtensionManager implements OnModuleInit {
     const records = this.repo.findAll();
     for (const record of records) {
       if (record.enabled && record.status !== "error") {
-        await this.activate(record).catch((e) =>
-          this.logger.error(
-            `boot-activate "${record.id}" failed: ${e?.message || e}`,
-          ),
-        );
+        await this.activate(record);
       }
     }
     this.logger.log(
@@ -74,7 +85,7 @@ export class ExtensionManager implements OnModuleInit {
 
   list(): Array<ExtensionRecord & { active: boolean; icon?: string }> {
     return this.repo.findAll().map((r) => ({
-      ...r,
+      ...this.withError(r),
       active: this.registry.isActive(r.id),
       icon: this.iconDataUri(r.id, r.manifest.icon),
     }));
@@ -95,21 +106,97 @@ export class ExtensionManager implements OnModuleInit {
 
   /** Active extensions with a frontend half, shaped for the panel runtime to mount */
   frontendRegistry() {
-    return this.registry
-      .list()
-      .map((l) => l.record)
-      .filter((r) => r.manifest.frontend)
+    return this.frontendRecords().map((r) => ({
+      id: r.id,
+      name: r.manifest.name,
+      version: r.version,
+      icon: r.manifest.icon ? this.assetUrl(r.id, r.manifest.icon) : undefined,
+      bundleUrl: `${this.assetUrl(r.id, BUNDLE)}?v=${this.bundleVersion(r)}`,
+      contributes: r.manifest.frontend?.contributes ?? {},
+      locales: this.readLocales(r.id),
+    }));
+  }
+
+  /** Extensions with a login.footer slot, served before login so only that slot and bundle */
+  loginSlots() {
+    return this.frontendRecords()
+      .filter((r) => this.hasLoginSlot(r))
       .map((r) => ({
         id: r.id,
         name: r.manifest.name,
         version: r.version,
-        icon: r.manifest.icon
-          ? this.assetUrl(r.id, r.manifest.icon)
-          : undefined,
-        bundleUrl: this.assetUrl(r.id, "frontend/dist/index.js"),
-        contributes: r.manifest.frontend?.contributes ?? {},
+        bundleUrl: `/api/extensions/login-slots/${encodeURIComponent(r.id)}/bundle.js?v=${this.bundleVersion(r)}`,
+        contributes: {
+          slots: (r.manifest.frontend?.contributes?.slots ?? []).filter(
+            (s) => s.slot === LOGIN_SLOT,
+          ),
+        },
         locales: this.readLocales(r.id),
       }));
+  }
+
+  /** Bundle file of an active login.footer extension, null for anything else */
+  loginBundle(id: string): string | null {
+    const record = this.registry.get(id)?.record;
+    if (!record || !this.hasLoginSlot(record)) return null;
+    return this.resolveAsset(id, BUNDLE);
+  }
+
+  private frontendRecords(): ExtensionRecord[] {
+    return this.registry
+      .list()
+      .map((l) => l.record)
+      .filter((r) => r.manifest.frontend);
+  }
+
+  private hasLoginSlot(record: ExtensionRecord): boolean {
+    return (record.manifest.frontend?.contributes?.slots ?? []).some(
+      (s) => s.slot === LOGIN_SLOT,
+    );
+  }
+
+  // Changes with every build, so the browser and the runtime cache miss after an update
+  private bundleVersion(record: ExtensionRecord): string {
+    const file = this.resolveAsset(record.id, BUNDLE);
+    const built = file ? Math.round(fs.statSync(file).mtimeMs) : 0;
+    return encodeURIComponent(`${record.version}-${built}`);
+  }
+
+  /** Settings form data, secret values never leave the backend */
+  settings(id: string): SettingsView {
+    const record = this.require(id);
+    return viewSettings(record.manifest.settingsSchema, this.readConfig(id));
+  }
+
+  saveSettings(
+    id: string,
+    values: unknown,
+  ): { view: SettingsView; changed: string[] } {
+    const record = this.require(id);
+    if (!values || typeof values !== "object" || Array.isArray(values))
+      throw new BadRequestException({
+        code: ApiErrorCode.VALIDATION_ERROR,
+        message: "Validation failed",
+        details: [{ field: "values", message: "type" }],
+      });
+    const schema = record.manifest.settingsSchema;
+    const { next, changed, errors } = applySettings(
+      schema,
+      this.readConfig(id),
+      values as Record<string, unknown>,
+    );
+    if (errors.length)
+      throw new BadRequestException({
+        code: ApiErrorCode.VALIDATION_ERROR,
+        message: "Validation failed",
+        details: errors,
+      });
+    if (changed.length) this.kv.set(id, CONFIG_KEY, next);
+    return { view: viewSettings(schema, next), changed };
+  }
+
+  private readConfig(id: string): Record<string, unknown> {
+    return this.kv.get<Record<string, unknown>>(id, CONFIG_KEY) ?? {};
   }
 
   /**
@@ -152,13 +239,14 @@ export class ExtensionManager implements OnModuleInit {
     );
   }
 
-  /** expectedId guards catalog installs against a package with someone else's id */
+  /** expectedId guards catalog installs, an update is built aside and swapped in only when that worked */
   async installFromBuffer(
     buffer: Buffer,
     filename: string,
     expectedId?: string,
   ): Promise<ExtensionRecord> {
     const staged = await this.stage(buffer, filename);
+    let build: string | null = null;
     try {
       const errors = this.validator.validate(staged.manifest);
       if (errors.length)
@@ -170,25 +258,35 @@ export class ExtensionManager implements OnModuleInit {
           `Package id ${staged.manifest.id} does not match ${expectedId}`,
         );
 
-      const dest = join(EXT_ROOT, safeId(staged.manifest.id));
-      const existing = this.repo.findById(staged.manifest.id);
-      if (existing && this.registry.isActive(existing.id))
-        await this.deactivate(existing.id);
-
-      fs.mkdirSync(EXT_ROOT, { recursive: true });
-      fs.rmSync(dest, { recursive: true, force: true });
-      fs.cpSync(staged.dir, dest, { recursive: true });
-
+      const id = staged.manifest.id;
+      // Next to the live copy, so the swap is a rename on the same disk
+      fs.mkdirSync(this.loader.root, { recursive: true });
+      build = join(this.loader.root, `.staging-${safeId(id)}-${randomUUID()}`);
+      fs.cpSync(staged.dir, build, { recursive: true });
       if (staged.manifest.frontend)
-        await this.buildFrontend(dest, staged.manifest.frontend.entry);
+        await this.buildFrontend(build, staged.manifest.frontend.entry);
+
+      const existing = this.repo.findById(id);
+      const wasActive = !!existing && this.registry.isActive(id);
+      if (wasActive) await this.deactivate(id);
+      try {
+        this.swap(build, this.loader.dir(id));
+        build = null;
+      } catch (e) {
+        if (wasActive && existing) await this.activate(existing);
+        throw e;
+      }
+      this.loader.forget(id);
+      this.importTokens.set(id, `${staged.manifest.version}-${Date.now()}`);
+      this.errors.delete(id);
 
       // An update keeps what was already approved, new permissions still need consent
       const requested = staged.manifest.permissions?.requires ?? [];
       const granted = (existing?.grantedCapabilities ?? []).filter((c) =>
         requested.includes(c),
       );
-      const record = this.repo.upsert({
-        id: staged.manifest.id,
+      this.repo.upsert({
+        id,
         enabled: false,
         manifest: staged.manifest,
         grantedCapabilities: granted,
@@ -196,11 +294,27 @@ export class ExtensionManager implements OnModuleInit {
       });
       // A failed start shows up as the error status, the install itself went fine
       if (existing?.enabled && granted.length === requested.length)
-        return this.enable(record.id).catch(() => this.require(record.id));
-      return record;
+        return this.enable(id).catch(() => this.require(id));
+      return this.require(id);
     } finally {
       fs.rmSync(staged.dir, { recursive: true, force: true });
+      if (build) fs.rmSync(build, { recursive: true, force: true });
     }
+  }
+
+  /** Put the built copy in place, the old one comes back if that fails */
+  private swap(build: string, dest: string): void {
+    const old = fs.existsSync(dest)
+      ? join(this.loader.root, `.old-${randomUUID()}`)
+      : null;
+    if (old) fs.renameSync(dest, old);
+    try {
+      fs.renameSync(build, dest);
+    } catch (e) {
+      if (old) fs.renameSync(old, dest);
+      throw e;
+    }
+    if (old) fs.rmSync(old, { recursive: true, force: true });
   }
 
   /** Record which requested capabilities the user approved */
@@ -223,8 +337,9 @@ export class ExtensionManager implements OnModuleInit {
         `Consent required for: ${missing.join(", ")}`,
       );
     }
-    this.repo.setEnabled(id, true);
-    await this.activate(this.require(id));
+    // Enabled only once it really started, a failure is the error status, not a 500
+    const error = await this.activate(record);
+    this.repo.setEnabled(id, !error);
     return this.require(id);
   }
 
@@ -241,51 +356,59 @@ export class ExtensionManager implements OnModuleInit {
     await this.deactivate(id);
     this.kv.clear(id);
     this.repo.delete(id);
-    fs.rmSync(join(EXT_ROOT, safeId(id)), { recursive: true, force: true });
+    this.loader.forget(id);
+    this.errors.delete(id);
+    this.importTokens.delete(id);
+    fs.rmSync(this.loader.dir(id), { recursive: true, force: true });
     return { id };
   }
 
-  /** Load the backend, build a gated context, run activate() */
-  private async activate(record: ExtensionRecord): Promise<void> {
-    if (this.registry.isActive(record.id)) return;
-    if (record.manifest.permissions?.declares?.length) {
-      this.permissions.register(
-        record.id,
-        record.manifest.permissions.declares,
-      );
-    }
-    if (!record.manifest.backend) {
-      // frontend-only extension: nothing to run on the backend, but track it as active so the
-      // frontend registry/dispatch see it
-      const noop: KubekBackendModule = { activate: () => {} };
-      this.registry.add({
-        record,
-        module: noop,
-        ctx: this.contextFactory.build(record, this.makeSinks([])),
-        dispose: [],
-      });
-      this.repo.setStatus(record.id, "active");
-      return;
-    }
-
+  /** Load the backend, build a gated context, run activate(). Returns the error, never throws */
+  private async activate(record: ExtensionRecord): Promise<string | null> {
+    if (this.registry.isActive(record.id)) return null;
     const dispose: Array<() => void> = [];
-    const ctx = this.contextFactory.build(record, this.makeSinks(dispose));
-    const module = await this.loader.load(
-      record.id,
-      record.manifest.backend.entry,
-    );
-    const loaded: LoadedExtension = { record, module, ctx, dispose };
-
-    const error = await this.host.activate(module, ctx);
-    if (error) {
-      dispose.forEach((fn) => fn());
+    try {
+      if (record.manifest.permissions?.declares?.length) {
+        this.permissions.register(
+          record.id,
+          record.manifest.permissions.declares,
+        );
+      }
+      const ctx = this.contextFactory.build(record, this.makeSinks(dispose));
+      // A frontend-only extension still counts as active for the registry and dispatch
+      let module: KubekBackendModule = { activate: () => {} };
+      if (record.manifest.backend) {
+        module = await this.loader.load(
+          record.id,
+          record.manifest.backend.entry,
+          this.importTokens.get(record.id) ?? record.version,
+        );
+        const error = await this.host.activate(module, ctx);
+        if (error) throw new Error(error);
+      }
+      this.registry.add({ record, module, ctx, dispose });
+      this.errors.delete(record.id);
+      this.repo.setStatus(record.id, "active");
+      return null;
+    } catch (e: unknown) {
+      const message = getErrorMessage(e);
+      this.logger.error(`activate "${record.id}" failed: ${message}`);
+      runAll(dispose);
       this.permissions.unregister(record.id);
+      // Drops routes and commands the failed activate() managed to register
+      this.registry.remove(record.id);
+      this.errors.set(record.id, message);
       this.repo.setStatus(record.id, "error");
-      this.repo.upsert({ ...record, status: "error", error });
-      return;
+      return message;
     }
-    this.registry.add(loaded);
-    this.repo.setStatus(record.id, "active");
+  }
+
+  /** Child processes of extensions must not outlive the panel */
+  async onApplicationShutdown(): Promise<void> {
+    for (const loaded of this.registry.list()) {
+      await this.host.deactivate(loaded.module, loaded.record.id);
+      runAll(loaded.dispose);
+    }
   }
 
   /** Run deactivate(), unwind subscriptions, drop permissions and contributions */
@@ -293,7 +416,7 @@ export class ExtensionManager implements OnModuleInit {
     const loaded = this.registry.get(id);
     if (loaded) {
       await this.host.deactivate(loaded.module, id);
-      loaded.dispose.forEach((fn) => fn());
+      runAll(loaded.dispose);
     }
     this.permissions.unregister(id);
     this.registry.remove(id);
@@ -334,7 +457,12 @@ export class ExtensionManager implements OnModuleInit {
   private require(id: string): ExtensionRecord {
     const record = this.repo.findById(id);
     if (!record) throw new NotFoundException(`Unknown extension: ${id}`);
-    return record;
+    return this.withError(record);
+  }
+
+  private withError(record: ExtensionRecord): ExtensionRecord {
+    const error = this.errors.get(record.id);
+    return error && record.status === "error" ? { ...record, error } : record;
   }
 
   /** Unpack a package (or flat manifest) into a temp dir and read its manifest */
@@ -400,6 +528,17 @@ export class ExtensionManager implements OnModuleInit {
       throw new BadRequestException(
         `Invalid extension manifest: ${getErrorMessage(e)}`,
       );
+    }
+  }
+}
+
+// One failing teardown must not keep the rest from running
+function runAll(fns: Array<() => void>): void {
+  for (const fn of fns) {
+    try {
+      fn();
+    } catch {
+      // the extension is going away anyway
     }
   }
 }

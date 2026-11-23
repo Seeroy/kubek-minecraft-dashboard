@@ -5,6 +5,7 @@ import { TasksService } from "./tasks.service";
 function setup() {
   const updates: TaskStatus[] = [];
   const finished: string[] = [];
+  const published: unknown[] = [];
   const tasks = new TasksService(
     {
       emitTaskUpdate: (task: { status: TaskStatus }) =>
@@ -12,13 +13,26 @@ function setup() {
       emitTaskDone: () => {},
       emitTaskFailed: () => {},
     } as never,
-    { publish: () => {} } as never,
+    {
+      publish: (event: string, payload: unknown) =>
+        published.push({ event, payload }),
+    } as never,
     { emit: (name: string) => finished.push(name) } as never,
   );
-  return { tasks, updates, finished };
+  return { tasks, updates, finished, published };
 }
 
 describe("TasksService", () => {
+  it("tells extensions about cancelled tasks too", () => {
+    const { tasks, published } = setup();
+    const id = tasks.createTask(TaskType.BACKUP_CREATE, { serverId: "s1" });
+    tasks.updateTask(id, { status: TaskStatus.CANCELLED });
+    expect(published.at(-1)).toEqual({
+      event: "task.completed",
+      payload: { taskId: id, status: "cancelled", result: { serverId: "s1" } },
+    });
+  });
+
   it("ignores late updates once a task has finished", () => {
     const { tasks, updates, finished } = setup();
     const id = tasks.createTask(TaskType.BACKUP_CREATE);

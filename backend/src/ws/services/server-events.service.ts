@@ -27,12 +27,23 @@ export class ServerEventsService {
     this.broadcast.emitServersList(servers.map(toServerListItem));
   }
 
+  /** A new server row exists, its files may still be installing */
+  emitServerCreated(server: IServer) {
+    this.bus.publish("server.created", {
+      serverId: server.id,
+      name: server.name,
+      blueprintId: server.blueprintId ?? "",
+    });
+  }
+
   emitServerStatus(serverId: string, status: WsServerStatusChange) {
     this.broadcast.emitServerStatusUpdate(serverId, status);
 
     // Stopped and crashed get their own events below
-    if (status.status === ServerStatus.RUNNING) {
+    if (status.status === ServerStatus.STARTING) {
       this.bus.publish("server.started", { serverId });
+    } else if (status.status === ServerStatus.RUNNING) {
+      this.bus.publish("server.running", { serverId });
     }
 
     const server = this.serversRepo.findById(serverId);

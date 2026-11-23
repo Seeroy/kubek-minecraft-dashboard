@@ -2,7 +2,7 @@ import { api } from "@/api";
 import { useNotifications } from "@/modules/notifications";
 import { useServerStatus, type Server } from "@/modules/server";
 import { upsertServerInList } from "@/modules/server/api/servers.queries";
-import { useBlueprints, useBlueprintVersions } from "@/modules/server-types/api/server-types.queries";
+import { useBlueprints, useBlueprintVersionLabels, useBlueprintVersions } from "@/modules/server-types/api/server-types.queries";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { qk } from "@/shared/queries/query-keys";
@@ -38,6 +38,7 @@ export function useServerCoreSettings(server: Server) {
   const hasVersions = !!versionKeyOf(chosenBlueprint);
   const isCustomChosen = blueprintId === CUSTOM_BLUEPRINT_ID;
   const { data: versions = [], isLoading: versionsLoading } = useBlueprintVersions(hasVersions ? blueprintId : undefined);
+  const versionLabels = useBlueprintVersionLabels(hasVersions ? blueprintId : undefined);
 
   // Staying on the same core keeps its version, another core starts at the newest one
   const defaultVersion = blueprintId === server.blueprintId && currentVersion ? currentVersion : versions[0];
@@ -75,6 +76,7 @@ export function useServerCoreSettings(server: Server) {
     hasVersions,
     versions,
     versionsLoading,
+    versionLabels,
     version,
     setVersion: setPickedVersion,
     currentBlueprint,

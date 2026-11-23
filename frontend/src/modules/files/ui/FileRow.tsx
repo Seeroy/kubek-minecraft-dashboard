@@ -1,6 +1,8 @@
 "use client";
+import { ExtensionMenuSlot } from "@/modules/extensions";
 import { isLogViewerFile } from "@/modules/files/lib/logFiles";
 import { useNotifications } from "@/modules/notifications";
+import { useServerStore } from "@/modules/server";
 import { useTranslation } from "@/shared/hooks/useTranslation";
 import { humanizeFileSize } from "@/shared/lib/bytesToGb";
 import { canEditFile, getFileTypeCategory, type FileTypeCategory } from "@/shared/lib/fileTypes";
@@ -32,7 +34,7 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react";
-import { memo, useRef, type MouseEvent } from "react";
+import { memo, useRef, useState, type MouseEvent } from "react";
 import type { FileActions, SelectModifiers } from "../lib/actions";
 
 const look: Record<FileTypeCategory | "directory", { icon: LucideIcon; tone: Tone }> = {
@@ -47,6 +49,18 @@ const look: Record<FileTypeCategory | "directory", { icon: LucideIcon; tone: Ton
 const PREFETCH_DELAY_MS = 100;
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "short", timeStyle: "short" });
+
+// Lives in the open menu only, so closed rows do not follow the server context
+function ExtensionMenuItems({ file, close }: { file: IFile; close: () => void }) {
+  const { selectedServer } = useServerStore();
+  if (!selectedServer) return null;
+  return (
+    <ExtensionMenuSlot
+      name="files.contextMenu"
+      context={{ serverId: selectedServer.id, path: file.path, isDirectory: file.type === FileType.DIRECTORY, close }}
+    />
+  );
+}
 
 interface FileRowProps {
   file: IFile;
@@ -67,6 +81,7 @@ export const FileRow = memo(function FileRow({ file, index, actions, selected, s
   const { icon: Icon, tone } = look[isDir ? "directory" : getFileTypeCategory(file.name)];
   const size = !isDir && file.size > 0 ? humanizeFileSize(file.size) : "—";
   const modified = dateFormat.format(new Date(file.modify));
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const open = () => {
     if (isDir) actions.navigate(file.path);
@@ -139,7 +154,7 @@ export const FileRow = memo(function FileRow({ file, index, actions, selected, s
       <TableCell className="hidden w-28 text-muted-foreground tabular-nums @xl/table:table-cell">{size}</TableCell>
       <TableCell className="hidden w-36 text-muted-foreground tabular-nums @xl/table:table-cell">{modified}</TableCell>
       <TableCell className="w-12" onClick={(event) => event.stopPropagation()}>
-        <DropdownMenu>
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger aria-label={t("menu")} className={buttonVariants({ variant: "ghost", size: "icon-sm" })}>
             <Ellipsis />
           </DropdownMenuTrigger>
@@ -178,6 +193,7 @@ export const FileRow = memo(function FileRow({ file, index, actions, selected, s
               <Copy />
               {t("copyPath")}
             </DropdownMenuItem>
+            <ExtensionMenuItems file={file} close={() => setMenuOpen(false)} />
             {actions.remove && (
               <>
                 <DropdownMenuSeparator />

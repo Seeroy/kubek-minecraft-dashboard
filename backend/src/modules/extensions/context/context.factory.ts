@@ -1,6 +1,9 @@
+import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { AuditAction } from "@shared/types/audit.types";
 import { ExtensionKvRepository } from "@/modules/database/repositories/extension-kv.repository";
 import { PermissionRegistry } from "@/modules/permissions/permission-registry.service";
 import { ServersService } from "@/modules/servers/servers.service";
+import { TasksService } from "@/modules/tasks/tasks.service";
 import type {
   Capability,
   ExtCommand,
@@ -8,21 +11,24 @@ import type {
   ExtHttpApi,
   ExtRoute,
   ExtServersApi,
-  ExtTasksApi,
   ExtUser,
   KubekExtensionContext,
+  SettingField,
 } from "@kubekpanel/extension-sdk";
 import { Injectable, Logger } from "@nestjs/common";
 import { isLegacyPermission } from "@shared/access/legacy";
-import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { ExtensionEventBus } from "../extension-event-bus.service";
+import { CONFIG_KEY, withDefaults } from "../extension-settings";
 import type { ExtensionRecord } from "../extensions.types";
 import { CapabilityDeniedError } from "../extensions.types";
 import { createOutboundHttpApi } from "./http.api";
+import { createExtAudit, type ExtAudit } from "./ext-audit";
+import { createProcessesApi } from "./processes.api";
 import { createServersControlApi, createServersReadApi } from "./servers.api";
 import { createStorageApi } from "./storage.api";
+import { createTasksApi } from "./tasks.api";
 
 const EXT_DATA_ROOT = resolve("extensions", ".data");
 
@@ -63,6 +69,8 @@ export class ContextFactory {
     private readonly servers: ServersService,
     private readonly permissions: PermissionRegistry,
     private readonly kv: ExtensionKvRepository,
+    private readonly auditLog: AuditLogService,
+    private readonly tasks: TasksService,
   ) {}
 
   build(record: ExtensionRecord, sinks: ContextSinks): KubekExtensionContext {
@@ -73,6 +81,10 @@ export class ContextFactory {
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 
     const logger = new Logger(`ext:${extId}`);
+    const audit = createExtAudit(this.auditLog, {
+      id: extId,
+      name: record.manifest.name,
+    });
 
     return {
       id: extId,
@@ -87,16 +99,30 @@ export class ContextFactory {
           logger.error(meta ? `${msg} ${JSON.stringify(meta)}` : msg),
       },
       events: {
-        on: (event, handler) => {
-          const cap = EVENT_CAPABILITY[event];
+        on: (event: string, handler: (payload: any) => void) => {
+          // Extensions talk to each other on ext.*, that needs no capability
+          if (event.startsWith("ext.")) {
+            const off = this.bus.onCustom(event, handler, extId);
+            sinks.dispose.push(off);
+            return off;
+          }
+          const cap = Object.hasOwn(EVENT_CAPABILITY, event)
+            ? EVENT_CAPABILITY[event as ExtEventName]
+            : undefined;
+          if (!cap) throw new Error(`Unknown event "${event}"`);
           if (!has(cap)) throw new CapabilityDeniedError(cap, extId);
-          const off = this.bus.on(event, handler);
+          const off = this.bus.on(event as ExtEventName, handler, extId);
           sinks.dispose.push(off);
           return off;
         },
-        emit: (event, payload) => this.bus.emitCustom(event, payload),
+        emit: (event: string, payload: unknown) => {
+          // Core events come from the panel only
+          if (typeof event !== "string" || !event.startsWith("ext."))
+            throw new Error(`Extension events must start with "ext.", got "${event}"`);
+          this.bus.emitCustom(event, payload);
+        },
       },
-      servers: this.buildServersApi(extId, has),
+      servers: this.buildServersApi(extId, has, audit, sinks),
       http: this.buildHttpApi(extId, has, sinks),
       permissions: {
         has: (user: ExtUser, key: string) =>
@@ -112,8 +138,14 @@ export class ContextFactory {
             delete: this.deny("storage", extId),
             keys: this.deny("storage", extId),
           },
-      config: this.buildConfigApi(extId, has),
-      tasks: this.buildTasksApi(extId, has, logger),
+      config: this.buildConfigApi(extId, has, audit, record.manifest.settingsSchema),
+      tasks: has("tasks")
+        ? createTasksApi(
+            this.tasks,
+            { id: extId, name: record.manifest.name },
+            (id) => this.servers.findById(id)?.name,
+          )
+        : { create: this.deny("tasks", extId), update: this.deny("tasks", extId) },
       commands: {
         register: (cmd) => {
           if (!has("commands"))
@@ -121,23 +153,37 @@ export class ContextFactory {
           sinks.registerCommand(extId, cmd);
         },
       },
+      processes: has("process:spawn")
+        ? createProcessesApi(dataDir, sinks.dispose, audit)
+        : { spawn: this.deny("process:spawn", extId) },
     };
   }
 
   private buildServersApi(
     extId: string,
     has: (c: Capability) => boolean,
+    audit: ExtAudit,
+    sinks: ContextSinks,
   ): ExtServersApi {
     const read = has("servers:read")
       ? createServersReadApi(this.servers, this.bus)
       : null;
+    // Log lines are what events:logs guards, servers:read alone is not enough
+    const onLog: ExtServersApi["onLog"] = (id, cb) => {
+      if (!read) throw new CapabilityDeniedError("servers:read", extId);
+      if (!has("events:logs")) throw new CapabilityDeniedError("events:logs", extId);
+      const off = read.onLog(id, cb);
+      sinks.dispose.push(off);
+      return off;
+    };
     const control = has("servers:control")
-      ? createServersControlApi(this.servers)
+      ? createServersControlApi(this.servers, audit)
       : null;
     return {
       list: read ? read.list : this.deny("servers:read", extId),
       get: read ? read.get : this.deny("servers:read", extId),
-      onLog: read ? read.onLog : this.deny("servers:read", extId),
+      onLog,
+      ports: read ? read.ports : this.deny("servers:read", extId),
       sendCommand: control
         ? control.sendCommand
         : this.deny("servers:control", extId),
@@ -161,7 +207,12 @@ export class ContextFactory {
     };
   }
 
-  private buildConfigApi(extId: string, has: (c: Capability) => boolean) {
+  private buildConfigApi(
+    extId: string,
+    has: (c: Capability) => boolean,
+    audit: ExtAudit,
+    schema: SettingField[] | undefined,
+  ) {
     if (!has("settings")) {
       return {
         get: this.deny("settings", extId),
@@ -169,36 +220,15 @@ export class ContextFactory {
         all: this.deny("settings", extId),
       };
     }
-    const KEY = "__config__";
-    const read = () => this.kv.get<Record<string, unknown>>(extId, KEY) ?? {};
+    const read = () => this.kv.get<Record<string, unknown>>(extId, CONFIG_KEY) ?? {};
     return {
-      get: <T = unknown>(key: string) => read()[key] as T,
-      set: (key: string, value: unknown) =>
-        this.kv.set(extId, KEY, { ...read(), [key]: value }),
-      all: () => read(),
-    };
-  }
-
-  private buildTasksApi(
-    extId: string,
-    has: (c: Capability) => boolean,
-    logger: Logger,
-  ): ExtTasksApi {
-    if (!has("tasks")) {
-      return {
-        create: this.deny("tasks", extId),
-        update: this.deny("tasks", extId),
-      };
-    }
-    // Lightweight task ids for extension-owned work
-    return {
-      create: (type, _payload) => {
-        const id = randomUUID();
-        logger.log(`task ${id} (${type})`);
-        return id;
+      get: <T = unknown>(key: string) => withDefaults(schema, read())[key] as T,
+      set: (key: string, value: unknown) => {
+        this.kv.set(extId, CONFIG_KEY, { ...read(), [key]: value });
+        // Values may be secrets, the journal names the setting only
+        audit({ action: AuditAction.EXTENSION_CONFIG, details: { key } });
       },
-      update: (taskId, patch) =>
-        logger.log(`task ${taskId} ${JSON.stringify(patch)}`),
+      all: () => withDefaults(schema, read()),
     };
   }
 

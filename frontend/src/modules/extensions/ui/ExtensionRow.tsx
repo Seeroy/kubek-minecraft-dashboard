@@ -11,9 +11,10 @@ import { Switch } from "@/shared/ui/switch";
 import type { Capability } from "@kubekpanel/extension-sdk";
 import { AlertTriangle, Blocks, Check, ChevronDown, LayoutDashboard, Menu, PanelsTopLeft, Settings, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { ExtensionSettingsDialog } from "./ExtensionSettingsDialog";
 
 // Capabilities that reach outside the panel or act on servers deserve a second look
-export const RISKY = new Set<Capability>(["servers:control", "http:outbound", "events:auth", "http:routes"]);
+export const RISKY = new Set<Capability>(["servers:control", "http:outbound", "events:auth", "http:routes", "process:spawn"]);
 
 const STATUS_BADGE = {
   active: "success",
@@ -51,6 +52,14 @@ function Contribution({ icon, children }: { icon: ReactNode; children: ReactNode
 
 export function ExtensionRow({ ext, open, busy, canManage, onToggleOpen, onConsent, onEnabledChange, onRemove }: ExtensionRowProps) {
   const { t } = useTranslation("modules.extensions");
+  // Contribution labels are extension keys like "ext.sentinel.title"
+  const { t: tRoot } = useTranslation();
+  const missing = (text: string) => text.startsWith("NOT TRANSLATED");
+  const extLabel = (key: string) => (missing(tRoot(key)) ? key : tRoot(key));
+  const slotLabel = (slot: string) => {
+    const label = t(`adds.slots.${slot.replace(/\./g, "_")}`);
+    return missing(label) ? t("adds.slotOther", slot) : label;
+  };
   const requested = ext.manifest.permissions?.requires ?? [];
   // Nothing granted yet means a fresh install, so everything requested starts ticked
   const [selected, setSelected] = useState<Capability[]>(() =>
@@ -60,6 +69,8 @@ export function ExtensionRow({ ext, open, busy, canManage, onToggleOpen, onConse
   const contributes = ext.manifest.frontend?.contributes;
   const author = ext.manifest.author?.name;
   const toggleCap = (cap: Capability, on: boolean) => setSelected((prev) => (on ? [...prev, cap] : prev.filter((item) => item !== cap)));
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const hasSettings = canManage && !!ext.manifest.settingsSchema?.length;
 
   return (
     <div className={cn("not-first:border-t not-first:border-border", ext.status === "disabled" && "[&_[data-slot=ext-icon]]:opacity-60 [&_[data-slot=ext-icon]]:grayscale")}>
@@ -100,6 +111,11 @@ export function ExtensionRow({ ext, open, busy, canManage, onToggleOpen, onConse
               aria-label={t("toggle", ext.manifest.name)}
             />
           )}
+          {hasSettings && (
+            <Button variant="ghost" size="icon-sm" aria-label={t("settingsForm.open")} title={t("settingsForm.open")} onClick={() => setSettingsOpen(true)}>
+              <Settings />
+            </Button>
+          )}
           <Button variant="ghost" size="icon-sm" aria-expanded={open} aria-label={t("details")} title={t("details")} onClick={onToggleOpen}>
             <ChevronDown className={cn("transition-transform duration-200", open && "rotate-180")} />
           </Button>
@@ -118,6 +134,10 @@ export function ExtensionRow({ ext, open, busy, canManage, onToggleOpen, onConse
           )}
         </div>
       </div>
+
+      {hasSettings && (
+        <ExtensionSettingsDialog extId={ext.id} extName={ext.manifest.name} open={settingsOpen} onOpenChange={setSettingsOpen} />
+      )}
 
       {open && (
         <div className="grid gap-5 px-4 pb-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:pl-[68px]">
@@ -160,27 +180,27 @@ export function ExtensionRow({ ext, open, busy, canManage, onToggleOpen, onConse
             <div className="grid gap-1.5">
               {contributes?.sidebar?.map((item) => (
                 <Contribution key={item.id} icon={<Menu />}>
-                  {t("adds.sidebar", item.route)}
+                  {t("adds.sidebar", extLabel(item.label))}
                 </Contribution>
               ))}
               {contributes?.serverTabs?.map((item) => (
                 <Contribution key={item.id} icon={<PanelsTopLeft />}>
-                  {t("adds.serverTab", item.id)}
+                  {t("adds.serverTab", extLabel(item.label))}
                 </Contribution>
               ))}
               {contributes?.dashboardWidgets?.map((item) => (
                 <Contribution key={item.id} icon={<LayoutDashboard />}>
-                  {t("adds.widget", item.id)}
+                  {t("adds.widget", extLabel(item.label))}
                 </Contribution>
               ))}
               {contributes?.settingsPanels?.map((item) => (
                 <Contribution key={item.id} icon={<Settings />}>
-                  {t("adds.settings", item.id)}
+                  {t("adds.settings", extLabel(item.label))}
                 </Contribution>
               ))}
               {contributes?.slots?.map((item) => (
                 <Contribution key={`${item.slot}:${item.component}`} icon={<Blocks />}>
-                  {t("adds.slot")} <code className="font-mono text-[11.5px] text-muted-foreground">{item.slot}</code>
+                  {slotLabel(item.slot)}
                 </Contribution>
               ))}
               {!contributes || Object.values(contributes).every((list) => !list?.length) ? (

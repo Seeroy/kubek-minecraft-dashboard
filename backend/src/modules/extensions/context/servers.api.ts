@@ -5,7 +5,9 @@ import type {
   ServerSummary,
 } from "@kubekpanel/extension-sdk";
 import type { IServer } from "@shared/types/server/server.types";
+import { AuditAction, AuditCategory, AuditResult } from "@shared/types/audit.types";
 import type { ExtensionEventBus } from "../extension-event-bus.service";
+import type { ExtAudit } from "./ext-audit";
 
 /**
  * servers:read exposes list/get/onLog; servers:control adds sendCommand/start/stop. The factory
@@ -14,7 +16,7 @@ import type { ExtensionEventBus } from "../extension-event-bus.service";
 export function createServersReadApi(
   servers: ServersService,
   bus: ExtensionEventBus,
-): Pick<ExtServersApi, "list" | "get" | "onLog"> {
+): Pick<ExtServersApi, "list" | "get" | "onLog" | "ports"> {
   return {
     list: () => servers.findAll().map(toSummary),
     get: (id) => {
@@ -25,27 +27,64 @@ export function createServersReadApi(
       bus.on("server.log", (p) => {
         if (p.serverId === id) cb(p.line);
       }),
+    ports: async (id) =>
+      servers.findById(id) ? servers.getInstance(id).resolvePorts() : [],
   };
 }
 
 // A line break would run the rest as a second command
 export const oneLine = (cmd: string) => cmd.replace(/[\r\n]+/g, " ");
 
+/** Runs a server action and writes it to the journal with its outcome */
+async function audited<T>(
+  audit: ExtAudit,
+  action: (typeof AuditAction)[keyof typeof AuditAction],
+  serverId: string,
+  details: Record<string, unknown> | undefined,
+  run: () => Promise<T>,
+): Promise<T> {
+  try {
+    const result = await run();
+    audit({
+      action,
+      category: AuditCategory.SERVER,
+      serverId,
+      details,
+      result: result === false ? AuditResult.FAILED : AuditResult.SUCCESS,
+    });
+    return result;
+  } catch (error) {
+    audit({
+      action,
+      category: AuditCategory.SERVER,
+      serverId,
+      details,
+      result: AuditResult.FAILED,
+      error: String(error),
+    });
+    throw error;
+  }
+}
+
 export function createServersControlApi(
   servers: ServersService,
+  audit: ExtAudit = () => {},
 ): Pick<ExtServersApi, "sendCommand" | "start" | "stop"> {
   return {
-    sendCommand: async (id, cmd) => {
-      const instance = servers.getInstance(id);
-      return instance ? instance.input(oneLine(cmd)) : false;
-    },
-    start: async (id) => {
-      await servers.start(id);
-    },
-    stop: async (id) => {
-      const instance = servers.getInstance(id);
-      if (instance) await instance.stop();
-    },
+    sendCommand: (id, cmd) =>
+      audited(audit, AuditAction.EXTENSION_SERVER_COMMAND, id, { command: oneLine(cmd) }, async () => {
+        const instance = servers.getInstance(id);
+        return instance ? instance.input(oneLine(cmd)) : false;
+      }),
+    start: (id) =>
+      audited(audit, AuditAction.EXTENSION_SERVER_START, id, undefined, async () => {
+        await servers.start(id);
+      }),
+    stop: (id) =>
+      audited(audit, AuditAction.EXTENSION_SERVER_STOP, id, undefined, async () => {
+        const instance = servers.getInstance(id);
+        if (instance) await instance.stop();
+      }),
   };
 }
 

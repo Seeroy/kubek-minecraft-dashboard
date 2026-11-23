@@ -18,6 +18,30 @@ import {
 const LOOKUP_CONCURRENCY = 8;
 const LATEST_TTL_MS = 10 * 60 * 1000;
 
+/** A managed record with a newer compatible build on Modrinth */
+export interface ContentUpdate {
+  recordId: string;
+  projectId: string;
+  installedVersionId: string;
+  latestVersionId: string;
+  title?: string;
+}
+
+// A newer id republished with an older date is not an update
+function isNewer(
+  newest: ModrinthVersion | undefined,
+  installed: ModrinthVersion | undefined,
+): newest is ModrinthVersion {
+  return !!(
+    newest &&
+    installed &&
+    newest.id !== installed.id &&
+    Date.parse(newest.date_published) > Date.parse(installed.date_published)
+  );
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Builds the installed list of a content folder: managed records enriched
  * with Modrinth metadata plus loose jars dropped in by hand
@@ -65,12 +89,7 @@ export class InstalledContentReader {
       const project = projectById.get(record.projectId);
       const installed = versionById.get(record.versionId);
       const newest = latest.get(record.projectId);
-      const hasUpdate = !!(
-        newest &&
-        installed &&
-        newest.id !== installed.id &&
-        Date.parse(newest.date_published) > Date.parse(installed.date_published)
-      );
+      const hasUpdate = isNewer(newest, installed);
       return {
         ...record,
         type: "modrinth" as const,
@@ -78,15 +97,55 @@ export class InstalledContentReader {
         metadata: project && projectToSummary(project),
         version: installed && versionToSummary(installed),
         hasUpdate,
-        latestVersion: hasUpdate ? versionToSummary(newest) : undefined,
+        latestVersion: hasUpdate ? versionToSummary(newest!) : undefined,
       };
     });
+  }
+
+  /** Slow update check for the background job, shares the cache with the list */
+  async findUpdates(
+    records: ServerPluginRecord[],
+    gameVersion: string | undefined,
+    pauseMs: number,
+  ): Promise<ContentUpdate[]> {
+    if (records.length === 0) return [];
+    const projectIds = [...new Set(records.map((r) => r.projectId))];
+    const latest = await this.latestVersions(projectIds, gameVersion, pauseMs);
+    const candidates = records.filter((record) => {
+      const newest = latest.get(record.projectId);
+      return newest && newest.id !== record.versionId;
+    });
+    if (candidates.length === 0) return [];
+
+    await sleep(pauseMs);
+    const installed = await this.modrinth.getVersions([
+      ...new Set(candidates.map((r) => r.versionId)),
+    ]);
+    const installedById = new Map(installed.map((v) => [v.id, v]));
+    const updates = candidates.filter((record) =>
+      isNewer(latest.get(record.projectId), installedById.get(record.versionId)),
+    );
+    if (updates.length === 0) return [];
+
+    await sleep(pauseMs);
+    const projects = await this.modrinth.getProjects([
+      ...new Set(updates.map((r) => r.projectId)),
+    ]);
+    const titleById = new Map(projects.map((p) => [p.id, p.title]));
+    return updates.map((record) => ({
+      recordId: record.id,
+      projectId: record.projectId,
+      installedVersionId: record.versionId,
+      latestVersionId: latest.get(record.projectId)!.id,
+      title: titleById.get(record.projectId),
+    }));
   }
 
   /** Newest version per project that runs on this server, cached for a while */
   private async latestVersions(
     projectIds: string[],
     gameVersion?: string,
+    pauseMs = 0,
   ): Promise<Map<string, ModrinthVersion | undefined>> {
     const now = Date.now();
     const result = new Map<string, ModrinthVersion | undefined>();
@@ -97,7 +156,7 @@ export class InstalledContentReader {
       else missing.push(id);
     }
 
-    await runPool(missing, LOOKUP_CONCURRENCY, async (id) => {
+    const lookup = async (id: string) => {
       try {
         const versions = await this.modrinth.getProjectVersions(id, {
           loaders: this.loaders,
@@ -109,7 +168,7 @@ export class InstalledContentReader {
           gameVersion,
         );
         this.latestCache.set(`${id}|${gameVersion ?? ""}`, {
-          at: now,
+          at: Date.now(),
           version,
         });
         result.set(id, version);
@@ -117,7 +176,16 @@ export class InstalledContentReader {
         // No update badge beats a list that does not load
         this.logger.debug(`Latest version of ${id} unknown: ${String(error)}`);
       }
-    });
+    };
+
+    if (pauseMs > 0) {
+      for (const id of missing) {
+        await sleep(pauseMs);
+        await lookup(id);
+      }
+    } else {
+      await runPool(missing, LOOKUP_CONCURRENCY, lookup);
+    }
     return result;
   }
 

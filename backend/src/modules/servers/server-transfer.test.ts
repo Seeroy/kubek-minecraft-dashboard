@@ -111,6 +111,7 @@ let source: IServer;
 const serverDir = (id: string, ...p: string[]) =>
   path.join(root, "servers", id, ...p);
 let uploads = 0;
+let createdEvents: string[] = [];
 // Uploads land in the temp dir, so the leftover checks also cover them
 const upload = (buffer: Buffer): string => {
   const file = path.join(tmp, `upload-${++uploads}`);
@@ -144,6 +145,7 @@ beforeEach(() => {
   tmp = path.join(root, "tmp");
   fs.mkdirSync(tmp);
   process.env.TMPDIR = tmp;
+  createdEvents = [];
 
   const db = sqliteProvider();
   repo = new ServersRepository(db);
@@ -160,7 +162,12 @@ beforeEach(() => {
   const factory = new ServersFactory(
     tasks,
     repo,
-    fake<ServerEventsService>({ emitServerList: () => {} }),
+    fake<ServerEventsService>({
+      emitServerList: () => {},
+      emitServerCreated: (server) => {
+        createdEvents.push(server.id);
+      },
+    }),
     registry,
     new BlueprintResolver(),
     fake<InstallPipeline>({}),
@@ -219,6 +226,7 @@ describe("ServerTransfer duplicate", () => {
     expect(
       fs.readFileSync(serverDir(server.id, "world", "level.dat"), "utf8"),
     ).toBe("level");
+    expect(createdEvents).toEqual([server.id]);
   });
 
   test("a source without files gives an empty folder", () => {
@@ -406,6 +414,7 @@ describe("ServerTransfer import", () => {
       false,
     );
     expect(fs.readdirSync(tmp)).toEqual([]);
+    expect(createdEvents).toEqual([server.id]);
   });
 
   test("the name from the manifest is used when none is given and must be free", async () => {

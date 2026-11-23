@@ -18,6 +18,9 @@ import {
 import { ApiBearerAuth, ApiExcludeController } from "@nestjs/swagger";
 import type { IUser } from "@shared/types/user.types";
 import type { Request, Response } from "express";
+import { AuditLogService } from "@/modules/audit-log/audit-log.service";
+import { AuditAction, AuditResult } from "@shared/types/audit.types";
+import { actorOf, createExtAudit, extActor } from "./context/ext-audit";
 import { extPermissionsOf, toExtUser } from "./ext-user";
 import { ExtensionRegistry } from "./extension-registry.service";
 
@@ -29,7 +32,10 @@ import { ExtensionRegistry } from "./extension-registry.service";
 @Controller("api/ext")
 @UseGuards(BearerAuthGuard)
 export class ExtensionDispatchController {
-  constructor(private readonly registry: ExtensionRegistry) {}
+  constructor(
+    private readonly registry: ExtensionRegistry,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   @All(":extId/*path")
   async dispatch(
@@ -81,8 +87,38 @@ export class ExtensionDispatchController {
       },
     };
 
-    const result = await route.handler(extReq, extRes);
-    if (!sent) res.json(result ?? null);
+    const actor = actorOf(user, req);
+    // Reads stay out of the journal, anything else is a change made through the extension
+    const changes = req.method !== "GET" && req.method !== "HEAD";
+    const audit = createExtAudit(this.auditLog, {
+      id: extId,
+      name: this.registry.get(extId)?.record.manifest.name ?? extId,
+    });
+    const details = { method: req.method, path: subPath };
+
+    // Whatever the handler does through ctx is recorded under this user
+    try {
+      const result = await extActor.run(actor, () => route.handler(extReq, extRes));
+      if (!sent) res.json(result ?? null);
+      if (changes) {
+        const failed = res.statusCode >= 400;
+        audit({
+          action: AuditAction.EXTENSION_ACTION,
+          details: { ...details, status: res.statusCode },
+          result: failed ? AuditResult.FAILED : AuditResult.SUCCESS,
+        });
+      }
+    } catch (error) {
+      if (changes) {
+        audit({
+          action: AuditAction.EXTENSION_ACTION,
+          details,
+          result: AuditResult.FAILED,
+          error: String(error),
+        });
+      }
+      throw error;
+    }
   }
 
   /** Strip the /api/ext/<extId> prefix, leaving the route-relative path (always leading slash) */

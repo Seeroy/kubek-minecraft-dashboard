@@ -14,6 +14,7 @@ export const commandPaletteTranslations = {
     navigation: "Навигация",
     servers: "Серверы",
     actions: "Действия",
+    extension: "Расширения",
   },
   actions: {
     start: "Запустить сервер",
@@ -22,5 +23,9 @@ export const commandPaletteTranslations = {
     kill: "Принудительно остановить",
     createBackup: "Создать бэкап",
     createServer: "Создать сервер",
+  },
+  extensionCommand: {
+    done: (title: string) => `Команда "${title}" выполнена`,
+    failed: (title: string) => `Команда "${title}" не выполнилась`,
   },
 };

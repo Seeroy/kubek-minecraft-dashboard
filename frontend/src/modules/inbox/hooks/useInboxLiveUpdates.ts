@@ -134,7 +134,7 @@ export function useInboxLiveUpdates() {
         }
         markRead.mutate(notification.id);
         selectServer(serverId);
-        router.push(notification.kind === "backup.failed" ? "/backups" : "/console");
+        router.push(view.href ?? (notification.kind === "backup.failed" ? "/backups" : "/console"));
       },
     });
     if (once) markRead.mutate(notification.id);

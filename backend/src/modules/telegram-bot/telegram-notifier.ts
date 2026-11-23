@@ -37,7 +37,7 @@ const taskRenderer =
   (lang, p) =>
     renderTaskNotification(lang, {
       status,
-      type: p.taskType,
+      type: p.title ?? p.taskType,
       duration: formatDuration(p.durationMs, lang),
       finishedAt: Date.now(),
       serverName: p.serverName,
@@ -96,6 +96,15 @@ const RENDERERS: { [K in NotificationKind]?: Renderer<K> } = {
       version: escapeHtml(p.version),
       current: escapeHtml(p.currentVersion),
     }),
+  "content.updates_available": (lang, p) => {
+    const rest = p.count - p.names.length;
+    const names = p.names.map(escapeHtml).join(", ");
+    return t(lang, `notify.contentUpdates.${p.kind}`, {
+      name: escapeHtml(p.serverName),
+      count: p.count,
+      list: rest > 0 ? t(lang, "notify.contentUpdates.more", { names, rest }) : names,
+    });
+  },
 };
 
 // Actions offered right under an alert, each callback checks access again

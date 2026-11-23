@@ -41,8 +41,13 @@ export class ExtensionRegistry {
   }
 
   addCommand(extId: string, cmd: ExtCommand): void {
-    const list = this.commands.get(extId) ?? [];
+    // Registering the same id again replaces the old command
+    const list = (this.commands.get(extId) ?? []).filter((c) => c.id !== cmd.id);
     list.push(cmd);
     this.commands.set(extId, list);
+  }
+
+  getCommands(extId: string): ExtCommand[] {
+    return this.commands.get(extId) ?? [];
   }
 }

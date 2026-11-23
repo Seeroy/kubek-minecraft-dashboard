@@ -218,3 +218,9 @@ export class InstalledContentDto {
   })
   latestVersion?: InstalledContentVersionSummaryDto;
 }
+
+/** Pending updates of one server, for the sidebar badge */
+export class ContentUpdatesCountDto {
+  @ApiProperty({ description: "Installed items with a newer compatible version" })
+  count: number;
+}

@@ -1,5 +1,6 @@
 import { TaskErrorCode } from "@/core/errors/error-codes";
 import { getErrorMessage } from "@/core/utils/error";
+import { ExtensionEventBus } from "@/modules/extensions/extension-event-bus.service";
 import { FileBatchService } from "@/modules/files/file-batch.service";
 import { TasksService } from "@/modules/tasks/tasks.service";
 import { Injectable, Logger } from "@nestjs/common";
@@ -12,6 +13,7 @@ export class FilesTasksService {
   constructor(
     private readonly tasksService: TasksService,
     private readonly fileBatch: FileBatchService,
+    private readonly bus: ExtensionEventBus,
   ) {}
 
   async deletePathsTask(
@@ -93,6 +95,7 @@ export class FilesTasksService {
           message: `Deleting ${done}/${total}: ${name}`,
         });
       });
+      this.changed(serverId, paths);
       this.tasksService.updateTask(taskId, {
         status: TaskStatus.SUCCESS,
         progress: 100,
@@ -105,6 +108,8 @@ export class FilesTasksService {
         `Files delete task ${taskId} failed: ${normalized.message}`,
         normalized.stack,
       );
+      // Some of the paths may be gone already
+      this.changed(serverId, paths);
       this.tasksService.updateTask(taskId, {
         status: TaskStatus.FAILED,
         error: {
@@ -132,6 +137,7 @@ export class FilesTasksService {
           });
         },
       );
+      this.changed(serverId, [result.extractPath]);
       this.tasksService.updateTask(taskId, {
         status: TaskStatus.SUCCESS,
         progress: 100,
@@ -181,6 +187,7 @@ export class FilesTasksService {
           });
         },
       );
+      this.changed(serverId, [result.archivePath]);
       this.tasksService.updateTask(taskId, {
         status: TaskStatus.SUCCESS,
         progress: 100,
@@ -202,5 +209,10 @@ export class FilesTasksService {
         },
       });
     }
+  }
+
+  private changed(serverId: string, paths: string[]): void {
+    for (const path of new Set(paths))
+      this.bus.publish("file.changed", { serverId, path });
   }
 }

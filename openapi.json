@@ -70,7 +70,8 @@
                 "system",
                 "assistant",
                 "api",
-                "mcp"
+                "mcp",
+                "extension"
               ]
             }
           },
@@ -278,7 +279,8 @@
                 "system",
                 "assistant",
                 "api",
-                "mcp"
+                "mcp",
+                "extension"
               ]
             }
           },
@@ -4957,6 +4959,96 @@
         }
       }
     },
+    "/api/server-types/catalog/{id}/readme": {
+      "get": {
+        "operationId": "ServerTypesController_catalogReadme",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Panel language, README.<lang>.md wins over README.md",
+            "schema": {
+              "example": "ru",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReadmeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "README of a catalog item in the panel language",
+        "tags": [
+          "Server Types"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      }
+    },
     "/api/server-types/catalog/{id}/install": {
       "post": {
         "operationId": "ServerTypesController_installFromCatalog",
@@ -5121,6 +5213,89 @@
           }
         ],
         "summary": "List versions offered by a blueprint",
+        "tags": [
+          "Server Types"
+        ],
+        "x-access": {
+          "area": "servers",
+          "level": "write"
+        }
+      }
+    },
+    "/api/server-types/{id}/versions/labeled": {
+      "get": {
+        "operationId": "ServerTypesController_labeledVersionsFor",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available versions, label is null when unknown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServerTypeVersionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List versions offered by a blueprint with labels",
         "tags": [
           "Server Types"
         ],
@@ -10565,6 +10740,98 @@
         }
       }
     },
+    "/api/plugins/updates/{serverId}": {
+      "get": {
+        "description": "Known from the background check or the last installed list, no Modrinth request",
+        "operationId": "PluginsController_countUpdates",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentUpdatesCountDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count plugins with an update",
+        "tags": [
+          "Plugins"
+        ],
+        "x-access": {
+          "area": "content",
+          "level": "read"
+        }
+      }
+    },
     "/api/plugins/install": {
       "post": {
         "operationId": "PluginsController_install",
@@ -12327,6 +12594,98 @@
           }
         ],
         "summary": "List installed mods for server",
+        "tags": [
+          "Mods"
+        ],
+        "x-access": {
+          "area": "content",
+          "level": "read"
+        }
+      }
+    },
+    "/api/mods/updates/{serverId}": {
+      "get": {
+        "description": "Known from the background check or the last installed list, no Modrinth request",
+        "operationId": "ModsController_countUpdates",
+        "parameters": [
+          {
+            "name": "serverId",
+            "required": true,
+            "in": "path",
+            "description": "Server ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentUpdatesCountDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count mods with an update",
         "tags": [
           "Mods"
         ],
@@ -19195,6 +19554,360 @@
         ]
       }
     },
+    "/api/extensions/login-slots": {
+      "get": {
+        "operationId": "ExtensionsController_loginSlots",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Registry entries with only the login.footer slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExtensionRegistryEntryDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Active extensions with a login.footer slot, readable before login",
+        "tags": [
+          "Extensions"
+        ]
+      }
+    },
+    "/api/extensions/login-slots/{id}/bundle.js": {
+      "get": {
+        "operationId": "ExtensionsController_loginBundle",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ESM bundle"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "text/javascript": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Frontend bundle of a login.footer extension",
+        "tags": [
+          "Extensions"
+        ]
+      }
+    },
+    "/api/extensions/commands": {
+      "get": {
+        "operationId": "ExtensionsController_listCommands",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExtensionCommandDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Extension commands the user may run",
+        "tags": [
+          "Extensions"
+        ]
+      }
+    },
+    "/api/extensions/{id}/commands/{commandId}/run": {
+      "post": {
+        "operationId": "ExtensionsController_runCommand",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commandId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Command finished"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run an extension command",
+        "tags": [
+          "Extensions"
+        ]
+      }
+    },
+    "/api/extensions/{id}/settings": {
+      "get": {
+        "operationId": "ExtensionsController_settings",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionSettingsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Settings form of an extension",
+        "tags": [
+          "Extensions"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      },
+      "put": {
+        "operationId": "ExtensionsController_saveSettings",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveExtensionSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionSettingsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save extension settings",
+        "tags": [
+          "Extensions"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      }
+    },
     "/api/extensions/catalog": {
       "get": {
         "operationId": "ExtensionsController_catalogList",
@@ -19257,6 +19970,96 @@
           }
         ],
         "summary": "Extensions from the KubekPanel/extensions catalog",
+        "tags": [
+          "Extensions"
+        ],
+        "x-access": {
+          "area": "integrations",
+          "level": "manage"
+        }
+      }
+    },
+    "/api/extensions/catalog/{id}/readme": {
+      "get": {
+        "operationId": "ExtensionsController_catalogReadme",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Panel language, README.<lang>.md wins over README.md",
+            "schema": {
+              "example": "ru",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReadmeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBodyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "README of a catalog item in the panel language",
         "tags": [
           "Extensions"
         ],
@@ -20300,7 +21103,8 @@
               "system",
               "assistant",
               "api",
-              "mcp"
+              "mcp",
+              "extension"
             ],
             "description": "Source of the action"
           },
@@ -21894,7 +22698,7 @@
           },
           "dockerCapable": {
             "type": "boolean",
-            "description": "Whether this blueprint can run in Docker (has a docker profile)",
+            "description": "Whether this blueprint can run in Docker (has a docker profile built for this daemon platform)",
             "example": true
           },
           "variables": {
@@ -22004,6 +22808,27 @@
           "size"
         ]
       },
+      "CatalogReadmeDto": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Language to url, \"default\" is README.md"
+          },
+          "base": {
+            "type": "string",
+            "nullable": true,
+            "description": "GitHub folder the README links are relative to"
+          }
+        },
+        "required": [
+          "files",
+          "base"
+        ]
+      },
       "CatalogBlueprintDto": {
         "type": "object",
         "properties": {
@@ -22070,6 +22895,15 @@
             "type": "string",
             "nullable": true,
             "description": "ISO date"
+          },
+          "readme": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogReadmeDto"
+              }
+            ]
           },
           "compatible": {
             "type": "boolean",
@@ -22190,6 +23024,27 @@
           "items"
         ]
       },
+      "CatalogReadmeResponseDto": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string"
+          },
+          "lang": {
+            "type": "string",
+            "description": "\"default\" when there is no README for the asked language"
+          },
+          "base": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "markdown",
+          "lang",
+          "base"
+        ]
+      },
       "ServerTypeInstallResponseDto": {
         "type": "object",
         "properties": {
@@ -22213,6 +23068,26 @@
           "id",
           "name",
           "valid"
+        ]
+      },
+      "ServerTypeVersionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Version id",
+            "example": "1.21.4"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Label from the blueprint, null when the source has none",
+            "example": "1.21.4 (latest)"
+          }
+        },
+        "required": [
+          "id",
+          "label"
         ]
       },
       "SystemInfoDto": {
@@ -23386,7 +24261,8 @@
               "files.extract",
               "network.create",
               "network.update",
-              "modpack.inspect"
+              "modpack.inspect",
+              "extension.task"
             ]
           },
           "status": {
@@ -25339,6 +26215,18 @@
           "installedAt",
           "type",
           "hasUpdate"
+        ]
+      },
+      "ContentUpdatesCountDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "description": "Installed items with a newer compatible version"
+          }
+        },
+        "required": [
+          "count"
         ]
       },
       "InstallPluginDependencyDto": {
@@ -29240,7 +30128,8 @@
               "servers",
               "backups",
               "security",
-              "system"
+              "system",
+              "content"
             ]
           },
           "severity": {
@@ -29303,7 +30192,7 @@
         "properties": {
           "prefs": {
             "type": "object",
-            "description": "Category to channel switches, categories: tasks, servers, backups, security, system; channels: inbox, telegram",
+            "description": "Category to channel switches, categories: tasks, servers, backups, security, system, content; channels: inbox, telegram",
             "example": {
               "tasks": {
                 "inbox": true,
@@ -29509,6 +30398,84 @@
           "locales"
         ]
       },
+      "ExtensionCommandDto": {
+        "type": "object",
+        "properties": {
+          "extId": {
+            "type": "string",
+            "description": "Extension id"
+          },
+          "extName": {
+            "type": "string",
+            "description": "Extension display name"
+          },
+          "id": {
+            "type": "string",
+            "description": "Command id inside the extension"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title to show"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Lucide icon name"
+          },
+          "permission": {
+            "type": "string",
+            "description": "Extension permission needed to run it"
+          }
+        },
+        "required": [
+          "extId",
+          "extName",
+          "id",
+          "title"
+        ]
+      },
+      "ExtensionSettingsDto": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "settingsSchema fields from the manifest"
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Every non secret field, saved value or the default, null when neither"
+          },
+          "secrets": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "Secret fields and whether a value is saved"
+          }
+        },
+        "required": [
+          "schema",
+          "values",
+          "secrets"
+        ]
+      },
+      "SaveExtensionSettingsDto": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Field values by key. Secrets: a non empty string sets, null clears, missing or \"\" keeps. null on other fields resets to the default"
+          }
+        },
+        "required": [
+          "values"
+        ]
+      },
       "CatalogExtensionDto": {
         "type": "object",
         "properties": {
@@ -29575,6 +30542,15 @@
             "type": "string",
             "nullable": true,
             "description": "ISO date"
+          },
+          "readme": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogReadmeDto"
+              }
+            ]
           },
           "compatible": {
             "type": "boolean",

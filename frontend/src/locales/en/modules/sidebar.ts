@@ -24,6 +24,7 @@ export const sidebarTranslations: TranslationDictionary = {
     administration: "Administration",
     locked: "No access",
     updateAvailable: "Panel update available",
+    contentUpdates: (count: number) => `Updates available: ${count}`,
   },
   layout: {
     mainNav: "Main navigation",

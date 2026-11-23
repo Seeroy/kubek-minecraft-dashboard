@@ -110,6 +110,7 @@ export function ExtensionsCatalog({ view, canInstall, onInstalled }: ExtensionsC
   return (
     <CatalogBrowser
       id="extensions"
+      kind="extensions"
       query={catalog}
       view={view}
       icon={Blocks}

@@ -6,7 +6,10 @@ import {
 import type { NotificationPrefOverride } from "@/modules/database/repositories/notification-prefs.repository";
 
 const CHANNEL_DEFAULTS: Record<NotificationChannel, NotificationCategory[]> = {
-  [NotificationChannel.INBOX]: Object.values(NotificationCategory),
+  // Plugin updates are opt in, a big modpack server would flood the inbox
+  [NotificationChannel.INBOX]: Object.values(NotificationCategory).filter(
+    (category) => category !== NotificationCategory.CONTENT,
+  ),
   // Task results are chatty, the bot only gets them on request
   [NotificationChannel.TELEGRAM]: [
     NotificationCategory.SERVERS,
