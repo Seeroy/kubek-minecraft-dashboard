@@ -7,9 +7,16 @@ export const whatsNewTranslations: TranslationDictionary = {
   fullChangelog: "Full changelog on GitHub",
   releases: {
     "4-1-3": {
-      players: "All players, a player card and join history, based on the Players extension by limeskat",
-      playerTools: "The assistant and MCP can find players and read their data and activity",
-      companion: "Kubek Companion 1.1.0 shows player health, food and level",
+      players: "All players and a player card, based on Players by @limeskat",
+      companion: "Companion 1.1.0: player health, food and level",
+      catalog: "Extensions and blueprints catalog in the panel",
+      assistant: "The assistant makes a plan, asks questions and, like MCP, works with players",
+      theme: "Custom theme with Google Fonts",
+      streamer: "Streamer mode hides personal data",
+      coreParams: "Proxy flags and UTF-8 console",
+      configFiles: "\"Config files\" tab for server configs",
+      updates: "New version notices for Kubek, plugins and mods",
+      auditExport: "Audit log export to CSV and JSON",
     },
     "4-1-2": {
       cores: "NeoForge, Forge and Quilt cores, Fabric mods on Quilt",
